@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794440932;
-	b=MoPdB3a4rg9AfyVxV22/ydvpD1xrCZYusE5AP7tZrZ+whSdNHaJNsmp9w2ZTV5t9RWig
-	 xXFtOfmzBfP0zzNSzQVebA3I+X7nCIauPDJVZv/fiTax3Q8A0T/WOKUIJk1OSNHDGZ2YJ
-	 S14Z7f17plwXblIb8+93+qqDb0b1snD6ZaLpn0nYiIc0SG24RgrkHKuKWysqQWfrjGh3a
-	 nefMe+H0nsPDGZ09SXPH4ZuwllJBm9Q+AEkVZI5fTxTO74D3kQP1m16+mmQsYX2fieI+y
-	 +t7NHIVqKZf2j8Gql0tcGKjWW9onJR/unStXLpxdxF659iD52ZJy44P+YhnkyIbRQdw==
+	t=1794441170;
+	b=XqFLGve45W0XTkwSgKNz+1krRI2EzbQunWfw/AC/l5ZGqTXFB5avCvsoarnCsuoJNDFX
+	 t0EgGefziZy9JN5Yy7RqGzWLYClB3Oky7+WnHe8SBJmowxrZQVRggBvx30IpBzexUaSrp
+	 omJARsmMc0tafTGWUmbyAay5AEC9Ab6O/KAs9djvbRVLK5LbrYMylwlzQG++aSx/JzXeE
+	 3o6M0nuRCuGNfORNkXS4czhrjb77lRy7JNvqonKHFR1fEov+gdOsDMpgbiV2j1/Z1osXj
+	 FG0GzySC/nvpY4StSd0ttj/N6KNzuW1B29E2YT6hLKUyqcagUYRs01X5jN0Xr8u3EfA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794440932;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794441170;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=btm4CwNvb19RJb9O74G6ETZyavQ1Xqh0TgNZkBtsqxM=;
-	b=onwFX/DZNXj5hlM6zkC3JATOtIAmZuycM2L3sgzqB0BOzCDM9eEDXAYeySnM2IkHVKJS
-	 iHp0+msxSIcwnz9oBGogURFq63gmg71yvpponZKcmH2o2t296mWXbug5MNYI+ykCm3B8E
-	 aSdTK1cS0d7IWgD/NKjFdHpmLbU81ZReTQ1LG0fzNZMNdb1qNepSFrokOGh0aVwg6srTv
-	 oczd+oWVNCabCrffMvZkOzKSAW8tRpInxxpJOrGoP2Gag4pBfox07j7Ei2Jce1Be/p4AZ
-	 aWpkCvskBpaKRwIHcLN/4rtiwn16uHKjhbqEIX5k938K/jV+lzHoPJvsp3E/NDQnU9A==
+	bh=uUJaboCjLIgNLDO5yD86KKaL/f6qCVWOJUbD/6NP4Vk=;
+	b=Y6LcA92EDaTLIowUW8WBNRIeJ19+v3uMobEotFskLCHZxYj7rOj8AjNlSrt8SAmpIwe+
+	 WLdLECbAmTwzM6CGx398jBzCt6WgYW4Z/wh40mPvxmDzEhQ2uGQB0NDBZ3D5WWKgGIDZH
+	 24XuQRekiHHM6fI0AZZltAOybfUsa6yAr3LdPNFZ9C+5JAfzKNXXQOdmjtUXxKj8Sc/+R
+	 GE35DJskS/2WGmIRD/hanEUI3Ds4y3/HHtWQfFaPgof75H/6NOPsX+UTlbaF1P70lS3bp
+	 c3uFiIKz7fKbPK8wkqKPg/De0+XP2zy9eTPHo883uuwJepdKfMwKH4U9QqZ2n9s+j6g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=MV+O7Ecl;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Y43XyQyq;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BFE760A6F43
-	for <mm-commits@vger.kernel.org>; Wed, 11 Nov 2026 23:48:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A624606A31C
+	for <mm-commits@vger.kernel.org>; Wed, 11 Nov 2026 23:52:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=MV+O7Ecl
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A35441F00A05;
-	Wed, 11 Nov 2026 23:48:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Y43XyQyq
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9E251F00A05;
+	Wed, 11 Nov 2026 23:52:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794440931;
-	bh=btm4CwNvb19RJb9O74G6ETZyavQ1Xqh0TgNZkBtsqxM=;
+	d=linux-foundation.org; s=korg; t=1794441170;
+	bh=uUJaboCjLIgNLDO5yD86KKaL/f6qCVWOJUbD/6NP4Vk=;
 	h=Date:To:From:Subject;
-	b=MV+O7EclGlvoD/cJX8u1u8QB+KSc57caoYQH2rEQYLaTnoO2WaJZU3Zg1hI7qTn9h
-	 ERp5fPvhwwXHOHxsnwdDjkbehbN/X72Tye03CUbSU/rSf6zmKVgUH7ya1qe5hxGnWI
-	 b5y3i4f+jHBCw3CTGZaeYxbT4s9IfkeoPTPrib9g=
-Date: Wed, 11 Nov 2026 15:48:51 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@kernel.org,
-	surenb@google.com,shuah@kernel.org,rppt@kernel.org,peterx@redhat.com,
-	mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,
-	chris@chrisdown.name,akpm@linux-foundation.org
+	b=Y43XyQyqIN1YDGAHTOzYra7349zxEFzeSsy+GEOx3Kj9+L5BbJ9XsoAIpe2E8pTD4
+	 H5kYPQogjfXThjpLrG3ZU2tCcEJNv/AhqiDPNYOQWab4PFbMXkztvPRv2+G66oBuDg
+	 PAflXngUMwazxwzHVB+xIDzvO/z8kZetioPRXtr8=
+Date: Wed, 11 Nov 2026 15:52:49 -0800
+To: mm-commits@vger.kernel.org,
+	syzbot+c73ff6790f3d6c635abc@syzkaller.appspotmail.com,mark@fasheh.com,
+	joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,
+	a.p.zijlstra@chello.nl,847807867@qq.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test.patch added to mm-new branch
-Message-Id: <20261111234851.A35441F00A05@smtp.kernel.org>
+Subject: + ocfs2-fix-lockdep-class-of-newly-created-directories.patch added to mm-nonmm-unstable branch
+Message-Id: <20261111235249.D9E251F00A05@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,26 +54,15 @@ Precedence: list
 
 
 The patch titled
-     Subject: selftests/mm: add UFFDIO_MOVE huge zeropage PMD regression test
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test.patch
+     Subject: ocfs2: fix lockdep class of newly created directories
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-fix-lockdep-class-of-newly-created-directories.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-lockdep-class-of-newly-created-directories.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -88,217 +77,96 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Chris Down <chris@chrisdown.name>
-Subject: selftests/mm: add UFFDIO_MOVE huge zeropage PMD regression test
-Date: Tue, 10 Nov 2026 18:10:28 -0800
+From: Shuai Liu <847807867@qq.com>
+Subject: ocfs2: fix lockdep class of newly created directories
+Date: Tue, 10 Nov 2026 09:45:06 +0800
 
-The move-pmd test exercises UFFDIO_MOVE on anonymous THPs but does not
-cover the huge zeropage PMD path.
+Directories and regular files use different lockdep classes for i_rwsem
+(i_mutex_dir_key vs i_mutex_key) so that lockdep can verify the documented
+locking order "parent[2] -> child -> normal" without spurious class-level
+cycles: e.g.  cross-directory rename takes I_MUTEX_CHILD on the source
+directory followed by an unclassed I_MUTEX_NORMAL on the target inode,
+while other paths take I_MUTEX_NORMAL on a file before touching a
+child-class inode.
 
-Add a test that faults in a huge zeropage PMD, moves it in response to one
-missing fault, and checks that the destination still maps the huge
-zeropage.
+Since commit 14358e6ddaed ("lockdep: annotate dir vs file i_mutex"), this
+split is applied in unlock_new_inode(), which relies on the inode being
+created with I_NEW set.  ocfs2 creates inodes through new_inode() (no
+I_NEW) and instantiates them with a plain d_instantiate(), so
+lockdep_annotate_inode_mutex_key() never runs on this path.  Every
+directory created after mount therefore keeps the plain i_mutex_key class
+for its whole lifetime, breaking the dir/file class separation that the
+VFS locking order relies on.
 
-Link: https://lore.kernel.org/avPOlMOmUdjPe5NJ@chrisdown.name
-Signed-off-by: Chris Down <chris@chrisdown.name>
+With such a directory the class-level chain
+
+  i_mutex_key/I_MUTEX_NORMAL -> i_mutex_key/I_MUTEX_CHILD
+
+recorded by the reflink path (ocfs2_vfs_reflink() locks the source inode,
+then __ocfs2_reflink() takes I_MUTEX_CHILD on the orphan inode) collides
+with the chain
+
+  i_mutex_key/I_MUTEX_CHILD -> i_mutex_key
+
+recorded by vfs_rename() when renaming a directory onto an existing
+file, and lockdep reports a "possible deadlock in vfs_rename":
+
+  syz-executor105/5623 is trying to acquire lock:
+  ffff8880767009a0 (&sb->s_type->i_mutex_key#18){+.+.}-{4:4}, at: vfs_rename+0x6e3
+  but task is already holding lock:
+  ffff8880764ff9a0 (&sb->s_type->i_mutex_key#18/2){+.+.}-{4:4}, at: vfs_rename+0x64d
+
+  Chain exists of:
+    &sb->s_type->i_mutex_key#18 --> &oi->ip_alloc_sem --> &sb->s_type->i_mutex_key#18/2
+
+Fix it by calling lockdep_annotate_inode_mutex_key() in
+ocfs2_get_init_inode() right after the final mode is established, before
+the inode can be found or locked by anyone else.  This is the same
+treatment shmem got (commit b45d71fb89ab8adf, "mm: shmem.c: Correctly
+annotate new inodes for lockdep"), following the hugetlbfs pattern of
+annotating right after new inode creation.  Freshly created ocfs2
+directories are now properly separated from files in lockdep and the
+rename vs reflink cycle disappears.
+
+The C reproducer from syzbot (mount ocfs2 image, OCFS2_IOC_REFLINK, mkdir
+two directories, rename a directory onto the reflinked file) hits the
+lockdep warning on every run without the fix and runs cleanly with it.
+
+Link: https://lore.kernel.org/tencent_DEBEB3490E975A2C62C2D7DD573A9A254F05@qq.com
+Fixes: 14358e6ddaed ("lockdep: annotate dir vs file i_mutex")
+Signed-off-by: Shuai Liu <847807867@qq.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reported-by: <syzbot+c73ff6790f3d6c635abc@syzkaller.appspotmail.com>
+Closes: https://syzkaller.appspot.com/bug?extid=c73ff6790f3d6c635abc
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Heming Zhao <heming.zhao@suse.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 ---
 
- tools/testing/selftests/mm/uffd-unit-tests.c |   98 +++++++++++++++++
- tools/testing/selftests/mm/vm_util.c         |   29 +++++
- tools/testing/selftests/mm/vm_util.h         |    2 
- 3 files changed, 129 insertions(+)
+ fs/ocfs2/namei.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test
-+++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -2132,6 +2132,97 @@ static void uffd_move_pmd_test(uffd_glob
- 			      uffd_move_pmd_handle_fault);
- }
- 
-+static void uffd_move_pmd_huge_zeropage_test(uffd_global_test_opts_t *gopts,
-+					     uffd_test_args_t *targs)
-+{
-+	unsigned long pmd_size = read_pmd_pagesize();
-+	unsigned long nr_pages_per_pmd;
-+	unsigned long bytes = gopts->nr_pages * gopts->page_size;
-+	char *orig_area_src = gopts->area_src, *orig_area_dst = gopts->area_dst;
-+	char *aligned_src, *aligned_dst;
-+	unsigned long src_offs, dst_offs, max_offs;
-+	pthread_t uffd_mon;
-+	struct uffd_args args = { 0 };
-+	char c = '\0';
-+	int pagemap_fd;
-+
-+	if (pmd_size <= gopts->page_size) {
-+		uffd_test_skip("Could not detect PMD size");
-+		return;
-+	}
-+	if (!detect_huge_zeropage()) {
-+		uffd_test_skip("transparent huge zeropage disabled");
-+		return;
-+	}
-+
-+	nr_pages_per_pmd = pmd_size / gopts->page_size;
-+	if (bytes < pmd_size) {
-+		uffd_test_skip("not enough pages for one PMD-sized move");
-+		return;
-+	}
-+
-+	aligned_src = ALIGN_UP(orig_area_src, pmd_size);
-+	aligned_dst = ALIGN_UP(orig_area_dst, pmd_size);
-+	src_offs = (aligned_src - orig_area_src) / gopts->page_size;
-+	dst_offs = (aligned_dst - orig_area_dst) / gopts->page_size;
-+	max_offs = src_offs > dst_offs ? src_offs : dst_offs;
-+	if (max_offs + nr_pages_per_pmd > gopts->nr_pages) {
-+		uffd_test_skip("could not find aligned PMD-sized src/dst window");
-+		return;
-+	}
-+
-+	if (madvise(orig_area_dst, bytes, MADV_HUGEPAGE))
-+		err("madvise(MADV_HUGEPAGE) failure");
-+	if (madvise(orig_area_src, bytes, MADV_DONTFORK))
-+		err("madvise(MADV_DONTFORK) failure");
-+	if (madvise(aligned_src, pmd_size, MADV_DONTNEED))
-+		err("madvise(MADV_DONTNEED) failure");
-+
-+	/* Fault in a PMD-sized huge zeropage mapping in the source. */
-+	force_read_pages(aligned_src, nr_pages_per_pmd, gopts->page_size);
-+
-+	pagemap_fd = pagemap_open();
-+	if (!pagemap_is_huge_zero(pagemap_fd, aligned_src)) {
-+		close(pagemap_fd);
-+		uffd_test_skip("could not fault in the huge zeropage");
-+		return;
-+	}
-+	gopts->area_src = aligned_src;
-+	gopts->area_dst = aligned_dst;
-+
-+	if (uffd_register(gopts->uffd, gopts->area_dst, pmd_size, true, false, false))
-+		err("register failure");
-+
-+	args.gopts = gopts;
-+	args.handle_fault = uffd_move_pmd_handle_fault;
-+	if (pthread_create(&uffd_mon, NULL, uffd_poll_thread, &args))
-+		err("uffd_poll_thread create");
-+
+--- a/fs/ocfs2/namei.c~ocfs2-fix-lockdep-class-of-newly-created-directories
++++ a/fs/ocfs2/namei.c
+@@ -203,6 +203,13 @@ static struct inode *ocfs2_get_init_inod
+ 		set_nlink(inode, 2);
+ 	mode = mode_strip_sgid(&nop_mnt_idmap, dir, mode);
+ 	inode_init_owner(&nop_mnt_idmap, inode, dir, mode);
 +	/*
-+	 * One fault on dst should trigger a single PMD-sized UFFDIO_MOVE from
-+	 * the huge zeropage PMD we populated in the source.
++	 * This inode never goes through unlock_new_inode() (there is no
++	 * I_NEW state on this path), so the directory vs file lockdep
++	 * class split for i_rwsem has to be done here, before the inode
++	 * becomes visible to anybody else.
 +	 */
-+	force_read_pages(gopts->area_dst, nr_pages_per_pmd, gopts->page_size);
-+
-+	if (write(gopts->pipefd[1], &c, sizeof(c)) != sizeof(c))
-+		err("pipe write");
-+	if (pthread_join(uffd_mon, NULL))
-+		err("join() failed");
-+
-+	if (args.missing_faults != 1 || args.minor_faults != 0)
-+		uffd_test_fail("stats check error");
-+	else if (!pagemap_is_huge_zero(pagemap_fd, gopts->area_dst))
-+		uffd_test_fail("moved destination is not a huge zeropage PMD");
-+	else if (smaps_has_anon_huge_pages(gopts->area_dst))
-+		uffd_test_fail("moved huge zeropage PMD counted as AnonHugePages");
-+	else
-+		uffd_test_pass();
-+
-+	gopts->area_src = orig_area_src;
-+	gopts->area_dst = orig_area_dst;
-+	close(pagemap_fd);
-+}
-+
- static void uffd_move_pmd_split_test(uffd_global_test_opts_t *gopts, uffd_test_args_t *targs)
- {
- 	if (madvise(gopts->area_dst, gopts->nr_pages * gopts->page_size, MADV_NOHUGEPAGE))
-@@ -2523,6 +2614,13 @@ uffd_test_case_t uffd_tests[] = {
- 		.mem_targets = MEM_ANON,
- 		.uffd_feature_required = UFFD_FEATURE_MOVE,
- 		.test_case_ops = &uffd_move_test_pmd_case_ops,
-+	},
-+	{
-+		.name = "move-pmd-huge-zeropage",
-+		.uffd_fn = uffd_move_pmd_huge_zeropage_test,
-+		.mem_targets = MEM_ANON,
-+		.uffd_feature_required = UFFD_FEATURE_MOVE,
-+		.test_case_ops = &uffd_move_test_pmd_case_ops,
- 	},
- 	{
- 		.name = "move-pmd-split",
---- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test
-+++ a/tools/testing/selftests/mm/vm_util.c
-@@ -124,6 +124,18 @@ bool pagemap_is_populated(int fd, char *
- 				PAGE_IS_PRESENT | PAGE_IS_SWAPPED);
- }
- 
-+bool pagemap_is_huge_zero(int fd, char *start)
-+{
-+	const uint64_t expected = PAGE_IS_PRESENT | PAGE_IS_PFNZERO | PAGE_IS_HUGE;
-+	uint64_t categories;
-+
-+	if (!pagemap_scan_supported(fd, start))
-+		return false;
-+
-+	categories = pagemap_scan_get_categories(fd, start);
-+	return (categories & expected) == expected;
-+}
-+
- unsigned long pagemap_get_pfn(int fd, char *start)
- {
- 	uint64_t entry = pagemap_get_entry(fd, start);
-@@ -374,6 +386,23 @@ err_out:
- 	return entry;
- }
- 
-+bool smaps_has_anon_huge_pages(void *addr)
-+{
-+	char buf[MAX_LINE_LENGTH];
-+	unsigned long anon_huge_kb;
-+	char *entry, *end;
-+
-+	entry = __get_smap_entry(addr, "AnonHugePages:", buf, sizeof(buf));
-+	if (!entry)
-+		ksft_exit_fail_msg("could not find AnonHugePages\n");
-+
-+	anon_huge_kb = strtoul(entry, &end, 10);
-+	if (end == entry)
-+		ksft_exit_fail_msg("could not parse AnonHugePages\n");
-+
-+	return anon_huge_kb != 0;
-+}
-+
- static bool check_large_folios(void *addr, size_t len, int nr_hpages,
- 		uint64_t hpage_size)
- {
---- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test
-+++ a/tools/testing/selftests/mm/vm_util.h
-@@ -102,12 +102,14 @@ uint64_t pagemap_get_entry(int fd, char
- bool pagemap_is_softdirty(int fd, char *start);
- bool pagemap_is_swapped(int fd, char *start);
- bool pagemap_is_populated(int fd, char *start);
-+bool pagemap_is_huge_zero(int fd, char *start);
- unsigned long pagemap_get_pfn(int fd, char *start);
- void clear_softdirty(void);
- bool check_for_pattern(FILE *fp, const char *pattern, char *buf, size_t len);
- uint64_t pmd_psize(void);
- uint64_t pmd_pshift(void);
- unsigned long rss_anon(void);
-+bool smaps_has_anon_huge_pages(void *addr);
- bool check_huge_anon(void *addr, size_t len, int nr_hpages, uint64_t hpage_size);
- bool check_huge_file(void *addr, size_t len, int nr_hpages, uint64_t hpage_size);
- int64_t allocate_transhuge(void *ptr, int pagemap_fd);
++	lockdep_annotate_inode_mutex_key(inode);
+ 	status = dquot_initialize(inode);
+ 	if (status) {
+ 		iput(inode);
 _
 
-Patches currently in -mm which might be from chris@chrisdown.name are
+Patches currently in -mm which might be from 847807867@qq.com are
 
-mm-memcontrol-dont-lose-track-of-exiting-oom-victims.patch
-selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test.patch
+ocfs2-fix-lockdep-class-of-newly-created-directories.patch
 
