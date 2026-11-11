@@ -1,48 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794376209;
-	b=mzOslr1RHi3LcST6gBAeWc8PfvH5f/WmKrYSZQ4YZvuKfHcoMpUl703G0OSdg7SwKJl0
-	 tMwPjpCo/CxG0IkJnfgIINLxWkK52MikwlpJVYyIue4I/bOFiIBO+2J60sTdjN+xu3qeh
-	 e9fSuX3t3Ix+efO6FzO7E/NkTtyJzqu0U3i06D/uI/9Lra88yqsmMi8szAdgYCubZLjyz
-	 JY8u9mYUqKHqI0hGu6a7UrgLHCY6i4hHe9qcYGvMsXUmtlKYd4dLp58MrGhjfWEZ3vDmb
-	 37ZO3yYEAffgLVtH6wpF8LktKZ4FXbJAoLj+ONMs0y1Snf8qEj3mp+sQtZEjnXgx2mA==
+	t=1794418368;
+	b=Q+UQHqiIk3j+tf1/wYrhk4OXx71JUPBEn86eouy8As04SgrIR9KV7YR3oI0ZvaEfslNz
+	 Qejx6H9ZQ7sDOzu98XNGCu3jZSmb6A93lWFpBvv5pL6uAL1rgx2Wq38JKjwFsGKZJyTyF
+	 +VxUiABhKTrADrz46Jw/1muNU+dnQ0zpPpEBHfE4RCfVTfAXdBW/fHEG1eUYOG0q9i4fw
+	 RmW8xalmkOsqxlZRx/RPKEhNgsIACFewIxBsBJf61siWcAf7VMEOvXx/G9fpYSTVXcDV8
+	 9wU21yaxVkTyI2AowexFFs7E0d847wnUSPtKV1JVTLL4iEMsHh7pO4nWJQ2uyZ4JRvQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794376209;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794418368;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=vEiTW+ZQgqq6LOKwwdTxoq3G81q4+7OhDE0dZBxDDHw=;
-	b=gyubiGi9wPxJMDE0HrBhQLZu6eUGjppOKiKJ3sQQyKS5m9oD9qcV+3mUnHZruymVacD+
-	 CfJzB9fBE8gkdH2OFTAO90qb98Sxm12ATIONP9IHFOXph+s0goIq74Ne2gA1KQesj2lti
-	 d092Nm33dXvyIRk8Q0OXbu/EGy+RqEEoutEi6BpHygkVd9+ICqA/RWOdcjmpEwrTBK08r
-	 qKLH08e/9DgOwJJ2kvIhf6wiWhIfnob0k2OkQJ8E4JMBj4PMJHYscQqhK8IopIc7Ap7CI
-	 ckhJancN86Pk8+UpF8pAm2Iv0umYsaw30L2z+yS58chTd0825EaJUnW+X8Q7lR6iJfA==
+	bh=i/Wl68WndN2EKuzpehAg9aUM1ETe8HosTQwm03IpDl0=;
+	b=3A1YqQw60doFznzPs4rMORKlEHtIeBS2Qk2UKHDiNgu18QL6O+Q3rlMEWvk3PeiWoCHY
+	 qgMRAc7qOEhv2zA5vmo9DDj/Dk/6JfX3fFbBCzwDzzhy9H//+Zsmu0gHgGNAIUB/RdN/0
+	 yUOeBLhc1Tg6ttkzTuxT7lWaZXs8z4YeTCq4PnfnrHXKkHOKsKKtAhpQQD9KgBZk/RiOc
+	 9cmdZHA58NrGoZ4qmwMNCWZeOaUGw3prOeXKbJv186FudsqBiEqx+MVHboUQnqSWeIMMF
+	 VNPYZn+dP8DWGDrFXRI00WjdbxnijJfZkRR82yARjgpqGKFrTE9nOHD191E+xO9iqtQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=dpBRhw3i;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PxzXF17S;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23317606A331;
-	Wed, 11 Nov 2026 05:50:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92B29606A31C
+	for <mm-commits@vger.kernel.org>; Wed, 11 Nov 2026 17:32:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=dpBRhw3i
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24A3F1F00A06;
-	Wed, 11 Nov 2026 05:50:08 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PxzXF17S
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA7ED1F00A05;
+	Wed, 11 Nov 2026 17:32:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794376208;
-	bh=vEiTW+ZQgqq6LOKwwdTxoq3G81q4+7OhDE0dZBxDDHw=;
+	d=linux-foundation.org; s=korg; t=1794418368;
+	bh=i/Wl68WndN2EKuzpehAg9aUM1ETe8HosTQwm03IpDl0=;
 	h=Date:To:From:Subject;
-	b=dpBRhw3iUxAYKI3HYiHxCuEDfF4x8ehF26V5cJNGWhP0Zlh3YlMD6lYkU2iCp8aYf
-	 W39sEpkLtK34FI94CMY2OrxoWGmM0voC00YEoHU+wVLMmxif3xHQySYcQGFsWLrOws
-	 nrf5VD/bffhNXmNwgCZShPSu6H30wNTp/Fd6A6S0=
-Date: Tue, 10 Nov 2026 21:50:07 -0800
-To: mm-commits@vger.kernel.org,wangyang.guo@intel.com,
-	tim.c.chen@linux.intel.com,tianyou.li@intel.com,tglx@kernel.org,
-	stable@vger.kernel.org,dan.liang@intel.com,bp@alien8.de,
-	Vishal.Badole@amd.com,akpm@linux-foundation.org
+	b=PxzXF17SyNtmJQW7mLcnD2tonbl0UoN2gd1q5/DcF42NAV0KrsEs9/Kdcbgwe2DQk
+	 AV/4+Jrf1DtojCg6tLS0zusH9Wq4AXUr1VzxylNguFc/JpeTjg8zUVGgijQLC8V0+z
+	 Z7use8W+hepIiCEViiAudbmKBaGseT6FMeDPVyfA=
+Date: Wed, 11 Nov 2026 09:32:47 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
+	shakeel.butt@linux.dev,liam@infradead.org,ljs@kernel.org,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-group_cpus-snapshot-cluster-masks-to-keep-grouping-hotplug-invariant.patch added to mm-nonmm-unstable branch
-Message-Id: <20261111055008.24A3F1F00A06@smtp.kernel.org>
+Subject: + mm-only-assert-mmap-locks-if-config_debug_vm-or-lockdep-is-set.patch added to mm-new branch
+Message-Id: <20261111173247.EA7ED1F00A05@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,15 +53,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: lib/group_cpus: snapshot cluster masks to keep grouping hotplug invariant
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-group_cpus-snapshot-cluster-masks-to-keep-grouping-hotplug-invariant.patch
+     Subject: mm: only assert mmap locks if CONFIG_DEBUG_VM or lockdep is set
+has been added to the -mm mm-new branch.  Its filename is
+     mm-only-assert-mmap-locks-if-config_debug_vm-or-lockdep-is-set.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-group_cpus-snapshot-cluster-masks-to-keep-grouping-hotplug-invariant.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-only-assert-mmap-locks-if-config_debug_vm-or-lockdep-is-set.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,317 +87,103 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Vishal Badole <Vishal.Badole@amd.com>
-Subject: lib/group_cpus: snapshot cluster masks to keep grouping hotplug invariant
-Date: Tue, 10 Nov 2026 23:15:13 +0530
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: mm: only assert mmap locks if CONFIG_DEBUG_VM or lockdep is set
+Date: Tue, 10 Nov 2026 16:57:43 +0000
 
-group_cpus_evenly() builds the managed-IRQ affinity spread used by
-multi-queue devices such as NVMe.  That spread is meant to be a property
-of the static CPU topology: it walks cpu_present_mask and then
-cpu_possible_mask so every hardware queue owns a fixed set of CPUs,
-including CPUs that are offline at the time.  A driver depends on that
-partition staying stable across re-computation - the CPUs a queue is given
-at probe must still describe the same queue after the device is later
-reset and its affinity recomputed.
+Patch series "mm: only assert mmap and VMA locks if CONFIG_DEBUG_VM is
+set".
 
-On an AMD system that stability breaks across an s2idle cycle.  CPUs 3-11
-are offlined before suspend, leaving only CPUs 0-2 online.  s2idle itself
-does not offline secondary CPUs.  The NVMe controller uses the
-simple-suspend quirk, so resume fully re-initialises it and recomputes the
-affinity spread while CPUs 3-11 remain offline.  The system then hangs for
-roughly two minutes and stays sluggish afterwards, the controller only
-making progress through its command-timeout poll:
+Currently these asserts are all performed at runtime regardless of whether
+or not the kernel is intended for debugging mm code (i.e. whether or not
+CONFIG_DEBUG_VM is set).
 
-  nvme nvme0: I/O tag 898 (3382) QID 9 timeout, completion polled
-  nvme nvme0: I/O tag 398 (618e) QID 11 timeout, completion polled
+These are explicitly programmatic checks - that is, checking basic
+correctness in mm code which interacts with these locks.
 
-QID 9 and QID 11 are the queues whose CPUs were offline when the spread
-was recomputed.  "completion polled" means the commands did finish in
-hardware, but their interrupts were never delivered to a CPU that was
-watching the queue, so nothing reaped them until the timeout fired.
+The problem with this is that checks like this are generally asserted in mm
+code using VM_WARN_ON_ONCE() and similar, and thus only checked if
+CONFIG_DEBUG_VM is set.
 
-It happens because commit 89802ca36c96 ("lib/group_cpus: make group CPU
-cluster aware") derives the cluster groups from
-topology_cluster_cpumask(), which lists only the cluster siblings that are
-online when it is called.  The resulting partition therefore depends on
-the transient online mask rather than on the topology alone.  Recomputed
-on resume while CPUs 3-11 remain offline, it no longer matches the
-boot-time partition, and a queue is left with an affinity that does not
-cover the CPU it is meant to serve once that CPU comes back online.  The
-dependence is on the online mask, not on any AMD-specific behaviour, so
-the same stall is reproducible on Intel platforms as well.
+So having some assertions which are unconditional and some not without it
+being clear, creates something of an unintended two-tier system.
 
-Fix this by snapshotting cluster and SMT masks together under
-cpus_read_trylock() when all present CPUs are online.  Latch the first
-capture attempt, permanently using CPU-order grouping if it fails, and
-propagate later allocation errors instead of switching algorithms.  This
-keeps successful spreads stable across CPU offline/online cycles for an
-unchanged group count, present/possible CPU sets and NUMA topology.
+Since what is being asserted in these cases is exactly the same kind of
+condition as those asserted in VM_WARN_ON_ONCE() assertions, simply
+predicate them on CONFIG_DEBUG_VM.
 
-Link: https://lore.kernel.org/20261110174513.461743-1-Vishal.Badole@amd.com
-Fixes: 89802ca36c96 ("lib/group_cpus: make group CPU cluster aware")
-Signed-off-by: Vishal Badole <Vishal.Badole@amd.com>
+Retain assertions for mmap lock asserts if CONFIG_LOCKDEP is specified in
+order that expected lockdep assertions continue to function.
+
+The VMA lock implementation already performs lockdep tracking regardless of
+whether CONFIG_DEBUG_VM is set or not, so no changes are required there.
+
+
+This patch (of 3):
+
+For a long while we have asserted the mmap lock being held regardless of
+whether or not the kernel is a debug build or not.
+
+In general, given that these have been added as programmatic asserts that
+nobody did something stupid, production kernels are simply wasting their
+time checking for this.
+
+It also means there is a two tier system - where some programmatic
+asserts (e.g. VM_WARN_ON_ONCE()-checked conditions) are only checked for if
+CONFIG_DEBUG_VM is enabled, whereas others are checked unconditionally.
+
+If we genuinely want to unconditionally check for the mmap lock being held
+at runtime, then that should be made clear in the code doing it.
+
+Regardless, if CONFIG_LOCKDEP is enabled, ensure that the lockdep
+assertions are performed.
+
+Link: https://lore.kernel.org/20261110-tame-vma-asserts-v1-0-be293ff499a7@kernel.org
+Link: https://lore.kernel.org/20261110-tame-vma-asserts-v1-1-be293ff499a7@kernel.org
+Link: https://lore.kernel.org/linux-mm/20261110-vma-fixup-debug-asserts-v1-1-0b2e0680cd7e@kernel.org/ [0]
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Thomas Gleixner <tglx@kernel.org>
-Cc: <bp@alien8.de>
-Cc: Wangyang Guo <wangyang.guo@intel.com>
-Cc: Tianyou Li <tianyou.li@intel.com>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: Dan Liang <dan.liang@intel.com>
-Cc: <stable@vger.kernel.org>
+Reviewed-by: Liam R. Howlett (Google) <liam@infradead.org>
+Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 ---
 
- lib/group_cpus.c |  125 ++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 106 insertions(+), 19 deletions(-)
+ include/linux/mmap_lock.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/lib/group_cpus.c~lib-group_cpus-snapshot-cluster-masks-to-keep-grouping-hotplug-invariant
-+++ a/lib/group_cpus.c
-@@ -6,11 +6,14 @@
- #include <linux/kernel.h>
- #include <linux/slab.h>
- #include <linux/cpu.h>
-+#include <linux/mutex.h>
- #include <linux/sort.h>
- #include <linux/group_cpus.h>
+--- a/include/linux/mmap_lock.h~mm-only-assert-mmap-locks-if-config_debug_vm-or-lockdep-is-set
++++ a/include/linux/mmap_lock.h
+@@ -75,12 +75,14 @@ static inline void __mmap_lock_trace_rel
  
- #ifdef CONFIG_SMP
- 
-+static cpumask_var_t *sibling_snapshot;
-+
- static void grp_spread_init_one(struct cpumask *irqmsk, struct cpumask *nmsk,
- 				unsigned int cpus_per_grp)
+ static inline void mmap_assert_locked(const struct mm_struct *mm)
  {
-@@ -29,7 +32,7 @@ static void grp_spread_init_one(struct c
- 		cpus_per_grp--;
- 
- 		/* If the cpu has siblings, use them first */
--		siblmsk = topology_sibling_cpumask(cpu);
-+		siblmsk = sibling_snapshot ? sibling_snapshot[cpu] : cpumask_of(cpu);
- 		for (sibl = -1; cpus_per_grp > 0; ) {
- 			sibl = cpumask_next(sibl, siblmsk);
- 			if (sibl >= nr_cpu_ids)
-@@ -286,6 +289,84 @@ static void assign_cpus_to_groups(unsign
- 	}
+-	rwsem_assert_held(&mm->mmap_lock);
++	if (IS_ENABLED(CONFIG_DEBUG_VM) || IS_ENABLED(CONFIG_LOCKDEP))
++		rwsem_assert_held(&mm->mmap_lock);
  }
  
-+/*
-+ * Cluster and SMT sibling masks change when CPUs go offline. Snapshot both
-+ * on the first spread if every present CPU is online. Latch the attempt even
-+ * on failure, so later spreads cannot enable a different grouping algorithm.
-+ *
-+ * Without a snapshot, use CPU order without cluster or SMT preference.
-+ * Successful spreads remain stable for the same group count, present/possible
-+ * CPU sets and NUMA topology. The snapshot is not refreshed for CPU hot-add.
-+ */
-+static cpumask_var_t *cluster_snapshot;
-+static bool cluster_snapshot_initialized;
-+static DEFINE_MUTEX(cluster_snapshot_lock);
-+
-+static void capture_cluster_snapshot(void)
-+{
-+	cpumask_var_t *snapshot, *siblings;
-+	unsigned int cpu;
-+
-+	/* Pairs with the smp_store_release() below. */
-+	if (smp_load_acquire(&cluster_snapshot_initialized))
-+		return;
-+
-+	mutex_lock(&cluster_snapshot_lock);
-+	if (cluster_snapshot_initialized)
-+		goto out;
-+
-+	/* Only capture when all present CPUs are online. */
-+	if (!data_race(cpumask_equal(cpu_present_mask, cpu_online_mask)))
-+		goto done;
-+
-+	snapshot = kcalloc(nr_cpu_ids, sizeof(*snapshot), GFP_KERNEL);
-+	if (!snapshot)
-+		goto done;
-+	siblings = kcalloc(nr_cpu_ids, sizeof(*siblings), GFP_KERNEL);
-+	if (!siblings)
-+		goto free_snapshot;
-+
-+	for_each_possible_cpu(cpu)
-+		if (!zalloc_cpumask_var(&snapshot[cpu], GFP_KERNEL) ||
-+		    !zalloc_cpumask_var(&siblings[cpu], GFP_KERNEL))
-+			goto free_snapshot;
-+
-+	/* Trylock: a caller may hold a lock the hotplug writer needs. */
-+	if (!cpus_read_trylock())
-+		goto free_snapshot;
-+
-+	/* Recheck with CPU hotplug excluded before copying the masks. */
-+	if (!data_race(cpumask_equal(cpu_present_mask, cpu_online_mask))) {
-+		cpus_read_unlock();
-+		goto free_snapshot;
-+	}
-+
-+	for_each_possible_cpu(cpu) {
-+		cpumask_copy(snapshot[cpu], topology_cluster_cpumask(cpu));
-+		cpumask_copy(siblings[cpu], topology_sibling_cpumask(cpu));
-+	}
-+	cpus_read_unlock();
-+
-+	cluster_snapshot = snapshot;
-+	sibling_snapshot = siblings;
-+	goto done;
-+
-+free_snapshot:
-+	/* Unallocated entries are NULL, which free_cpumask_var() ignores. */
-+	for_each_possible_cpu(cpu) {
-+		free_cpumask_var(snapshot[cpu]);
-+		if (siblings)
-+			free_cpumask_var(siblings[cpu]);
-+	}
-+	kfree(snapshot);
-+	kfree(siblings);
-+done:
-+	/* Publish the capture outcome, including failure, before grouping. */
-+	smp_store_release(&cluster_snapshot_initialized, true);
-+out:
-+	mutex_unlock(&cluster_snapshot_lock);
-+}
-+
- static int alloc_cluster_groups(unsigned int ncpus,
- 				unsigned int ngroups,
- 				struct cpumask *node_cpumask,
-@@ -299,6 +380,9 @@ static int alloc_cluster_groups(unsigned
- 	const struct cpumask **clusters;
- 	struct node_groups *cluster_groups;
- 
-+	if (!cluster_snapshot)
-+		goto no_cluster;
-+
- 	cpumask_copy(msk, node_cpumask);
- 
- 	/* Probe how many clusters in this node. */
-@@ -307,7 +391,7 @@ static int alloc_cluster_groups(unsigned
- 		if (cpu >= nr_cpu_ids)
- 			break;
- 
--		cluster_mask = topology_cluster_cpumask(cpu);
-+		cluster_mask = cluster_snapshot[cpu];
- 		if (!cpumask_weight(cluster_mask))
- 			goto no_cluster;
- 		/* Clean out CPUs on the same cluster. */
-@@ -322,7 +406,7 @@ static int alloc_cluster_groups(unsigned
- 	/* Allocate memory based on cluster number. */
- 	clusters = kzalloc_objs(*clusters, ncluster);
- 	if (!clusters)
--		goto no_cluster;
-+		return -ENOMEM;
- 	cluster_groups = kzalloc_objs(struct node_groups, ncluster);
- 	if (!cluster_groups)
- 		goto fail_cluster_groups;
-@@ -331,7 +415,7 @@ static int alloc_cluster_groups(unsigned
- 	cpumask_copy(msk, node_cpumask);
- 	for (n = 0; n < ncluster; n++) {
- 		cpu = cpumask_first(msk);
--		cluster_mask = topology_cluster_cpumask(cpu);
-+		cluster_mask = cluster_snapshot[cpu];
- 		nc = cpumask_weight_and(cluster_mask, node_cpumask);
- 		clusters[n] = cluster_mask;
- 		cluster_groups[n].id = n;
-@@ -347,6 +431,7 @@ static int alloc_cluster_groups(unsigned
- 
-  fail_cluster_groups:
- 	kfree(clusters);
-+	return -ENOMEM;
-  no_cluster:
- 	return 0;
- }
-@@ -354,9 +439,9 @@ static int alloc_cluster_groups(unsigned
- /*
-  * Try group CPUs evenly for cluster locality within a NUMA node.
-  *
-- * Return: true if success, false otherwise.
-+ * Return: cluster count on success, 0 if inapplicable, or -ENOMEM on failure.
-  */
--static bool __try_group_cluster_cpus(unsigned int ncpus,
-+static int __try_group_cluster_cpus(unsigned int ncpus,
- 				     unsigned int ngroups,
- 				     struct cpumask *node_cpumask,
- 				     struct cpumask *masks,
-@@ -365,18 +450,17 @@ static bool __try_group_cluster_cpus(uns
+ static inline void mmap_assert_write_locked(const struct mm_struct *mm)
  {
- 	struct node_groups *cluster_groups;
- 	const struct cpumask **clusters;
--	unsigned int ncluster;
--	bool ret = false;
-+	int ncluster;
- 	cpumask_var_t nmsk;
- 	unsigned int i, nc;
- 
- 	if (!zalloc_cpumask_var(&nmsk, GFP_KERNEL))
--		goto fail_nmsk_alloc;
-+		return -ENOMEM;
- 
- 	ncluster = alloc_cluster_groups(ncpus, ngroups, node_cpumask, nmsk,
- 					&clusters, &cluster_groups);
- 
--	if (ncluster == 0)
-+	if (ncluster <= 0)
- 		goto fail_no_clusters;
- 
- 	for (i = 0; i < ncluster; i++) {
-@@ -392,13 +476,11 @@ static bool __try_group_cluster_cpus(uns
- 		assign_cpus_to_groups(nc, nmsk, nv, masks, curgrp, last_grp);
- 	}
- 
--	ret = true;
- 	kfree(cluster_groups);
- 	kfree(clusters);
-  fail_no_clusters:
- 	free_cpumask_var(nmsk);
-- fail_nmsk_alloc:
--	return ret;
-+	return ncluster;
+-	rwsem_assert_held_write(&mm->mmap_lock);
++	if (IS_ENABLED(CONFIG_DEBUG_VM) || IS_ENABLED(CONFIG_LOCKDEP))
++		rwsem_assert_held_write(&mm->mmap_lock);
  }
  
- static int __group_cpus_evenly(unsigned int startgrp, unsigned int numgrps,
-@@ -442,6 +524,7 @@ static int __group_cpus_evenly(unsigned
- 	for (i = 0; i < nr_node_ids; i++) {
- 		unsigned int ncpus;
- 		struct node_groups *nv = &node_groups[i];
-+		int ret;
- 
- 		if (nv->ngroups == UINT_MAX)
- 			continue;
-@@ -454,14 +537,16 @@ static int __group_cpus_evenly(unsigned
- 
- 		WARN_ON_ONCE(nv->ngroups > ncpus);
- 
--		if (__try_group_cluster_cpus(ncpus, nv->ngroups, nmsk,
--					     masks, &curgrp, last_grp)) {
--			done += nv->ngroups;
--			continue;
-+		ret = __try_group_cluster_cpus(ncpus, nv->ngroups, nmsk,
-+					       masks, &curgrp, last_grp);
-+		if (ret < 0) {
-+			kfree(node_groups);
-+			return ret;
- 		}
- 
--		assign_cpus_to_groups(ncpus, nmsk, nv, masks, &curgrp,
--				      last_grp);
-+		if (!ret)
-+			assign_cpus_to_groups(ncpus, nmsk, nv, masks, &curgrp,
-+					      last_grp);
- 		done += nv->ngroups;
- 	}
- 	kfree(node_groups);
-@@ -496,6 +581,8 @@ struct cpumask *group_cpus_evenly(unsign
- 	if (numgrps == 0)
- 		return NULL;
- 
-+	capture_cluster_snapshot();
-+
- 	if (!zalloc_cpumask_var(&nmsk, GFP_KERNEL))
- 		return NULL;
- 
+ #ifdef CONFIG_LOCKDEP
 _
 
-Patches currently in -mm which might be from Vishal.Badole@amd.com are
+Patches currently in -mm which might be from ljs@kernel.org are
 
-lib-group_cpus-snapshot-cluster-masks-to-keep-grouping-hotplug-invariant.patch
+maintainers-remove-myself-from-mm-core-reviewership.patch
+maintainers-remove-myself-from-mm-misc-reclaim-reviewership.patch
+maintainers-remove-myself-from-mm-rust-reviewerships.patch
+credits-add-entry-for-thp-maintenance.patch
+mm-vma-predicate-vma_assert_stabilised-on-config_debug_vm.patch
+revert-mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot.patch
+mm-khugepaged-scan-mms-more-efficiently-under-mmap_lock-contention.patch
+mm-khugepaged-release-contended-mmap-read-lock-after-scanning-enough-vmas.patch
+mm-only-assert-mmap-locks-if-config_debug_vm-or-lockdep-is-set.patch
+mm-only-assert-vma-locks-if-config_debug_vm-is-set.patch
+mm-convert-warn_on_onces-to-vm_warn_on_once-in-vma-lock-code.patch
 
