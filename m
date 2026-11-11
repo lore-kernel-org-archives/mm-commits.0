@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794418368;
-	b=Q+UQHqiIk3j+tf1/wYrhk4OXx71JUPBEn86eouy8As04SgrIR9KV7YR3oI0ZvaEfslNz
-	 Qejx6H9ZQ7sDOzu98XNGCu3jZSmb6A93lWFpBvv5pL6uAL1rgx2Wq38JKjwFsGKZJyTyF
-	 +VxUiABhKTrADrz46Jw/1muNU+dnQ0zpPpEBHfE4RCfVTfAXdBW/fHEG1eUYOG0q9i4fw
-	 RmW8xalmkOsqxlZRx/RPKEhNgsIACFewIxBsBJf61siWcAf7VMEOvXx/G9fpYSTVXcDV8
-	 9wU21yaxVkTyI2AowexFFs7E0d847wnUSPtKV1JVTLL4iEMsHh7pO4nWJQ2uyZ4JRvQ==
+	t=1794418370;
+	b=4ypONjfi3rx2ebEL0S2A6ozK8XdCULe6NqvqsnH1gPWHBaIDhaTwKkxzKQ4DP8LfaMed
+	 w2RCsSex2cQT24S1gbq4ugy/9O4xNX1x3P0FLLHqmRRZ584elqX4iXdsaLi6euEuzb3db
+	 YQdBY3tCDc2HIlW+RombkmytIAltrdRmm/LIojz/nWpydbloUdVfKZHO/ySpK7riPaz1l
+	 nqTC9qaxkFax2K58wS8hzSxnmnGxcTeus+7t8p6mc7fsXt4gPLw8op3IeVejw644cBnb2
+	 EbGNoIQWdkV6r5TkNX1V/aotlA7Xi6ys2joT8CSlRQhtwUp+FIaE6nrFEblMTrq8zew==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794418368;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794418370;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=i/Wl68WndN2EKuzpehAg9aUM1ETe8HosTQwm03IpDl0=;
-	b=3A1YqQw60doFznzPs4rMORKlEHtIeBS2Qk2UKHDiNgu18QL6O+Q3rlMEWvk3PeiWoCHY
-	 qgMRAc7qOEhv2zA5vmo9DDj/Dk/6JfX3fFbBCzwDzzhy9H//+Zsmu0gHgGNAIUB/RdN/0
-	 yUOeBLhc1Tg6ttkzTuxT7lWaZXs8z4YeTCq4PnfnrHXKkHOKsKKtAhpQQD9KgBZk/RiOc
-	 9cmdZHA58NrGoZ4qmwMNCWZeOaUGw3prOeXKbJv186FudsqBiEqx+MVHboUQnqSWeIMMF
-	 VNPYZn+dP8DWGDrFXRI00WjdbxnijJfZkRR82yARjgpqGKFrTE9nOHD191E+xO9iqtQ==
+	bh=vkcdzdxxj6MapnlA7eahQTbpRpUkFEOut57+Rfn5gCU=;
+	b=mJV4AEDyJexGc7mTLIKvhHldd/lKm8DtAHI0VWKdt7smoeOCrF3+ccOzE/sWvLNE+2hc
+	 pwx1dX37Ma4eiH4nziQ2U3wtTXZQqjFQl04a5lNCnFLPzbQnDjL4S0P7pN7FlQRH93Q7R
+	 obVWh0owIxXWBQzEViybOCHADOBb2IHD/Y5B9SMenqix798AWkfs20s2NL1s6B/1ATIqu
+	 5xsP0MqsmviAutk02l3Two2rIY3cFbpWwucCcK7JfALAwLEdlpEKbLftIprV6CoW0Kk1a
+	 qrzjHTTB7klA6GGZzY3eHnBiuDF3z4EnGvxm8MI+g5RU4UD3b3/zL92FXM6fdpO8PlQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PxzXF17S;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="n/kDz0Ip";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92B29606A31C
-	for <mm-commits@vger.kernel.org>; Wed, 11 Nov 2026 17:32:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6057E606A324
+	for <mm-commits@vger.kernel.org>; Wed, 11 Nov 2026 17:32:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PxzXF17S
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA7ED1F00A05;
-	Wed, 11 Nov 2026 17:32:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=n/kDz0Ip
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B3261F00A05;
+	Wed, 11 Nov 2026 17:32:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794418368;
-	bh=i/Wl68WndN2EKuzpehAg9aUM1ETe8HosTQwm03IpDl0=;
+	d=linux-foundation.org; s=korg; t=1794418370;
+	bh=vkcdzdxxj6MapnlA7eahQTbpRpUkFEOut57+Rfn5gCU=;
 	h=Date:To:From:Subject;
-	b=PxzXF17SyNtmJQW7mLcnD2tonbl0UoN2gd1q5/DcF42NAV0KrsEs9/Kdcbgwe2DQk
-	 AV/4+Jrf1DtojCg6tLS0zusH9Wq4AXUr1VzxylNguFc/JpeTjg8zUVGgijQLC8V0+z
-	 Z7use8W+hepIiCEViiAudbmKBaGseT6FMeDPVyfA=
-Date: Wed, 11 Nov 2026 09:32:47 -0800
+	b=n/kDz0Ip7rIZJ0DSRc4QWy57YhS7DgQrmAqGtdIh9FTox6TIgww4znZmuWhqJlS/n
+	 NRXn64yEFSSr8PMebNZCY7jHNMfaz2yelnAKNdkwiYhM3Uer+U2PkiAkZ66gKC0d7U
+	 JbJtrhAMj7SfDicuM9SO/SU/H8pizGMoevhuUOFM=
+Date: Wed, 11 Nov 2026 09:32:49 -0800
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
 	shakeel.butt@linux.dev,liam@infradead.org,ljs@kernel.org,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-only-assert-mmap-locks-if-config_debug_vm-or-lockdep-is-set.patch added to mm-new branch
-Message-Id: <20261111173247.EA7ED1F00A05@smtp.kernel.org>
+Subject: + mm-only-assert-vma-locks-if-config_debug_vm-is-set.patch added to mm-new branch
+Message-Id: <20261111173250.2B3261F00A05@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm: only assert mmap locks if CONFIG_DEBUG_VM or lockdep is set
+     Subject: mm: only assert VMA locks if CONFIG_DEBUG_VM is set
 has been added to the -mm mm-new branch.  Its filename is
-     mm-only-assert-mmap-locks-if-config_debug_vm-or-lockdep-is-set.patch
+     mm-only-assert-vma-locks-if-config_debug_vm-is-set.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-only-assert-mmap-locks-if-config_debug_vm-or-lockdep-is-set.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-only-assert-vma-locks-if-config_debug_vm-is-set.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -88,59 +88,39 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm: only assert mmap locks if CONFIG_DEBUG_VM or lockdep is set
-Date: Tue, 10 Nov 2026 16:57:43 +0000
+Subject: mm: only assert VMA locks if CONFIG_DEBUG_VM is set
+Date: Tue, 10 Nov 2026 16:57:44 +0000
 
-Patch series "mm: only assert mmap and VMA locks if CONFIG_DEBUG_VM is
-set".
+Similar to the mmap lock asserts, we have also asserted VMA locks
+regardless of whether or not the kernel is a debug build or not.
 
-Currently these asserts are all performed at runtime regardless of whether
-or not the kernel is intended for debugging mm code (i.e. whether or not
-CONFIG_DEBUG_VM is set).
+Similarly, these are asserting basic assumptions about kernel code which
+should never assert in production code.
 
-These are explicitly programmatic checks - that is, checking basic
-correctness in mm code which interacts with these locks.
+Since all such bugs are generally asserted using VM_WARN_ON_ONCE() or
+similar, it creates an odd and inconsistent situation where some
+programmatic asserts are only checked under CONFIG_DEBUG_VM and some are
+always checked.
 
-The problem with this is that checks like this are generally asserted in mm
-code using VM_WARN_ON_ONCE() and similar, and thus only checked if
-CONFIG_DEBUG_VM is set.
+Since the intent is the same as any VM_WARN_ON_ONCE() check, do not assert
+if CONFIG_DEBUG_VM is not set.
 
-So having some assertions which are unconditional and some not without it
-being clear, creates something of an unintended two-tier system.
+Implement by updating vma_assert_attached() and vma_assert_detached() to
+use VM_WARN_ON_ONCE() rather than WARN_ON_ONCE(), and gating
+vma_assert_[write_]locked() and vma_assert_can_modify() on CONFIG_DEBUG_VM.
 
-Since what is being asserted in these cases is exactly the same kind of
-condition as those asserted in VM_WARN_ON_ONCE() assertions, simply
-predicate them on CONFIG_DEBUG_VM.
+nommu loses its CONFIG_LOCKDEP asserts if !CONFIG_DEBUG_VM in
+vma_assert_[write_]locked(), but this doesn't seem to be a problem.
 
-Retain assertions for mmap lock asserts if CONFIG_LOCKDEP is specified in
-order that expected lockdep assertions continue to function.
+In addition, there were already inconsistencies - vma_assert_write_locked()
+uses VM_WARN_ON_ONCE_VMA() and performs no actions if CONFIG_DEBUG_VM is
+not set, and vma_assert_locked() looked up vma->vm_refcnt but also only
+asserted if CONFIG_DEBUG_VM was set.
 
-The VMA lock implementation already performs lockdep tracking regardless of
-whether CONFIG_DEBUG_VM is set or not, so no changes are required there.
+Therefore simply update these functions such that they're predicated on
+CONFIG_DEBUG_VM and update their kdoc descriptions accordingly.
 
-
-This patch (of 3):
-
-For a long while we have asserted the mmap lock being held regardless of
-whether or not the kernel is a debug build or not.
-
-In general, given that these have been added as programmatic asserts that
-nobody did something stupid, production kernels are simply wasting their
-time checking for this.
-
-It also means there is a two tier system - where some programmatic
-asserts (e.g. VM_WARN_ON_ONCE()-checked conditions) are only checked for if
-CONFIG_DEBUG_VM is enabled, whereas others are checked unconditionally.
-
-If we genuinely want to unconditionally check for the mmap lock being held
-at runtime, then that should be made clear in the code doing it.
-
-Regardless, if CONFIG_LOCKDEP is enabled, ensure that the lockdep
-assertions are performed.
-
-Link: https://lore.kernel.org/20261110-tame-vma-asserts-v1-0-be293ff499a7@kernel.org
-Link: https://lore.kernel.org/20261110-tame-vma-asserts-v1-1-be293ff499a7@kernel.org
-Link: https://lore.kernel.org/linux-mm/20261110-vma-fixup-debug-asserts-v1-1-0b2e0680cd7e@kernel.org/ [0]
+Link: https://lore.kernel.org/20261110-tame-vma-asserts-v1-2-be293ff499a7@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Liam R. Howlett (Google) <liam@infradead.org>
@@ -149,28 +129,68 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 ---
 
- include/linux/mmap_lock.h |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/mmap_lock.h |   17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
 
---- a/include/linux/mmap_lock.h~mm-only-assert-mmap-locks-if-config_debug_vm-or-lockdep-is-set
+--- a/include/linux/mmap_lock.h~mm-only-assert-vma-locks-if-config_debug_vm-is-set
 +++ a/include/linux/mmap_lock.h
-@@ -75,12 +75,14 @@ static inline void __mmap_lock_trace_rel
- 
- static inline void mmap_assert_locked(const struct mm_struct *mm)
+@@ -354,9 +354,14 @@ int vma_start_write_killable(struct vm_a
+ /**
+  * vma_assert_write_locked() - assert that @vma holds a VMA write lock.
+  * @vma: The VMA to assert.
++ *
++ * Assert only if CONFIG_DEBUG_VM is set.
+  */
+ static inline void vma_assert_write_locked(const struct vm_area_struct *vma)
  {
--	rwsem_assert_held(&mm->mmap_lock);
-+	if (IS_ENABLED(CONFIG_DEBUG_VM) || IS_ENABLED(CONFIG_LOCKDEP))
-+		rwsem_assert_held(&mm->mmap_lock);
++	if (!IS_ENABLED(CONFIG_DEBUG_VM))
++		return;
++
+ 	if (!IS_ENABLED(CONFIG_MMU)) {
+ 		mmap_assert_write_locked(vma->vm_mm);
+ 		return;
+@@ -369,11 +374,16 @@ static inline void vma_assert_write_lock
+  * vma_assert_locked() - assert that @vma holds either a VMA read or a VMA write
+  * lock and is not detached.
+  * @vma: The VMA to assert.
++ *
++ * Assert only if CONFIG_DEBUG_VM is set.
+  */
+ static inline void vma_assert_locked(const struct vm_area_struct *vma)
+ {
+ 	unsigned int refcnt;
+ 
++	if (!IS_ENABLED(CONFIG_DEBUG_VM))
++		return;
++
+ 	if (!IS_ENABLED(CONFIG_MMU)) {
+ 		mmap_assert_locked(vma->vm_mm);
+ 		return;
+@@ -480,12 +490,12 @@ static inline void vma_assert_attached(s
+ 	if (!IS_ENABLED(CONFIG_MMU))
+ 		return;
+ 
+-	WARN_ON_ONCE(!vma_is_attached(vma));
++	VM_WARN_ON_ONCE(!vma_is_attached(vma));
  }
  
- static inline void mmap_assert_write_locked(const struct mm_struct *mm)
+ static inline void vma_assert_detached(struct vm_area_struct *vma)
  {
--	rwsem_assert_held_write(&mm->mmap_lock);
-+	if (IS_ENABLED(CONFIG_DEBUG_VM) || IS_ENABLED(CONFIG_LOCKDEP))
-+		rwsem_assert_held_write(&mm->mmap_lock);
+-	WARN_ON_ONCE(vma_is_attached(vma));
++	VM_WARN_ON_ONCE(vma_is_attached(vma));
  }
  
- #ifdef CONFIG_LOCKDEP
+ static inline void vma_mark_attached(struct vm_area_struct *vma)
+@@ -549,6 +559,9 @@ struct vm_area_struct *lock_next_vma(str
+ 
+ static inline void vma_assert_can_modify(struct vm_area_struct *vma)
+ {
++	if (!IS_ENABLED(CONFIG_DEBUG_VM))
++		return;
++
+ 	if (vma_is_attached(vma))
+ 		vma_assert_write_locked(vma);
+ }
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
