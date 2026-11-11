@@ -1,47 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794418372;
-	b=C8C5yTT+o1DMOpbXAoHOYTl/fk2kClgKgmxb87OXz1wnpN8WWQV3sFC/cjjCXA3UlSQy
-	 7KvwYwYO7RC1205r2aFfBUze2cFE3UVr8H68wruoP9f3mWPpfTcjVAORNRy2iHTB12VZQ
-	 Nhp8i93AYbGf37Eu6BnUnv4Q8zD3sFYUBttPIVMJlYCA90Rds8pC/zQCdUoeCkYXO6OgN
-	 F1FLrV+mN36/f+ry+SR/j4XL0aY6hRND30Tznq/qgBaL8KPVCHd8jShk3mxgqNZE3wAGT
-	 K7TkBbSx7PscHRQOTOcDGwDGxqN2txDIYAGoAuwBOUszsx/1WjdYgMzMcTuHN+wa3rQ==
+	t=1794423835;
+	b=oKgbSYbhTW6DPNsXSeYZdQMtnDj84KFOC0S8xN8cPk5+sHcewhJCPjGs5a7At+Q5MP17
+	 76Hqb1IdW+atB9h8mqEmVEN7CeU4G3Kwp3O9iUD3FOlWSf1SsHLuXcRYYtNMrUCwhsvZP
+	 0vdq4Yeem5Thg/Bg19XnmRMIdTIJ3MLpufE58e3oTU26QkJdzo4zOHh2xoWa6uveJmfyH
+	 ZPsz5h39QCXzhlwcFc/yPGozEfL4LdBn/jvICpFfF9USZ/rcr9JON1ctVT/NMSYIfOgO6
+	 fk7mncHVfAQGsmFmZAKem0HXUV87aPrbB1TWTC7G3jYEjf4NVvLMRHEAKByjZOVj62Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794418372;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794423835;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=kbE71JI7enNuhVXYu6SuGHHohXJWImjXTt0V4EDimBw=;
-	b=kUvvzIHNE9Y9BSF2ewK30mFhmzCYDFKIGeup5Hg4vLxW+Pei1GAAFV4wgwXjJhca9uJf
-	 3DJIHg/qTJaATWF6fmYB5mVR9wWujfoIc0CQ8EgvJ6Wmjyo9Kfr+jdb2CoxJyYWPCXL6E
-	 KnsJxMtfDYuQUOx62xa3qb/lrqrCxqzmarioV+T+c9P021hEN7MME96phUU/J+iwfQiPo
-	 4N/rxn0Tf+u+KRfYci96XLyOvW5idl3EKXJvT9gEUrUU8HTiLLds0RYcWfJnnm6BUkMQS
-	 hTAoqdnKmlu6AlcNrXgQTJ6Z+toX8LAEL5yPqowehjbOo2jCb+GJm/niou0LGZGyi8Q==
+	bh=/J9ZsdBTsczMP7kWvo8AWkhIxuhUUf0Icf5v58zQZlM=;
+	b=ZW4uyLCe/oq7XOErA7DDtHNpUG7a91fwtVzmqaRfClloGxYNpE8om0qdsV5Mr7j+2om4
+	 fDIdENL5DikDZHX3kKIoMRWXSJjZKh5FspT2npQqwh5rg+yJP/Hy2rDqkNsw+99NO6OZa
+	 CMw6iKxzC31bA8/pbaM73DFpCGsPHil6a0mnM0EHgcHZcLrqU98fH132s/g/m6avbVmKV
+	 o4bHKXUId9i6Ev5iRrwlXDn3Q2CVjQGs8Cb3cLZbUClVFxHUXaUeD9f8VlLOMKjP/oIN9
+	 XSB4XtXRsc/CdQgVBy3LpdZncMn7s4D8OtR02o7aM59rCXMqk0nRZt73ZgDIt9V+kfQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=iJpBDWiO;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="fR1+I/fY";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1936606A321
-	for <mm-commits@vger.kernel.org>; Wed, 11 Nov 2026 17:32:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1ED07606A32D;
+	Wed, 11 Nov 2026 19:03:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=iJpBDWiO
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D5191F00A05;
-	Wed, 11 Nov 2026 17:32:52 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=fR1+I/fY
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7856F1F00A05;
+	Wed, 11 Nov 2026 19:03:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794418372;
-	bh=kbE71JI7enNuhVXYu6SuGHHohXJWImjXTt0V4EDimBw=;
+	d=linux-foundation.org; s=korg; t=1794423834;
+	bh=/J9ZsdBTsczMP7kWvo8AWkhIxuhUUf0Icf5v58zQZlM=;
 	h=Date:To:From:Subject;
-	b=iJpBDWiOHPio9fSL2kV6Ptuj3XU09YD0/mpGQWNZsZwDc1+wcGYDdJWS2JLsB1G1W
-	 f4psQr8BehvlAsIcraxYfUDEOCUGbfiItx5dRhj+FptERmUatsx9Yw9GhH/Re7judH
-	 qg9QtSrVQ2YfzqJUtQSSNGGKp/Kb0Zh56gJisNzE=
-Date: Wed, 11 Nov 2026 09:32:51 -0800
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
-	shakeel.butt@linux.dev,liam@infradead.org,ljs@kernel.org,
+	b=fR1+I/fYvLGhPNGJLWUGehQ/QVykGQAHrh+tm4es/m0HGQ5SyphXRBPO21bRKvi+A
+	 am8o/u5eAlFhItXZUTSh+Tc+gd1ahqWXIhfINdDzm+6We/E1cqtDe7+YW4SNROZTlQ
+	 CjyLtvZDbyni4yV4ZxR5Amg0DTpsQqLyulQcgFa8=
+Date: Wed, 11 Nov 2026 11:03:53 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,ryncsn@gmail.com,
+	qi.zheng@linux.dev,noah@feldt.systems,kasong@tencent.com,hannes@cmpxchg.org,
+	david@kernel.org,baohua@kernel.org,shakeel.butt@linux.dev,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-convert-warn_on_onces-to-vm_warn_on_once-in-vma-lock-code.patch added to mm-new branch
-Message-Id: <20261111173252.5D5191F00A05@smtp.kernel.org>
+Subject: + mm-mglru-splice-all-generations-when-reparenting-a-memcg.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261111190354.7856F1F00A05@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,26 +54,15 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm: convert WARN_ON_ONCE()'s to VM_WARN_ON_ONCE() in VMA lock code
-has been added to the -mm mm-new branch.  Its filename is
-     mm-convert-warn_on_onces-to-vm_warn_on_once-in-vma-lock-code.patch
+     Subject: mm: mglru: splice all generations when reparenting a memcg
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-mglru-splice-all-generations-when-reparenting-a-memcg.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-warn_on_onces-to-vm_warn_on_once-in-vma-lock-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-splice-all-generations-when-reparenting-a-memcg.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -87,72 +77,99 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm: convert WARN_ON_ONCE()'s to VM_WARN_ON_ONCE() in VMA lock code
-Date: Tue, 10 Nov 2026 16:57:45 +0000
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: mm: mglru: splice all generations when reparenting a memcg
+Date: Tue, 10 Nov 2026 16:09:13 -0800
 
-Now that VMA assertions are predicated on CONFIG_DEBUG_VM, it makes sense
-to convert existing unconditional WARN_ON_ONCE()'s in VMA lock code to
-VM_WARN_ON_ONCE()'s.
+Noah reported list_del corruption on single-node hosts running 7.2.11,
+which already has commit bf4ade7dbd76 ("memcg: keep folio's objcg same as
+its node").  The bad pointer is an MGLRU list head in a freed
+mem_cgroup_per_node:
 
-These are asserting programmatic invariants which are in most other cases
-asserted using VM_WARN_ON_ONCE(), and there is simply no need for these to
-be unconditionally checked, so no longer do so.
+  slab mem_cgroup_per_node start ff31bfa36a3c9e00 pointer offset 528 size 1920
+  list_del corruption. next->prev should be ffacf881ccc70e08, but was ff31bfa36a3ca010. (next=ff31bfa36a3ca010)
 
-Link: https://lore.kernel.org/20261110-tame-vma-asserts-v1-3-be293ff499a7@kernel.org
-Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+When a memcg goes offline, __lru_gen_reparent_memcg() moves its MGLRU
+lists to the parent.  It moves only the generations (gens) from min_seq to
+max_seq, and it puts each list at the same index in the parent.
+
+A folio's gen in folio->flags can be ahead of the list it is on.  In the
+parent, the same index can stand for an older gen, so the folio's gen can
+end up older than its list.  Once the parent's min_seq passes that gen,
+sort_folio() puts the folio on the list for max_seq + 1, where it stays
+until the next aging.
+
+If the parent goes offline before that aging, the folio is not moved to
+the grandparent.  It stays on the parent's list after the parent is freed,
+and the next list_del() on it touches freed memory.  This needs two
+cgroups on one branch to go offline one after the other, such as a
+container and then its pod.
+
+The parent always has MAX_NR_GENS gens at this point, so every index is
+valid in it.  Move all MAX_NR_GENS lists, not only the gens from min_seq
+to max_seq.
+
+A reproducer that drives these steps through the lru_gen debugfs file gets
+a KASAN use-after-free on the freed mem_cgroup_per_node without this
+patch, and no report with it.
+
+Link: https://lore.kernel.org/20261111000913.22943-1-shakeel.butt@linux.dev
+Fixes: f304652609ea ("mm: vmscan: prepare for reparenting MGLRU folios")
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Reviewed-by: Liam R. Howlett (Google) <liam@infradead.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Reported-by: Noah Feldt <noah@feldt.systems>
+Closes: https://lore.kernel.org/all/20261110132853.71228-1-noah@feldt.systems/
+Reviewed-by: Kairui Song <kasong@tencent.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Kairui Song <ryncsn@gmail.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- mm/mmap_lock.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/vmscan.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
---- a/mm/mmap_lock.c~mm-convert-warn_on_onces-to-vm_warn_on_once-in-vma-lock-code
-+++ a/mm/mmap_lock.c
-@@ -146,7 +146,7 @@ int __vma_start_write(struct vm_area_str
+--- a/mm/vmscan.c~mm-mglru-splice-all-generations-when-reparenting-a-memcg
++++ a/mm/vmscan.c
+@@ -4752,19 +4752,25 @@ void max_lru_gen_memcg(struct mem_cgroup
+  * The same generation has different meanings in the parent and child memcg,
+  * so this compromise method will cause the LRU inversion problem. But as the
+  * system runs, this problem will be fixed automatically.
++ *
++ * Move all MAX_NR_GENS lists, not only the gens from min_seq to max_seq.
++ * An earlier reparenting can leave a folio whose gen is older than the list
++ * it is on. Once min_seq passes that gen, sort_folio() puts the folio on the
++ * list for max_seq + 1, where it stays until the next aging. If that list
++ * were skipped, the folio would stay behind on a memcg that is about to be
++ * freed. The parent has MAX_NR_GENS gens here, so every index is valid in it.
+  */
+ static void __lru_gen_reparent_memcg(struct lruvec *child_lruvec, struct lruvec *parent_lruvec,
+ 				     int zone, int type)
+ {
+ 	struct lru_gen_folio *child_lrugen, *parent_lrugen;
+ 	enum lru_list lru = type * LRU_INACTIVE_FILE;
+-	int i;
++	int gen;
  
- 	err = __vma_start_exclude_readers(&ves);
- 	if (err) {
--		WARN_ON_ONCE(ves.detached);
-+		VM_WARN_ON_ONCE(ves.detached);
- 		return err;
- 	}
+ 	child_lrugen = &child_lruvec->lrugen;
+ 	parent_lrugen = &parent_lruvec->lrugen;
  
-@@ -161,7 +161,7 @@ int __vma_start_write(struct vm_area_str
- 	if (ves.exclusive) {
- 		__vma_end_exclude_readers(&ves);
- 		/* VMA should remain attached. */
--		WARN_ON_ONCE(ves.detached);
-+		VM_WARN_ON_ONCE(ves.detached);
- 	}
- 
- 	return 0;
-@@ -193,7 +193,7 @@ void __vma_exclude_readers_for_detach(st
- 		__vma_end_exclude_readers(&ves);
- 	}
- 	/* If an error arose but we were detached anyway, we don't care. */
--	WARN_ON_ONCE(!ves.detached);
-+	VM_WARN_ON_ONCE(!ves.detached);
- }
- 
- /* Do the VMA, mm seqcounts indicate the VMA is write locked? */
+-	for (i = 0; i < get_nr_gens(child_lruvec, type); i++) {
+-		int gen = lru_gen_from_seq(child_lrugen->max_seq - i);
++	for (gen = 0; gen < MAX_NR_GENS; gen++) {
+ 		long nr_pages = child_lrugen->nr_pages[gen][type][zone];
+ 		int child_lru_active = lru_gen_is_active(child_lruvec, gen) ? LRU_ACTIVE : 0;
+ 		int parent_lru_active = lru_gen_is_active(parent_lruvec, gen) ? LRU_ACTIVE : 0;
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
-maintainers-remove-myself-from-mm-core-reviewership.patch
-maintainers-remove-myself-from-mm-misc-reclaim-reviewership.patch
-maintainers-remove-myself-from-mm-rust-reviewerships.patch
-credits-add-entry-for-thp-maintenance.patch
-mm-vma-predicate-vma_assert_stabilised-on-config_debug_vm.patch
-revert-mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot.patch
-mm-khugepaged-scan-mms-more-efficiently-under-mmap_lock-contention.patch
-mm-khugepaged-release-contended-mmap-read-lock-after-scanning-enough-vmas.patch
-mm-only-assert-mmap-locks-if-config_debug_vm-or-lockdep-is-set.patch
-mm-only-assert-vma-locks-if-config_debug_vm-is-set.patch
-mm-convert-warn_on_onces-to-vm_warn_on_once-in-vma-lock-code.patch
+mm-mglru-splice-all-generations-when-reparenting-a-memcg.patch
+memcg-move-memoryhigh-enforcement-out-of-try_charge_memcg.patch
+memcg-force-charges-from-reclaim-before-trying-the-limits.patch
+memcg-use-high_work-for-kernel-threads.patch
+memcg-use-high_work-for-remote-charges.patch
+memcg-simplify-high-limit-handling-after-a-charge.patch
 
