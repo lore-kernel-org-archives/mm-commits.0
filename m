@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794437171;
-	b=QwCaSJ5Fui02cro4KtzfXf5ze5OalgyTXGgWa8AQD/i4n9F39+amEbz/guCijbZ7fgtG
-	 O7bebQB3PfsWcEgAQPviX71Y2unEpTWulex8BgzQe7fIQgetuaHfqSjmq/P/DaRL35gGO
-	 BB7AaxjUHK5ejTzO9Kw2MHvSy3kQVZIPT6GcTmZl132QTxI828DOE7o5DIXygrYBtbJeF
-	 KP4pRxeL1YBBuNOki0VAA9Q0hY3ocemDFZe5ztH5kN/feaSAayvBV54/z3WCe2EQKNu+j
-	 qbqlrIEpYR+5isW4xmAEorbIwWMzMQE0QMptlxFX2PTpSe7lEziQVQ0GUEHPsiKrSkw==
+	t=1794438124;
+	b=ReGCZwBEB/NN+wobobFhTVusMD/9WYJroJ4vWi89VIZcaR7YBXNyC3mWvFakdPizMXhG
+	 5id7eIhn3DKslSZc01OtMTn9PIg/PXmlIOPARFVfXNcClGJojyTMxOWkEwfaN8DnmZ6Cc
+	 qNZxAg3n1nasKe838Xq/rTEZsLPrrE8e7Rd50RoNJBpC4HWr2ErYA/fQIpnpDgSF6TDba
+	 o7rjWajMc8gaCHfaPSVeU/a8pUmCvDvQHemhs0fkRX4r9L7LaKkUu42HEYoAPzHqhUE//
+	 0r8Axz6vWN4sREDepUvww9M3XrDiKQf+GsT3xk60ZNU2CaBmxKItylFnox69yT3KYYg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794437171;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794438124;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=X1qYJ6FJOmTsrUCLlgcpZdl9sP3/P7cgwO3NWeb608A=;
-	b=QVEoZA/vboZVojZUWXduWDKJj8Aiemc9Y3ZhH9oFKVMqMX/B6dLujqPBtpqNAH8/hNWq
-	 B9n2j+8/AzMwrH49gAVYC8fr/QF1xEfkPN3hGrA7SKUPDpYrptjTe4aNRt2Sbn2kcur1l
-	 DtGZQ+9OhNiefbA1w1HSovIzjjAiDy5wWVwkP35Sj8XyWZh/L6VFxJTsfUlx4SpnsDtj4
-	 0rTbFrL2ZjFxg/q+44KUJCvomRDji+vdKYFvbslSnnKVpqcNqFuKWIs6xvVfmQYH24XvM
-	 mMq89KQPpcrNbnssCgnrw/EXDzZASec1f90DKo6aQ92dRQzmKEOU4jLuZ9sJlvCUZQw==
+	bh=cwJBRXNREaOVWu47Wfg73fuoxIqifLn1OtmV/Ha2dbE=;
+	b=JN4YI2jrjFZlONODkuCbsgMKmnKzwLYsQqtjljMS33RtO8qGfWcM/Bkq/qAtlTS9VN+d
+	 TmVbxuBaQKA5Ba/J+BOCoXlzU4djZQ3qgtJB3faTbG1DsZjpqibca+Yh0Es2DtmGaukNI
+	 Sx/omM7vbRt9qGsFiI812LNImq2/TzhKt+2059PQ2bO9q3K9Ck333X+kT441BlS8setPA
+	 bI9pwLZRLOFLodGZgHGJY1hjakloKGMCxDSD1EpMJTrcZXe/x7PG6f8BBTUYlX2vvQ8NE
+	 uKqMQrK2SXFcfby0CnvKZijQFBSzb0E3zAPsgl/1V/1pQyASI0BwiELh2H0De8Guk+A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=rZvsPdVB;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=eQAEqoQq;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF038606C128
-	for <mm-commits@vger.kernel.org>; Wed, 11 Nov 2026 22:46:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD98A606A33A
+	for <mm-commits@vger.kernel.org>; Wed, 11 Nov 2026 23:02:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=rZvsPdVB
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EDA611F00A05;
-	Wed, 11 Nov 2026 22:46:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=eQAEqoQq
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 544441F00A05;
+	Wed, 11 Nov 2026 23:02:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794437171;
-	bh=X1qYJ6FJOmTsrUCLlgcpZdl9sP3/P7cgwO3NWeb608A=;
+	d=linux-foundation.org; s=korg; t=1794438124;
+	bh=cwJBRXNREaOVWu47Wfg73fuoxIqifLn1OtmV/Ha2dbE=;
 	h=Date:To:From:Subject;
-	b=rZvsPdVBGm2gaL/nog5VO4Ut83VARCROMbQLFF3mqLUFYfkchpiYFEdgvT0yjFSkd
-	 VbucZG6KuZuwudscOrnf4u6okV1aXmhnVekhqSe3Z8C8gizLRS7NfBYczq/tpeaMME
-	 q37BXee68YQVfWIc8PHKKqI9JbzPRhD7jhvYXvZ8=
-Date: Wed, 11 Nov 2026 14:46:10 -0800
-To: mm-commits@vger.kernel.org,yehezkelshb@gmail.com,lukas@wunner.de,
-	andreas.noever@gmail.com,westeri@kernel.org,akpm@linux-foundation.org
+	b=eQAEqoQq8AhzhG9RcQBXqcxFaKKmFD5tuxX/oWL+/Y0XvJnrb1MsnjTPgb0FZuYoU
+	 ikMwbCUO7aP/b4PIRT10zaKpq4NB6ZQJek7R91RzlxfhUR2BLn4iE2uLMZV74BlmkM
+	 KrHx0gItYBvvoy2dVq1RvRk0erjuHOXPW/hbyxNU=
+Date: Wed, 11 Nov 2026 15:02:03 -0800
+To: mm-commits@vger.kernel.org,catalin.marinas@arm.com,
+	tongweilin@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mailmap-update-mika-westerbergs-email-address.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261111224610.EDA611F00A05@smtp.kernel.org>
+Subject: + mm-kmemleak-serialize-disable-time-cleanup.patch added to mm-new branch
+Message-Id: <20261111230204.544441F00A05@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,15 +52,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: mailmap: update Mika Westerberg's email address
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mailmap-update-mika-westerbergs-email-address.patch
+     Subject: mm: kmemleak: serialize disable-time cleanup
+has been added to the -mm mm-new branch.  Its filename is
+     mm-kmemleak-serialize-disable-time-cleanup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-update-mika-westerbergs-email-address.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-serialize-disable-time-cleanup.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,37 +86,51 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Mika Westerberg <westeri@kernel.org>
-Subject: mailmap: update Mika Westerberg's email address
-Date: Wed, 11 Nov 2026 13:39:09 +0100
+From: Weilin Tong <tongweilin@linux.alibaba.com>
+Subject: mm: kmemleak: serialize disable-time cleanup
+Date: Thu,  5 Nov 2026 17:52:49 +0800
 
-My @linux.intel.com address will be going away soon so switch to use my
-@kernel.org address.
+kmemleak_do_cleanup() drops scan_mutex before removing tracked objects
+without kmemleak_lock.  A concurrent clear command can therefore start
+another cleanup while the background cleanup is still running.
 
-Link: https://lore.kernel.org/20261111123910.1324579-1-mika.westerberg@linux.intel.com
-Signed-off-by: Mika Westerberg <westeri@kernel.org>
+Keep scan_mutex held until the background cleanup completes, serializing
+its lockless removals with explicit clearing and report readers.
+
+Link: https://lore.kernel.org/149d93f2cfe20d355f4d9882ce2bf99030217772.1793871596.git.tongweilin@linux.alibaba.com
+Fixes: 2abd839aa7e6 ("kmemleak: Do not corrupt the object_list during clean-up")
+Signed-off-by: Weilin Tong <tongweilin@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Yehezkel Bernat <yehezkelshb@gmail.com>
-Cc: Lukas Wunner <lukas@wunner.de>
-Cc: Andreas Noever <andreas.noever@gmail.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 ---
 
- .mailmap |    1 +
- 1 file changed, 1 insertion(+)
+ mm/kmemleak.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/.mailmap~mailmap-update-mika-westerbergs-email-address
-+++ a/.mailmap
-@@ -669,6 +669,7 @@ Michel Lespinasse <michel@lespinasse.org
- Michel Lespinasse <michel@lespinasse.org> <walken@zoy.org>
- Mickaël Salaün <mic@digikod.net> <mic@linux.microsoft.com>
- Miguel Ojeda <ojeda@kernel.org> <miguel.ojeda.sandonis@gmail.com>
-+Mika Westerberg <westeri@kernel.org> <mika.westerberg@linux.intel.com>
- Mike Leach <mike.leach@arm.com> <mike.leach@linaro.org>
- Mike Rapoport <rppt@kernel.org> <mike@compulab.co.il>
- Mike Rapoport <rppt@kernel.org> <mike.rapoport@gmail.com>
+--- a/mm/kmemleak.c~mm-kmemleak-serialize-disable-time-cleanup
++++ a/mm/kmemleak.c
+@@ -2532,12 +2532,13 @@ static void kmemleak_do_cleanup(struct w
+ 	 * function.
+ 	 */
+ 	kmemleak_free_enabled = 0;
+-	mutex_unlock(&scan_mutex);
+ 
++	/* Serialize the lockless cleanup with report readers. */
+ 	if (!kmemleak_found_leaks)
+ 		__kmemleak_do_cleanup();
+ 	else
+ 		pr_info("Kmemleak disabled without freeing internal data. Reclaim the memory with \"echo clear > /sys/kernel/debug/kmemleak\".\n");
++	mutex_unlock(&scan_mutex);
+ }
+ 
+ static DECLARE_WORK(cleanup_work, kmemleak_do_cleanup);
 _
 
-Patches currently in -mm which might be from westeri@kernel.org are
+Patches currently in -mm which might be from tongweilin@linux.alibaba.com are
 
-mailmap-update-mika-westerbergs-email-address.patch
+tools-mm-thpmaps-fix-partial-thp-anon-file-accounting.patch
+tools-mm-thpmaps-fix-missing-order-1-file-thp-statistics.patch
+tools-mm-thpmaps-fix-missing-mapping-names.patch
+mm-kmemleak-serialize-disable-time-cleanup.patch
+tools-mm-thpmaps-handle-carriage-returns-and-non-utf-8-filenames.patch
 
