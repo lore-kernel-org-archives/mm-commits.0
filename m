@@ -1,50 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794439877;
-	b=x0hn+xpHcDtfIpam8lAPoz87T27Nj4/pes69qc9UQlzqfwNQRXFn8OzIyKbpc4CGLuNC
-	 lZ+zfYe6eMJzVyFuNkQ9woth4XM63dmNi8wXWJPxliwXjO8ZlKIPg2VtfbCcCIQLG0bXw
-	 j+EeGKIlFkSFw/Yh+H5IG5UznXrNrEgaM3ub/LmKFMUldaVuRlIEH1+TkTHOZqePtsUK0
-	 T0EMLDY9LUepcLDgZhzLF0tSPXPgUK2G9eQ5HJZoApzvubQrOP62Vt3fWc4V+S49WrgZN
-	 iDseFYLX+WQqVJfRIlqxaN6q+iGm/Faxn3NDOB0mxz1t9Aep85KCKrljDVN5Y2Wee0w==
+	t=1794440610;
+	b=W6dAnsrnghyniFOVvOOhYthaBo5qibcS4CQwlsulpCDQr8GtrQ1QyTxcSZ7IiXqKVGdD
+	 3yIqEwkb1/foNVq3eALqOkKT7M9BN9QytsnboLER16zN0IdmfdGp0mHomFA8XhCkbGrQO
+	 5Wz/u5ZUKqI5tiB71+4DqVpRBHV8cz57tJ92+NZoi3SJkTWqRyFc3TAPFKzYHzSuptTpC
+	 zEafGGSYjI421zIa7kqp/VhVwit4auGjk8TojVtnPYMrsrBhSCMy3SgMZxgidSVvlzCiR
+	 OHX6q7Gb2pMf6MmAAXcP7PdGqCilTfh9yIVQKwtP+iOVkGw3sEYAJHVoR/BTV3Xgpfg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794439877;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794440610;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=1UhdMcH3XCAcIvH1UaJ7ZA/OqL/PB5Hnpr8P7wHYceA=;
-	b=3EMMDoKSVi8O2gD77rk7Cp/DG/s6aIviMSa9KV8rlphrDAcm+CJHeAeNvz8DZ0gpcSeF
-	 tslmDjWHJQfy9qF1Ur56RYGB5kJryDKmrmE11z86fgP3/Umvbih8s0DaFa3xLd58rAkvK
-	 pnNmYQc5S/kGYdS1PwXjVVRjWEKNfjGvoOzqy/7J02qcGQOkIGcwoT9wblp2Rjldjc0n7
-	 b69Q6clmhrTCpheNq3ymD1zYAkUBxtbROZ5rWs68cUNr+cWCf9r4mLqAu+l5lVmdAVqF9
-	 5NLmMzJDH7zrjXScSqsMq3+Bs2TnrfMAlq6/311sh7VO/coldiH1RKRC9Of6F/qjhoQ==
+	bh=qTT3JjVgyfjL6SrNzvyIjKrpcE27CWiijiFo3Mo/wRU=;
+	b=OJhIhgiOU8I1atWco/zcVMdDJpOANWhQXJeoKRAi/xoqeAMI7vtlCqUIkDWqcWOQZhq8
+	 3S4OaueUWVhMGFyCSPONEcH9SARpEvqz2WtGsmRm+lKuUstmabnkL6xUYqrfZm8D4Eap1
+	 qFF6CpTdmLonHKnJ1Q3wYJz3UUk/Djzhuq95hObRmubbfglEYdBWgs8cw87o5vZXKYzzw
+	 WLom6yPTrB/R7zFwdsODQvr2M8cVh8sqQWSNVmrA8ZI0xMvZCJ51+aqNljYcgBSJk/63V
+	 4fRctC9UsMa5Wvh4ko9KbQBAQsCEFcRAUuYLlHZ33g2PX0xjJgtA1QFf+YPtIAw/ybQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LqhlrmmE;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=gme77uUu;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D39FB606A324
-	for <mm-commits@vger.kernel.org>; Wed, 11 Nov 2026 23:31:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01FC4606A335;
+	Wed, 11 Nov 2026 23:43:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LqhlrmmE
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 441221F00A05;
-	Wed, 11 Nov 2026 23:31:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=gme77uUu
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EFBE1F00A05;
+	Wed, 11 Nov 2026 23:43:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794439876;
-	bh=1UhdMcH3XCAcIvH1UaJ7ZA/OqL/PB5Hnpr8P7wHYceA=;
+	d=linux-foundation.org; s=korg; t=1794440609;
+	bh=qTT3JjVgyfjL6SrNzvyIjKrpcE27CWiijiFo3Mo/wRU=;
 	h=Date:To:From:Subject;
-	b=LqhlrmmEhL5Ot1DHHnVs4J+yjxApBmgCESwZVEuSMN8gS/itJILJzQMb/lOz0iczY
-	 iHZV6esFAYs9Lmt7eGRUV/5heqbakRy+usri7jQA7wcGYBwtaZbgkm7lYE8TDy4YyW
-	 9bHaFc4HmBR4nEf4HZDuNGvzpcqJmDVHLtcD0TUc=
-Date: Wed, 11 Nov 2026 15:31:15 -0800
-To: mm-commits@vger.kernel.org,xueyuan.chen21@gmail.com,will@kernel.org,
-	urezki@gmail.com,ryan.roberts@arm.com,rppt@kernel.org,npiggin@gmail.com,
-	mpe@ellerman.id.au,maddy@linux.ibm.com,leo.yan@arm.com,jiangwen6@xiaomi.com,
-	dev.jain@arm.com,david@kernel.org,chleroy@kernel.org,catalin.marinas@arm.com,
-	baohua@kernel.org,anshuman.khandual@arm.com,andrew+kernel@donnellan.id.au,
-	jiangwenxiaomi@gmail.com,akpm@linux-foundation.org
+	b=gme77uUu2HbgewHkNAPS3MY6kbp9ZEBycoJM6PEUTd645CArWXaIWyVPa1kB2a5va
+	 woLPu6E6Y4uU8o3UM3gSgeGC8bOZvBHZg43lZ1vfwMvK1bCZrT0IsYqqujzlLP+6ms
+	 tP/Bl5DVhVN5/LjrlCCTn7DpA06tmVLqV9uAreng=
+Date: Wed, 11 Nov 2026 15:43:28 -0800
+To: mm-commits@vger.kernel.org,vicky.yangwenfang@huawei.com,
+	syzbot+42984127d45ad96219de@syzkaller.appspotmail.com,stable@vger.kernel.org,
+	mark@fasheh.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,
+	heming.zhao@suse.com,zhiyuanzhang912@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-extend-page-table-walk-to-support-larger-page_shift-sizes-and-eliminate-page-table-rewalk-fix.patch added to mm-unstable branch
-Message-Id: <20261111233116.441221F00A05@smtp.kernel.org>
+Subject: + ocfs2-fix-kernel-bug-in-ocfs2_page_mkwrite-when-write_end-fails.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261111234329.5EFBE1F00A05@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,14 +54,14 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm-vmalloc-extend-page-table-walk-to-support-larger-page_shift-sizes-and-eliminate-page-table-rewalk-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-extend-page-table-walk-to-support-larger-page_shift-sizes-and-eliminate-page-table-rewalk-fix.patch
+     Subject: ocfs2: fix kernel BUG in ocfs2_page_mkwrite() when write_end fails
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     ocfs2-fix-kernel-bug-in-ocfs2_page_mkwrite-when-write_end-fails.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-extend-page-table-walk-to-support-larger-page_shift-sizes-and-eliminate-page-table-rewalk-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-kernel-bug-in-ocfs2_page_mkwrite-when-write_end-fails.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -79,94 +77,89 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Wen Jiang <jiangwenxiaomi@gmail.com>
-Subject: mm-vmalloc-extend-page-table-walk-to-support-larger-page_shift-sizes-and-eliminate-page-table-rewalk-fix
-Date: Wed, 11 Nov 2026 11:09:20 +0800
+From: Zhiyuan Zhang <zhiyuanzhang912@gmail.com>
+Subject: ocfs2: fix kernel BUG in ocfs2_page_mkwrite() when write_end fails
+Date: Wed, 11 Nov 2026 02:34:44 +0000
 
-use an unsigned long page index in the walker
+syzbot reported a kernel BUG in the ocfs2 write fault path:
 
-Link: https://lore.kernel.org/20261111030920.1297625-1-jiangwenxiaomi@gmail.com
+  (syz.0.17,5578,0):ocfs2_write_end_nolock:1945 ERROR: status = -30
+  kernel BUG at fs/ocfs2/mmap.c:106!
+  Call Trace:
+   do_page_mkwrite+0x147/0x310 mm/memory.c:3879
+   do_shared_fault mm/memory.c:6145 [inline]
+   handle_mm_fault+0x1a53/0x3750 mm/memory.c:6943
+
+__ocfs2_page_mkwrite() calls ocfs2_write_begin_nolock() and then
+ocfs2_write_end_nolock(), and uses BUG_ON() to assert that the latter
+returns the full length.  But ocfs2_write_end_nolock() can fail: since
+commit 7f27ec978b0e ("ocfs2: call ocfs2_journal_access_di() before
+ocfs2_journal_dirty() in ocfs2_write_end_nolock()") it gets journal
+access to the inode buffer again, because the handle may have been
+restarted since ocfs2_write_begin_nolock().  That fails with -EROFS or
+-EIO once the journal has been aborted or jbd2 has seen write errors
+on the device.  The syzbot reproducer gets there by shrinking the
+backing loop device to zero with LOOP_SET_STATUS while writing to a
+shared file mapping.
+
+Handle the failure instead of crashing.  ocfs2_write_end_nolock()
+leaves the mmap folio locked, because ocfs2_unlock_folios() skips it
+when w_target_locked is set so that it can be returned with
+VM_FAULT_LOCKED, and do_page_mkwrite() does not unlock it either when
+->page_mkwrite() returns an error.  So unlock it and fail the fault;
+the faulting task gets SIGBUS, like for the other errors in this
+function.
+
+For an mmap write ocfs2_write_end_nolock() returns either len or a
+negative errno: inline data has already been converted to extents by
+ocfs2_write_begin_nolock(), and copied is equal to len.
+
+The BUG matters for local mounts, where the filesystem is expected to
+go read-only and keep running after a journal abort.  On clustered
+mounts ocfs2_abort() panics the node anyway as soon as it notices the
+aborted journal.
+
+Link: https://lore.kernel.org/20261111023444.22688-1-zhiyuanzhang912@gmail.com
+Fixes: 7f27ec978b0e ("ocfs2: call ocfs2_journal_access_di() before ocfs2_journal_dirty() in ocfs2_write_end_nolock()")
+Signed-off-by: Zhiyuan Zhang <zhiyuanzhang912@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Leo Yan <leo.yan@arm.com>
-Cc: Xueyuan Chen <xueyuan.chen21@gmail.com>
-Cc: Christophe Leroy <chleroy@kernel.org>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Andrew Donnellan <andrew+kernel@donnellan.id.au>
-Cc: <jiangwen6@xiaomi.com>
+Reported-by: <syzbot+42984127d45ad96219de@syzkaller.appspotmail.com>
+Closes: https://syzkaller.appspot.com/bug?extid=42984127d45ad96219de
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Reviewed-by: Heming Zhao <heming.zhao@suse.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: yangwenfang <vicky.yangwenfang@huawei.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- mm/vmalloc.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ fs/ocfs2/mmap.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-extend-page-table-walk-to-support-larger-page_shift-sizes-and-eliminate-page-table-rewalk-fix
-+++ a/mm/vmalloc.c
-@@ -557,8 +557,8 @@ void vunmap_range(unsigned long addr, un
- }
- 
- static int vmap_pages_pte_range(pmd_t *pmd, unsigned long addr,
--		unsigned long end, pgprot_t prot, struct page **pages, int *nr,
--		pgtbl_mod_mask *mask, unsigned int shift)
-+		unsigned long end, pgprot_t prot, struct page **pages,
-+		unsigned long *nr, pgtbl_mod_mask *mask, unsigned int shift)
- {
- 	const unsigned long chunk_pages = 1UL << (shift - PAGE_SHIFT);
- 	unsigned long pfn, size, chunk_end;
-@@ -608,8 +608,8 @@ static int vmap_pages_pte_range(pmd_t *p
- }
- 
- static int vmap_pages_pmd_range(pud_t *pud, unsigned long addr,
--		unsigned long end, pgprot_t prot, struct page **pages, int *nr,
--		pgtbl_mod_mask *mask, unsigned int shift)
-+		unsigned long end, pgprot_t prot, struct page **pages,
-+		unsigned long *nr, pgtbl_mod_mask *mask, unsigned int shift)
- {
- 	pmd_t *pmd;
- 	unsigned long next;
-@@ -646,8 +646,8 @@ static int vmap_pages_pmd_range(pud_t *p
- }
- 
- static int vmap_pages_pud_range(p4d_t *p4d, unsigned long addr,
--		unsigned long end, pgprot_t prot, struct page **pages, int *nr,
--		pgtbl_mod_mask *mask, unsigned int shift)
-+		unsigned long end, pgprot_t prot, struct page **pages,
-+		unsigned long *nr, pgtbl_mod_mask *mask, unsigned int shift)
- {
- 	pud_t *pud;
- 	unsigned long next;
-@@ -666,8 +666,8 @@ static int vmap_pages_pud_range(p4d_t *p
- }
- 
- static int vmap_pages_p4d_range(pgd_t *pgd, unsigned long addr,
--		unsigned long end, pgprot_t prot, struct page **pages, int *nr,
--		pgtbl_mod_mask *mask, unsigned int shift)
-+		unsigned long end, pgprot_t prot, struct page **pages,
-+		unsigned long *nr, pgtbl_mod_mask *mask, unsigned int shift)
- {
- 	p4d_t *p4d;
- 	unsigned long next;
-@@ -696,7 +696,7 @@ static int vmap_pages_range_noflush_walk
- 	pgd_t *pgd;
- 	unsigned long next;
- 	int err = 0;
--	int nr = 0;
-+	unsigned long nr = 0;
- 	pgtbl_mod_mask mask = 0;
- 
- 	BUG_ON(addr >= end);
+--- a/fs/ocfs2/mmap.c~ocfs2-fix-kernel-bug-in-ocfs2_page_mkwrite-when-write_end-fails
++++ a/fs/ocfs2/mmap.c
+@@ -103,7 +103,17 @@ static vm_fault_t __ocfs2_page_mkwrite(s
+ 		goto out;
+ 	}
+ 	err = ocfs2_write_end_nolock(mapping, pos, len, len, fsdata);
+-	BUG_ON(err != len);
++	if (err != len) {
++		/*
++		 * ocfs2_write_end_nolock() keeps the mmap folio locked so
++		 * that it can be returned to the VM with VM_FAULT_LOCKED.
++		 * On failure nobody else will unlock it, so do it here.
++		 */
++		folio_unlock(locked_folio);
++		mlog_errno(err);
++		ret = vmf_error(err);
++		goto out;
++	}
+ 	ret = VM_FAULT_LOCKED;
+ out:
+ 	return ret;
 _
 
-Patches currently in -mm which might be from jiangwenxiaomi@gmail.com are
+Patches currently in -mm which might be from zhiyuanzhang912@gmail.com are
 
-mm-vmalloc-extend-page-table-walk-to-support-larger-page_shift-sizes-and-eliminate-page-table-rewalk-fix.patch
+ocfs2-fix-kernel-bug-in-ocfs2_page_mkwrite-when-write_end-fails.patch
 
