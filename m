@@ -1,48 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794423835;
-	b=oKgbSYbhTW6DPNsXSeYZdQMtnDj84KFOC0S8xN8cPk5+sHcewhJCPjGs5a7At+Q5MP17
-	 76Hqb1IdW+atB9h8mqEmVEN7CeU4G3Kwp3O9iUD3FOlWSf1SsHLuXcRYYtNMrUCwhsvZP
-	 0vdq4Yeem5Thg/Bg19XnmRMIdTIJ3MLpufE58e3oTU26QkJdzo4zOHh2xoWa6uveJmfyH
-	 ZPsz5h39QCXzhlwcFc/yPGozEfL4LdBn/jvICpFfF9USZ/rcr9JON1ctVT/NMSYIfOgO6
-	 fk7mncHVfAQGsmFmZAKem0HXUV87aPrbB1TWTC7G3jYEjf4NVvLMRHEAKByjZOVj62Q==
+	t=1794434993;
+	b=Inq5qALiozFPJgYLI3Z46xLyDpGmAkAG7qjeHfvG+3j7qN/FEphzx0wBTc65YqL4qSZS
+	 SJriqUWV1Slp8MZ0QGImIyIQyr8NcXAmTI9sXkN+uo3TgtNlBd5LXOmk8SOCza/N1/NBF
+	 amwOj1IEumB/JPFX1/MiEdnFC5D/ky2ueijDuwgVXeVPnpX3RVlniEgOweItN13+YkJpv
+	 Z10TMEgSiHQgLhZAh9qHzXPIu1ZtZjK05HKmQA/OONyJoQwDpAdB9F5RZZADz/iEuC/HP
+	 r/CBuX4rkbej6hKCM97GZF1L5h4Ip0hkAQcimbYHrd5eed67r1gY7TcnH2uM9cJoH0A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794423835;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794434993;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=/J9ZsdBTsczMP7kWvo8AWkhIxuhUUf0Icf5v58zQZlM=;
-	b=ZW4uyLCe/oq7XOErA7DDtHNpUG7a91fwtVzmqaRfClloGxYNpE8om0qdsV5Mr7j+2om4
-	 fDIdENL5DikDZHX3kKIoMRWXSJjZKh5FspT2npQqwh5rg+yJP/Hy2rDqkNsw+99NO6OZa
-	 CMw6iKxzC31bA8/pbaM73DFpCGsPHil6a0mnM0EHgcHZcLrqU98fH132s/g/m6avbVmKV
-	 o4bHKXUId9i6Ev5iRrwlXDn3Q2CVjQGs8Cb3cLZbUClVFxHUXaUeD9f8VlLOMKjP/oIN9
-	 XSB4XtXRsc/CdQgVBy3LpdZncMn7s4D8OtR02o7aM59rCXMqk0nRZt73ZgDIt9V+kfQ==
+	bh=aV6/OyN4Y/zhBMtJhzeIbASSk68Kg1E+PiA2L1niL7Y=;
+	b=EeLgs7/E4eAV1Z5LH9S9qLAMZ8rHqZTh1/+QOKJrNkxY6kc9HduuiRsrRsvF32V+ls/i
+	 cfMGnHlsmS3KLouZke4HZRGmYTRM/vfM9BABF6C0yXQ2fIMWzSkPi/4cTFxPJaMb4lBfb
+	 nJI0FwT6f6TOnDkbsiSGZ5DB4VQDlPBA9M8HVmD5oo1efegYtaqJIMIMLxqGEHClk7X9j
+	 I+AZLFSvaxc/ZG9Af5L/k/xE3H6RQBIkLlfVRrX7BIj3wBPRSTSqYo3dVvBWQogqpH/fp
+	 LAXPHcD+pn4SUqElLzIYB0yEHC6I95Ck6bHcU6jj7v90YtaIbyoYhRfJ6v3Q2a1h/wQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="fR1+I/fY";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=bcRGedr3;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1ED07606A32D;
-	Wed, 11 Nov 2026 19:03:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59BBD606A31C
+	for <mm-commits@vger.kernel.org>; Wed, 11 Nov 2026 22:09:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=fR1+I/fY
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7856F1F00A05;
-	Wed, 11 Nov 2026 19:03:54 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=bcRGedr3
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4DEA1F00A05;
+	Wed, 11 Nov 2026 22:09:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794423834;
-	bh=/J9ZsdBTsczMP7kWvo8AWkhIxuhUUf0Icf5v58zQZlM=;
+	d=linux-foundation.org; s=korg; t=1794434992;
+	bh=aV6/OyN4Y/zhBMtJhzeIbASSk68Kg1E+PiA2L1niL7Y=;
 	h=Date:To:From:Subject;
-	b=fR1+I/fYvLGhPNGJLWUGehQ/QVykGQAHrh+tm4es/m0HGQ5SyphXRBPO21bRKvi+A
-	 am8o/u5eAlFhItXZUTSh+Tc+gd1ahqWXIhfINdDzm+6We/E1cqtDe7+YW4SNROZTlQ
-	 CjyLtvZDbyni4yV4ZxR5Amg0DTpsQqLyulQcgFa8=
-Date: Wed, 11 Nov 2026 11:03:53 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,ryncsn@gmail.com,
-	qi.zheng@linux.dev,noah@feldt.systems,kasong@tencent.com,hannes@cmpxchg.org,
-	david@kernel.org,baohua@kernel.org,shakeel.butt@linux.dev,
-	akpm@linux-foundation.org
+	b=bcRGedr3IquLejLpQf+NbURyqUg9OJbpEVatmRvkT1qBFgSjTq4bicNve9tnhBcMh
+	 9JwdY8U8VonQecsmsP3Rnsji6M3yeyXTocWveaFnTuwE835jKAk1vWNJj+6dp9prB8
+	 Ia51SOikML43cz++To38tnlsBeJSYtsqQCexq74U=
+Date: Wed, 11 Nov 2026 14:09:51 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,
+	liam@infradead.org,dchar@cslab.ece.ntua.gr,andrewjballance@gmail.com,
+	aliceryhl@google.com,florian.schmaus@codasip.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-splice-all-generations-when-reparenting-a-memcg.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261111190354.7856F1F00A05@smtp.kernel.org>
+Subject: + test_maple_tree-test-maple_range_64-node-below-the-root-in-rcu-mode.patch added to mm-new branch
+Message-Id: <20261111220952.B4DEA1F00A05@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,15 +53,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm: mglru: splice all generations when reparenting a memcg
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-mglru-splice-all-generations-when-reparenting-a-memcg.patch
+     Subject: test_maple_tree: test maple_range_64 node below the root in RCU mode
+has been added to the -mm mm-new branch.  Its filename is
+     test_maple_tree-test-maple_range_64-node-below-the-root-in-rcu-mode.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-splice-all-generations-when-reparenting-a-memcg.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/test_maple_tree-test-maple_range_64-node-below-the-root-in-rcu-mode.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,99 +87,71 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: mm: mglru: splice all generations when reparenting a memcg
-Date: Tue, 10 Nov 2026 16:09:13 -0800
+From: Florian Schmaus <florian.schmaus@codasip.com>
+Subject: test_maple_tree: test maple_range_64 node below the root in RCU mode
+Date: Mon, 02 Nov 2026 10:14:10 +0100
 
-Noah reported list_del corruption on single-node hosts running 7.2.11,
-which already has commit bf4ade7dbd76 ("memcg: keep folio's objcg same as
-its node").  The bad pointer is an MGLRU list head in a freed
-mem_cgroup_per_node:
+Commit baed735a956f ("maple_tree: fix maple_range_64 crashes in RCU mode")
+fixed mt_free_walk() taking the metadata in the last slot of a
+maple_range_64 node with 15 children for a child node.  The bug only
+affects nodes at least two levels above the leaves.  The test added along
+with the fix, check_range64_in_rcu(), uses a height 3 tree, in which the
+root is the only such node.
 
-  slab mem_cgroup_per_node start ff31bfa36a3c9e00 pointer offset 528 size 1920
-  list_del corruption. next->prev should be ffacf881ccc70e08, but was ff31bfa36a3ca010. (next=ff31bfa36a3ca010)
+The height 3 tree only exposes the bug because the same commit also
+removed mt_clear_meta(), which used to clear the metadata of the root.  On
+the code before that commit, the bug is only reachable below the root, and
+the height 3 tree is destroyed without a crash.  If the metadata of the
+root were cleared again, the existing test would no longer detect the bug.
 
-When a memcg goes offline, __lru_gen_reparent_memcg() moves its MGLRU
-lists to the parent.  It moves only the generations (gens) from min_seq to
-max_seq, and it puts each list at the same index in the parent.
+Add a height 4 tree in which a child of the root has 15 children and keeps
+its metadata in the last slot.  5191 insertions produce such a tree on a
+64-bit build.  Destroying it crashes without the mt_free_walk() fix, with
+or without mt_clear_meta().  For example, on the code before the fix, the
+userspace test harness reports:
 
-A folio's gen in folio->flags can be ahead of the list it is on.  In the
-parent, the same index can stand for an older gen, so the folio's gen can
-end up older than its list.  Once the parent's min_seq passes that gen,
-sort_folio() puts the folio on the list for max_seq + 1, where it stays
-until the next aging.
+  lib/maple_tree.c:4755:27: runtime error: member access within
+  misaligned address 0x00000000000e for type 'struct maple_node'
 
-If the parent goes offline before that aging, the folio is not moved to
-the grandparent.  It stays on the parent's list after the parent is freed,
-and the next list_del() on it touches freed memory.  This needs two
-cgroups on one branch to go offline one after the other, such as a
-container and then its pod.
-
-The parent always has MAX_NR_GENS gens at this point, so every index is
-valid in it.  Move all MAX_NR_GENS lists, not only the gens from min_seq
-to max_seq.
-
-A reproducer that drives these steps through the lru_gen debugfs file gets
-a KASAN use-after-free on the freed mem_cgroup_per_node without this
-patch, and no report with it.
-
-Link: https://lore.kernel.org/20261111000913.22943-1-shakeel.butt@linux.dev
-Fixes: f304652609ea ("mm: vmscan: prepare for reparenting MGLRU folios")
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Link: https://lore.kernel.org/20261102-maple-tree-fix-slab-corruption-v2-1-d0037f04ecd6@codasip.com
+Signed-off-by: Florian Schmaus <florian.schmaus@codasip.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Noah Feldt <noah@feldt.systems>
-Closes: https://lore.kernel.org/all/20261110132853.71228-1-noah@feldt.systems/
-Reviewed-by: Kairui Song <kasong@tencent.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Kairui Song <ryncsn@gmail.com>
-Cc: <stable@vger.kernel.org>
+Reviewed-by: Liam R. Howlett (Google) <liam@infradead.org>
+Cc: Alice Ryhl <aliceryhl@google.com>
+Cc: Andrew Ballance <andrewjballance@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Dimitris Charisis <dchar@cslab.ece.ntua.gr>
 ---
 
- mm/vmscan.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ lib/test_maple_tree.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
---- a/mm/vmscan.c~mm-mglru-splice-all-generations-when-reparenting-a-memcg
-+++ a/mm/vmscan.c
-@@ -4752,19 +4752,25 @@ void max_lru_gen_memcg(struct mem_cgroup
-  * The same generation has different meanings in the parent and child memcg,
-  * so this compromise method will cause the LRU inversion problem. But as the
-  * system runs, this problem will be fixed automatically.
-+ *
-+ * Move all MAX_NR_GENS lists, not only the gens from min_seq to max_seq.
-+ * An earlier reparenting can leave a folio whose gen is older than the list
-+ * it is on. Once min_seq passes that gen, sort_folio() puts the folio on the
-+ * list for max_seq + 1, where it stays until the next aging. If that list
-+ * were skipped, the folio would stay behind on a memcg that is about to be
-+ * freed. The parent has MAX_NR_GENS gens here, so every index is valid in it.
-  */
- static void __lru_gen_reparent_memcg(struct lruvec *child_lruvec, struct lruvec *parent_lruvec,
- 				     int zone, int type)
- {
- 	struct lru_gen_folio *child_lrugen, *parent_lrugen;
- 	enum lru_list lru = type * LRU_INACTIVE_FILE;
--	int i;
-+	int gen;
+--- a/lib/test_maple_tree.c~test_maple_tree-test-maple_range_64-node-below-the-root-in-rcu-mode
++++ a/lib/test_maple_tree.c
+@@ -3738,6 +3738,19 @@ static noinline void __init check_range6
  
- 	child_lrugen = &child_lruvec->lrugen;
- 	parent_lrugen = &parent_lruvec->lrugen;
+ 	mtree_destroy(mt);
+ 	rcu_barrier();
++
++	nr_entries = 5191; /* Height 4. Root child has 15 children + metadata */
++
++	MT_BUG_ON(mt, !mtree_empty(mt));
++	mt_init_flags(mt, MT_FLAGS_USE_RCU);
++
++	for (i = 0; i < nr_entries; i++) {
++		MT_BUG_ON(mt, mtree_test_insert_range(mt, i*10, i*10 + 9,
++						      xa_mk_value(i)));
++	}
++
++	mtree_destroy(mt);
++	rcu_barrier();
+ }
  
--	for (i = 0; i < get_nr_gens(child_lruvec, type); i++) {
--		int gen = lru_gen_from_seq(child_lrugen->max_seq - i);
-+	for (gen = 0; gen < MAX_NR_GENS; gen++) {
- 		long nr_pages = child_lrugen->nr_pages[gen][type][zone];
- 		int child_lru_active = lru_gen_is_active(child_lruvec, gen) ? LRU_ACTIVE : 0;
- 		int parent_lru_active = lru_gen_is_active(parent_lruvec, gen) ? LRU_ACTIVE : 0;
+ /*
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from florian.schmaus@codasip.com are
 
-mm-mglru-splice-all-generations-when-reparenting-a-memcg.patch
-memcg-move-memoryhigh-enforcement-out-of-try_charge_memcg.patch
-memcg-force-charges-from-reclaim-before-trying-the-limits.patch
-memcg-use-high_work-for-kernel-threads.patch
-memcg-use-high_work-for-remote-charges.patch
-memcg-simplify-high-limit-handling-after-a-charge.patch
+test_maple_tree-test-maple_range_64-node-below-the-root-in-rcu-mode.patch
 
