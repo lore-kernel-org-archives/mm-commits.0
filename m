@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794434993;
-	b=Inq5qALiozFPJgYLI3Z46xLyDpGmAkAG7qjeHfvG+3j7qN/FEphzx0wBTc65YqL4qSZS
-	 SJriqUWV1Slp8MZ0QGImIyIQyr8NcXAmTI9sXkN+uo3TgtNlBd5LXOmk8SOCza/N1/NBF
-	 amwOj1IEumB/JPFX1/MiEdnFC5D/ky2ueijDuwgVXeVPnpX3RVlniEgOweItN13+YkJpv
-	 Z10TMEgSiHQgLhZAh9qHzXPIu1ZtZjK05HKmQA/OONyJoQwDpAdB9F5RZZADz/iEuC/HP
-	 r/CBuX4rkbej6hKCM97GZF1L5h4Ip0hkAQcimbYHrd5eed67r1gY7TcnH2uM9cJoH0A==
+	t=1794436865;
+	b=K0jM3125+7Px50r5+FLqcVDtGXUwALXa5GDbN8i8aIzZc1vcZawS6pUgzfBm/qhApGk9
+	 Xa7H+yAyivHjNZBe9XVIclFEDDp0im0sROqu21WS9ADtmxiUjwZ2NTaoVAC1N04YhZsIg
+	 zWVCDXPdzBkeO3bbuEl4W+4SqoTfcNW8xoGd5A1bGp4MScECo9/NXuD5jl2cKPm9jr9BP
+	 QfimMccDgVYl6WHUXdct/FqiKrdZbBxGcRPr+T9cikPLPVaMrg3xcc1tycs5R+WiJiMe6
+	 SgWEy8lFpnw5qBpKBMg6NGI/x7mu7v9sLgHmA9ca2ZJohU12YpHNKY4MjcX3CzFNXMg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794434993;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794436865;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=aV6/OyN4Y/zhBMtJhzeIbASSk68Kg1E+PiA2L1niL7Y=;
-	b=EeLgs7/E4eAV1Z5LH9S9qLAMZ8rHqZTh1/+QOKJrNkxY6kc9HduuiRsrRsvF32V+ls/i
-	 cfMGnHlsmS3KLouZke4HZRGmYTRM/vfM9BABF6C0yXQ2fIMWzSkPi/4cTFxPJaMb4lBfb
-	 nJI0FwT6f6TOnDkbsiSGZ5DB4VQDlPBA9M8HVmD5oo1efegYtaqJIMIMLxqGEHClk7X9j
-	 I+AZLFSvaxc/ZG9Af5L/k/xE3H6RQBIkLlfVRrX7BIj3wBPRSTSqYo3dVvBWQogqpH/fp
-	 LAXPHcD+pn4SUqElLzIYB0yEHC6I95Ck6bHcU6jj7v90YtaIbyoYhRfJ6v3Q2a1h/wQ==
+	bh=clS/yocDzsODdsvHXo4zjIkAea+wZT0yjPsHI9mo0S0=;
+	b=RU5JjHz83LP1uCD1jCfwNPK4kfNKxxNXru90DOMzReIWNSZN4u9kS7PUhd/Binpfa++w
+	 nuSwLosc3zhhViOFPTjNqixFaleUC89UPfJQfbFcxaca9eee/pB2Gg+MX+Zy0A0w92ccK
+	 PXSWFarxA+FGwC0pH7vpu79DMWMUYZ+hnnaqszaIluQhG1QvnvlE6PT0CXYb8qrFF35uP
+	 nynTTi+l5R4lLQoqu78leNx31NaaY6MUHohWxLvKvuHAugNKaZe8ZvQkpkE1Uv3PTvd5v
+	 skiMURj8sQZPELpVekKKq8beiSMnG4r+ccsVoNAXZhLqPrQ0rEnxui52u8LZwRaSkBA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=bcRGedr3;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SgwpXMKF;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59BBD606A31C
-	for <mm-commits@vger.kernel.org>; Wed, 11 Nov 2026 22:09:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 684E7606A31C
+	for <mm-commits@vger.kernel.org>; Wed, 11 Nov 2026 22:41:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=bcRGedr3
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4DEA1F00A05;
-	Wed, 11 Nov 2026 22:09:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SgwpXMKF
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFF4B1F00A05;
+	Wed, 11 Nov 2026 22:41:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794434992;
-	bh=aV6/OyN4Y/zhBMtJhzeIbASSk68Kg1E+PiA2L1niL7Y=;
+	d=linux-foundation.org; s=korg; t=1794436864;
+	bh=clS/yocDzsODdsvHXo4zjIkAea+wZT0yjPsHI9mo0S0=;
 	h=Date:To:From:Subject;
-	b=bcRGedr3IquLejLpQf+NbURyqUg9OJbpEVatmRvkT1qBFgSjTq4bicNve9tnhBcMh
-	 9JwdY8U8VonQecsmsP3Rnsji6M3yeyXTocWveaFnTuwE835jKAk1vWNJj+6dp9prB8
-	 Ia51SOikML43cz++To38tnlsBeJSYtsqQCexq74U=
-Date: Wed, 11 Nov 2026 14:09:51 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,
-	liam@infradead.org,dchar@cslab.ece.ntua.gr,andrewjballance@gmail.com,
-	aliceryhl@google.com,florian.schmaus@codasip.com,akpm@linux-foundation.org
+	b=SgwpXMKFkTYdy6yR4TZ+HWCuyRLXWZ3XFzclsQRkiXbywjIYLJWRQ8zxl+LNX1S1C
+	 xgAFv4pDToqMvpsMSmkfNsnWeXkk16CS7SgpmJJIjBVrs1J50bJDOBCx5d/V0By55z
+	 NTof4MrDVfr2tOAxcCeIErPE6hOtA9u5DntaaFT0=
+Date: Wed, 11 Nov 2026 14:41:04 -0800
+To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,
+	jm5905938@gmail.com,david@kernel.org,azpijr@gmail.com,dennylin0707@gmail.com,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + test_maple_tree-test-maple_range_64-node-below-the-root-in-rcu-mode.patch added to mm-new branch
-Message-Id: <20261111220952.B4DEA1F00A05@smtp.kernel.org>
+Subject: + hugetlbfs-report-inode-limits-without-a-memory-subpool.patch added to mm-new branch
+Message-Id: <20261111224104.BFF4B1F00A05@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: test_maple_tree: test maple_range_64 node below the root in RCU mode
+     Subject: hugetlbfs: report inode limits without a memory subpool
 has been added to the -mm mm-new branch.  Its filename is
-     test_maple_tree-test-maple_range_64-node-below-the-root-in-rcu-mode.patch
+     hugetlbfs-report-inode-limits-without-a-memory-subpool.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/test_maple_tree-test-maple_range_64-node-below-the-root-in-rcu-mode.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlbfs-report-inode-limits-without-a-memory-subpool.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,71 +87,57 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Florian Schmaus <florian.schmaus@codasip.com>
-Subject: test_maple_tree: test maple_range_64 node below the root in RCU mode
-Date: Mon, 02 Nov 2026 10:14:10 +0100
+From: Hungyu Lin <dennylin0707@gmail.com>
+Subject: hugetlbfs: report inode limits without a memory subpool
+Date: Wed, 11 Nov 2026 13:01:45 +0000
 
-Commit baed735a956f ("maple_tree: fix maple_range_64 crashes in RCU mode")
-fixed mt_free_walk() taking the metadata in the last slot of a
-maple_range_64 node with 15 children for a child node.  The bug only
-affects nodes at least two levels above the leaves.  The test added along
-with the fix, check_range64_in_rcu(), uses a height 3 tree, in which the
-root is the only such node.
+A hugetlbfs mount can limit inodes with nr_inodes independently of size or
+min_size.  hugetlbfs_statfs() only fills f_files and f_ffree when a memory
+subpool exists, so an inode-only limit is enforced but its inode counts
+are reported as zero.
 
-The height 3 tree only exposes the bug because the same commit also
-removed mt_clear_meta(), which used to clear the metadata of the root.  On
-the code before that commit, the bug is only reachable below the root, and
-the height 3 tree is destroyed without a crash.  If the metadata of the
-root were cleared again, the existing test would no longer detect the bug.
+For example, a fresh mount with nr_inodes=4 reports zero total and free
+inodes instead of 4 and 3.  This hides the inode limit from tools such as
+df -i, even when creating another file fails with ENOSPC.
 
-Add a height 4 tree in which a child of the root has 15 children and keeps
-its metadata in the last slot.  5191 insertions produce such a tree on a
-64-bit build.  Destroying it crashes without the mt_free_walk() fix, with
-or without mt_clear_meta().  For example, on the code before the fix, the
-userspace test harness reports:
+Report the inode counters when an inode limit is configured, independently
+of the memory subpool.  Preserve the existing zero and -1 results for
+unlimited inode counts.
 
-  lib/maple_tree.c:4755:27: runtime error: member access within
-  misaligned address 0x00000000000e for type 'struct maple_node'
-
-Link: https://lore.kernel.org/20261102-maple-tree-fix-slab-corruption-v2-1-d0037f04ecd6@codasip.com
-Signed-off-by: Florian Schmaus <florian.schmaus@codasip.com>
+Link: https://lore.kernel.org/20261111130145.96534-1-dennylin0707@gmail.com
+Fixes: 74a8a65c5261 ("[PATCH] Fix hugetlbfs_statfs() reporting of block limits")
+Signed-off-by: Hungyu Lin <dennylin0707@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Liam R. Howlett (Google) <liam@infradead.org>
-Cc: Alice Ryhl <aliceryhl@google.com>
-Cc: Andrew Ballance <andrewjballance@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Dimitris Charisis <dchar@cslab.ece.ntua.gr>
+Reviewed-by: Aveline Noir <jm5905938@gmail.com>
+Tested-by: Aveline Noir <jm5905938@gmail.com>
+Reviewed-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: David Hildenbrand <david@kernel.org>
 ---
 
- lib/test_maple_tree.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ fs/hugetlbfs/inode.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/lib/test_maple_tree.c~test_maple_tree-test-maple_range_64-node-below-the-root-in-rcu-mode
-+++ a/lib/test_maple_tree.c
-@@ -3738,6 +3738,19 @@ static noinline void __init check_range6
- 
- 	mtree_destroy(mt);
- 	rcu_barrier();
-+
-+	nr_entries = 5191; /* Height 4. Root child has 15 children + metadata */
-+
-+	MT_BUG_ON(mt, !mtree_empty(mt));
-+	mt_init_flags(mt, MT_FLAGS_USE_RCU);
-+
-+	for (i = 0; i < nr_entries; i++) {
-+		MT_BUG_ON(mt, mtree_test_insert_range(mt, i*10, i*10 + 9,
-+						      xa_mk_value(i)));
-+	}
-+
-+	mtree_destroy(mt);
-+	rcu_barrier();
- }
- 
- /*
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-report-inode-limits-without-a-memory-subpool
++++ a/fs/hugetlbfs/inode.c
+@@ -1121,6 +1121,8 @@ static int hugetlbfs_statfs(struct dentr
+ 				- sbinfo->spool->used_hpages;
+ 			buf->f_bavail = buf->f_bfree = free_pages;
+ 			spin_unlock_irq(&sbinfo->spool->lock);
++		}
++		if (sbinfo->spool || sbinfo->max_inodes >= 0) {
+ 			buf->f_files = sbinfo->max_inodes;
+ 			buf->f_ffree = sbinfo->free_inodes;
+ 		}
 _
 
-Patches currently in -mm which might be from florian.schmaus@codasip.com are
+Patches currently in -mm which might be from dennylin0707@gmail.com are
 
-test_maple_tree-test-maple_range_64-node-below-the-root-in-rcu-mode.patch
+filemap-prefault-writes-starting-beyond-eof.patch
+mm-page-writeback-avoid-overflow-when-reporting-bdi-byte-limits.patch
+mm-skip-empty-finite-ranges-in-truncate_pagecache_range.patch
+hugetlbfs-report-inode-limits-without-a-memory-subpool.patch
+delayacct-preserve-delay-extrema-when-aggregating-taskstats.patch
+shmem-clamp-negative-used-block-samples-in-statfs.patch
 
