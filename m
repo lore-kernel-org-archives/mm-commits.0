@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794450643;
-	b=RP8Oul51Tp4RZY9sUAlNfH7qkhxQSVZUJOAHnrfD+2y9PB/uG3JfyuB0rRXGAm2RdRVq
-	 A9kYHb5VFvmm3P/p3gP1hSPCLXd17dW4v58Mf2cAqsNMWL3UBMjjDHQJnqYkGoA9u6gPW
-	 VKPE8Uxp4weFSTUCif3v/9cZjHFvETV+TMOb0zCi5KwGMru7VUiqngDBbYGg7R58CyXPG
-	 0MNwioobA/zCUJVZGly1/4E/d6Rk3GnD1hvXAZgRKY8bi14aPYDfAzNjryOGGo9GYpS2q
-	 SgtxfUx9pVONWgPADdbCJmyxHblt2dwPwbr7w05+HQdJ46dDez0KjyQmyLuItXkTqCA==
+	t=1794450645;
+	b=caSXyNmR44eT+1L6ZEymd/j4XnwlPPsUlnsDTpDHeCH5yTlHM3epldA3VkF+dZ5kVDbf
+	 X4d2yDOTEjy/waUuMAAM/a3+WgogiYBbqcTSBTAndXSud9DOY6VVHbpJmlLWroyH6esE8
+	 M8o1Gro7+QgGaDcikyJOLYK5KAlVtK7L3bWfau4znOeN5rJw3DnGGN158HN7Vk0etPfFW
+	 /GKmq1cp7/6PDcYmc6yDUwcJKM5BNtMkWhio1UmEhH02g1WTGL7eV7jQr9JF9D+lQbfkM
+	 CSwoHxfC+9eSNPtdQZTK6Q3Q2m1IMbKRmUoV4hvcjQWPpWWbgLKNLK1qDWbWmTYJgiw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794450643;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794450645;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=tQBUckRVg3bQxLIv9QL6YL2tEw2EEzvVOGeNuc0rayM=;
-	b=zd3Hcsq8Ty10UISquAIinuOMiECqeOU9gBKmSXFtjxAT/SFA/KYEA8UVLK0jYzZ8W+1c
-	 zO3lWMcDd8IAMaZk+Mm6CGq4WpLmG02PZxJh8smDxm21EERr/QMhKoQhAQa/n3w6N6wI7
-	 QO/Y/r0krIqrt2KABilie033dKZiYXLDziqpfc9xKZkKztXQnsgtSLq2rDnkdK0b7jYrg
-	 NF7LM8YCwDffqJbcFdiwrWS/y2NC2v/nhnm1iLLglekbgSdKlj2SsXIEm8yG7zjopAp3D
-	 9Rc4m9QsFDlcD8NqVMv8D7oyu8FEaOVMgNqYoNRm6s60l95Xn9m3yjZ6u2Ra2XZBR1Q==
+	bh=7qlAh+t/00qmd/ZHHlqkzaqifTYBlGQrkAw7/ad3s6Q=;
+	b=YspJ/GojPg9zt2ENOLYKt/3qwSNdSlCcPkcDGPWEtUl3mvIdNM3EUnvXB1DT2GcCTc2g
+	 lhwJnZ7v057a6+gJg3FykJ9p2n8rLqAjq+TRvp3R84/Dyhq+jgXP5lBJCoFbaI0jIvocM
+	 byOSshLzhj8jQo5Ce11f6u87SM8VBHjoSdVVN2I8UcoaoQ7rgQdEWaT6OTycH5xDShdCf
+	 iLuxyZkQ2MH+uWBKkTcvHhBpUyaoAPM59vvZ6zME2cHfg+NXfH97TxuM3o8CJHjKJPWnm
+	 YNptZwLlCyivkAv7lKQ+BnoeI849aV6U3/zKAoTFIYsQtDjZPE9Rig3HCIAUAViukAA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=khzyAeVH;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=q6Pi0Xgr;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1229C606A327
-	for <mm-commits@vger.kernel.org>; Thu, 12 Nov 2026 02:30:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33788606A31C
+	for <mm-commits@vger.kernel.org>; Thu, 12 Nov 2026 02:30:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=khzyAeVH
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EA7F1F00A05;
-	Thu, 12 Nov 2026 02:30:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=q6Pi0Xgr
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B236F1F00A06;
+	Thu, 12 Nov 2026 02:30:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794450642;
-	bh=tQBUckRVg3bQxLIv9QL6YL2tEw2EEzvVOGeNuc0rayM=;
+	d=linux-foundation.org; s=korg; t=1794450644;
+	bh=7qlAh+t/00qmd/ZHHlqkzaqifTYBlGQrkAw7/ad3s6Q=;
 	h=Date:To:From:Subject;
-	b=khzyAeVHY71dPYQkMPqiqY68wWUWned5Ff3ItASIEwWshROzGScqi/sfOOQBbz+HE
-	 V/7MzCs+A4bsJ/YDLxS6LQitr4BorV0qfZSPPLHhUlsvvEaWLFrPKHY5eRK4C1ItfA
-	 m5byyfRYXVqp5bRR83/dWPih8cGAKtD7GuokEZXc=
-Date: Wed, 11 Nov 2026 18:30:42 -0800
+	b=q6Pi0XgrzottfMKv/9uhlsZneHHfD+ksg7lianRhLP5m25xZDZAMzFAGS4Ewp5Xjz
+	 6AC43D53HvlUNWZIk5H7nAGVrga4pTZ0stytqR/6Xcfhx+4UEATp+U5U8W2jK8NqYw
+	 BwTP3RHLQWVRiQx4Deq0zxgaHPxajb/UHPCcwAAo=
+Date: Wed, 11 Nov 2026 18:30:44 -0800
 To: mm-commits@vger.kernel.org,yosry@kernel.org,richardycc@google.com,
 	nphamcs@gmail.com,minchan@kernel.org,hannes@cmpxchg.org,bgeffon@google.com,
 	senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-allocate-zsmalloc-object-under-slot-lock.patch added to mm-unstable branch
-Message-Id: <20261112023042.8EA7F1F00A05@smtp.kernel.org>
+Subject: + zswap-do-not-free-the-entry-if-its-pool-is-null.patch added to mm-unstable branch
+Message-Id: <20261112023044.B236F1F00A06@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: zram: allocate zsmalloc object under slot lock
+     Subject: zswap: do not free the entry if its pool is NULL
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-allocate-zsmalloc-object-under-slot-lock.patch
+     zswap-do-not-free-the-entry-if-its-pool-is-null.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-allocate-zsmalloc-object-under-slot-lock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zswap-do-not-free-the-entry-if-its-pool-is-null.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -77,92 +77,49 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: allocate zsmalloc object under slot lock
-Date: Wed, 11 Nov 2026 15:46:29 +0900
+Subject: zswap: do not free the entry if its pool is NULL
+Date: Wed, 11 Nov 2026 15:46:30 +0900
 
-zram_write_page() and write_incompressible_page() allocate and write
-zsmalloc object first and take slot lock only to free the old slot data
-and set the new handle.  A subsequent patch makes zsmalloc store object
-location directly in zram table entry, so we need to free the slot before
-we allocate a new object for it.
+zswap_entry_free() warns if the entry has no pool (which should never
+happen), skips zs_free() and then frees the entry.  A subsequent patch
+embeds zsmalloc handle into zswap_entry, so zsmalloc object will point to
+the entry, and we cannot free the entry while the object is still there.
 
-Free the slot and allocate the object under slot lock.  recompress_slot()
-already allocates objects under it, and GFP_NOIO reclaim cannot re-enter
-zram write path.
+Bail out early and leak the entry, its cgroup charge and stats instead.
 
-mem_limit is checked before slot_free() (previous patch), so hitting the
-limit keeps the old slot data.  zs_malloc() can still fail after
-slot_free(), e.g.  when we write from reclaim (PF_MEMALLOC), which is
-swap-out, so the old slot data (if any) is stale anyway, or when the
-writer is an OOM victim that has no reserves left.  The slot is left empty
-then, matching standard block write-failure semantics.
-
-Link: https://lore.kernel.org/20261111064707.2568433-7-senozhatsky@chromium.org
+Link: https://lore.kernel.org/20261111064707.2568433-8-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Yosry Ahmed <yosry@kernel.org>
+Suggested-by: Yosry Ahmed <yosry@kernel.org>
+Acked-by: Yosry Ahmed <yosry@kernel.org>
+Acked-by: Nhat Pham <nphamcs@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Brian Geffon <bgeffon@google.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Richard Chang <richardycc@google.com>
 ---
 
- drivers/block/zram/zram_drv.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ mm/zswap.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-allocate-zsmalloc-object-under-slot-lock
-+++ a/drivers/block/zram/zram_drv.c
-@@ -2250,11 +2250,15 @@ static int write_incompressible_page(str
- 	struct zs_handle *handle;
- 	void *src;
+--- a/mm/zswap.c~zswap-do-not-free-the-entry-if-its-pool-is-null
++++ a/mm/zswap.c
+@@ -787,10 +787,11 @@ static void zswap_entry_free(struct zswa
+ 	struct zswap_pool *pool = zswap_entry_pool(entry);
  
-+	slot_lock(zram, index);
-+	slot_free(zram, index);
- 	handle = zs_malloc(zram->mem_pool, PAGE_SIZE,
- 			   GFP_NOIO | __GFP_NOWARN |
- 			   __GFP_HIGHMEM | __GFP_MOVABLE, page_to_nid(page));
--	if (IS_ERR(handle))
-+	if (IS_ERR(handle)) {
-+		slot_unlock(zram, index);
- 		return PTR_ERR(handle);
-+	}
- 
- 	update_used_max(zram);
- 
-@@ -2262,8 +2266,6 @@ static int write_incompressible_page(str
- 	zs_obj_write(zram->mem_pool, handle, src, PAGE_SIZE);
- 	kunmap_local(src);
- 
--	slot_lock(zram, index);
--	slot_free(zram, index);
- 	set_slot_flag(zram, index, ZRAM_HUGE);
- 	zram->table[index].handle = handle;
- 	set_slot_size(zram, index, PAGE_SIZE);
-@@ -2315,11 +2317,14 @@ static int zram_write_page(struct zram *
- 		return write_incompressible_page(zram, page, index);
- 	}
- 
-+	slot_lock(zram, index);
-+	slot_free(zram, index);
- 	handle = zs_malloc(zram->mem_pool, comp_len,
- 			   GFP_NOIO | __GFP_NOWARN |
- 			   __GFP_HIGHMEM | __GFP_MOVABLE, page_to_nid(page));
- 	if (IS_ERR(handle)) {
- 		zcomp_cstrm_put(zstrm);
-+		slot_unlock(zram, index);
- 		return PTR_ERR(handle);
- 	}
- 
-@@ -2328,8 +2333,6 @@ static int zram_write_page(struct zram *
- 	zs_obj_write(zram->mem_pool, handle, zstrm->buffer, comp_len);
- 	zcomp_cstrm_put(zstrm);
- 
--	slot_lock(zram, index);
--	slot_free(zram, index);
- 	zram->table[index].handle = handle;
- 	set_slot_size(zram, index, comp_len);
- 	mark_slot_accessed(zram, index);
+ 	zswap_lru_del(entry);
+-	if (!WARN_ON_ONCE(!pool)) {
+-		zs_free(pool->zs_pool, entry->handle);
+-		zswap_pool_put(pool);
+-	}
++	if (WARN_ON_ONCE(!pool))
++		return;
++
++	zs_free(pool->zs_pool, entry->handle);
++	zswap_pool_put(pool);
+ 	if (entry->objcg) {
+ 		obj_cgroup_uncharge_zswap(entry->objcg, entry->length);
+ 		obj_cgroup_put(entry->objcg);
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
