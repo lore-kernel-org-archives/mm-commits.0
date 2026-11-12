@@ -1,48 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794465715;
-	b=WXIitbUXRDmPu6AB5hSA/Ey+oMiXcWglRdCwMIF3Wz+Q6/HV6AnVlrWNKFulk5tWfmlL
-	 aeoEy6HbWiovh/NfRq0e1j72m9pEfg+pjl+NlVSCxPUBgatRv/QyF6duwW6tk18VCL+Xk
-	 2uDXzxtKy3PJtU+pogTEzsSRhypmLW5NvFXoW16sycAQj3ggy604PLOQIjOYX/KECb3EO
-	 EKuTvqv4DXFFpZpjg4aUhuZkENRbmJCWb11jWYTTcWlA7VeagAFdDkHWg8UUiJxHeiDh8
-	 vXEq9RZAAPtC4TdtcBZ2Qy0GLD50HRNvoK9o8MaA2xr1shAz+xMXEdSbYTmmENEOLbw==
+	t=1794483990;
+	b=gn7bL7U/ZTuUZKP4FZY2RJBifOswNPpnX7VPE+R0HKyoemAcxa4m3eNMReeYz4ZSMjMp
+	 Dlw7LiPHKLudyhDrwiLxpMMdAdEvNuubm86D3/s50zqCH69jUvz4509iEjb36QifRPW/r
+	 oTOshfD6aAXJe8TTg82ZOzi/NF7h8pHMxinSAH2r/bJTEJHaJx3AHqWfCyo9JqlDjwmVF
+	 3J2IQmczYkoJPuhENGXjBNTk0yznFZ4yL4lZQ0EkJCEcWs3rggVxf728Yeq30K/3nu0O/
+	 NPF9gjoIA315DHuxr0sRubHmScd06JhNUJE7Rkgvm9xa8I1v4olCTxwoshbQnhS1k9w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794465715;
-	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=4FnRBTbB0AthbVHDCjLXKfCG8PI1JQBN1CMbbE4SFYI=;
-	b=qcELYxQ9k1ohgK0B5ORtFrsO4RvQyJQhwPwwQo/cx+1r5Hdw/l9fBYwWcU/DSsITp2ce
-	 a4Xl8zRtNVz6vpIe38mnyuQCv0sAtGySN6ltJbGfXPBUY6fzL3AlBIA5Iri/fc3lAcp1i
-	 FNsA0+7ryz/FsJJjSyviGBj572f9OlyHA5TlbUbeykDwYMPtVQEQERDldWO1Xskqb1Y8P
-	 Vi/JYh7M8QiI+ZNAIP2h7sOe3kVEzIUgkpokDoB+YIw5LlHnIyU6ST0ZIWlOCdvubDxaT
-	 9oUdT2o2pE/TZN+Z1Hz1auntk2GjabYgpD1g0YSjVZBwUjis1dmPi2LZFbngL1yhnyA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794483990;
+	h=Received:DKIM-Signature:Date:To:Cc:From:Subject:Message-Id;
+	bh=mEZG1Kmhd0U4UYR2Fj+tjysBjY6+HgA8FTjwlncUWYE=;
+	b=Rj9eYHRc84GbBXo4RdyVjncxJ5fSn4VAn5/hUmkaSlUAeo3Nos++RddsyDTTbtc1tswn
+	 kYFrryQTATzIqlObRmXlvwSMCI/PXC233IrrdNfuglz/YiaoVrG6JXIrwenB9a78N8q1i
+	 HbG7AEE26cUnejaUsrumbZ47burpzzL6aeHvNMgpkc8E3LdtUJKxUqjU+cNEWeHXTXRUB
+	 5wQ/9Mn45qImumDVO1el/C98iROMaPkqGnevjDNkwfwpu/s9ZR8MIKE/HpFa9XXaf0OXe
+	 JLlz1kjhrl66cFPOMTvGB7YatZASx00xYSsRRRVnKX7lj5ayBGbc+6Avkm13ve8lpSg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Pvl4mC0l;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ijETyZOp;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7356A606A31C;
-	Thu, 12 Nov 2026 06:41:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FA8F606A31C
+	for <mm-commits@vger.kernel.org>; Thu, 12 Nov 2026 11:46:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Pvl4mC0l
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 077A51F00A05;
-	Thu, 12 Nov 2026 06:41:54 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ijETyZOp
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C201E1F00A05;
+	Thu, 12 Nov 2026 11:46:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794465715;
-	bh=4FnRBTbB0AthbVHDCjLXKfCG8PI1JQBN1CMbbE4SFYI=;
-	h=Date:To:From:Subject;
-	b=Pvl4mC0loe718faEKOs0sxJi8B+hTBCFdbi/rCj7ZMAn7GNASB7zm/L8716AF1Q+G
-	 yD1+CIHs8MJbfLNcy4AGLwpJ4u5thB3MpSL+h0hkWZOI5ULdLCNHLas4QhZvBsFzsW
-	 X7JDUBskAHdGo/fpeaprZUMmvBQGmB491hcPxCeI=
-Date: Wed, 11 Nov 2026 22:41:54 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,
-	roman.gushchin@linux.dev,qi.zheng@linux.dev,muchun.song@linux.dev,
-	mhocko@kernel.org,mason@kernel.org,hannes@cmpxchg.org,david@kernel.org,
-	david@fromorbit.com,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	d=linux-foundation.org; s=korg; t=1794483989;
+	bh=mEZG1Kmhd0U4UYR2Fj+tjysBjY6+HgA8FTjwlncUWYE=;
+	h=Date:To:Cc:From:Subject;
+	b=ijETyZOpy/hXNve316LGI4FBZNYu6RXDRebaGsV7Dci7xSEPKnrJPkXcXdaOa8bZX
+	 D/hub+cVqBiHM0VGi34nyFdc1ZSsVWq1GkTXs9OMPyR2tmkwis6dgE6npQp2cNrTu1
+	 7bggjDdloxyQoiuDoSgWHA+OXnoJaHOqwMVv5cds=
+Date: Thu, 12 Nov 2026 03:46:29 -0800
+To: mm-commits@vger.kernel.org, ljs@kernel.org, akpm@linux-foundation.org
+Cc: David Hildenbrand <david@kernel.org>
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-list_lru-fix-null-deref-when-a-folio-moves-to-the-root-memcg.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261112064155.077A51F00A05@smtp.kernel.org>
+Subject: [merged] revert-mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot.patch removed from -mm tree
+Message-Id: <20261112114629.C201E1F00A05@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,109 +51,299 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
-     Subject: mm: list_lru: fix NULL deref when a folio moves to the root memcg
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-list_lru-fix-null-deref-when-a-folio-moves-to-the-root-memcg.patch
+The quilt patch titled
+     Subject: Revert "mm/khugepaged: remove definition of struct khugepaged_mm_slot"
+has been removed from the -mm tree.  Its filename was
+     revert-mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-list_lru-fix-null-deref-when-a-folio-moves-to-the-root-memcg.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: mm: list_lru: fix NULL deref when a folio moves to the root memcg
-Date: Wed, 11 Nov 2026 22:12:31 -0800
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: Revert "mm/khugepaged: remove definition of struct khugepaged_mm_slot"
+Date: Tue, 10 Nov 2026 17:19:11 +0000
 
-folio_memcg_list_lru_alloc() makes sure that a folio's memcg has its own
-lists in a list_lru, such as the THP deferred split queue.  It looks up
-the folio's memcg twice: a fast path under RCU checks if the lists exist,
-and a slow path takes a reference and allocates them.  The fast path
-returns early for the root memcg, which uses the global lists.  The slow
-path does not check for the root.
+Patch series "mm/khugepaged: bound mmap_lock hold time when walking an mm's
+VMAs", v3.
 
-The memcg can change between the two lookups: when a cgroup is removed,
-its folios are moved to the parent memcg.  If the folio is moved up to the
-root in between, the slow path gets the root, and __memcg_list_lru_alloc()
-dereferences the root's parent, which is NULL.
+This series introduces a couple small changes to khugepaged to improve its
+behaviour both in the face of mm->mmap_lock contention and to reduce that
+lock contention when possible.
 
-Users see a NULL pointer dereference oops while a THP is allocated, such
-as in a page fault, in khugepaged or at swap-in.  tmpfs huge pages are
-affected too, and for them the oops can also happen in reclaim, for
-example in kswapd.  The task that hits the oops is killed, or the machine
-panics if panic_on_oops is set.
+Looking at the first change - if the mmap lock is contended, an attempted
+mmap trylock in collapse_scan_mm_slot() will result in the scan being
+aborted wherever it happens to be, and when next the mm is processed it
+starts from the beginning again.
 
-The race is narrow: the folio has to be moved up to the root right between
-the two lookups.  For example, its cgroup is directly below the root and
-is removed, or has its memory controller disabled, at that moment.
+If an mm has a lot of ineligible VMAs and is undergoing significant
+mmap_lock contention, collapsing the eligible VMAs there can take a very
+long time.
 
-Fix it by checking memcg_list_lru_allocated() again in the slow path, like
-the fast path does.  It returns true for the root, which needs no lists of
-its own.
+Patch 2 of the series fixes this (patch 1 is a prerequisite) by keeping
+track of where khugepaged was in the mm before aborting the scan.
 
-Link: https://lore.kernel.org/20261112061231.2469026-1-shakeel.butt@linux.dev
-Fixes: ae64f07a6a40 ("mm: list_lru: introduce folio_memcg_list_lru_alloc()")
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+This issue was noticed during some work in which an mm was instantiated
+with a large number of small VMAs under significant mmap_lock contention,
+during which collapse was observed to take 10.8s. With this patch applied
+it took 3.6s to collapse the same mm.
+
+Finally, patch 3 uses this to have khugepaged release + reacquire the mmap
+read lock if it is contended after walking a large number of VMAs.
+
+This was also observed as part of the previously mentioned work in the form
+of mmap lock stalls, which patch 3 resolves. The reader stealing the lock
+back from a queued writer on re-acquisition is addressed separately by the
+rwsem change at [0].
+
+Importantly, none of the changes introduces any regressions for khugepaged
+anywhere. It is all upside, and implemented conservatively.
+
+
+This patch (of 3):
+
+This partially reverts commit b4c9ffb54b32 ("mm/khugepaged: remove
+definition of struct khugepaged_mm_slot"), as a subsequent commit needs to
+resurrect this type to store additional data alongside the mm_slot.
+
+The stated intent of the commit was to address a NULL check in
+__khugepaged_exit():
+
+	mm_slot = mm_slot_entry(slot, struct khugepaged_mm_slot, slot);
+
+slot can be NULL and mm_slot_entry() is an alias for container_of(), so
+this is container_of() a NULL value.
+
+This was benign as there was only 1 field in khugepaged_mm_slot (offsetting
+NULL at 0 results in NULL), however it was right to fix this, so retain the
+fix.
+
+It also unwrapped KMEM_CACHE() in khugepaged_init(). This was a mistake,
+and was itself reverted in commit c14bdcc9f274 ("mm/khugepaged: use
+KMEM_CACHE()"). Therefore, retain the KMEM_CACHE() form in this revert.
+
+Link: https://lore.kernel.org/20261110-khugepaged-latency-fix-v3-0-6eea743cf9a3@kernel.org
+Link: https://lore.kernel.org/20261110-khugepaged-latency-fix-v3-1-6eea743cf9a3@kernel.org
+Link: https://lore.kernel.org/all/20261105-rwsem-dont-steal-from-queued-writer-v1-1-275e070f426f@kernel.org/ [0]
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Chris Mason <mason@kernel.org>
-Acked-by: Muchun Song (ByteDance) <muchun.song@linux.dev>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: <stable@vger.kernel.org>
+Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Nico Pache <nico.pache@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Usama Arif <usama.arif@linux.dev>
+Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Vernon Yang <vernon2gm@gmail.com>
 ---
 
- mm/list_lru.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ mm/khugepaged.c |   57 ++++++++++++++++++++++++++++++----------------
+ 1 file changed, 38 insertions(+), 19 deletions(-)
 
---- a/mm/list_lru.c~mm-list_lru-fix-null-deref-when-a-folio-moves-to-the-root-memcg
-+++ a/mm/list_lru.c
-@@ -645,9 +645,16 @@ int folio_memcg_list_lru_alloc(struct fo
- 	if (likely(res))
- 		return 0;
+--- a/mm/khugepaged.c~revert-mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot
++++ a/mm/khugepaged.c
+@@ -67,6 +67,14 @@ static DEFINE_READ_MOSTLY_HASHTABLE(mm_s
+ static struct kmem_cache *mm_slot_cache __ro_after_init;
  
--	/* Allocation may block, pin the memcg */
-+	/*
-+	 * Allocation may block, so pin the memcg. If the folio's cgroup
-+	 * was removed after the check above, the folio has moved up to a
-+	 * parent memcg. That memcg may already have its lists, or may be
-+	 * the root, which uses the global lists and has no parent. So
-+	 * check again before allocating.
-+	 */
- 	memcg = get_mem_cgroup_from_folio(folio);
--	res = __memcg_list_lru_alloc(memcg, lru, gfp);
-+	if (!memcg_list_lru_allocated(memcg, lru))
-+		res = __memcg_list_lru_alloc(memcg, lru, gfp);
- 	mem_cgroup_put(memcg);
- 	return res;
+ /**
++ * struct khugepaged_mm_slot - khugepaged information per mm that is being scanned
++ * @slot: hash lookup from mm to mm_slot
++ */
++struct khugepaged_mm_slot {
++	struct mm_slot slot;
++};
++
++/**
+  * struct khugepaged_scan - cursor for scanning
+  * @mm_head: the head of the mm list to scan
+  * @mm_slot: the current mm_slot we are scanning
+@@ -76,7 +84,7 @@ static struct kmem_cache *mm_slot_cache
+  */
+ struct khugepaged_scan {
+ 	struct list_head mm_head;
+-	struct mm_slot *mm_slot;
++	struct khugepaged_mm_slot *mm_slot;
+ 	unsigned long address;
+ };
+ 
+@@ -386,7 +394,7 @@ int hugepage_madvise(struct vm_area_stru
+ 
+ int __init khugepaged_init(void)
+ {
+-	mm_slot_cache = KMEM_CACHE(mm_slot, 0);
++	mm_slot_cache = KMEM_CACHE(khugepaged_mm_slot, 0);
+ 	if (!mm_slot_cache)
+ 		return -ENOMEM;
+ 
+@@ -446,20 +454,22 @@ static bool hugepage_enabled(void)
+ 
+ void __khugepaged_enter(struct mm_struct *mm)
+ {
++	struct khugepaged_mm_slot *mm_slot;
+ 	struct mm_slot *slot;
+ 	int wakeup;
+ 
+ 	/* __khugepaged_exit() must not run from under us */
+ 	VM_BUG_ON_MM(collapse_test_exit(mm), mm);
+ 
+-	slot = mm_slot_alloc(mm_slot_cache);
+-	if (!slot)
++	mm_slot = mm_slot_alloc(mm_slot_cache);
++	if (!mm_slot)
+ 		return;
+ 
+ 	if (unlikely(mm_flags_test_and_set(MMF_VM_HUGEPAGE, mm))) {
+-		mm_slot_free(mm_slot_cache, slot);
++		mm_slot_free(mm_slot_cache, mm_slot);
+ 		return;
+ 	}
++	slot = &mm_slot->slot;
+ 
+ 	spin_lock(&khugepaged_mm_lock);
+ 	mm_slot_insert(mm_slots_hash, mm, slot);
+@@ -504,12 +514,15 @@ void khugepaged_enter_vma(struct vm_area
+ 
+ void __khugepaged_exit(struct mm_struct *mm)
+ {
++	struct khugepaged_mm_slot *mm_slot;
+ 	struct mm_slot *slot;
+ 	int free = 0;
+ 
+ 	spin_lock(&khugepaged_mm_lock);
+ 	slot = mm_slot_lookup(mm_slots_hash, mm);
+-	if (slot && khugepaged_scan.mm_slot != slot) {
++
++	mm_slot = slot ? mm_slot_entry(slot, struct khugepaged_mm_slot, slot) : NULL;
++	if (mm_slot && khugepaged_scan.mm_slot != mm_slot) {
+ 		mm_slot_remove(slot);
+ 		free = 1;
+ 	}
+@@ -517,9 +530,9 @@ void __khugepaged_exit(struct mm_struct
+ 
+ 	if (free) {
+ 		mm_flags_clear(MMF_VM_HUGEPAGE, mm);
+-		mm_slot_free(mm_slot_cache, slot);
++		mm_slot_free(mm_slot_cache, mm_slot);
+ 		mmdrop(mm);
+-	} else if (slot) {
++	} else if (mm_slot) {
+ 		/*
+ 		 * This is required to serialize against
+ 		 * collapse_test_exit() (which is guaranteed to run
+@@ -1773,8 +1786,9 @@ out:
+ 	return result;
+ }
+ 
+-static void collect_mm_slot(struct mm_slot *slot)
++static void collect_mm_slot(struct khugepaged_mm_slot *mm_slot)
+ {
++	struct mm_slot *slot = &mm_slot->slot;
+ 	struct mm_struct *mm = slot->mm;
+ 
+ 	lockdep_assert_held(&khugepaged_mm_lock);
+@@ -1790,7 +1804,7 @@ static void collect_mm_slot(struct mm_sl
+ 		 */
+ 
+ 		/* khugepaged_mm_lock actually not necessary for the below */
+-		mm_slot_free(mm_slot_cache, slot);
++		mm_slot_free(mm_slot_cache, mm_slot);
+ 		mmdrop(mm);
+ 	}
+ }
+@@ -2914,6 +2928,7 @@ static void collapse_scan_mm_slot(unsign
+ 	__acquires(&khugepaged_mm_lock)
+ {
+ 	struct vma_iterator vmi;
++	struct khugepaged_mm_slot *mm_slot;
+ 	struct mm_slot *slot;
+ 	struct mm_struct *mm;
+ 	struct vm_area_struct *vma;
+@@ -2923,12 +2938,14 @@ static void collapse_scan_mm_slot(unsign
+ 	*result = SCAN_FAIL;
+ 
+ 	if (khugepaged_scan.mm_slot) {
+-		slot = khugepaged_scan.mm_slot;
++		mm_slot = khugepaged_scan.mm_slot;
++		slot = &mm_slot->slot;
+ 	} else {
+ 		slot = list_first_entry(&khugepaged_scan.mm_head,
+ 				     struct mm_slot, mm_node);
++		mm_slot = mm_slot_entry(slot, struct khugepaged_mm_slot, slot);
+ 		khugepaged_scan.address = 0;
+-		khugepaged_scan.mm_slot = slot;
++		khugepaged_scan.mm_slot = mm_slot;
+ 	}
+ 	spin_unlock(&khugepaged_mm_lock);
+ 
+@@ -3004,7 +3021,7 @@ breakouterloop:
+ breakouterloop_mmap_lock:
+ 
+ 	spin_lock(&khugepaged_mm_lock);
+-	VM_BUG_ON(khugepaged_scan.mm_slot != slot);
++	VM_BUG_ON(khugepaged_scan.mm_slot != mm_slot);
+ 	/*
+ 	 * Release the current mm_slot if this mm is about to die, or
+ 	 * if we scanned all vmas of this mm, or THP got disabled.
+@@ -3016,14 +3033,16 @@ breakouterloop_mmap_lock:
+ 		 * mm_slot not pointing to the exiting mm.
+ 		 */
+ 		if (!list_is_last(&slot->mm_node, &khugepaged_scan.mm_head)) {
+-			khugepaged_scan.mm_slot = list_next_entry(slot, mm_node);
++			slot = list_next_entry(slot, mm_node);
++			khugepaged_scan.mm_slot =
++				mm_slot_entry(slot, struct khugepaged_mm_slot, slot);
+ 			khugepaged_scan.address = 0;
+ 		} else {
+ 			khugepaged_scan.mm_slot = NULL;
+ 			khugepaged_full_scans++;
+ 		}
+ 
+-		collect_mm_slot(slot);
++		collect_mm_slot(mm_slot);
+ 	}
+ 
+ 	trace_mm_khugepaged_scan(mm, cc->progress - progress_prev,
+@@ -3113,7 +3132,7 @@ static void khugepaged_wait_work(void)
+ 
+ static int khugepaged(void *none)
+ {
+-	struct mm_slot *slot;
++	struct khugepaged_mm_slot *mm_slot;
+ 
+ 	set_freezable();
+ 	set_user_nice(current, MAX_NICE);
+@@ -3124,10 +3143,10 @@ static int khugepaged(void *none)
+ 	}
+ 
+ 	spin_lock(&khugepaged_mm_lock);
+-	slot = khugepaged_scan.mm_slot;
++	mm_slot = khugepaged_scan.mm_slot;
+ 	khugepaged_scan.mm_slot = NULL;
+-	if (slot)
+-		collect_mm_slot(slot);
++	if (mm_slot)
++		collect_mm_slot(mm_slot);
+ 	spin_unlock(&khugepaged_mm_lock);
+ 	return 0;
  }
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from ljs@kernel.org are
 
-mm-mglru-splice-all-generations-when-reparenting-a-memcg.patch
-memcg-flush-nr_charged_bytes-when-the-obj-stock-trylock-fails.patch
-mm-list_lru-fix-null-deref-when-a-folio-moves-to-the-root-memcg.patch
-memcg-move-memoryhigh-enforcement-out-of-try_charge_memcg.patch
-memcg-force-charges-from-reclaim-before-trying-the-limits.patch
-memcg-use-high_work-for-kernel-threads.patch
-memcg-use-high_work-for-remote-charges.patch
-memcg-simplify-high-limit-handling-after-a-charge.patch
+maintainers-remove-myself-from-mm-core-reviewership.patch
+maintainers-remove-myself-from-mm-misc-reclaim-reviewership.patch
+maintainers-remove-myself-from-mm-rust-reviewerships.patch
+credits-add-entry-for-thp-maintenance.patch
+mm-vma-predicate-vma_assert_stabilised-on-config_debug_vm.patch
+mm-khugepaged-scan-mms-more-efficiently-under-mmap_lock-contention.patch
+mm-khugepaged-release-contended-mmap-read-lock-after-scanning-enough-vmas.patch
+mm-only-assert-mmap-locks-if-config_debug_vm-or-lockdep-is-set.patch
+mm-only-assert-vma-locks-if-config_debug_vm-is-set.patch
+mm-convert-warn_on_onces-to-vm_warn_on_once-in-vma-lock-code.patch
 
