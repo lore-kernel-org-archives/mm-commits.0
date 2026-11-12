@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794510688;
-	b=am+0bK4bWcztIoQR0G1hEjGLl8hZIdTpNvhrIUjt4mMMo5kFYXKhGd5y2bToPVO2lFwR
-	 UkzFtJOF7nvJzu4a1MtT8uTP9yXDmqc7hp/qCUa8Jcq0C3ykpONDv52u+xJ/+GG4MVBZP
-	 M6VcsW8od/xSNK3496YobYRGFgkgy04EfkEVNFUfBtp1r6WoJWEqsHV09EpUzRGDiQM6H
-	 bVHsMDPjn4Wp6o47sBnpbgxEZ7mS5tjcldN2fDqME7U6sSzhQGkumE6WcX4cqQlXPEo+5
-	 xSqloI02vk+Wvd3wYVI3mOgXxdfJv+EDzq+HUdcBQy8TBwKpdHTZV7G+a+qPeI12bkQ==
+	t=1794510690;
+	b=un8wjHKzdbDynttTm06Y4ja9Wm0Ejzyw9wCo/QQGCjT6UvnYDeh82MAWx08c7R11SVGp
+	 A5q3uCKg2IYPdfZB7f1AbEY+y3Ut0QjPI+03o1ECJoLZR7alP3fh9zAaTc/5uPS/mO0jY
+	 ba3tVeEi111soUnyN6AolnZPMbTVszviIFuNg5huOE+kyl/61/fbyrJ4As6nPQSG1U6M0
+	 SjOljoPxzNx1T7MBeNGnIBJxnWAZ9GqVNO672SewiN3f7JmPT27I4UHDkGyHt2K9ZxpCA
+	 w1seQyLMNPn9fVzP6FeHpoQ9VOIrgLvIvQfBRLmfH+nDOEN7tnC5Cyi/jkxBUSEnD8A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794510688;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794510690;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=dTU+KmXvtkMp8FNEMoHtNopz+BB/gbvCiwAOSkQx9pk=;
-	b=loCBMCVtldgvomIqBX1lr4y4GmPVe10Rqdx/nIve5lJZHyAwIdDf7UPVAMbOw1gGzJrm
-	 34yIbB3YZmbOpXvG91fjEJc3veYYrG0kfcO1MQbHgRS0UnkLd+U7EOIuaUJN+5R/QmDXX
-	 0sDjDY5TlYIZL20GhoNOrEvIbtX4Zv8Gam+5QNyGD7ImcxComsTNdOq3B/vZp4MCmWXIw
-	 ActrLe4pGXfrmFYXccQFJNo3u22hiycrFWW6KrczWmoeFq1c4uNsAlxurSr+HBN8g73oZ
-	 0FXXF4yz4SdlSBkiHiHUKGr8DCIZXgoKXxx673d/wxFF7mJMDaalud93AZTp3pVwmHQ==
+	bh=p9MvuC/P5eEQtn2XJ3+R5V9OasaT9UUb2wBJ8NwkiWU=;
+	b=1V26JlUjXef4uId1+5q+Q57Hsi9xEFk7SKI86QoKcrMOygLp5NEPQsu7GSVs93WhW5hM
+	 98jJemg8jd1rXEnI6YVvj1peTQs5/Tu8zZB6P6J8YjNWuhA/tJYHLsylrNm6IjRVRb7zg
+	 bwGXvjFhyj9UWp7qBAK1TNnQx0zncU1uWLqZ05ZVbVoU8jLp+FtaoPZgER+uGIMz6aKHt
+	 /aRJLU7oaCUk4s5j9SYdCN1I6iMFuKdVnq7r4QfnLmB5ufJFJORMOV6Tq0iEjgMYnmGYs
+	 k5hHi7CpaxuF+berj5rqkNNsshgJyCV0EcRHWb1wqndWjOh+fH17W5ry31qyCFanjXw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="O3+b/Jap";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=p0gjZ758;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60FDB606A327
-	for <mm-commits@vger.kernel.org>; Thu, 12 Nov 2026 19:11:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6AD8606A895
+	for <mm-commits@vger.kernel.org>; Thu, 12 Nov 2026 19:11:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=O3+b/Jap
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA7111F000C5;
-	Thu, 12 Nov 2026 19:11:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=p0gjZ758
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46EC21F000C5;
+	Thu, 12 Nov 2026 19:11:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794510688;
-	bh=dTU+KmXvtkMp8FNEMoHtNopz+BB/gbvCiwAOSkQx9pk=;
+	d=linux-foundation.org; s=korg; t=1794510690;
+	bh=p9MvuC/P5eEQtn2XJ3+R5V9OasaT9UUb2wBJ8NwkiWU=;
 	h=Date:To:From:Subject;
-	b=O3+b/Japh0jVywF6ZEVRjjLTkyB7NkkFCm1wOm6DQpOO3jaFEA9xWj/yZ2M58Fov6
-	 DIh4BdLlyFSlbSw+WstMI0m0+z9qf9zeUiby0Jm4bkcVio6xhA4uhTVbv2B24c6NWp
-	 Jq/uCyVjNIXFTWTnUv3MlG5l8vs3KqB1vwBB+DxA=
-Date: Thu, 12 Nov 2026 11:11:27 -0800
+	b=p0gjZ758PgIwCbCFFljwB8GMBYiOPwE+Flr53Rnk6USs2aH/r9W9hjgrJvaybU5/w
+	 73GdOi9avI7IP7EcIG/ovcWnX0XLLeCInCCE8OWncc17gPcqhyPRtuoF/4e5iAvWjz
+	 J3fcOTffx8SiMj5jtgVovvgAXm6pGFl5NnmC+fsc=
+Date: Thu, 12 Nov 2026 11:11:29 -0800
 To: mm-commits@vger.kernel.org,phillip.lougher@gmail.com,
 	phillip@squashfs.org.uk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + squashfs-fix-regression-in-squashfs_copy_cache.patch added to mm-nonmm-unstable branch
-Message-Id: <20261112191127.EA7111F000C5@smtp.kernel.org>
+Subject: + squashfs-check-index-isnt-greater-than-s64_max-in-squashfs_read_data.patch added to mm-nonmm-unstable branch
+Message-Id: <20261112191130.46EC21F000C5@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,12 +52,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: Squashfs: fix regression in squashfs_copy_cache()
+     Subject: Squashfs: check index isn't greater than S64_MAX in squashfs_read_data()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-fix-regression-in-squashfs_copy_cache.patch
+     squashfs-check-index-isnt-greater-than-s64_max-in-squashfs_read_data.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-fix-regression-in-squashfs_copy_cache.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-check-index-isnt-greater-than-s64_max-in-squashfs_read_data.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,73 +76,42 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: Squashfs: fix regression in squashfs_copy_cache()
-Date: Wed, 11 Nov 2026 23:44:01 +0000
+Subject: Squashfs: check index isn't greater than S64_MAX in squashfs_read_data()
+Date: Wed, 11 Nov 2026 23:44:02 +0000
 
-In a recent commit updating the code to use folios, the bytes variable
-was changed from signed to unsigned in squashfs_copy_cache().
+The previous commits in this patch-set now sanity check index before
+squashfs_read_data() is called.  However, it is always wise to take
+a belts and braces approach and sanity check at the lowest level to
+trap any values that could slip through.
 
-The bytes variable is used in a loop where PAGE_SIZE bytes are
-subtracted from it each time around the loop, and where the loop
-terminates once bytes is less than or equal to zero.
-
-The effect of the change in signedness is bytes no longer becomes
-negative when it is not a multiple of PAGE_SIZE, and the loop does not
-terminate when it should do, and instead folios are created and filled
-after file EOF.
-
-These beyond EOF folios are not visible to user-space and hence this is
-a silent regression.
-
-This commit fixes the code to only subtract the minimum of bytes or
-PAGE_SIZE, and which ensures the variable does not underflow.
-
-Link: https://lore.kernel.org/20261111234402.252354-22-phillip@squashfs.org.uk
-Fixes: 5641371fd0b3 ("squashfs; convert squashfs_copy_cache() to take a folio")
+Link: https://lore.kernel.org/20261111234402.252354-23-phillip@squashfs.org.uk
+Fixes: e2780ab159ac ("Squashfs: block operations")
 Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Phillip Lougher <phillip.lougher@gmail.com>
 ---
 
- fs/squashfs/file.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ fs/squashfs/block.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/fs/squashfs/file.c~squashfs-fix-regression-in-squashfs_copy_cache
-+++ a/fs/squashfs/file.c
-@@ -410,6 +410,7 @@ void squashfs_copy_cache(struct folio *f
- 	struct squashfs_sb_info *msblk = inode->i_sb->s_fs_info;
- 	s64 i, mask = (1 << (msblk->block_log - PAGE_SHIFT)) - 1;
- 	s64 start_index = folio->index & ~mask, end_index = start_index | mask;
-+	size_t avail;
+--- a/fs/squashfs/block.c~squashfs-check-index-isnt-greater-than-s64_max-in-squashfs_read_data
++++ a/fs/squashfs/block.c
+@@ -297,6 +297,15 @@ int squashfs_read_data(struct super_bloc
+ 	int res;
+ 	int offset;
  
- 	/*
- 	 * Loop copying datablock into pages.  As the datablock likely covers
-@@ -417,12 +418,13 @@ void squashfs_copy_cache(struct folio *f
- 	 * grab the pages from the page cache, except for the page that we've
- 	 * been called to fill.
- 	 */
--	for (i = start_index; i <= end_index && bytes > 0; i++,
--			bytes -= PAGE_SIZE, offset += PAGE_SIZE) {
-+	for (i = start_index; i <= end_index && bytes; i++,
-+			bytes -= avail, offset += avail) {
- 		struct folio *push_folio;
--		size_t avail = buffer ? min(bytes, PAGE_SIZE) : 0;
- 		bool updated = false;
- 
-+		avail = min(bytes, PAGE_SIZE);
++	/*
++	 * Reject index values greater than possible filesystem size (S64_MAX).
++	 * This also ensures the index variable doesn't overflow in the function.
++	 */
++	if (index > S64_MAX) {
++		res = -EIO;
++		goto out;
++	}
 +
- 		TRACE("bytes %zu, i %lld, available_bytes %zu\n", bytes, i, avail);
- 
- 		push_folio = (i == folio->index) ? folio :
-@@ -436,7 +438,7 @@ void squashfs_copy_cache(struct folio *f
- 		if (folio_test_uptodate(push_folio))
- 			goto skip_folio;
- 
--		updated = squashfs_fill_page(push_folio, buffer, offset, avail);
-+		updated = squashfs_fill_page(push_folio, buffer, offset, buffer ? avail : 0);
- skip_folio:
- 		folio_end_read(push_folio, updated);
- 		if (i != folio->index)
+ 	if (length) {
+ 		/*
+ 		 * Datablock.
 _
 
 Patches currently in -mm which might be from phillip@squashfs.org.uk are
