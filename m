@@ -1,52 +1,52 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794446239;
-	b=nKQprtEKKpc27OwsktiYdPW2XmVQ9498Is2IU9SCZOOq8R/CJM2crEwH99bl4f/1gtU5
-	 HaW376t1K5/pdbXN+4agg2SYNSdpQcWkbkcDT3rWfuh86OTj2I6uxGpQh6JOsz8cynHKP
-	 dRZiWCHGvrucpN4C96z28siSO2BGhZUopM1u6vN4t4yqBhNYvrQK5gB62xpe9pY0SP1Nu
-	 Mogyge2OlbthwZUfJGMtYsGzniest2BlGaeQA1fXjiJSemWD+WO1W2Qk51IBatxuwf6v7
-	 gJUMFDREMZpppt5xXM1mGYLYfobdtrIJGfBO/BxffcorGnBH9SgVEa1d94NSYRsKt0Q==
+	t=1794446240;
+	b=g6HdixJ65r85hvQQBRDPSXot3+fHXjUYbDFCdqfnPUbXaDybg3xUR1XAOIY92033eLMN
+	 J7YRz3wMW+0A6+xfdRpoybL+c7jz1EyQ7kPVA8f0iO2JE/SnTRit766iHRED7mJHwgmzY
+	 NIdCBisXDF+IpC24gOT0oFyHsKMV/1TW/P7GZoA/XPtZT6KHqy2XUtmIsmaPwQag0nJT6
+	 W1bE4TMc4ouAs065ibAmTJn60wo8kgDvS0izPTBMugxPgsiFwRgXocKifxG8EnpyY2TS6
+	 +LmHvyZhqAyOAzil2NwKeHjSASa6CUyRkfKZPAuv9lcaYtSBzqYMtLr2wuV6img3wCA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794446239;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794446240;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=pvceK64Pnj8rOOJBUgWMncoYgdiC9t899RZGlYsMnII=;
-	b=ccF3EePsIMNSCjlfKUoOfgg+5dQkrguvJ2vhv//QTxyVaKV+gMCKcKlQ9u9wrksjOBSV
-	 4dhAQaCqfwGAk1E67iTpNXaCLJ1DxurrfplpQJNxoVLASEVK+2nEEsku4fSdwWH4PHCmf
-	 8GMhYogpNcvkiRu1gsZs/f+Tj0jV0CUTSZz+Na92bhFBXAVwtA6UvpWSCQKZEwpep3Boo
-	 19y1DcJ0Nq98cy0FsRFCTFDxdb3XDlp02qK/7nn+PcHjFfsOGKYZuFzvE/vcArxIdFGH2
-	 f17m72b+vzI5vCHS2Lw/a3RvZbis3q5LyPpcuxZYXFQhWsNWpGLAcnJ7R79P3ICw27g==
+	bh=1qN9zxYNFiTcfIR5ZDeWMYfTwEIDOUY3/F5oGovd3VI=;
+	b=LCDm2POJ3+Xofg+Tx3v5WKG+1tgvMDhkmHsxbcvdrOfh2h6TAsoGbawzqb6keVfb6vDL
+	 Q9s2fUO7EgCUJpzsKBPeyBDB6pDGj7Dgn75zsqB6WCdPCtt4ieHW+Pj7v6NBIScqY14Wi
+	 M8uYS79YGhdXste0j/ryCf47QdTnbVN3u6kMjAQ6rVn+Uv/2aaT1oEsws19vv7xQ/YkVO
+	 evCmjfy0EiNRlQqPLvJyU9qptoHsAgxrC2vAoJ0xr65D9GKOGHGKElvZspNuT5R1gbHNv
+	 XfNCMDU3E1px2uJCP9qR567bCUsSzVkNVKjXTOpvQlJDAW0VpekkLYryprCA9PGFOuw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=eVKylcOF;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=dg9ZLO92;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 791DB606A33D
-	for <mm-commits@vger.kernel.org>; Thu, 12 Nov 2026 01:17:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86B5E606A33D
+	for <mm-commits@vger.kernel.org>; Thu, 12 Nov 2026 01:17:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=eVKylcOF
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C9741F00A07;
-	Thu, 12 Nov 2026 01:17:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=dg9ZLO92
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58DF91F00A05;
+	Thu, 12 Nov 2026 01:17:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794446239;
-	bh=pvceK64Pnj8rOOJBUgWMncoYgdiC9t899RZGlYsMnII=;
+	d=linux-foundation.org; s=korg; t=1794446240;
+	bh=1qN9zxYNFiTcfIR5ZDeWMYfTwEIDOUY3/F5oGovd3VI=;
 	h=Date:To:From:Subject;
-	b=eVKylcOFdf73gUXC1TravDOQclEyre1/18C4uzSSZnNRLcrts52gQUXAnINqIF8P4
-	 a+fB+/iL/hEiHH9hiHEjn7jDJxPukdFPx8+U7v9iEn9AoPVJoPTnMe83nobyDn6nhV
-	 caJKwn4Dae5CQnAfdxLHuHOhkvAzFnADTnCWF/6I=
-Date: Wed, 11 Nov 2026 17:17:18 -0800
+	b=dg9ZLO92rUvPSKlaoCO1UPIi2UGfoZVnIVCyZ7IxjhQ1KyKtIWobuvdodmJECU/Gf
+	 I3ec+ihQ3k5yyUhCHJgIDUNsHZ4iNX3fB8KkEBcNZp9QXMvKm0IzdE3q5Od4n0kkPA
+	 2dxMZvsaDwc9Zs7J3bjxwJRia2/GP8rslGUCyrhc=
+Date: Wed, 11 Nov 2026 17:17:20 -0800
 To: mm-commits@vger.kernel.org,zhuhui@kylinos.cn,zhangbo56@xiaomi.com,
 	yuanchu@google.com,weixugc@google.com,wangzicheng@honor.com,
 	surenb@google.com,sidchintamaneni@gmail.com,shakeel.butt@linux.dev,
 	rppt@kernel.org,ridong.chen@linux.dev,qi.zheng@linux.dev,mhocko@suse.com,
-	liuxiang.277@bytedance.com,lianux.mm@gmail.com,liam@infradead.org,
-	kunwu.chan@gmail.com,kasong@tencent.com,hui.zhu@linux.dev,hannes@cmpxchg.org,
-	baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,
-	axelrasmussen@google.com,lyugaofei@xiaomi.com,akpm@linux-foundation.org
+	lyugaofei@xiaomi.com,liuxiang.277@bytedance.com,lianux.mm@gmail.com,
+	liam@infradead.org,kunwu.chan@gmail.com,kasong@tencent.com,hui.zhu@linux.dev,
+	hannes@cmpxchg.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,
+	axelrasmussen@google.com,baohua@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-run-aging-when-pages-are-rare-outside-the-youngest-gen.patch added to mm-new branch
-Message-Id: <20261112011719.1C9741F00A07@smtp.kernel.org>
+Subject: + mm-mglru-run-aging-when-one-type-has-no-populatable-folios.patch added to mm-new branch
+Message-Id: <20261112011720.58DF91F00A05@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -58,12 +58,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/mglru: run aging when pages are rare outside the youngest gen
+     Subject: mm/mglru: run aging when one type has no populatable folios
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mglru-run-aging-when-pages-are-rare-outside-the-youngest-gen.patch
+     mm-mglru-run-aging-when-one-type-has-no-populatable-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-run-aging-when-pages-are-rare-outside-the-youngest-gen.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-run-aging-when-one-type-has-no-populatable-folios.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -92,28 +92,23 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: lyugaofei <lyugaofei@xiaomi.com>
-Subject: mm/mglru: run aging when pages are rare outside the youngest gen
-Date: Thu, 12 Nov 2026 07:25:57 +0800
+From: "Barry Song (Xiaomi)" <baohua@kernel.org>
+Subject: mm/mglru: run aging when one type has no populatable folios
+Date: Thu, 12 Nov 2026 07:25:58 +0800
 
-Run aging when the total number of pages outside the youngest
-generation across both types falls below 1/MAX_NR_GENS of the number
-of pages in the youngest generation. For extreme swappiness values
-such as 1 and 200, also consider the balance of the corresponding
-type.
+We may have scan budget remaining for anon or file
+but no folios in populatable generations to scan.
+In this case, `scan_folios()` may waste time scanning
+that type while the other type still has populatable
+folios.
 
-This improves reclaim efficiency, especially at extreme swappiness
-values, while reducing system time.
+Run aging in this case to make more folios
+populatable. This also helps respect the scan budget
+distribution determined by swappiness.
 
-To avoid the overhead of aging, we only allow imbalance-based aging
-when the reclaim priority is low enough that we might reclaim the
-youngest generation.
-
-Link: https://lore.kernel.org/20261111232603.9934-11-baohua@kernel.org
-Signed-off-by: lyugaofei <lyugaofei@xiaomi.com>
+Link: https://lore.kernel.org/20261111232603.9934-12-baohua@kernel.org
 Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Co-developed-by: Barry Song (Xiaomi) <baohua@kernel.org>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
@@ -124,6 +119,7 @@ Cc: Kunwu Chan <kunwu.chan@gmail.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: wang lian <lianux.mm@gmail.com>
 Cc: <liuxiang.277@bytedance.com>
+Cc: <lyugaofei@xiaomi.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Qi Zheng <qi.zheng@linux.dev>
 Cc: Ridong Chen <ridong.chen@linux.dev>
@@ -138,70 +134,87 @@ Cc: Hui Zhu <zhuhui@kylinos.cn>
 Cc: Siddharth Chintamaneni <sidchintamaneni@gmail.com>
 ---
 
- mm/vmscan.c |   41 ++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 40 insertions(+), 1 deletion(-)
+ mm/vmscan.c |   30 ++++++++++++++++++++++--------
+ 1 file changed, 22 insertions(+), 8 deletions(-)
 
---- a/mm/vmscan.c~mm-mglru-run-aging-when-pages-are-rare-outside-the-youngest-gen
+--- a/mm/vmscan.c~mm-mglru-run-aging-when-one-type-has-no-populatable-folios
 +++ a/mm/vmscan.c
-@@ -5075,6 +5075,41 @@ retry:
- 	return scanned;
+@@ -5111,7 +5111,8 @@ static bool lru_gen_imbalanced(struct lr
  }
  
-+static bool lru_gen_imbalanced(struct lruvec *lruvec, struct scan_control *sc,
-+		int swappiness)
-+{
-+	unsigned long youngest[ANON_AND_FILE] = {0}, old[ANON_AND_FILE] = {0};
-+	struct lru_gen_folio *lrugen = &lruvec->lrugen;
-+	DEFINE_MAX_SEQ(lruvec);
-+	DEFINE_MIN_SEQ(lruvec);
-+	int type;
-+
-+	if (sc->priority > DEF_PRIORITY / 2)
-+		return false;
-+
-+	for_each_evictable_type(type, swappiness) {
-+		unsigned long seq;
-+
-+		youngest[type] = lruvec_gen_size(lrugen, type, max_seq);
-+		for (seq = min_seq[type]; seq < max_seq; seq++)
-+			old[type] += lruvec_gen_size(lrugen, type, seq);
-+	}
-+
-+	/* the vast majority of pages sit in the youngest gen */
-+	if (youngest[LRU_GEN_ANON] + youngest[LRU_GEN_FILE] >
-+	    (old[LRU_GEN_ANON] + old[LRU_GEN_FILE]) * MAX_NR_GENS)
-+		return true;
-+
-+	/* Swappiness extremes: the corresponding type matters */
-+	if (swappiness == MIN_SWAPPINESS + 1)
-+		return youngest[LRU_GEN_FILE] > old[LRU_GEN_FILE] * MAX_NR_GENS;
-+
-+	if (swappiness == MAX_SWAPPINESS)
-+		return youngest[LRU_GEN_ANON] > old[LRU_GEN_ANON] * MAX_NR_GENS;
-+
-+	return false;
-+}
-+
  static bool should_run_aging(struct lruvec *lruvec, unsigned long max_seq,
- 			     struct scan_control *sc, int swappiness)
+-			     struct scan_control *sc, int swappiness)
++			     struct scan_control *sc, int swappiness,
++			     bool no_populatable)
  {
-@@ -5089,7 +5124,11 @@ static bool should_run_aging(struct lruv
+ 	DEFINE_MIN_SEQ(lruvec);
+ 
+@@ -5123,6 +5124,13 @@ static bool should_run_aging(struct lruv
+ 	if (sc->priority == DEF_PRIORITY)
  		return false;
  
- 	/* better to run aging even though eviction is still possible */
--	return evictable_min_seq(min_seq, swappiness) + MIN_NR_GENS == max_seq;
-+	if (evictable_min_seq(min_seq, swappiness) + MIN_NR_GENS == max_seq)
++	/*
++	 * Run aging if scan budget remains but no folios
++	 * in populatable generations are available to scan.
++	 */
++	if (no_populatable)
 +		return true;
 +
-+	/* run aging when folios outside the youngest gen are rare */
-+	return lru_gen_imbalanced(lruvec, sc, swappiness);
- }
+ 	/* better to run aging even though eviction is still possible */
+ 	if (evictable_min_seq(min_seq, swappiness) + MIN_NR_GENS == max_seq)
+ 		return true;
+@@ -5227,20 +5235,17 @@ static bool try_to_shrink_lruvec(struct
+ 	lru_gen_prepare_scan(lruvec, sc, memcg, swappiness, nr);
  
- static void lru_gen_prepare_scan(struct lruvec *lruvec, struct scan_control *sc,
+ 	while (nr[LRU_GEN_ANON] > 0 || nr[LRU_GEN_FILE] > 0) {
++		unsigned long orig_file, orig_anon;
+ 		DEFINE_MAX_SEQ(lruvec);
++		bool no_populatable;
+ 
+ 		if (mem_cgroup_below_min(sc->target_mem_cgroup, memcg)) {
+ 			need_rotate = true;
+ 			break;
+ 		}
+ 
+-		if (should_run_aging(lruvec, max_seq, sc, swappiness)) {
+-			trace_mm_mglru_aging(lruvec, sc, swappiness);
+-			if (try_to_inc_max_seq(lruvec, max_seq, swappiness, false))
+-				need_rotate = true;
+-			should_age = true;
+-		}
+-
++		orig_anon = nr[LRU_GEN_ANON];
++		orig_file = nr[LRU_GEN_FILE];
+ 		if (!evict_folio_lists(nr, lruvec, sc, swappiness, MIN_LRU_BATCH))
+ 			break;
+ 
+@@ -5254,6 +5259,15 @@ static bool try_to_shrink_lruvec(struct
+ 		if (root_reclaim(sc) && should_age)
+ 			break;
+ 
++		no_populatable = (nr[LRU_GEN_ANON] && nr[LRU_GEN_ANON] == orig_anon) ||
++				 (nr[LRU_GEN_FILE] && nr[LRU_GEN_FILE] == orig_file);
++		if (should_run_aging(lruvec, max_seq, sc, swappiness, no_populatable)) {
++			trace_mm_mglru_aging(lruvec, sc, swappiness);
++			if (try_to_inc_max_seq(lruvec, max_seq, swappiness, false))
++				need_rotate = true;
++			should_age = true;
++		}
++
+ 		cond_resched();
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from lyugaofei@xiaomi.com are
+Patches currently in -mm which might be from baohua@kernel.org are
 
-mm-mglru-run-aging-when-pages-are-rare-outside-the-youngest-gen.patch
-mm-mglru-avoid-prolonged-anon-reclaim-with-swappiness=200.patch
+arm64-vmalloc-allow-arch_vmap_pte_range_map_size-to-batch-multiple-cont_pte.patch
+mm-vmalloc-extend-page-table-walk-to-support-larger-page_shift-sizes-and-eliminate-page-table-rewalk.patch
+mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible.patch
+mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings.patch
+mm-mglru-avoid-placing-rejected-folios-below-populated-gen.patch
+mm-mglru-run-aging-when-one-type-has-no-populatable-folios.patch
+mm-mglru-restrict-eviction-accounting-to-eligible-zones.patch
+mm-mglru-reduce-lru-lock-contention-by-shrinking-folio-batches-in-inc_min_seq.patch
+mm-mglru-make-swappiness=1-file-reclaim-more-aggressive.patch
 
