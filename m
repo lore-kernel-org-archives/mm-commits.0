@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794510690;
-	b=un8wjHKzdbDynttTm06Y4ja9Wm0Ejzyw9wCo/QQGCjT6UvnYDeh82MAWx08c7R11SVGp
-	 A5q3uCKg2IYPdfZB7f1AbEY+y3Ut0QjPI+03o1ECJoLZR7alP3fh9zAaTc/5uPS/mO0jY
-	 ba3tVeEi111soUnyN6AolnZPMbTVszviIFuNg5huOE+kyl/61/fbyrJ4As6nPQSG1U6M0
-	 SjOljoPxzNx1T7MBeNGnIBJxnWAZ9GqVNO672SewiN3f7JmPT27I4UHDkGyHt2K9ZxpCA
-	 w1seQyLMNPn9fVzP6FeHpoQ9VOIrgLvIvQfBRLmfH+nDOEN7tnC5Cyi/jkxBUSEnD8A==
+	t=1794511959;
+	b=knqN34dsWphFelsRjJho3nMt4ruCLAF1Lqpix8mpwDp6XeSwn/Ii7OWzowMFxeXsBWrm
+	 eAlC77SZ3GkGiW6s4pV/0o/dEWVXDCsLMJVcosG80ObpwSsyUi5VD7ZlD6nzb+G+nhn1c
+	 4dthR7WgzD1NhFnTVX9GQ7bGWywkd+Gbm+UnqBAFMas9vkEjEMr0uQGGpiBl57hOFv1IC
+	 pPsk86QS9NQxY1rOcHmi+F/Dr2Tevsj/2s8g2v64cj/3L5Qqmf0T+Sf0u/NS7hNhtADcQ
+	 9gJTPT1q43dv1rL4OiDpaEHRSGtRWRWpp6DR8S4gYwFkcGLl6WC1g5x+J2/D12jPDXQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794510690;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794511959;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=p9MvuC/P5eEQtn2XJ3+R5V9OasaT9UUb2wBJ8NwkiWU=;
-	b=1V26JlUjXef4uId1+5q+Q57Hsi9xEFk7SKI86QoKcrMOygLp5NEPQsu7GSVs93WhW5hM
-	 98jJemg8jd1rXEnI6YVvj1peTQs5/Tu8zZB6P6J8YjNWuhA/tJYHLsylrNm6IjRVRb7zg
-	 bwGXvjFhyj9UWp7qBAK1TNnQx0zncU1uWLqZ05ZVbVoU8jLp+FtaoPZgER+uGIMz6aKHt
-	 /aRJLU7oaCUk4s5j9SYdCN1I6iMFuKdVnq7r4QfnLmB5ufJFJORMOV6Tq0iEjgMYnmGYs
-	 k5hHi7CpaxuF+berj5rqkNNsshgJyCV0EcRHWb1wqndWjOh+fH17W5ry31qyCFanjXw==
+	bh=tbHQO/+8MpOEfcR2t5iHYFCRaU+Q2+gaKkZCUDvYiBg=;
+	b=ojgZhlnQWxjYKnFCjfg15qduOwHn/JAbsXgu5KQNVQignII2IzRLBjIFd0Cv8nCcGCLB
+	 R0QQwexH0/7cbT2GmykQpHbONK0TF0ngQXGLD6LhzJ2xCiBhx1zbWzw7onAx8fxQ/AqYO
+	 G9ru1I7lftrhpgTtyuGZVg8qs04JXmzhRx97/ZoIrAtBr6nXiDm8EsX2FJvLB8wkZMXU/
+	 2ZaRUmKx1ljW4pcZckr7qky49NbOvKl3mL4xCYSmSJJfOZn2R16ptQxJnFgdbjCKyPSGW
+	 bwakZudulPwlrl7obt49AI5/jLZQDPkLheUKmDKqx6o0J/Wu1nVvLM6mBgwY+XTnmdA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=p0gjZ758;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jt5qQ3t1;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6AD8606A895
-	for <mm-commits@vger.kernel.org>; Thu, 12 Nov 2026 19:11:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A1D7606A323
+	for <mm-commits@vger.kernel.org>; Thu, 12 Nov 2026 19:32:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=p0gjZ758
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46EC21F000C5;
-	Thu, 12 Nov 2026 19:11:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jt5qQ3t1
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 791C71F000C5;
+	Thu, 12 Nov 2026 19:32:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794510690;
-	bh=p9MvuC/P5eEQtn2XJ3+R5V9OasaT9UUb2wBJ8NwkiWU=;
+	d=linux-foundation.org; s=korg; t=1794511958;
+	bh=tbHQO/+8MpOEfcR2t5iHYFCRaU+Q2+gaKkZCUDvYiBg=;
 	h=Date:To:From:Subject;
-	b=p0gjZ758PgIwCbCFFljwB8GMBYiOPwE+Flr53Rnk6USs2aH/r9W9hjgrJvaybU5/w
-	 73GdOi9avI7IP7EcIG/ovcWnX0XLLeCInCCE8OWncc17gPcqhyPRtuoF/4e5iAvWjz
-	 J3fcOTffx8SiMj5jtgVovvgAXm6pGFl5NnmC+fsc=
-Date: Thu, 12 Nov 2026 11:11:29 -0800
-To: mm-commits@vger.kernel.org,phillip.lougher@gmail.com,
-	phillip@squashfs.org.uk,akpm@linux-foundation.org
+	b=jt5qQ3t1nDhdljA1qzckbRUFzzQ6SDIIauI3eat3SXcXL7ScQtTEdXv0/6FVzKfpc
+	 /4S7ycpoW47cAonnC0U6I9xccV446D8+toL8uDTBS1Q3TIrzfX+v544mKRQV79FFsS
+	 TNcUmIOEDflggnsPJJxi46bOQl1j9blOwQ0NimbA=
+Date: Thu, 12 Nov 2026 11:32:37 -0800
+To: mm-commits@vger.kernel.org,shuah@kernel.org,ljs@kernel.org,
+	david@kernel.org,chenxionggui@lanxincomputing.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + squashfs-check-index-isnt-greater-than-s64_max-in-squashfs_read_data.patch added to mm-nonmm-unstable branch
-Message-Id: <20261112191130.46EC21F000C5@smtp.kernel.org>
+Subject: + selftests-mm-handle-implicit-read-permissions-in-madv_populate.patch added to mm-new branch
+Message-Id: <20261112193238.791C71F000C5@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,15 +52,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: Squashfs: check index isn't greater than S64_MAX in squashfs_read_data()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-check-index-isnt-greater-than-s64_max-in-squashfs_read_data.patch
+     Subject: selftests/mm: handle implicit read permissions in madv_populate
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-mm-handle-implicit-read-permissions-in-madv_populate.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-check-index-isnt-greater-than-s64_max-in-squashfs_read_data.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-handle-implicit-read-permissions-in-madv_populate.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,67 +86,150 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: Squashfs: check index isn't greater than S64_MAX in squashfs_read_data()
-Date: Wed, 11 Nov 2026 23:44:02 +0000
+From: Xionggui Chen <chenxionggui@lanxincomputing.com>
+Subject: selftests/mm: handle implicit read permissions in madv_populate
+Date: Thu, 12 Nov 2026 03:18:11 +0000
 
-The previous commits in this patch-set now sanity check index before
-squashfs_read_data() is called.  However, it is always wise to take
-a belts and braces approach and sanity check at the lowest level to
-trap any values that could slip through.
+The madv_populate selftest assumes that mmap(PROT_WRITE) creates a VMA
+without VM_READ and expects MADV_POPULATE_READ to fail with EINVAL.
 
-Link: https://lore.kernel.org/20261111234402.252354-23-phillip@squashfs.org.uk
-Fixes: e2780ab159ac ("Squashfs: block operations")
-Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
+On RISC-V, commit 6c7559f22b6f ("riscv/mm: ensure PROT_WRITE leads to
+VM_READ | VM_WRITE") makes the kernel set VM_READ for mappings requested
+with PROT_WRITE.  MADV_POPULATE_READ checks this VMA permission, so it
+succeeds and the test fails incorrectly.  Whether the hardware can read a
+writable PTE does not, by itself, determine the madvise() result.
+
+Check the VMA permissions through /proc/self/maps and adjust the expected
+result accordingly.
+
+Add a PROT_NONE test to verify that MADV_POPULATE_READ still fails with
+EINVAL for mappings without read permission.
+
+On RISC-V with Linux 7.2.0, the original test fails 1 out of 16 tests,
+while the updated test passes all 17 tests.
+
+Link: https://lore.kernel.org/20261112031811.56500-1-evers_chen@163.com
+Signed-off-by: Xionggui Chen <chenxionggui@lanxincomputing.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Phillip Lougher <phillip.lougher@gmail.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
 ---
 
- fs/squashfs/block.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ tools/testing/selftests/mm/madv_populate.c |   67 +++++++++++++++++--
+ 1 file changed, 63 insertions(+), 4 deletions(-)
 
---- a/fs/squashfs/block.c~squashfs-check-index-isnt-greater-than-s64_max-in-squashfs_read_data
-+++ a/fs/squashfs/block.c
-@@ -297,6 +297,15 @@ int squashfs_read_data(struct super_bloc
- 	int res;
- 	int offset;
+--- a/tools/testing/selftests/mm/madv_populate.c~selftests-mm-handle-implicit-read-permissions-in-madv_populate
++++ a/tools/testing/selftests/mm/madv_populate.c
+@@ -69,10 +69,38 @@ static void test_prot_read(void)
+ 	munmap(addr, SIZE);
+ }
  
-+	/*
-+	 * Reject index values greater than possible filesystem size (S64_MAX).
-+	 * This also ensures the index variable doesn't overflow in the function.
-+	 */
-+	if (index > S64_MAX) {
-+		res = -EIO;
-+		goto out;
++static int mapping_is_readable(void *addr)
++{
++	FILE *maps;
++	char line[256];
++	unsigned long start, end;
++	char perms[5];
++	int readable = -1;
++
++	maps = fopen("/proc/self/maps", "r");
++	if (!maps)
++		return -1;
++
++	while (fgets(line, sizeof(line), maps)) {
++		if (sscanf(line, "%lx-%lx %4s",
++			   &start, &end, perms) != 3)
++			continue;
++
++		if (start <= (unsigned long)addr &&
++		    (unsigned long)addr < end) {
++			readable = perms[0] == 'r';
++			break;
++		}
 +	}
 +
- 	if (length) {
- 		/*
- 		 * Datablock.
++	fclose(maps);
++	return readable;
++}
++
+ static void test_prot_write(void)
+ {
+ 	char *addr;
+-	int ret;
++	int ret, readable;
+ 
+ 	ksft_print_msg("[RUN] %s\n", __func__);
+ 
+@@ -80,9 +108,19 @@ static void test_prot_write(void)
+ 	if (addr == MAP_FAILED)
+ 		ksft_exit_fail_msg("mmap failed\n");
+ 
++	readable = mapping_is_readable(addr);
++	if (readable < 0)
++		ksft_exit_fail_msg("Cannot determine VMA permissions\n");
++
++	errno = 0;
+ 	ret = madvise(addr, SIZE, MADV_POPULATE_READ);
+-	ksft_test_result(ret == -1 && errno == EINVAL,
+-			 "MADV_POPULATE_READ with PROT_WRITE\n");
++
++	if (readable)
++		ksft_test_result(ret == 0,
++				 "MADV_POPULATE_READ with readable PROT_WRITE mapping\n");
++	else
++		ksft_test_result(ret == -1 && errno == EINVAL,
++				 "MADV_POPULATE_READ with write-only mapping\n");
+ 
+ 	ret = madvise(addr, SIZE, MADV_POPULATE_WRITE);
+ 	ksft_test_result(!ret, "MADV_POPULATE_WRITE with PROT_WRITE\n");
+@@ -90,6 +128,26 @@ static void test_prot_write(void)
+ 	munmap(addr, SIZE);
+ }
+ 
++static void test_prot_none(void)
++{
++	char *addr;
++	int ret;
++
++	ksft_print_msg("[RUN] %s\n", __func__);
++
++	addr = mmap(0, SIZE, PROT_NONE,
++		    MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
++	if (addr == MAP_FAILED)
++		ksft_exit_fail_msg("mmap failed\n");
++
++	errno = 0;
++	ret = madvise(addr, SIZE, MADV_POPULATE_READ);
++	ksft_test_result(ret == -1 && errno == EINVAL,
++			 "MADV_POPULATE_READ with PROT_NONE\n");
++
++	munmap(addr, SIZE);
++}
++
+ static void test_holes(void)
+ {
+ 	char *addr;
+@@ -266,7 +324,7 @@ static void test_softdirty(void)
+ 
+ int main(int argc, char **argv)
+ {
+-	int nr_tests = 16;
++	int nr_tests = 17;
+ 	int err;
+ 
+ 	pagesize = getpagesize();
+@@ -280,6 +338,7 @@ int main(int argc, char **argv)
+ 	sense_support();
+ 	test_prot_read();
+ 	test_prot_write();
++	test_prot_none();
+ 	test_holes();
+ 	test_populate_read();
+ 	test_populate_write();
 _
 
-Patches currently in -mm which might be from phillip@squashfs.org.uk are
+Patches currently in -mm which might be from chenxionggui@lanxincomputing.com are
 
-squashfs-convert-squashfs_compressed_-to-inline-functions.patch
-squashfs-convert-squashfs_inode_-and-squashfs_mkinode-to-inline-functions.patch
-squashfs-convert-squashfs_fragment_-to-inline-functions.patch
-squashfs-convert-squashfs_lookup_-to-inline-functions.patch
-squashfs-convert-squashfs_id_-to-inline-functions.patch
-squashfs-convert-squashfs_xattr_-to-inline-functions.patch
-squashfs-fix-offset-in-squashfs_read_inode-trace-statements.patch
-squashfs-fix-fragment-bytes-overflow-on-32-bit-architectures.patch
-squashfs-fix-fragment-index-table-length-too-large-exploit.patch
-squashfs-sanity-check-inode-metadata-block-location.patch
-squashfs-sanity-check-directory-metadata-block-location.patch
-squashfs-widen-xattr-count-variables-and-add-sanity-check.patch
-squashfs-very-large-files-can-exceed-an-int-block-count.patch
-squashfs-add-more-sanity-checking-to-squashfs_block_size.patch
-squashfs-sanity-check-fragment-block-location-and-range.patch
-squashfs-sanity-check-block-list-sizes-and-range.patch
-squashfs-dont-store-large-export-table-indexes-in-memory.patch
-squashfs-dont-store-large-fragment-table-indexes-in-memory.patch
-squashfs-dont-store-large-xattr-id-table-indexes-in-memory.patch
-squashfs-fix-variables-in-directory-code-and-add-more-sanity-checks.patch
-squashfs-fix-regression-in-squashfs_copy_cache.patch
-squashfs-check-index-isnt-greater-than-s64_max-in-squashfs_read_data.patch
+selftests-mm-handle-implicit-read-permissions-in-madv_populate.patch
 
