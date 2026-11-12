@@ -1,53 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794446247;
-	b=Rg7m+G1Qz8tE8TzjcgFZxdj+hUv2cjAIB0yQpC5XSmx/Y/uRxSDWTYGxQCfieCs3Q5IC
-	 SX3Bj7/JjCJJYLjERZ6ukwYodvN6X3hX1E06n+hDInpZm2EM6rO6xeX50P+DZ66aNjcsx
-	 Z//ou7Ow9tuifv9ACKAXtj9k46T3X9SV51ccc7jCeTFZlJ+VY3M+1JpCFQQpOr97RcgWW
-	 d0Egq2zeBj3tpF/qwhdWRkzjE4nJFrB448+k+sO+Ag4MTe9lXPNCxRGDqMNoNU1lkOgsj
-	 KYIjUnX0S+w91gsX8+kBN8flJVKoOMu+D6EtzdmNFDQEHLFNwy3gbcmZ+NFv2r106mA==
+	t=1794450334;
+	b=DgPIMXKD7DdIMzJ50/tTfkRU0v59CAmvu40/y27khpPgZBvRxEE0ovJLgdSqq8tZ7a6n
+	 qx65O41l1nun+YOaM4UBe/rQaT4FGySFoX2U1c/b+Cy4xzjaeC4zWg4MVN9pJ7Euloftw
+	 ZwU/bL1Wn20zh+n+hkEp69pIB9vji9tobReaI10fSyq/JLMgriIqgZIY+V8GsPO5cTBoT
+	 KGKNf31kANS/rrCUnmPiyG5iIwpTLEcKwrele5QKxqfpAgRGS8R7lAJ6Dn3TkR+LiJVqk
+	 z4Hmy07+0GMNcRGkgYls3eYKPLFn2tOxQ2lnqbN0eaiApmNjSnclpkNKF7KaDooxctg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794446247;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794450334;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=cmm/qVieX69bnv/AaATO35ODNs1Qo34FOBFZ0myMst4=;
-	b=HOmYTPOgNBu3o+2W8USGDnuEd4QYVa3Fuy864p0nJiUcNnDXuUw2USYz752ByyzgqDlj
-	 xqubQuwrCqa6D1OL7jlavZDJev3l8CU9Gqm6azZFliH1rZrYAc1bYXF8sfl4uAMkKpKEu
-	 DBiMB28PJQijXEQHLNyVEkjaJLLgRfODBLoU4rxjEik+hDY9WK3Y2nUzZe12nC50cC5MW
-	 JusX+Rt9h3AtVqoNY2Qk5H4CLIe+7/BrTTSbn+SgXVtHZMyvcIZNcSXx0DoJ6vpKRPBts
-	 C0u0PIj8PlgfsqftthSRELNdTNbTAN2ru9UPs0U53fUxmSK1NHCHnSgmFp/1ZaZx8bw==
+	bh=4m4uhpMWv0+Mi7zl6gts2mt/A3IIwSoxuV63tdgX8bo=;
+	b=ZRfPsqCZjret1ZCozlpDclWSslmfgdB+lN/SMPUP9Ue6/vv59HuJfrtk3EpTO/dK27Kx
+	 72H9btXtjtA45OCrZjvXGYz1tHj68M/6Q8mzdvsObi3Njfpy22URo0ZOaINW+bLgvhlio
+	 o5/bnl4HFruyb8yS4dWBfEJNxnpE2fBwzAVdgXVbXJWmhV87VkqUeOm2AI18YcEdsKM8N
+	 ROTJOpw0ZJBckZcnnbCgJesikCEIR2n1j5gAvR7RTIN8sFZVuQHBF3LQel+Pa+fUULUun
+	 7PbyfSTKMlnT/zZctGYQ5++c53iRyxXxpYFiuxssQxWW4AxixuSwvPCvFgTcnGLiqfA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TaAXFScQ;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=p+v2aXIc;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61E55606A332
-	for <mm-commits@vger.kernel.org>; Thu, 12 Nov 2026 01:17:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 059AB606A31C;
+	Thu, 12 Nov 2026 02:25:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TaAXFScQ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D98671F00A05;
-	Thu, 12 Nov 2026 01:17:26 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=p+v2aXIc
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FA401F00A05;
+	Thu, 12 Nov 2026 02:25:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794446247;
-	bh=cmm/qVieX69bnv/AaATO35ODNs1Qo34FOBFZ0myMst4=;
+	d=linux-foundation.org; s=korg; t=1794450333;
+	bh=4m4uhpMWv0+Mi7zl6gts2mt/A3IIwSoxuV63tdgX8bo=;
 	h=Date:To:From:Subject;
-	b=TaAXFScQ9HWrk0Pt/TKm05x3589NWzym7jbHMJIlRd25qNkjQqVQ33lUDgydBBqXB
-	 AH2B1EckkkdyW6QHEjYX5EsSaKbd+9Vqksj8zoU6OBH+iQ+KDqX0xHryne0kcl0wZH
-	 roJMXNi2YKNFEg9ATGVEjDtVfIKhMZDzOy8tYy6M=
-Date: Wed, 11 Nov 2026 17:17:26 -0800
-To: mm-commits@vger.kernel.org,zhuhui@kylinos.cn,zhangbo0325@gmail.com,
-	yuanchu@google.com,weixugc@google.com,wangzicheng@honor.com,
-	surenb@google.com,sidchintamaneni@gmail.com,shakeel.butt@linux.dev,
-	rppt@kernel.org,ridong.chen@linux.dev,qi.zheng@linux.dev,mhocko@suse.com,
-	lyugaofei@xiaomi.com,liuxiang.277@bytedance.com,lianux.mm@gmail.com,
-	liam@infradead.org,kunwu.chan@gmail.com,kasong@tencent.com,hui.zhu@linux.dev,
-	hannes@cmpxchg.org,chentao@kylinos.cn,baoquan.he@linux.dev,
-	baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,
-	zhangbo56@xiaomi.com,akpm@linux-foundation.org
+	b=p+v2aXIcSpul4jUPiqh53dWZP6E5J7Ov8HmEjS1k6WCG0LH6KaXtDHG/PC7Lnkk5Y
+	 n3J+4rmxvZpaIyG/GtM8Wcins/2QwPRC0d14uRcmcSK5Sfv8BSlTlg1iZuRt0wRzyx
+	 rRl7zXhA0cRBogGlN3QQtLvMGN5uUXkqhEap3JI8=
+Date: Wed, 11 Nov 2026 18:25:32 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,
+	roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,
+	mason@kernel.org,hannes@cmpxchg.org,david@kernel.org,shakeel.butt@linux.dev,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-avoid-scan-anon-while-swapcache-is-low-for-gfp_noio-allocation.patch added to mm-new branch
-Message-Id: <20261112011726.D98671F00A05@smtp.kernel.org>
+Subject: + memcg-flush-nr_charged_bytes-when-the-obj-stock-trylock-fails.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261112022533.4FA401F00A05@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -59,26 +54,15 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/mglru: avoid scan anon while swapcache is low for GFP_NOIO allocation
-has been added to the -mm mm-new branch.  Its filename is
-     mm-mglru-avoid-scan-anon-while-swapcache-is-low-for-gfp_noio-allocation.patch
+     Subject: memcg: flush nr_charged_bytes when the obj stock trylock fails
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     memcg-flush-nr_charged_bytes-when-the-obj-stock-trylock-fails.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-avoid-scan-anon-while-swapcache-is-low-for-gfp_noio-allocation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-flush-nr_charged_bytes-when-the-obj-stock-trylock-fails.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -93,121 +77,62 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Bo Zhang <zhangbo56@xiaomi.com>
-Subject: mm/mglru: avoid scan anon while swapcache is low for GFP_NOIO allocation
-Date: Thu, 12 Nov 2026 07:26:03 +0800
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg: flush nr_charged_bytes when the obj stock trylock fails
+Date: Wed, 11 Nov 2026 17:32:20 -0800
 
-With GFP_NOIO, we cannot reclaim anon folios unless they are in
-the swap cache. CLRU skips anon reclaim when the swap cache is
-very low by commit 74d9aa0d8e98 ("mm: vmscan: avoid anon scanning
-for GFP_NOIO with low swapcache"). Apply the same logic to MGLRU.
+When interrupt code, such as an RCU callback in softirq, runs on top of a
+task that holds the obj stock lock, its trylock fails and the bytes go to
+objcg->nr_charged_bytes.  Nothing empties that counter while every CPU
+using the objcg keeps it in its stock, so it can grow without limit.
 
-The new scan-budget-based mechanism makes this straightforward to
-implement. Thanks also to Xiang Liu, who previously attempted to fix
-this before we had the scan-budget-based model [1].
+Users see memory.current and the "kernel" field of memory.stat keep
+growing while the cgroup's real usage does not.  With memory.high or
+memory.max set, the cgroup is reclaimed, throttled or even OOM-killed for
+memory it does not use.  The counter is 32-bit, so after 4 GiB it wraps,
+and those 4 GiB stay charged to the cgroup and its ancestors until reboot,
+even after the cgroup is removed.
 
-Link: https://lore.kernel.org/20261111232603.9934-17-baohua@kernel.org
-Link: https://lore.kernel.org/linux-mm/179248830836.1744016.8424217811286616919.noio-mglru-rfc-v2@bytedance.com/ [1]
-Signed-off-by: Bo Zhang <zhangbo56@xiaomi.com>
-Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
+Fix it by uncharging the whole pages in nr_charged_bytes whenever the
+trylock fails.
+
+Link: https://lore.kernel.org/20261112013220.4064478-1-shakeel.butt@linux.dev
+Fixes: 200577f69f29 ("memcg: objcg stock trylock without irq disabling")
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Co-developed-by: Barry Song (Xiaomi) <baohua@kernel.org>
-Reviewed-by: Kunwu Chan <chentao@kylinos.cn>
-Cc: Xiang Liu <liuxiang.277@bytedance.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
+Reported-by: Chris Mason <mason@kernel.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <hui.zhu@linux.dev>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kunwu Chan <kunwu.chan@gmail.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: wang lian <lianux.mm@gmail.com>
-Cc: <lyugaofei@xiaomi.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Ridong Chen <ridong.chen@linux.dev>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: wangzicheng <wangzicheng@honor.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Hui Zhu <zhuhui@kylinos.cn>
-Cc: Siddharth Chintamaneni <sidchintamaneni@gmail.com>
-Cc: Bo Zhang <zhangbo0325@gmail.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: <stable@vger.kernel.org>
 ---
 
- mm/vmscan.c |   27 ++++++++++-----------------
- 1 file changed, 10 insertions(+), 17 deletions(-)
+ mm/memcontrol.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/vmscan.c~mm-mglru-avoid-scan-anon-while-swapcache-is-low-for-gfp_noio-allocation
-+++ a/mm/vmscan.c
-@@ -272,13 +272,6 @@ static inline bool reclaimable_anon_is_l
- 	if (!sc || (sc->gfp_mask & __GFP_IO))
- 		return false;
+--- a/mm/memcontrol.c~memcg-flush-nr_charged_bytes-when-the-obj-stock-trylock-fails
++++ a/mm/memcontrol.c
+@@ -3532,6 +3532,8 @@ static void __refill_obj_stock(struct ob
+ 	int i, slot = -1, empty_slot = -1;
  
--	/*
--	 * FIXME: MGLRU doesn't fully respect can_reclaim_anon_pages() for the
--	 * scanning type, so only apply this to the traditional LRU for now.
--	 */
--	if (lru_gen_enabled())
--		return false;
--
- 	if (memcg) {
- 		struct lruvec *lruvec = mem_cgroup_lruvec(memcg, pgdat);
- 
-@@ -4213,6 +4206,8 @@ static void lruvec_evictable_size(struct
- 	int type;
- 	unsigned long seq;
- 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
-+	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
-+	int nid = lruvec_pgdat(lruvec)->node_id;
- 	DEFINE_MAX_SEQ(lruvec);
- 	DEFINE_MIN_SEQ(lruvec);
- 
-@@ -4220,6 +4215,8 @@ static void lruvec_evictable_size(struct
- 	nr[LRU_GEN_FILE] = 0;
- 
- 	for_each_evictable_type(type, swappiness) {
-+		if (type == LRU_GEN_ANON && !can_reclaim_anon_pages(memcg, nid, sc))
-+			continue;
- 		for (seq = min_seq[type]; seq <= max_seq; seq++)
- 			nr[type] += lruvec_gen_size(lrugen, type, seq, sc->reclaim_idx + 1);
- 	}
-@@ -4900,23 +4897,19 @@ static void lru_gen_balance_scan(struct
- {
- 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 	u64 refault_rate[ANON_AND_FILE], anon_factor, file_factor;
--	u64 anon_scan, file_scan, total;
-+	u64 anon_scan, file_scan;
- 	u64 anon_weight, file_weight;
- 	int size_bias;
- 
--	total = nr[LRU_GEN_ANON] + nr[LRU_GEN_FILE];
--	if (!total)
--		return;
--
--	if (swappiness <= MIN_SWAPPINESS) {
-+	if (swappiness <= MIN_SWAPPINESS)
- 		nr[LRU_GEN_ANON] = 0;
--		nr[LRU_GEN_FILE] = min_t(u64, total_scan, nr[LRU_GEN_FILE]);
--		return;
--	}
- 
--	if (swappiness == SWAPPINESS_ANON_ONLY) {
-+	if (swappiness == SWAPPINESS_ANON_ONLY)
- 		nr[LRU_GEN_FILE] = 0;
-+
-+	if (!nr[LRU_GEN_ANON] || !nr[LRU_GEN_FILE]) {
- 		nr[LRU_GEN_ANON] = min_t(u64, total_scan, nr[LRU_GEN_ANON]);
-+		nr[LRU_GEN_FILE] = min_t(u64, total_scan, nr[LRU_GEN_FILE]);
- 		return;
- 	}
- 
+ 	if (!stock) {
++		nr_bytes += atomic_read(&objcg->nr_charged_bytes)
++			? atomic_xchg(&objcg->nr_charged_bytes, 0) : 0;
+ 		nr_pages = nr_bytes >> PAGE_SHIFT;
+ 		nr_bytes = nr_bytes & (PAGE_SIZE - 1);
+ 		atomic_add(nr_bytes, &objcg->nr_charged_bytes);
 _
 
-Patches currently in -mm which might be from zhangbo56@xiaomi.com are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
-mm-mglru-avoid-scan-anon-while-swapcache-is-low-for-gfp_noio-allocation.patch
+mm-mglru-splice-all-generations-when-reparenting-a-memcg.patch
+memcg-flush-nr_charged_bytes-when-the-obj-stock-trylock-fails.patch
+memcg-move-memoryhigh-enforcement-out-of-try_charge_memcg.patch
+memcg-force-charges-from-reclaim-before-trying-the-limits.patch
+memcg-use-high_work-for-kernel-threads.patch
+memcg-use-high_work-for-remote-charges.patch
+memcg-simplify-high-limit-handling-after-a-charge.patch
 
