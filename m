@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794450640;
-	b=O8Lfu7oxS+8Gjq/fzt0gDdsKHl6VfSaMPko2IRbtUMG89jT8Ic5d25Tv5Xx3zII8SmDt
-	 AOGjh51tgrLgDL8cF0t75CuDWIWWTiEyk3IrPw5+WoOc+1f5B1I7LQV+dirfvmKrcTSQX
-	 Ou34kU1KxaOJnmI8qwnSc/OiVmRxUeOavSvtei3IgyhZXE45IwdQwBMP6izAPLHenl7fe
-	 fj1lnbHIP8ZO8RFwXZF86DLykuVCpWDsGCCg69NP1zsPapOybW6Zxg11ycZUv/aZJJ7PV
-	 v2LeJ9C0wUbo43NCxyt+TdEOZQkcoFZrBjuaAdRZE/dEoWXB6WYKPjzOah/1fyHqOpg==
+	t=1794450643;
+	b=RP8Oul51Tp4RZY9sUAlNfH7qkhxQSVZUJOAHnrfD+2y9PB/uG3JfyuB0rRXGAm2RdRVq
+	 A9kYHb5VFvmm3P/p3gP1hSPCLXd17dW4v58Mf2cAqsNMWL3UBMjjDHQJnqYkGoA9u6gPW
+	 VKPE8Uxp4weFSTUCif3v/9cZjHFvETV+TMOb0zCi5KwGMru7VUiqngDBbYGg7R58CyXPG
+	 0MNwioobA/zCUJVZGly1/4E/d6Rk3GnD1hvXAZgRKY8bi14aPYDfAzNjryOGGo9GYpS2q
+	 SgtxfUx9pVONWgPADdbCJmyxHblt2dwPwbr7w05+HQdJ46dDez0KjyQmyLuItXkTqCA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794450640;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794450643;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=6eADYinCHuBIiTU9DOkZJlqR3Z+Du5nRUbHF1LMGFy8=;
-	b=NN4XSNS/r2F1+edz0HAoz9BYM5SPOwTzqWUPgkyhu9VYpBfgwmy0S1rHx8Xww0LvgyDE
-	 eYWcaCjsgysiIueWBIMruYNLrkFikANZVTMCZBLWukdr1Ijz64giuHomD/PUC3xygYiPs
-	 Xjl8oj2NlK1GfBfj8bCHiJAtCYZhUA7bylAc5VkkiUA8j65pch9v1Y3brA7Q9jgy2QDEw
-	 uJMwSVMDSLsxpsl2b1R8fjXDtAdPoA3hiTexdvTGxoZj84vmeEZ3E+8a0z2sPltOF184M
-	 2/iAp9TBZD4CDL863F3xMXKidwNqSwn7kMGVfIW3WjbhOyxQ4RuXxS70SJNFFJYOLNA==
+	bh=tQBUckRVg3bQxLIv9QL6YL2tEw2EEzvVOGeNuc0rayM=;
+	b=zd3Hcsq8Ty10UISquAIinuOMiECqeOU9gBKmSXFtjxAT/SFA/KYEA8UVLK0jYzZ8W+1c
+	 zO3lWMcDd8IAMaZk+Mm6CGq4WpLmG02PZxJh8smDxm21EERr/QMhKoQhAQa/n3w6N6wI7
+	 QO/Y/r0krIqrt2KABilie033dKZiYXLDziqpfc9xKZkKztXQnsgtSLq2rDnkdK0b7jYrg
+	 NF7LM8YCwDffqJbcFdiwrWS/y2NC2v/nhnm1iLLglekbgSdKlj2SsXIEm8yG7zjopAp3D
+	 9Rc4m9QsFDlcD8NqVMv8D7oyu8FEaOVMgNqYoNRm6s60l95Xn9m3yjZ6u2Ra2XZBR1Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=KgZDbrhw;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=khzyAeVH;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EC11606A321
-	for <mm-commits@vger.kernel.org>; Thu, 12 Nov 2026 02:30:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1229C606A327
+	for <mm-commits@vger.kernel.org>; Thu, 12 Nov 2026 02:30:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=KgZDbrhw
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDEF21F00A07;
-	Thu, 12 Nov 2026 02:30:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=khzyAeVH
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EA7F1F00A05;
+	Thu, 12 Nov 2026 02:30:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794450640;
-	bh=6eADYinCHuBIiTU9DOkZJlqR3Z+Du5nRUbHF1LMGFy8=;
+	d=linux-foundation.org; s=korg; t=1794450642;
+	bh=tQBUckRVg3bQxLIv9QL6YL2tEw2EEzvVOGeNuc0rayM=;
 	h=Date:To:From:Subject;
-	b=KgZDbrhwAevJTMuTbLV+b5aUxhJjGfABVx/R6EaIvHuPXW7urvlJ3z5xfMuwf6e5P
-	 MDwX7v0Q69kCoPoUfBoCLhDXYcyXblyvezRU9xjeZB0pIfceqYtaqLT5VLsk46WH68
-	 2E105pOvS9CxZMqRkU9tXt8yUsC8vajvEjCvrUMg=
-Date: Wed, 11 Nov 2026 18:30:39 -0800
+	b=khzyAeVHY71dPYQkMPqiqY68wWUWned5Ff3ItASIEwWshROzGScqi/sfOOQBbz+HE
+	 V/7MzCs+A4bsJ/YDLxS6LQitr4BorV0qfZSPPLHhUlsvvEaWLFrPKHY5eRK4C1ItfA
+	 m5byyfRYXVqp5bRR83/dWPih8cGAKtD7GuokEZXc=
+Date: Wed, 11 Nov 2026 18:30:42 -0800
 To: mm-commits@vger.kernel.org,yosry@kernel.org,richardycc@google.com,
 	nphamcs@gmail.com,minchan@kernel.org,hannes@cmpxchg.org,bgeffon@google.com,
 	senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-check-mem_limit-before-allocating-zsmalloc-object.patch added to mm-unstable branch
-Message-Id: <20261112023039.DDEF21F00A07@smtp.kernel.org>
+Subject: + zram-allocate-zsmalloc-object-under-slot-lock.patch added to mm-unstable branch
+Message-Id: <20261112023042.8EA7F1F00A05@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: zram: check mem_limit before allocating zsmalloc object
+     Subject: zram: allocate zsmalloc object under slot lock
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-check-mem_limit-before-allocating-zsmalloc-object.patch
+     zram-allocate-zsmalloc-object-under-slot-lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-check-mem_limit-before-allocating-zsmalloc-object.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-allocate-zsmalloc-object-under-slot-lock.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -77,23 +77,27 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: check mem_limit before allocating zsmalloc object
-Date: Wed, 11 Nov 2026 15:46:28 +0900
+Subject: zram: allocate zsmalloc object under slot lock
+Date: Wed, 11 Nov 2026 15:46:29 +0900
 
-zram_can_store_page() is called after zs_malloc(), so once we reach
-mem_limit every write that doesn't fit into a partial zspage allocates a
-new zspage only to free it right away.
+zram_write_page() and write_incompressible_page() allocate and write
+zsmalloc object first and take slot lock only to free the old slot data
+and set the new handle.  A subsequent patch makes zsmalloc store object
+location directly in zram table entry, so we need to free the slot before
+we allocate a new object for it.
 
-Check mem_limit in zram_write_page() before compressing the page and
-allocating from zsmalloc, and update max_used_pages after zs_malloc()
-succeeds.  mem_limit was never a hard limit, the allocation that crosses
-it happens before the check anyway, so now we can go over the limit by up
-to one zspage per concurrent writer, and writes fail early until enough
-slots are freed.
+Free the slot and allocate the object under slot lock.  recompress_slot()
+already allocates objects under it, and GFP_NOIO reclaim cannot re-enter
+zram write path.
 
-mem_limit can change under us, so read ->limit_pages once.
+mem_limit is checked before slot_free() (previous patch), so hitting the
+limit keeps the old slot data.  zs_malloc() can still fail after
+slot_free(), e.g.  when we write from reclaim (PF_MEMALLOC), which is
+swap-out, so the old slot data (if any) is stale anyway, or when the
+writer is an OOM victim that has no reserves left.  The slot is left empty
+then, matching standard block write-failure semantics.
 
-Link: https://lore.kernel.org/20261111064707.2568433-6-senozhatsky@chromium.org
+Link: https://lore.kernel.org/20261111064707.2568433-7-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Nhat Pham <nphamcs@gmail.com>
@@ -104,97 +108,61 @@ Cc: Minchan Kim <minchan@kernel.org>
 Cc: Richard Chang <richardycc@google.com>
 ---
 
- Documentation/admin-guide/blockdev/zram.rst |    4 ++
- drivers/block/zram/zram_drv.c               |   27 ++++++++----------
- 2 files changed, 15 insertions(+), 16 deletions(-)
+ drivers/block/zram/zram_drv.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
---- a/Documentation/admin-guide/blockdev/zram.rst~zram-check-mem_limit-before-allocating-zsmalloc-object
-+++ a/Documentation/admin-guide/blockdev/zram.rst
-@@ -181,7 +181,9 @@ Set memory limit: Optional
- 
- Set memory limit by writing the value to sysfs node 'mem_limit'.
- The value can be either in bytes or you can use mem suffixes.
--In addition, you could change the value in runtime.
-+In addition, you could change the value in runtime.  The limit is
-+checked before zsmalloc allocation, so memory usage may slightly
-+exceed it (by up to one zspage per concurrent writer).
- Examples::
- 
- 	# limit /dev/zram0 with 50MB memory
---- a/drivers/block/zram/zram_drv.c~zram-check-mem_limit-before-allocating-zsmalloc-object
+--- a/drivers/block/zram/zram_drv.c~zram-allocate-zsmalloc-object-under-slot-lock
 +++ a/drivers/block/zram/zram_drv.c
-@@ -177,8 +177,9 @@ static void mark_slot_accessed(struct zr
- #endif
- }
+@@ -2250,11 +2250,15 @@ static int write_incompressible_page(str
+ 	struct zs_handle *handle;
+ 	void *src;
  
--static inline void update_used_max(struct zram *zram, const unsigned long pages)
-+static inline void update_used_max(struct zram *zram)
- {
-+	unsigned long pages = zs_get_total_pages(zram->mem_pool);
- 	unsigned long cur_max = atomic_long_read(&zram->stats.max_used_pages);
- 
- 	do {
-@@ -190,12 +191,12 @@ static inline void update_used_max(struc
- 
- static bool zram_can_store_page(struct zram *zram)
- {
--	unsigned long alloced_pages;
-+	unsigned long limit_pages = READ_ONCE(zram->limit_pages);
- 
--	alloced_pages = zs_get_total_pages(zram->mem_pool);
--	update_used_max(zram, alloced_pages);
-+	if (!limit_pages)
-+		return true;
- 
--	return !zram->limit_pages || alloced_pages <= zram->limit_pages;
-+	return zs_get_total_pages(zram->mem_pool) <= limit_pages;
- }
- 
- #if PAGE_SIZE != 4096
-@@ -375,7 +376,7 @@ static ssize_t mem_limit_store(struct de
- 		return -EINVAL;
- 
- 	guard(rwsem_write)(&zram->dev_lock);
--	zram->limit_pages = PAGE_ALIGN(limit) >> PAGE_SHIFT;
-+	WRITE_ONCE(zram->limit_pages, PAGE_ALIGN(limit) >> PAGE_SHIFT);
- 
- 	return len;
- }
-@@ -2255,10 +2256,7 @@ static int write_incompressible_page(str
- 	if (IS_ERR(handle))
++	slot_lock(zram, index);
++	slot_free(zram, index);
+ 	handle = zs_malloc(zram->mem_pool, PAGE_SIZE,
+ 			   GFP_NOIO | __GFP_NOWARN |
+ 			   __GFP_HIGHMEM | __GFP_MOVABLE, page_to_nid(page));
+-	if (IS_ERR(handle))
++	if (IS_ERR(handle)) {
++		slot_unlock(zram, index);
  		return PTR_ERR(handle);
++	}
  
--	if (!zram_can_store_page(zram)) {
--		zs_free(zram->mem_pool, handle);
--		return -ENOMEM;
--	}
-+	update_used_max(zram);
+ 	update_used_max(zram);
  
- 	src = kmap_local_page(page);
+@@ -2262,8 +2266,6 @@ static int write_incompressible_page(str
  	zs_obj_write(zram->mem_pool, handle, src, PAGE_SIZE);
-@@ -2297,6 +2295,9 @@ static int zram_write_page(struct zram *
- 	if (same_filled)
- 		return write_same_filled_page(zram, element, index);
+ 	kunmap_local(src);
  
-+	if (!zram_can_store_page(zram))
-+		return -ENOMEM;
-+
- 	zstrm = zcomp_cstrm_get(zram->comps[ZRAM_PRIMARY_COMP]);
- 	mem = kmap_local_page(page);
- 	ret = zcomp_compress(zram->comps[ZRAM_PRIMARY_COMP], zstrm,
-@@ -2322,11 +2323,7 @@ static int zram_write_page(struct zram *
+-	slot_lock(zram, index);
+-	slot_free(zram, index);
+ 	set_slot_flag(zram, index, ZRAM_HUGE);
+ 	zram->table[index].handle = handle;
+ 	set_slot_size(zram, index, PAGE_SIZE);
+@@ -2315,11 +2317,14 @@ static int zram_write_page(struct zram *
+ 		return write_incompressible_page(zram, page, index);
+ 	}
+ 
++	slot_lock(zram, index);
++	slot_free(zram, index);
+ 	handle = zs_malloc(zram->mem_pool, comp_len,
+ 			   GFP_NOIO | __GFP_NOWARN |
+ 			   __GFP_HIGHMEM | __GFP_MOVABLE, page_to_nid(page));
+ 	if (IS_ERR(handle)) {
+ 		zcomp_cstrm_put(zstrm);
++		slot_unlock(zram, index);
  		return PTR_ERR(handle);
  	}
  
--	if (!zram_can_store_page(zram)) {
--		zcomp_cstrm_put(zstrm);
--		zs_free(zram->mem_pool, handle);
--		return -ENOMEM;
--	}
-+	update_used_max(zram);
- 
+@@ -2328,8 +2333,6 @@ static int zram_write_page(struct zram *
  	zs_obj_write(zram->mem_pool, handle, zstrm->buffer, comp_len);
  	zcomp_cstrm_put(zstrm);
+ 
+-	slot_lock(zram, index);
+-	slot_free(zram, index);
+ 	zram->table[index].handle = handle;
+ 	set_slot_size(zram, index, comp_len);
+ 	mark_slot_accessed(zram, index);
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
