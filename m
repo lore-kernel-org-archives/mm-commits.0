@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794510633;
-	b=w9cm9OzMgJKttdw3FmbXW5zdfhWvNX6xSMzCFxehEUKK+MergjOCSLeKuyTppgyMpDz5
-	 6jkEskR89EC+TrMDjLxCDs38wlwG8CRsIBLsj9FCTDouN4bre9YalqkQrboR2m8J7xssL
-	 rsQQIwSr92tReQlFxDKeE2B3VG73kKCJ1XRAOy+QwCkuzwb+ug/VCeIslWU/6oSnLphiA
-	 XsTnrvqIYCiWx25z4NOavpfjD97kUQmhcRb+0+w02RRc0JCbO7tmOGVkGc6YAbp94F3vj
-	 odJAcptpRKGLuwU3wty/qaSBhaDtatGyu5ftPt8pPSR+6HtF5YIfMrzYNyLMJVlYXoA==
+	t=1794510637;
+	b=vhcJXnUId9UnKfcT7AgM0oiyDyk+VUbxIS6k/I0KOIz5nezT93fqch3D9WpP2D3fobCs
+	 278pCkXEkFhIYtFNwJ0O6UTA6NbtnwXr0iFiUdUcZsqz1sjcr5IebPTu1Id9k6TNMjY2M
+	 8a3MktnB/v/f5VbidwBteMhYHODsiPHU+5zU3PG6QAJ5rGy5qu0BLY1nC3NJRr3Ie7pQM
+	 cOyBkQpduz6xlbkH0yQgS8bBfBda3qYErI9F0G1j0jpeJQL0fDV1n2lbWQbGuaTkHOVMv
+	 s2D1NjSbG0kxlE9oXj7pJrv0u9Gl62ROJEXeeq0/phwGSyg8iHAkFr1uXf7+KW2PJsA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794510633;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794510637;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=c+1xi3Lsu8V19jXGumQK/jjK6xl7FtxDAKScEVWqi0c=;
-	b=ZahS1wrd4scYLe+xZnYZkPWw+Gj6RCMCxZmmpSvN0/mc8h2uiZEx19ChwxxC2CrbsWcL
-	 JirshwxBpG7zFnDfzfhPDGv3fR1v55crpoQf3zO1xdYCXTTdgh8YNlSpASCZiOG56LWiW
-	 XCKc1fiVXDJ6yqIySpF3kCRZJMO65yF6Tl4UdaNDCL46cMg/xukEXkykkJuyKednZS3HI
-	 ASB2v/kc//w81DJ49vLFogm5LpuHDybn+Sr2VWCtqzcDMk84Xq0saWkeYYt7/wgBF2+D7
-	 JVzQUxQp0NxD0CyyN35eLH4izkVPLjGadS60CgVETrhTM+P4dNgBQFbQncEyfB2ALQA==
+	bh=2OnSwvyzR/KoE889Cz6ZwL5lRWBvO5cVr0W/HsU1wiI=;
+	b=uCOguj1rZa3TbYi/nRqa9u9bCzgYVq0AejiNZQI1KqccSXq5txFu2JTrP80p1dcUnnAT
+	 nbedr/PQPzI/vYOMHyIj2lq+C/1X0M6uesTJx9C1bLmjbVuAWc0JNHhxWjkBBUjaWQ+PP
+	 BZq1+9FDntAFOFLE7I+xZBRS4MLdDXpszrQiU1HmgWe39pqBXMy7Zz2FIGkP9YKZie6Iw
+	 l9tabjupNDKcxYE2oBbfoLmAQDhdY0cL98xUfdROOvbpURy4RSNakfCAv1Tf8Xk36FLmg
+	 9T/UBIomvbDI42gMcMxnTSt2BPWE23wtI9NvDpFesR16CLzr7NiWvoPCx914VYTRfbw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=MeoIof8l;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=OytN9e4T;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBBC4606A883
-	for <mm-commits@vger.kernel.org>; Thu, 12 Nov 2026 19:10:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E6EB606A883
+	for <mm-commits@vger.kernel.org>; Thu, 12 Nov 2026 19:10:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=MeoIof8l
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5E441F000C4;
-	Thu, 12 Nov 2026 19:10:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=OytN9e4T
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E85A1F000C5;
+	Thu, 12 Nov 2026 19:10:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794510633;
-	bh=c+1xi3Lsu8V19jXGumQK/jjK6xl7FtxDAKScEVWqi0c=;
+	d=linux-foundation.org; s=korg; t=1794510637;
+	bh=2OnSwvyzR/KoE889Cz6ZwL5lRWBvO5cVr0W/HsU1wiI=;
 	h=Date:To:From:Subject;
-	b=MeoIof8lLrL/dimZAeCjmYfKNKWwHv/rUpzvmHJPhEDeAW8Tzl8Cjzqp2Cw4Y0Qhd
-	 SmYkicFPsyjpGk3Q8qMkpmK1CtIr+HzOYuLRCykiYmyz7+3CL6VtiqzB5lydyqj1Vt
-	 tmcrl5VjKqU3C2brWrE52Qb/02Hf7K9yW9P2RrY0=
-Date: Thu, 12 Nov 2026 11:10:33 -0800
+	b=OytN9e4TvQCZAHTF9gG6BSkhIEZDZ/f4a61cH3eRggubqWL1mOaB4+yR9Cq0tKF+Y
+	 0Gs0XhFbcTR0CWekfcfRHJ+5QobA3e103EuQuzoZ0bCXPZ3vLxAhK+7lMnBp3p/odD
+	 PZTkdNiuJ1p+xkF1BEtKlVPsCHlnbbz+dvxVEPI4=
+Date: Thu, 12 Nov 2026 11:10:36 -0800
 To: mm-commits@vger.kernel.org,phillip.lougher@gmail.com,
 	phillip@squashfs.org.uk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + squashfs-convert-squashfs_xattr_-to-inline-functions.patch added to mm-nonmm-unstable branch
-Message-Id: <20261112191033.A5E441F000C4@smtp.kernel.org>
+Subject: + squashfs-fix-offset-in-squashfs_read_inode-trace-statements.patch added to mm-nonmm-unstable branch
+Message-Id: <20261112191037.4E85A1F000C5@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,12 +52,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: Squashfs: convert SQUASHFS_XATTR_* to inline functions
+     Subject: Squashfs: fix offset in squashfs_read_inode() TRACE statements
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-convert-squashfs_xattr_-to-inline-functions.patch
+     squashfs-fix-offset-in-squashfs_read_inode-trace-statements.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-convert-squashfs_xattr_-to-inline-functions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-fix-offset-in-squashfs_read_inode-trace-statements.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,190 +76,99 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: Squashfs: convert SQUASHFS_XATTR_* to inline functions
-Date: Wed, 11 Nov 2026 23:43:46 +0000
+Subject: Squashfs: fix offset in squashfs_read_inode() TRACE statements
+Date: Wed, 11 Nov 2026 23:43:47 +0000
 
-Convert old fashioned #define macros into inline functions.  This has
-the following improvements:
+The offset used in the TRACE statements has been advanced past the start
+of the inode header by the squashfs_read_metadata() call.  This means
+the offset printed is incorrect.
 
-1. Inline functions are typed, which makes the width and sigedness of
-   input and outputs explicit, which reduces errors.
+Fix this by using the original offset, which is obtained by calling
+squashfs_inode_offset(ino).
 
-2. The inline functions enable more sanity checking to be added in
-   later commits.
-
-3. Inline functions are easier to read than #define macros, which
-   improves code comprehension.
-
-Link: https://lore.kernel.org/20261111234402.252354-7-phillip@squashfs.org.uk
+Link: https://lore.kernel.org/20261111234402.252354-8-phillip@squashfs.org.uk
+Fixes: 6545b246a2c8 ("Squashfs: inode operations")
 Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Phillip Lougher <phillip.lougher@gmail.com>
 ---
 
- fs/squashfs/squashfs_fs.h      |   19 ---------------
- fs/squashfs/squashfs_helpers.h |   37 +++++++++++++++++++++++++++++++
- fs/squashfs/xattr.c            |   18 +++++++--------
- fs/squashfs/xattr_id.c         |    9 ++++---
- 4 files changed, 51 insertions(+), 32 deletions(-)
+ fs/squashfs/inode.c |   22 ++++++++++++++--------
+ 1 file changed, 14 insertions(+), 8 deletions(-)
 
---- a/fs/squashfs/squashfs_fs.h~squashfs-convert-squashfs_xattr_-to-inline-functions
-+++ a/fs/squashfs/squashfs_fs.h
-@@ -107,25 +107,6 @@ static inline int squashfs_block_size(__
- 	return (size >> 25) ? -EIO : size;
- }
+--- a/fs/squashfs/inode.c~squashfs-fix-offset-in-squashfs_read_inode-trace-statements
++++ a/fs/squashfs/inode.c
+@@ -184,7 +184,8 @@ int squashfs_read_inode(struct inode *in
  
--/* xattr id lookup table defines */
--#define SQUASHFS_XATTR_BYTES(A)		(((u64) (A)) * sizeof(struct squashfs_xattr_id))
--
--#define SQUASHFS_XATTR_BLOCK(A)		(SQUASHFS_XATTR_BYTES(A) / \
--					SQUASHFS_METADATA_SIZE)
--
--#define SQUASHFS_XATTR_BLOCK_OFFSET(A)	(SQUASHFS_XATTR_BYTES(A) % \
--					SQUASHFS_METADATA_SIZE)
--
--#define SQUASHFS_XATTR_BLOCKS(A)	((SQUASHFS_XATTR_BYTES(A) + \
--					SQUASHFS_METADATA_SIZE - 1) / \
--					SQUASHFS_METADATA_SIZE)
--
--#define SQUASHFS_XATTR_BLOCK_BYTES(A)	(SQUASHFS_XATTR_BLOCKS(A) *\
--					sizeof(u64))
--#define SQUASHFS_XATTR_BLK(A)		((unsigned int) ((A) >> 16))
--
--#define SQUASHFS_XATTR_OFFSET(A)	((unsigned int) ((A) & 0xffff))
--
- /* cached data constants for filesystem */
- #define SQUASHFS_CACHED_BLKS		8
+ 		TRACE("File inode %x:%x, start_block %llx, block_list_start "
+ 			"%llx, offset %x\n", squashfs_inode_blk(ino),
+-			offset, squashfs_i(inode)->start, block, offset);
++			squashfs_inode_offset(ino),
++			squashfs_i(inode)->start, block, offset);
+ 		break;
+ 	}
+ 	case SQUASHFS_LREG_TYPE: {
+@@ -244,7 +245,8 @@ int squashfs_read_inode(struct inode *in
  
---- a/fs/squashfs/squashfs_helpers.h~squashfs-convert-squashfs_xattr_-to-inline-functions
-+++ a/fs/squashfs/squashfs_helpers.h
-@@ -132,4 +132,41 @@ static inline s16 squashfs_id_block_byte
- {
- 	return squashfs_id_blocks(ids) * sizeof(long long);
- }
-+
-+/* xattr id lookup table defines */
-+static inline s64 squashfs_xattr_bytes(u32 xattrs)
-+{
-+	return (s64) xattrs * sizeof(struct squashfs_xattr_id);
-+}
-+
-+static inline s32 squashfs_xattr_block(u32 xattrs)
-+{
-+	return squashfs_xattr_bytes(xattrs) / SQUASHFS_METADATA_SIZE;
-+}
-+
-+static inline s16 squashfs_xattr_block_offset(u32 xattrs)
-+{
-+	return squashfs_xattr_bytes(xattrs) % SQUASHFS_METADATA_SIZE;
-+}
-+
-+static inline s32 squashfs_xattr_blocks(u32 xattrs)
-+{
-+	return (squashfs_xattr_bytes(xattrs) + SQUASHFS_METADATA_SIZE - 1) /
-+		SQUASHFS_METADATA_SIZE;
-+}
-+
-+static inline s32 squashfs_xattr_block_bytes(u32 xattrs)
-+{
-+	return squashfs_xattr_blocks(xattrs) * sizeof(long long);
-+}
-+
-+static inline u32 squashfs_xattr_blk(s64 xattr)
-+{
-+	return xattr >> 16;
-+}
-+
-+static inline s16 squashfs_xattr_offset(s64 xattr)
-+{
-+	return xattr & 0xffff;
-+}
- #endif
---- a/fs/squashfs/xattr.c~squashfs-convert-squashfs_xattr_-to-inline-functions
-+++ a/fs/squashfs/xattr.c
-@@ -19,6 +19,7 @@
- #include "squashfs_fs.h"
- #include "squashfs_fs_sb.h"
- #include "squashfs_fs_i.h"
-+#include "squashfs_helpers.h"
- #include "squashfs.h"
+ 		TRACE("File inode %x:%x, start_block %llx, block_list_start "
+ 			"%llx, offset %x\n", squashfs_inode_blk(ino),
+-			offset, squashfs_i(inode)->start, block, offset);
++			squashfs_inode_offset(ino), squashfs_i(inode)->start,
++			block, offset);
+ 		break;
+ 	}
+ 	case SQUASHFS_DIR_TYPE: {
+@@ -266,7 +268,8 @@ int squashfs_read_inode(struct inode *in
+ 		squashfs_i(inode)->parent = le32_to_cpu(sqsh_ino->parent_inode);
  
- static const struct xattr_handler *squashfs_xattr_handler(int);
-@@ -29,9 +30,9 @@ ssize_t squashfs_listxattr(struct dentry
- 	struct inode *inode = d_inode(d);
- 	struct super_block *sb = inode->i_sb;
- 	struct squashfs_sb_info *msblk = sb->s_fs_info;
--	u64 start = SQUASHFS_XATTR_BLK(squashfs_i(inode)->xattr)
--						 + msblk->xattr_table;
--	int offset = SQUASHFS_XATTR_OFFSET(squashfs_i(inode)->xattr);
-+	u64 start = squashfs_xattr_blk(squashfs_i(inode)->xattr)
-+						+ msblk->xattr_table;
-+	int offset = squashfs_xattr_offset(squashfs_i(inode)->xattr);
- 	int count = squashfs_i(inode)->xattr_count;
- 	size_t rest = buffer_size;
- 	int err;
-@@ -107,14 +108,13 @@ static int squashfs_xattr_get(struct ino
- {
- 	struct super_block *sb = inode->i_sb;
- 	struct squashfs_sb_info *msblk = sb->s_fs_info;
--	u64 start = SQUASHFS_XATTR_BLK(squashfs_i(inode)->xattr)
--						 + msblk->xattr_table;
--	int offset = SQUASHFS_XATTR_OFFSET(squashfs_i(inode)->xattr);
-+	u64 start = squashfs_xattr_blk(squashfs_i(inode)->xattr)
-+						+ msblk->xattr_table;
-+	int offset = squashfs_xattr_offset(squashfs_i(inode)->xattr);
- 	int count = squashfs_i(inode)->xattr_count;
- 	int name_len = strlen(name);
- 	int err, vsize;
- 	char *target = kmalloc(name_len, GFP_KERNEL);
--
- 	if (target == NULL)
- 		return  -ENOMEM;
+ 		TRACE("Directory inode %x:%x, start_block %llx, offset %x\n",
+-				squashfs_inode_blk(ino), offset,
++				squashfs_inode_blk(ino),
++				squashfs_inode_offset(ino),
+ 				squashfs_i(inode)->start,
+ 				le16_to_cpu(sqsh_ino->offset));
+ 		break;
+@@ -293,7 +296,8 @@ int squashfs_read_inode(struct inode *in
+ 		squashfs_i(inode)->parent = le32_to_cpu(sqsh_ino->parent_inode);
  
-@@ -158,9 +158,9 @@ static int squashfs_xattr_get(struct ino
- 				if (err < 0)
- 					goto failed;
- 				xattr = le64_to_cpu(xattr_val);
--				start = SQUASHFS_XATTR_BLK(xattr) +
-+				start = squashfs_xattr_blk(xattr) +
- 							msblk->xattr_table;
--				offset = SQUASHFS_XATTR_OFFSET(xattr);
-+				offset = squashfs_xattr_offset(xattr);
- 			}
- 			/* read xattr value */
- 			err = squashfs_read_metadata(sb, &val, &start, &offset,
---- a/fs/squashfs/xattr_id.c~squashfs-convert-squashfs_xattr_-to-inline-functions
-+++ a/fs/squashfs/xattr_id.c
-@@ -19,6 +19,7 @@
+ 		TRACE("Long directory inode %x:%x, start_block %llx, offset "
+-				"%x\n", squashfs_inode_blk(ino), offset,
++				"%x\n", squashfs_inode_blk(ino),
++				squashfs_inode_offset(ino),
+ 				squashfs_i(inode)->start,
+ 				le16_to_cpu(sqsh_ino->offset));
+ 		break;
+@@ -337,8 +341,8 @@ int squashfs_read_inode(struct inode *in
+ 		}
  
- #include "squashfs_fs.h"
- #include "squashfs_fs_sb.h"
-+#include "squashfs_helpers.h"
- #include "squashfs.h"
- #include "xattr.h"
+ 		TRACE("Symbolic link inode %x:%x, start_block %llx, offset "
+-				"%x\n", squashfs_inode_blk(ino), offset,
+-				block, offset);
++				"%x\n", squashfs_inode_blk(ino),
++				squashfs_inode_offset(ino), block, offset);
+ 		break;
+ 	}
+ 	case SQUASHFS_BLKDEV_TYPE:
+@@ -361,7 +365,8 @@ int squashfs_read_inode(struct inode *in
+ 		squashfs_i(inode)->parent = 0;
  
-@@ -29,8 +30,8 @@ int squashfs_xattr_lookup(struct super_b
- 		int *count, unsigned int *size, unsigned long long *xattr)
- {
- 	struct squashfs_sb_info *msblk = sb->s_fs_info;
--	int block = SQUASHFS_XATTR_BLOCK(index);
--	int offset = SQUASHFS_XATTR_BLOCK_OFFSET(index);
-+	int block = squashfs_xattr_block(index);
-+	int offset = squashfs_xattr_block_offset(index);
- 	u64 start_block;
- 	struct squashfs_xattr_id id;
- 	int err;
-@@ -79,8 +80,8 @@ __le64 *squashfs_read_xattr_id_table(str
- 	if (*xattr_ids == 0)
- 		return ERR_PTR(-EINVAL);
+ 		TRACE("Device inode %x:%x, rdev %x\n",
+-				squashfs_inode_blk(ino), offset, rdev);
++				squashfs_inode_blk(ino),
++				squashfs_inode_offset(ino), rdev);
+ 		break;
+ 	}
+ 	case SQUASHFS_LBLKDEV_TYPE:
+@@ -386,7 +391,8 @@ int squashfs_read_inode(struct inode *in
+ 		squashfs_i(inode)->parent = 0;
  
--	len = SQUASHFS_XATTR_BLOCK_BYTES(*xattr_ids);
--	indexes = SQUASHFS_XATTR_BLOCKS(*xattr_ids);
-+	len = squashfs_xattr_block_bytes(*xattr_ids);
-+	indexes = squashfs_xattr_blocks(*xattr_ids);
- 
- 	/*
- 	 * The computed size of the index table (len bytes) should exactly
+ 		TRACE("Device inode %x:%x, rdev %x\n",
+-				squashfs_inode_blk(ino), offset, rdev);
++				squashfs_inode_blk(ino),
++				squashfs_inode_offset(ino), rdev);
+ 		break;
+ 	}
+ 	case SQUASHFS_FIFO_TYPE:
 _
 
 Patches currently in -mm which might be from phillip@squashfs.org.uk are
