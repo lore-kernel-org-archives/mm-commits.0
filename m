@@ -1,47 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794450659;
-	b=lP00V+vAqcwLSydSxcB3Ji6xJSZpB80B4rKOlvyiBWJVLZPNmAvUQfomvE1r3jJknQXE
-	 l4HKQqAml3kfLYkyTrqidogRtHlauF9FJSR8xhaK10FU/stoasn/wY/kbgDTV9+2qM8pi
-	 +cucnUZYQP2/kqiXWJF5MqCRBAZfgvdD8gxeutOgI+CPtr38HU5JhKCLi4FcEvn0zmpGz
-	 SEQtyDJBXNuG0AE5M6e1uqQRvTO4HD+c3wLG2n+/y1tLyQFva4yYisx+s7n2zoH9WsryC
-	 yl6C6s/sMm4DRefpAH/6r+Gi1qjXSW1Qx0uiXhKFGKrtsQkHYzYmyrmrRFMo3nbuQMw==
+	t=1794453593;
+	b=kmTGJOXYT+N8qDIpbWGYqA9eLV+HERm5Xk9nh9+eX21mim5KyWw4UT3rXBqxHl/AXY1B
+	 2oC3CS1W8hKiCLlKuj5riEe4BBhad1cRhY1j+xdUMMX1HFkLFKVkVGTljnh4GQHqYS0tW
+	 kuRT4RoDhqAxJkdCvZNkeg1VNqhCdariCEOMQSebhGga2lAOH1G5G+iZ4HqqYFyEjbL2m
+	 t36ZJnJI0gn7fv2CKB2YoU1eLOPyhM6UdzeR6zrxeggnfTZ+mBon2HmawS7yJiDAf455T
+	 L3aFJGPIQYx4EGcDVptXvxZ1iITfQWlHVtgy0embpWaIkUOZoaCZVfnP8H6HF6yzgbw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794450659;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794453593;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=gWXEk/YwwBk6JIDlUe2zHSSg+WJkqI/MBRSjfbSEkH8=;
-	b=e+G5kLB5/WvfRWT9gZMrXWvv8OE2NLArice33oFsHv3Th6YsXwJ6WLinrtMZsCbHGTrn
-	 GXLqW1g1dvZQM2JuQQAtNJTCwz4GLrTRnL4+94lSAB0I1zjGWZW/TUycsc+4XnL53cEqO
-	 PYO0kRtiU5lI/dWZLN83m2vIbAFprihjdPoT3LCAQNowjvAx5dkucJL/Flcs3ao4lDQZ/
-	 H31S4HfmBOFcuRe6LuBzCeOnGpO6eH4fEBAKPUd9i62bqtbM7jtkEqYUU5vdgKwBn87eu
-	 WM7O+1fK7wyx2/NclUZwhab39CcJYAT+pxdUCnkTGMZLEocuqDuhNCcw6QwVR65ppVA==
+	bh=X1Xcm2Pd3cLKO0qmRlfLp4SKtK/TsLBKcTHeK4JMYaM=;
+	b=VVRAzQHgDwOSpyV7SGAq56fkxQ7cZ6v+TG6RmJN/bQ1ilJMaXpuNM4aqz9Z+NuqvXCY1
+	 4rdbH7IBjTjnkym2hTwbA2bgSCN1PEvQDlLBu5n89ILbDVXOGurSOWtvML94As8SBX0XQ
+	 xfr32/fDmhZcSM9e51Dpv7AeKMDe/eLacCHEE2V33nrRDq7xxoyMq2YkO/acpJKkrmLP/
+	 Mlq4okkvijvIgAM4/0p08iSl4HWQfuJN+cITjKtswasbzF7ExojOS1qXGM9eww8LJhU0p
+	 WXDB6EJQAGscV6b6IrKDFCWdes/lpxUlVQo0OL9PDAW6bwKxUSPGU1F82DzRny8XcJg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=sp3IGXaV;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LV1tmCxG;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7716606A321
-	for <mm-commits@vger.kernel.org>; Thu, 12 Nov 2026 02:30:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 034F1606A885;
+	Thu, 12 Nov 2026 03:19:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=sp3IGXaV
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B0FF1F00A05;
-	Thu, 12 Nov 2026 02:30:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LV1tmCxG
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E4501F00A08;
+	Thu, 12 Nov 2026 03:19:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794450659;
-	bh=gWXEk/YwwBk6JIDlUe2zHSSg+WJkqI/MBRSjfbSEkH8=;
+	d=linux-foundation.org; s=korg; t=1794453592;
+	bh=X1Xcm2Pd3cLKO0qmRlfLp4SKtK/TsLBKcTHeK4JMYaM=;
 	h=Date:To:From:Subject;
-	b=sp3IGXaVHFkkYutoafJX/S/ot0yEPPs91MH6yviT1EbvEKRl2gmEeys2sKD99h43M
-	 W5R9hqyqNxEHDPzu7Y1Xvfh4jGUK+cqKYrEYBe+zuSdQ5UTOztpRy1hK/6H7w7er9j
-	 DyWQ19sLnNlyauFyOX0J7JVFlS4gPAl7oed2EGZc=
-Date: Wed, 11 Nov 2026 18:30:58 -0800
-To: mm-commits@vger.kernel.org,yosry@kernel.org,richardycc@google.com,
-	nphamcs@gmail.com,minchan@kernel.org,hannes@cmpxchg.org,bgeffon@google.com,
-	senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=LV1tmCxGL/tgBhCTuoewxhZx/IrLKMe0PzCeAaQsmvlBOXc2bjkw+l7+0wcX2awdT
+	 TxmPfMR9SxiSmdTxoe3rrezqMkEWH9/q9SdyKxR/FsEhAwiPFMBLIqfqBjE34DuIS2
+	 e360o/MnMlOKxe//i+xFT/GI3Q5AjydGnzhSHQdo=
+Date: Wed, 11 Nov 2026 19:19:52 -0800
+To: mm-commits@vger.kernel.org,vivek.kasireddy@intel.com,
+	stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,
+	kraxel@redhat.com,jgg@ziepe.ca,gourry@gourry.net,david@kernel.org,
+	airlied@redhat.com,ackerleytng@google.com,4ncienth@gmail.com,
+	lihongfu@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zsmalloc-populate-new-zspage-outside-class-lock-in-zs_store.patch added to mm-unstable branch
-Message-Id: <20261112023059.5B0FF1F00A05@smtp.kernel.org>
+Subject: + mm-hugetlb-charge-hugetlb-cgroup-and-memcg-in-alloc_hugetlb_folio_reserve.patch added to mm-new branch
+Message-Id: <20261112031952.7E4501F00A08@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,15 +55,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: zsmalloc: populate new zspage outside class->lock in zs_store()
-has been added to the -mm mm-unstable branch.  Its filename is
-     zsmalloc-populate-new-zspage-outside-class-lock-in-zs_store.patch
+     Subject: mm/hugetlb: charge hugetlb cgroup and memcg in alloc_hugetlb_folio_reserve()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-hugetlb-charge-hugetlb-cgroup-and-memcg-in-alloc_hugetlb_folio_reserve.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-populate-new-zspage-outside-class-lock-in-zs_store.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-charge-hugetlb-cgroup-and-memcg-in-alloc_hugetlb_folio_reserve.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,110 +89,133 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zsmalloc: populate new zspage outside class->lock in zs_store()
-Date: Wed, 11 Nov 2026 15:46:34 +0900
+From: Hongfu Li <lihongfu@kylinos.cn>
+Subject: mm/hugetlb: charge hugetlb cgroup and memcg in alloc_hugetlb_folio_reserve()
+Date: Thu, 12 Nov 2026 10:15:33 +0800
 
-A new zspage is not on class fullness lists and is not movable until
-zs_store() calls insert_zspage() and SetZsPageMovable(), so neither other
-zs_store() callers nor compaction and page migration can see it.  Nobody
-else has the handle yet either.
+alloc_hugetlb_folio_reserve() hands out a folio from the hugetlb pool and
+consumes a global reservation, but unlike the fault path it never charged
+the folio to the hugetlb cgroup or to the memcg.  Folios allocated for
+memfd_pin_folios() through memfd_alloc_folio() were therefore silently
+bypassing the accounting: they are never charged to the hugetlb cgroup
+usage counter (hugetlb.<size>.current or hugetlb.<size>.usage_in_bytes),
+so the limits (hugetlb.<size>.max or hugetlb.<size>.limit_in_bytes) are
+bypassed.  In cgroup v2, with memory_hugetlb_accounting enabled, these
+folios are also not accounted in memory.current and are not bounded by
+memory.max.
 
-So for a new zspage allocate the object and copy the data before we take
-class->lock, and don't take zspage read lock.  This makes class->lock
-critical section shorter and saves a zspage lock/unlock.
+Charge the folios to both the hugetlb cgroup and the memcg, just like
+hugetlb_alloc_folio() does.
 
-Link: https://lore.kernel.org/20261111064707.2568433-12-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Test with a process that creates a hugetlb memfd and pins pages through
+UDMABUF_CREATE. The counters were read while the folio was still pinned:
+
+Before this patch:
+$ echo $$ > /sys/fs/cgroup/test/cgroup.procs
+$ ./memfd-alloc-folio 1 &
+$ cat /sys/fs/cgroup/test/hugetlb.2MB.current
+0
+$ cat /sys/fs/cgroup/test/memory.current
+1351680
+$
+
+After this patch:
+$ echo $$ > /sys/fs/cgroup/test/cgroup.procs
+$ ./memfd-alloc-folio 1 &
+$ cat /sys/fs/cgroup/test/hugetlb.2MB.current
+2097152
+$ cat /sys/fs/cgroup/test/memory.current
+3313664
+$
+
+memfd_pin_folios() can now fail because the memcg charge fails. Two
+tasks allocating concurrently against the same memory.max may see a
+spurious failure. That failure frees the folio, returns the global
+reservation, and undoes the hugetlb cgroup charge, so no accounting is
+left behind.
+
+Link: https://lore.kernel.org/20261112-for-alloc_hugetlb-1109-v3-1-7a144510a373@kylinos.cn
+Fixes: 89c1905d9c14 ("mm/gup: introduce memfd_pin_folios() for pinning memfd folios")
+Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Yosry Ahmed <yosry@kernel.org>
-Reviewed-by: Yosry Ahmed <yosry@kernel.org>
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Richard Chang <richardycc@google.com>
+Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
+Tested-by: Gregory Price (Meta) <gourry@gourry.net>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Gerd Hoffmann <kraxel@redhat.com>
+Cc: Dave Airlie <airlied@redhat.com>
+Cc: Vivek Kasireddy <vivek.kasireddy@intel.com>
+Cc: Ackerley Tng <ackerleytng@google.com>
+Cc: Daehyeon Ko <4ncienth@gmail.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- mm/zsmalloc.c |   20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ mm/hugetlb.c |   33 ++++++++++++++++++++++++++++++---
+ 1 file changed, 30 insertions(+), 3 deletions(-)
 
---- a/mm/zsmalloc.c~zsmalloc-populate-new-zspage-outside-class-lock-in-zs_store
-+++ a/mm/zsmalloc.c
-@@ -1323,8 +1323,12 @@ int zs_store(struct zs_pool *pool, struc
- 		/* Now move the zspage to another fullness group, if required */
- 		fix_fullness_group(class, zspage);
- 		class_stat_add(class, ZS_OBJS_INUSE, 1);
-+		zspage_read_lock(zspage);
-+		spin_unlock(&class->lock);
+--- a/mm/hugetlb.c~mm-hugetlb-charge-hugetlb-cgroup-and-memcg-in-alloc_hugetlb_folio_reserve
++++ a/mm/hugetlb.c
+@@ -2223,12 +2223,19 @@ struct folio *alloc_buddy_hugetlb_folio(
+ struct folio *alloc_hugetlb_folio_reserve(struct hstate *h, int preferred_nid,
+ 		nodemask_t *nmask, gfp_t gfp_mask)
+ {
++	struct hugetlb_cgroup *h_cg = NULL;
++	size_t nr_pages = pages_per_huge_page(h);
+ 	struct folio *folio;
++	int idx = hstate_index(h);
++	int ret;
++
++	if (hugetlb_cgroup_charge_cgroup(idx, nr_pages, &h_cg))
++		return NULL;
  
--		goto out;
-+		obj_write(class, zspage, obj, src, size);
-+		zspage_read_unlock(zspage);
-+		return 0;
+ 	spin_lock_irq(&hugetlb_lock);
+ 	if (!h->resv_huge_pages) {
+ 		spin_unlock_irq(&hugetlb_lock);
+-		return NULL;
++		goto err_uncharge_hugetlb_cgroup;
  	}
  
- 	spin_unlock(&class->lock);
-@@ -1333,8 +1337,15 @@ int zs_store(struct zs_pool *pool, struc
- 	if (!zspage)
- 		return -ENOMEM;
+ 	folio = dequeue_hugetlb_folio_nodemask(h, gfp_mask, preferred_nid,
+@@ -2236,11 +2243,31 @@ struct folio *alloc_hugetlb_folio_reserv
+ 	if (folio) {
+ 		folio_set_hugetlb_restore_reserve(folio);
+ 		h->resv_huge_pages--;
+-	}
++		hugetlb_cgroup_commit_charge(idx, nr_pages, h_cg, folio);
  
--	spin_lock(&class->lock);
-+	/*
-+	 * New zspage is not in class->fullness_list or movable yet, so we
-+	 * can allocate the object and copy data before taking class->lock
-+	 * and without zspage_read_lock().
-+	 */
- 	obj = obj_malloc(pool, zspage, handle);
-+	obj_write(class, zspage, obj, src, size);
++		spin_unlock_irq(&hugetlb_lock);
 +
-+	spin_lock(&class->lock);
- 	newfg = get_fullness_group(class, zspage);
- 	insert_zspage(class, zspage, newfg);
- 	atomic_long_add(class->pages_per_zspage, &pool->pages_allocated);
-@@ -1343,13 +1354,8 @@ int zs_store(struct zs_pool *pool, struc
++		ret = mem_cgroup_charge_hugetlb(folio, current->mm,
++						gfp_mask | __GFP_RETRY_MAYFAIL);
++		if (ret == -ENOMEM) {
++			folio_put(folio);
++			/*
++			 * Skip uncharging hugetlb_cgroup since the charges
++			 * were committed to the folio and freeing the folio
++			 * would have cleared those up.
++			 */
++			return NULL;
++		}
++
++		mod_hugetlb_memcg_state(folio, nr_pages);
++
++		return folio;
++	}
+ 	spin_unlock_irq(&hugetlb_lock);
  
- 	/* We completely set up zspage so mark them as movable */
- 	SetZsPageMovable(pool, zspage);
--out:
--	zspage_read_lock(zspage);
- 	spin_unlock(&class->lock);
- 
--	obj_write(class, zspage, obj, src, size);
--	zspage_read_unlock(zspage);
--
- 	return 0;
+-	return folio;
++err_uncharge_hugetlb_cgroup:
++	hugetlb_cgroup_uncharge_cgroup(idx, nr_pages, h_cg);
++	return NULL;
  }
- EXPORT_SYMBOL_GPL(zs_store);
+ 
+ /* folio migration callback function */
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from lihongfu@kylinos.cn are
 
-zram-prefix-backends-printk-s.patch
-zram-remove-debugfs-entry-on-init-failure.patch
-zram-reset-writeback-state-in-zram_reset_device.patch
-zram-move-mark_slot_accessed-under-existing-slot-lock-sections.patch
-zram-remove-stale-warn_on-from-zram_read_page.patch
-zram-zstd-do-not-allocate-empty-c-d-dictionaries.patch
-zram-lz4hc-pre-initialize-dictionary-stream-in-setup_params.patch
-zram-lz4-use-lz4_decompress_safe_usingdict.patch
-zram-lz4hc-use-lz4_decompress_safe_usingdict.patch
-zram-zstd-do-not-use-kvzalloc-for-zstd-allocations.patch
-zram-split-zcomp-into-separate-r-w-streams.patch
-zram-introduce-shared-decompression-streams.patch
-zram-allocate-bounce-buffer-for-spanning-objects.patch
-zram-borrow-idle-decompression-streams-in-exclusive-mode.patch
-zram-use-a-singleton-compression-context-for-recompression.patch
-zram-drop-stale-comment-in-write_incompressible_page.patch
-zram-drop-get_slot_handle-and-set_slot_handle.patch
-zsmalloc-return-handle-from-obj_allocated.patch
-zsmalloc-switch-handle-type-to-struct-zs_handle.patch
-zram-check-mem_limit-before-allocating-zsmalloc-object.patch
-zram-allocate-zsmalloc-object-under-slot-lock.patch
-zswap-do-not-free-the-entry-if-its-pool-is-null.patch
-zsmalloc-encode-1-based-obj_idx-so-valid-obj-is-never-0.patch
-zsmalloc-embed-struct-zs_handle-into-zram-and-zswap-entries.patch
-zsmalloc-fold-zs_obj_write-into-zs_store.patch
-zsmalloc-populate-new-zspage-outside-class-lock-in-zs_store.patch
-zram-fix-quadratic-writeback-bitmap-search.patch
+selftests-mm-mlock2-tests-fix-fclosenull-in-is_vmflag_set.patch
+mm-hugetlb-charge-hugetlb-cgroup-and-memcg-in-alloc_hugetlb_folio_reserve.patch
 
