@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794510624;
-	b=u9Ej5Vc88pZRYKr/CiiBjC1J0DXjl0eEpH4C5zRqGsPAk7TXeNAklH6IgEY+8R/okQ/1
-	 Hy5n3siq/+gclvS7z8zQSFKG5Sn0f5PvW+M1i/Qp7+ju4PMkReTWGhky1uVqmAS07nGmE
-	 a8pADgdYDeThN69ql7HDKrwj0nDlHNm08+7fur5VbM+U66i/QE9nPvDUfQkibpKFOKc6Q
-	 wRNu5GM+t12BLeBsz5l5CibS9wxFZ+vKuAdeMVjxOCR+X+AVVE8bqV5tKUxVHoxPe7TJL
-	 X+j5pR/6Fp1xJgeDwwq8Re/RW/oBEKrtf8yjUp8zLWu8uMe/g0BVIlj0gb8TsZ60DpA==
+	t=1794510627;
+	b=q8IiiTrkt/xlIq/7F6/3s/SDfFF6l4EO464E/zb81HO21lpIrg45VRSMdJKdx4Wl6F2E
+	 u4Q0zi8adWnXwkezOwnddQhu9faJ/f4RA72Nuj+Tg8zTpK/kYXl1hFjuLvQG17xmPTKhu
+	 bK01m4VeSnWNubvmxI/GUxmJbu00cExKq02cD+p6jJhqXJ0Qp8oei7eM7FqiyDMoocKmZ
+	 6VeU7xh+0KerfA6zdstUdFmsC3tlcXOq4uECov+FPM/GOs3PZshjQFYr2gedAZvRuDZiJ
+	 aNIEiOkYWV90YmrDUXi/aYdRp6YVfo7fSvYsapuCyfFCbI+g7AvDyhpNWucUXqXCLrg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794510624;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794510627;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=knM/tfqnGPWgwMyNydnAAjobnZeCtLC7EP8WbZHOVPo=;
-	b=uXFP1n6BeJGdeUPfJrPvCp/e8wr6eVjM8MAiP74815rfs0re+ibi2sBjA6tqy3lajheU
-	 oEtuja7ZAKFJZvL27Tj9UOEzxTa/SoBTEtUcRB7pfUNdNUnM8MIwRXy3q0bk9NSxuM0HD
-	 JRYyF0IK23kTD8QO2xMB76VpbGJvcSfWgChLWTo0/1XydJ0vkoIJwST6/cIcTHfVm5wHp
-	 s4yNo1HbPLULoasYYufagxOBIM6UDnOEt+iq2yFQLDJ1eEGT4PmdTBE6+UZclxe+zOsex
-	 e+z+9SuTKTsUb1ySPzL31lkWdHx79UCRUc0vtOZAQaNls538yH2XWBD4DYbPHllrovA==
+	bh=5+QgSABOUkQ5l5dNiR7T2k+y8rtQDFuXyMOMaHycOZk=;
+	b=45NH/eQiyeAhx4zfUnsdovpUhMPrvereRCO3mxDI7WufvegDJibYEnWQMWI0xQXOZlGY
+	 9Up9xeCUNSRfFODozXopRTAt4YYLq/Pj3lQftur/Syf+srpmVa8LUmFj0RPrPdsAQmaDT
+	 A/dyvzmynCTGOvWz8sV5Q6K/CbFjXNa7v271s2lLinThwuZOHeHSOHty8ngaS+OHYc0rM
+	 Y+o6u178LfpieeLQYTQyKCOWsEeeLmbdL1UOz/C1d3FMwjo6QtwxhPw1XXAokPMHJIVwX
+	 opzr5zzfsq65P4EOExuTQQkTLFjnWhwr4kt07PwjEdk45TISI18xi1VVIHJDeZ6pFxg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="BOXK/fm/";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=EHVKz940;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8C48606A888
-	for <mm-commits@vger.kernel.org>; Thu, 12 Nov 2026 19:10:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C062E606A888
+	for <mm-commits@vger.kernel.org>; Thu, 12 Nov 2026 19:10:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=BOXK/fm/
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40AA71F000C4;
-	Thu, 12 Nov 2026 19:10:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=EHVKz940
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7387A1F000C4;
+	Thu, 12 Nov 2026 19:10:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794510624;
-	bh=knM/tfqnGPWgwMyNydnAAjobnZeCtLC7EP8WbZHOVPo=;
+	d=linux-foundation.org; s=korg; t=1794510627;
+	bh=5+QgSABOUkQ5l5dNiR7T2k+y8rtQDFuXyMOMaHycOZk=;
 	h=Date:To:From:Subject;
-	b=BOXK/fm/4SldyChgfvBqeSWcbEIVtGgqNbMDpbAQQyUoEX4hEuuG2Um+YGJRvGISp
-	 m/iamPgf/mf9mDtII0x59fjf0l57kVMSPPdc/EuVsUxFRfZjcjL+/Q/sk7v6d72gVp
-	 MyZhe6cYsAX6+hGeCDDh1vhCMTjXBvvZz3flD8YE=
-Date: Thu, 12 Nov 2026 11:10:23 -0800
+	b=EHVKz940weBhlVDwzLM3Ya4PsJqtqByRKSzrXvQZlKLn039XVAFzkACyB6cXd3tIX
+	 V8Gv1c4rBo6Nu+A5+5TTvxgQRo8NXpibr1sN+38BQgfMyWPOmKMb1Xesyz1c99CyAI
+	 qz+ha1K/zBWSZOLG/Zi6sYw1QdtuSJ1rDzZN31sQ=
+Date: Thu, 12 Nov 2026 11:10:26 -0800
 To: mm-commits@vger.kernel.org,phillip.lougher@gmail.com,
 	phillip@squashfs.org.uk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + squashfs-convert-squashfs_fragment_-to-inline-functions.patch added to mm-nonmm-unstable branch
-Message-Id: <20261112191024.40AA71F000C4@smtp.kernel.org>
+Subject: + squashfs-convert-squashfs_lookup_-to-inline-functions.patch added to mm-nonmm-unstable branch
+Message-Id: <20261112191027.7387A1F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,12 +52,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: Squashfs: convert SQUASHFS_FRAGMENT_* to inline functions
+     Subject: Squashfs: convert SQUASHFS_LOOKUP_* to inline functions
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-convert-squashfs_fragment_-to-inline-functions.patch
+     squashfs-convert-squashfs_lookup_-to-inline-functions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-convert-squashfs_fragment_-to-inline-functions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-convert-squashfs_lookup_-to-inline-functions.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,8 +76,8 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: Squashfs: convert SQUASHFS_FRAGMENT_* to inline functions
-Date: Wed, 11 Nov 2026 23:43:43 +0000
+Subject: Squashfs: convert SQUASHFS_LOOKUP_* to inline functions
+Date: Wed, 11 Nov 2026 23:43:44 +0000
 
 Convert old fashioned #define macros into inline functions.  This has
 the following improvements:
@@ -91,105 +91,106 @@ the following improvements:
 3. Inline functions are easier to read than #define macros, which
    improves code comprehension.
 
-Link: https://lore.kernel.org/20261111234402.252354-4-phillip@squashfs.org.uk
+Link: https://lore.kernel.org/20261111234402.252354-5-phillip@squashfs.org.uk
 Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Phillip Lougher <phillip.lougher@gmail.com>
 ---
 
- fs/squashfs/fragment.c         |    7 ++++---
- fs/squashfs/squashfs_fs.h      |   17 -----------------
+ fs/squashfs/export.c           |    9 +++++----
+ fs/squashfs/squashfs_fs.h      |   16 ----------------
  fs/squashfs/squashfs_helpers.h |   27 +++++++++++++++++++++++++++
- 3 files changed, 31 insertions(+), 20 deletions(-)
+ 3 files changed, 32 insertions(+), 20 deletions(-)
 
---- a/fs/squashfs/fragment.c~squashfs-convert-squashfs_fragment_-to-inline-functions
-+++ a/fs/squashfs/fragment.c
-@@ -26,6 +26,7 @@
- 
+--- a/fs/squashfs/export.c~squashfs-convert-squashfs_lookup_-to-inline-functions
++++ a/fs/squashfs/export.c
+@@ -31,6 +31,7 @@
  #include "squashfs_fs.h"
  #include "squashfs_fs_sb.h"
+ #include "squashfs_fs_i.h"
 +#include "squashfs_helpers.h"
  #include "squashfs.h"
  
  /*
-@@ -42,8 +43,8 @@ int squashfs_frag_lookup(struct super_bl
- 
- 	if (fragment >= msblk->fragments)
- 		return -EIO;
--	block = SQUASHFS_FRAGMENT_INDEX(fragment);
--	offset = SQUASHFS_FRAGMENT_INDEX_OFFSET(fragment);
-+	block = squashfs_fragment_index(fragment);
-+	offset = squashfs_fragment_index_offset(fragment);
- 
- 	start_block = le64_to_cpu(msblk->fragment_index[block]);
- 
-@@ -63,7 +64,7 @@ int squashfs_frag_lookup(struct super_bl
- __le64 *squashfs_read_fragment_index_table(struct super_block *sb,
- 	u64 fragment_table_start, u64 next_table, unsigned int fragments)
+@@ -39,8 +40,8 @@
+ static long long squashfs_inode_lookup(struct super_block *sb, int ino_num)
  {
--	unsigned int length = SQUASHFS_FRAGMENT_INDEX_BYTES(fragments);
-+	unsigned int length = squashfs_fragment_index_bytes(fragments);
+ 	struct squashfs_sb_info *msblk = sb->s_fs_info;
+-	int blk = SQUASHFS_LOOKUP_BLOCK(ino_num - 1);
+-	int offset = SQUASHFS_LOOKUP_BLOCK_OFFSET(ino_num - 1);
++	int blk = squashfs_lookup_block(ino_num - 1);
++	int offset = squashfs_lookup_block_offset(ino_num - 1);
+ 	u64 start;
+ 	__le64 ino;
+ 	int err;
+@@ -115,8 +116,8 @@ static struct dentry *squashfs_get_paren
+ __le64 *squashfs_read_inode_lookup_table(struct super_block *sb,
+ 		u64 lookup_table_start, u64 next_table, unsigned int inodes)
+ {
+-	unsigned int length = SQUASHFS_LOOKUP_BLOCK_BYTES(inodes);
+-	unsigned int indexes = SQUASHFS_LOOKUP_BLOCKS(inodes);
++	unsigned int length = squashfs_lookup_block_bytes(inodes);
++	unsigned int indexes = squashfs_lookup_blocks(inodes);
+ 	int n;
  	__le64 *table;
- 
- 	/*
---- a/fs/squashfs/squashfs_fs.h~squashfs-convert-squashfs_fragment_-to-inline-functions
+ 	u64 start, end;
+--- a/fs/squashfs/squashfs_fs.h~squashfs-convert-squashfs_lookup_-to-inline-functions
 +++ a/fs/squashfs/squashfs_fs.h
-@@ -107,23 +107,6 @@ static inline int squashfs_block_size(__
+@@ -107,22 +107,6 @@ static inline int squashfs_block_size(__
  	return (size >> 25) ? -EIO : size;
  }
  
--/* fragment and fragment table defines */
--#define SQUASHFS_FRAGMENT_BYTES(A)	\
--				((A) * sizeof(struct squashfs_fragment_entry))
+-/* inode lookup table defines */
+-#define SQUASHFS_LOOKUP_BYTES(A)	((A) * sizeof(u64))
 -
--#define SQUASHFS_FRAGMENT_INDEX(A)	(SQUASHFS_FRAGMENT_BYTES(A) / \
+-#define SQUASHFS_LOOKUP_BLOCK(A)	(SQUASHFS_LOOKUP_BYTES(A) / \
 -					SQUASHFS_METADATA_SIZE)
 -
--#define SQUASHFS_FRAGMENT_INDEX_OFFSET(A)	(SQUASHFS_FRAGMENT_BYTES(A) % \
--						SQUASHFS_METADATA_SIZE)
+-#define SQUASHFS_LOOKUP_BLOCK_OFFSET(A)	(SQUASHFS_LOOKUP_BYTES(A) % \
+-					SQUASHFS_METADATA_SIZE)
 -
--#define SQUASHFS_FRAGMENT_INDEXES(A)	((SQUASHFS_FRAGMENT_BYTES(A) + \
+-#define SQUASHFS_LOOKUP_BLOCKS(A)	((SQUASHFS_LOOKUP_BYTES(A) + \
 -					SQUASHFS_METADATA_SIZE - 1) / \
 -					SQUASHFS_METADATA_SIZE)
 -
--#define SQUASHFS_FRAGMENT_INDEX_BYTES(A)	(SQUASHFS_FRAGMENT_INDEXES(A) *\
--						sizeof(u64))
+-#define SQUASHFS_LOOKUP_BLOCK_BYTES(A)	(SQUASHFS_LOOKUP_BLOCKS(A) *\
+-					sizeof(u64))
 -
- /* inode lookup table defines */
- #define SQUASHFS_LOOKUP_BYTES(A)	((A) * sizeof(u64))
+ /* uid/gid lookup table defines */
+ #define SQUASHFS_ID_BYTES(A)		((A) * sizeof(unsigned int))
  
---- a/fs/squashfs/squashfs_helpers.h~squashfs-convert-squashfs_fragment_-to-inline-functions
+--- a/fs/squashfs/squashfs_helpers.h~squashfs-convert-squashfs_lookup_-to-inline-functions
 +++ a/fs/squashfs/squashfs_helpers.h
-@@ -51,4 +51,31 @@ static inline s64 squashfs_mkinode(u32 s
+@@ -78,4 +78,31 @@ static inline s32 squashfs_fragment_inde
  {
- 	return ((s64)start << 16) | offset;
+ 	return squashfs_fragment_indexes(fragments) * sizeof(long long);
  }
 +
-+/* fragment and fragment table defines */
-+static inline s64 squashfs_fragment_bytes(u32 fragments)
++/* inode lookup table defines */
++static inline s64 squashfs_lookup_bytes(u32 inodes)
 +{
-+	return fragments * sizeof(struct squashfs_fragment_entry);
++	return (s64) inodes * sizeof(s64);
 +}
 +
-+static inline s32 squashfs_fragment_index(u32 fragments)
++static inline s32 squashfs_lookup_block(u32 inodes)
 +{
-+	return squashfs_fragment_bytes(fragments) / SQUASHFS_METADATA_SIZE;
++	return squashfs_lookup_bytes(inodes) / SQUASHFS_METADATA_SIZE;
 +}
 +
-+static inline s16 squashfs_fragment_index_offset(u32 fragments)
++static inline s16 squashfs_lookup_block_offset(u32 inodes)
 +{
-+	return squashfs_fragment_bytes(fragments) % SQUASHFS_METADATA_SIZE;
++	return squashfs_lookup_bytes(inodes) % SQUASHFS_METADATA_SIZE;
 +}
 +
-+static inline s32 squashfs_fragment_indexes(u32 fragments)
++static inline s32 squashfs_lookup_blocks(u32 inodes)
 +{
-+	return (squashfs_fragment_bytes(fragments) + (SQUASHFS_METADATA_SIZE - 1)) /
++	return (squashfs_lookup_bytes(inodes) + (SQUASHFS_METADATA_SIZE - 1)) /
 +		SQUASHFS_METADATA_SIZE;
 +}
 +
-+static inline s32 squashfs_fragment_index_bytes(u32 fragments)
++static inline s32 squashfs_lookup_block_bytes(u32 inodes)
 +{
-+	return squashfs_fragment_indexes(fragments) * sizeof(long long);
++	return squashfs_lookup_blocks(inodes) * sizeof(long long);
 +}
  #endif
 _
