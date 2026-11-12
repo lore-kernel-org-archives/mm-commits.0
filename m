@@ -1,48 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794450334;
-	b=DgPIMXKD7DdIMzJ50/tTfkRU0v59CAmvu40/y27khpPgZBvRxEE0ovJLgdSqq8tZ7a6n
-	 qx65O41l1nun+YOaM4UBe/rQaT4FGySFoX2U1c/b+Cy4xzjaeC4zWg4MVN9pJ7Euloftw
-	 ZwU/bL1Wn20zh+n+hkEp69pIB9vji9tobReaI10fSyq/JLMgriIqgZIY+V8GsPO5cTBoT
-	 KGKNf31kANS/rrCUnmPiyG5iIwpTLEcKwrele5QKxqfpAgRGS8R7lAJ6Dn3TkR+LiJVqk
-	 z4Hmy07+0GMNcRGkgYls3eYKPLFn2tOxQ2lnqbN0eaiApmNjSnclpkNKF7KaDooxctg==
+	t=1794450629;
+	b=sGhf/Ez9go0N7CpNlXGXQTzmSI1OppU7vRVo3wZxK9H7Iu7tHMxPzDF+HDo/399BCfL+
+	 M87KVyb68B0wSJajjxane1JBkFC2xFCSZqEXVMUFB+hW9uL4FNyQLnpQ1hfvn6tfV8gjG
+	 BBcuRpJj0MkQ0nRzq3i5n8SweucjR6aUoQK03am9LrhAOh7PoCejlYe7lgJP0DKSjqXg5
+	 onj7LwpTNCA9cVp1YD8qnOXHm454aAH6yJrwwoCBJbcAfut9cDZJVCFQXW3ZloEGkfD5c
+	 qZkHhYazB6UCHaYivEA95li1HLK+Fvy0Z1GteBgY4x89RfjmUH9aObx3iz+l9HhyPqA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794450334;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794450629;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=4m4uhpMWv0+Mi7zl6gts2mt/A3IIwSoxuV63tdgX8bo=;
-	b=ZRfPsqCZjret1ZCozlpDclWSslmfgdB+lN/SMPUP9Ue6/vv59HuJfrtk3EpTO/dK27Kx
-	 72H9btXtjtA45OCrZjvXGYz1tHj68M/6Q8mzdvsObi3Njfpy22URo0ZOaINW+bLgvhlio
-	 o5/bnl4HFruyb8yS4dWBfEJNxnpE2fBwzAVdgXVbXJWmhV87VkqUeOm2AI18YcEdsKM8N
-	 ROTJOpw0ZJBckZcnnbCgJesikCEIR2n1j5gAvR7RTIN8sFZVuQHBF3LQel+Pa+fUULUun
-	 7PbyfSTKMlnT/zZctGYQ5++c53iRyxXxpYFiuxssQxWW4AxixuSwvPCvFgTcnGLiqfA==
+	bh=BqpDAh+D5iqhlPeYfoI97xS4ItEdhZirwHmVb9PrmbU=;
+	b=JZoNbSl6vw2zIZxbFfJkHH9KKX9P9YpyDeJXh2D2Yb5lVGOk64tgfvO+PPPI6vIT3dFo
+	 yV7om96QKaKBfA8qHJN3yqmzjl/Cb54cU24owUzYlByT22fVSQMAFrqChldIqJKcBCZLm
+	 Sz73wfAptr4+ELJLi0WgfUQJSBUf6m1UKJ0VNIx+qB+qTsYEuycc6acwmCj2phYmhj/OC
+	 pS+bAr2uNFWgzLHxEG9lz16eP60rcNCmSOcbE6elnNApSDPE21da9Y0RqjUbaHKofVUDB
+	 WZos1pF1MRDEM4Fo0xesZ0aTpbjaEtqd2YU89UH5OeHoA9f+ry9wo1rsNdIpggyAwkA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=p+v2aXIc;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=zM2CpAFq;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 059AB606A31C;
-	Thu, 12 Nov 2026 02:25:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0099F606A327
+	for <mm-commits@vger.kernel.org>; Thu, 12 Nov 2026 02:30:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=p+v2aXIc
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FA401F00A05;
-	Thu, 12 Nov 2026 02:25:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=zM2CpAFq
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 861B71F00A06;
+	Thu, 12 Nov 2026 02:30:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794450333;
-	bh=4m4uhpMWv0+Mi7zl6gts2mt/A3IIwSoxuV63tdgX8bo=;
+	d=linux-foundation.org; s=korg; t=1794450628;
+	bh=BqpDAh+D5iqhlPeYfoI97xS4ItEdhZirwHmVb9PrmbU=;
 	h=Date:To:From:Subject;
-	b=p+v2aXIcSpul4jUPiqh53dWZP6E5J7Ov8HmEjS1k6WCG0LH6KaXtDHG/PC7Lnkk5Y
-	 n3J+4rmxvZpaIyG/GtM8Wcins/2QwPRC0d14uRcmcSK5Sfv8BSlTlg1iZuRt0wRzyx
-	 rRl7zXhA0cRBogGlN3QQtLvMGN5uUXkqhEap3JI8=
-Date: Wed, 11 Nov 2026 18:25:32 -0800
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,
-	roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,
-	mason@kernel.org,hannes@cmpxchg.org,david@kernel.org,shakeel.butt@linux.dev,
-	akpm@linux-foundation.org
+	b=zM2CpAFqbhDiwBCiBLoDzNT0i2bd/a6eUhFKG0GqvvI2JEndxpLobiSqksrzGN4xx
+	 t04L5a48cqe5JdJjqp4ceuapJUaq/mqfdsjkZvdpNs7Q7QMMWYEBQB/puEg3+U82mD
+	 DYWWKORv6m081+6C+tAkmzhZB0PM3REnkmZ0ZwSM=
+Date: Wed, 11 Nov 2026 18:30:28 -0800
+To: mm-commits@vger.kernel.org,yosry@kernel.org,richardycc@google.com,
+	nphamcs@gmail.com,minchan@kernel.org,hannes@cmpxchg.org,bgeffon@google.com,
+	senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-flush-nr_charged_bytes-when-the-obj-stock-trylock-fails.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261112022533.4FA401F00A05@smtp.kernel.org>
+Subject: + zram-drop-stale-comment-in-write_incompressible_page.patch added to mm-unstable branch
+Message-Id: <20261112023028.861B71F00A06@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,14 +53,14 @@ Precedence: list
 
 
 The patch titled
-     Subject: memcg: flush nr_charged_bytes when the obj stock trylock fails
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     memcg-flush-nr_charged_bytes-when-the-obj-stock-trylock-fails.patch
+     Subject: zram: drop stale comment in write_incompressible_page()
+has been added to the -mm mm-unstable branch.  Its filename is
+     zram-drop-stale-comment-in-write_incompressible_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-flush-nr_charged_bytes-when-the-obj-stock-trylock-fails.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-drop-stale-comment-in-write_incompressible_page.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -77,62 +76,92 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: flush nr_charged_bytes when the obj stock trylock fails
-Date: Wed, 11 Nov 2026 17:32:20 -0800
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: drop stale comment in write_incompressible_page()
+Date: Wed, 11 Nov 2026 15:46:24 +0900
 
-When interrupt code, such as an RCU callback in softirq, runs on top of a
-task that holds the obj stock lock, its trylock fails and the bytes go to
-objcg->nr_charged_bytes.  Nothing empties that counter while every CPU
-using the objcg keeps it in its stock, so it can grow without limit.
+Patch series "zsmalloc: redesign object alloc API", v3.
 
-Users see memory.current and the "kernel" field of memory.stat keep
-growing while the cgroup's real usage does not.  With memory.high or
-memory.max set, the cgroup is reclaimed, throttled or even OOM-killed for
-memory it does not use.  The counter is 32-bit, so after 4 GiB it wraps,
-and those 4 GiB stay charged to the cgroup and its ancestors until reboot,
-even after the cgroup is removed.
+Both zram and zswap already have per-entry structures that store zsmalloc
+handles, so allocating a separate handle_cachep object per stored page is
+redundant.  This series embeds struct zs_handle directly into zram and
+zswap entries and drops handle_cachep, saving 8 bytes and a slab
+alloc/free per stored object (2MB per 1GB of swapped out 4K pages).
 
-Fix it by uncharging the whole pages in nr_charged_bytes whenever the
-trylock fails.
+It also folds zs_malloc() and zs_obj_write() into zs_store() so we don't
+take pool->lock and look up object location again right after allocation.
 
-Link: https://lore.kernel.org/20261112013220.4064478-1-shakeel.butt@linux.dev
-Fixes: 200577f69f29 ("memcg: objcg stock trylock without irq disabling")
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+A simple zram test on a 24-vCPU VM
+==================================
+165 fewer kernel instructions and 0.7-1.8% fewer kernel cycles per write;
+lz4 single writer +2.3% IOPS / -2.6% average latency;
+24 writers +0.9-+1.0% IOPS; no regressions.
+Memory: 8 bytes less per stored page.
+
+
+This patch (of 11):
+
+zram doesn't do fast/slow-path handle allocation anymore, so
+the comment in write_incompressible_page() is stale.  Drop it.
+
+Link: https://lore.kernel.org/20261111064707.2568433-1-senozhatsky@chromium.org
+Link: https://lore.kernel.org/20261111064707.2568433-2-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Chris Mason <mason@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Yosry Ahmed <yosry@kernel.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: <stable@vger.kernel.org>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Richard Chang <richardycc@google.com>
 ---
 
- mm/memcontrol.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/block/zram/zram_drv.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
---- a/mm/memcontrol.c~memcg-flush-nr_charged_bytes-when-the-obj-stock-trylock-fails
-+++ a/mm/memcontrol.c
-@@ -3532,6 +3532,8 @@ static void __refill_obj_stock(struct ob
- 	int i, slot = -1, empty_slot = -1;
+--- a/drivers/block/zram/zram_drv.c~zram-drop-stale-comment-in-write_incompressible_page
++++ a/drivers/block/zram/zram_drv.c
+@@ -2260,11 +2260,6 @@ static int write_incompressible_page(str
+ 	unsigned long handle;
+ 	void *src;
  
- 	if (!stock) {
-+		nr_bytes += atomic_read(&objcg->nr_charged_bytes)
-+			? atomic_xchg(&objcg->nr_charged_bytes, 0) : 0;
- 		nr_pages = nr_bytes >> PAGE_SHIFT;
- 		nr_bytes = nr_bytes & (PAGE_SIZE - 1);
- 		atomic_add(nr_bytes, &objcg->nr_charged_bytes);
+-	/*
+-	 * This function is called from preemptible context so we don't need
+-	 * to do optimistic and fallback to pessimistic handle allocation,
+-	 * like we do for compressible pages.
+-	 */
+ 	handle = zs_malloc(zram->mem_pool, PAGE_SIZE,
+ 			   GFP_NOIO | __GFP_NOWARN |
+ 			   __GFP_HIGHMEM | __GFP_MOVABLE, page_to_nid(page));
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-mm-mglru-splice-all-generations-when-reparenting-a-memcg.patch
-memcg-flush-nr_charged_bytes-when-the-obj-stock-trylock-fails.patch
-memcg-move-memoryhigh-enforcement-out-of-try_charge_memcg.patch
-memcg-force-charges-from-reclaim-before-trying-the-limits.patch
-memcg-use-high_work-for-kernel-threads.patch
-memcg-use-high_work-for-remote-charges.patch
-memcg-simplify-high-limit-handling-after-a-charge.patch
+zram-prefix-backends-printk-s.patch
+zram-remove-debugfs-entry-on-init-failure.patch
+zram-reset-writeback-state-in-zram_reset_device.patch
+zram-move-mark_slot_accessed-under-existing-slot-lock-sections.patch
+zram-remove-stale-warn_on-from-zram_read_page.patch
+zram-zstd-do-not-allocate-empty-c-d-dictionaries.patch
+zram-lz4hc-pre-initialize-dictionary-stream-in-setup_params.patch
+zram-lz4-use-lz4_decompress_safe_usingdict.patch
+zram-lz4hc-use-lz4_decompress_safe_usingdict.patch
+zram-zstd-do-not-use-kvzalloc-for-zstd-allocations.patch
+zram-split-zcomp-into-separate-r-w-streams.patch
+zram-introduce-shared-decompression-streams.patch
+zram-allocate-bounce-buffer-for-spanning-objects.patch
+zram-borrow-idle-decompression-streams-in-exclusive-mode.patch
+zram-use-a-singleton-compression-context-for-recompression.patch
+zram-drop-stale-comment-in-write_incompressible_page.patch
+zram-drop-get_slot_handle-and-set_slot_handle.patch
+zsmalloc-return-handle-from-obj_allocated.patch
+zsmalloc-switch-handle-type-to-struct-zs_handle.patch
+zram-check-mem_limit-before-allocating-zsmalloc-object.patch
+zram-allocate-zsmalloc-object-under-slot-lock.patch
+zswap-do-not-free-the-entry-if-its-pool-is-null.patch
+zsmalloc-encode-1-based-obj_idx-so-valid-obj-is-never-0.patch
+zsmalloc-embed-struct-zs_handle-into-zram-and-zswap-entries.patch
+zsmalloc-fold-zs_obj_write-into-zs_store.patch
+zsmalloc-populate-new-zspage-outside-class-lock-in-zs_store.patch
+zram-fix-quadratic-writeback-bitmap-search.patch
 
