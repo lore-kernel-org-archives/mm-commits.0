@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794598885;
-	b=es50oqKy5QccVKC1Eknm5N5EKpXqxrXa7we9f1LL5n60VMti1jpv6day6/eU7fhn0589
-	 mv5y/UXgyCCYF+0I9+zpEhaewGgrmXEXvn8b6aSm6rruDyFoiqZltZcODbn2x5vJQf+Wo
-	 fxgADBkJKopUq2s2cmkInFlf6hDqzz3mFJA8pQPrGA+/DYAkaNtjL4SK5alusnSHFHtT3
-	 QjKoMnrBKRFDIe+r8keqrv2hXh2fSHfnISjZGMp07t+YyY/1NuaNDL2LmCFghAcyPYgY8
-	 9ZykjrCTLJpupBtoeUUvEnpamGLu8ua6r75eYyuDHHVzxBkUkVUMR7tFNrOlLUSB0KA==
+	t=1794598886;
+	b=eXHHlyXhV/W6MrFWIgBcz5zOrFbwZLNmrdJChjUu7goKpdJr/+5CdYcb/rwygMFQ9gcu
+	 5ut7G7h1eHGO3JaZ7y08VaaYZpptztt5O+ZLi7OxOYcNf5+aEyzyUxqQqqcr3jrAosY1T
+	 gtD4U83/4rTDrU+ecihOxzfSksNHDjp0qMT/CQg+Lndo+ehyggco4fmK6QlOWPSgb4jJS
+	 zTRnaIZDJifZ9mpvsOeAGF/5ag/jPhExKiZUOjH1l5rLBrufox0VxF5cYgXaDMJ7Y83V+
+	 mQBFuyj5qE3b6jdvyuSrxeJQGFhMR9+H3pq7f7F3Bt6XSvOnEGCFKH67II6QyHWhQqA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794598885;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794598886;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=xDRfyv/hUJ2j/fmedKir9AFpRQX8Y2bIf17PIJuXdkA=;
-	b=EpF5tDaVSUuFprrrv65ncY7abAe5NoJirsfagqDQ/u+45dW4NCoiKF9CEbD0I9GQ90jh
-	 Q2mLfX6w2Udy1wun5GZY5fwG+7XSGSnxdlTliTQrx+sE/wkvyOVQ7WnUJAuIz4wRIGTt0
-	 qDTxYd0YRts0lFgPFXb3fvMA9nrAMoWwSh0IuS85GJo6XRQU5sMlsY4S+D/nQwCQ//v1W
-	 AjZYRvYbCMY4spXH5kbPLmkoOn648gar2fo7f35vUehUujNsvgu2aQaSGMVSvmC7hoW54
-	 3A+eqeaAyPYbvdZE8jLvJpmFdYP2SaT7Ld+FJHPxdKpFe8Ol8leq5GW+6T7eOKn17sw==
+	bh=d4aDwGoCKCUPVtdxYydEE2VE/EdnzFIdxSSPFbXs5CM=;
+	b=HGDb6HXo2R3Iuun+dRGdZIuF28YBumTcSW6BnCCx050NqD1c9aPlTtxQo1N/wwgjLUJ8
+	 AP/iXBWEtkUTKLRrRYHYIkMMrVjN+/dhBLNDyQWgMYqegMvCXSU2o5ZZ7JBaIo2ySCiZC
+	 mzf+7936BpsXssJ6f0bA/R2vPoeJpPGBGHGgE+uPPOdHKB/IEr9QHX6ioEY3O2dTogiDL
+	 TqkGQCBZIBhAFPdpEoO9DPyW2Dqd4471slKoueUSHd8f2wwuDjUNqe82TqAr3+ZFmuqVD
+	 HifLmvsolN23Ih2fIS35uncneT3psFM8yMWK2YT7aD7sLPD7W+JibR4PE+hyqWy0K3Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xKskLvKd;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=o1d6T76Y;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3406E606A32D
-	for <mm-commits@vger.kernel.org>; Fri, 13 Nov 2026 19:41:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D737606A323
+	for <mm-commits@vger.kernel.org>; Fri, 13 Nov 2026 19:41:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xKskLvKd
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE6311F000C4;
-	Fri, 13 Nov 2026 19:41:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=o1d6T76Y
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 071621F000C4;
+	Fri, 13 Nov 2026 19:41:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794598884;
-	bh=xDRfyv/hUJ2j/fmedKir9AFpRQX8Y2bIf17PIJuXdkA=;
+	d=linux-foundation.org; s=korg; t=1794598886;
+	bh=d4aDwGoCKCUPVtdxYydEE2VE/EdnzFIdxSSPFbXs5CM=;
 	h=Date:To:From:Subject;
-	b=xKskLvKdoCuF3HsfoQVy2TerRmNkhG+Y8AWcBiksltTmsCRhxzxWwiFDjpAY65NpO
-	 B7QEChKJjNk0sRthhUq+a/fpQDJQAxz4S/QG9B8i5T/5itFk5sQThNWLStmFlLZbbP
-	 t7nRzFSfWe5qSYtKtRqsh0s0v6xsWgVc2uicP+B0=
-Date: Fri, 13 Nov 2026 11:41:24 -0800
-To: mm-commits@vger.kernel.org,baohua@kernel.org,akpm@linux-foundation.org
+	b=o1d6T76YmuV3ypGITvysVwQmf9cp3HlHeVnlrVpbv1BdDyzT8H42aBmXHP34/S2Tp
+	 Mac8C8G+706bfbZaOAMb6YrAUnxfnREsW8klCOuHT1PJLh46odB51DLSvdXpHYAOzf
+	 byTVg2nSmAITNvI8xMd0ZWH9nBddjTsGsbjDUdH0=
+Date: Fri, 13 Nov 2026 11:41:25 -0800
+To: mm-commits@vger.kernel.org,zhangbo56@xiaomi.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-mglru-make-swappiness=1-file-reclaim-more-aggressive.patch removed from -mm tree
-Message-Id: <20261113194124.CE6311F000C4@smtp.kernel.org>
+Subject: [to-be-updated] mm-mglru-avoid-scan-anon-while-swapcache-is-low-for-gfp_noio-allocation.patch removed from -mm tree
+Message-Id: <20261113194126.071621F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,38 +51,34 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/mglru: make swappiness=1 file reclaim more aggressive
+     Subject: mm/mglru: avoid scan anon while swapcache is low for GFP_NOIO allocation
 has been removed from the -mm tree.  Its filename was
-     mm-mglru-make-swappiness=1-file-reclaim-more-aggressive.patch
+     mm-mglru-avoid-scan-anon-while-swapcache-is-low-for-gfp_noio-allocation.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: "Barry Song (Xiaomi)" <baohua@kernel.org>
-Subject: mm/mglru: make swappiness=1 file reclaim more aggressive
-Date: Thu, 12 Nov 2026 07:26:02 +0800
+From: Bo Zhang <zhangbo56@xiaomi.com>
+Subject: mm/mglru: avoid scan anon while swapcache is low for GFP_NOIO allocation
+Date: Thu, 12 Nov 2026 07:26:03 +0800
 
-In MGLRU, swappiness=200 favors anon reclaim, while swappiness=1
-favors file reclaim. Swappiness=0 allows only file reclaim, while
-swappiness=201 allows only anon reclaim. Thus, swappiness=1 and
-swappiness=200 are counterparts for file and anon reclaim,
-respectively.
+With GFP_NOIO, we cannot reclaim anon folios unless they are in
+the swap cache. CLRU skips anon reclaim when the swap cache is
+very low by commit 74d9aa0d8e98 ("mm: vmscan: avoid anon scanning
+for GFP_NOIO with low swapcache"). Apply the same logic to MGLRU.
 
-Before this patchset, get_type_to_scan() always returned
-LRU_GEN_ANON for swappiness=200 and LRU_GEN_FILE for swappiness=1.
+The new scan-budget-based mechanism makes this straightforward to
+implement. Thanks also to Xiang Liu, who previously attempted to fix
+this before we had the scan-budget-based model [1].
 
-For swappiness=200, file_factor is set to 0 at higher reclaim
-priorities. Similarly, anon_factor is set to 0 for swappiness=1
-at higher reclaim priorities, making the two settings behave
-similarly, although the thresholds are slightly different.
-
-This allows file pages to be reclaimed more aggressively and
-benefits workloads that prioritize file reclaim by using
-swappiness=1.
-
-Link: https://lore.kernel.org/20261111232603.9934-16-baohua@kernel.org
+Link: https://lore.kernel.org/20261111232603.9934-17-baohua@kernel.org
+Link: https://lore.kernel.org/linux-mm/179248830836.1744016.8424217811286616919.noio-mglru-rfc-v2@bytedance.com/ [1]
+Signed-off-by: Bo Zhang <zhangbo56@xiaomi.com>
 Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Co-developed-by: Barry Song (Xiaomi) <baohua@kernel.org>
+Reviewed-by: Kunwu Chan <chentao@kylinos.cn>
+Cc: Xiang Liu <liuxiang.277@bytedance.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
@@ -92,7 +88,6 @@ Cc: Kairui Song <kasong@tencent.com>
 Cc: Kunwu Chan <kunwu.chan@gmail.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: wang lian <lianux.mm@gmail.com>
-Cc: <liuxiang.277@bytedance.com>
 Cc: <lyugaofei@xiaomi.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Qi Zheng <qi.zheng@linux.dev>
@@ -103,35 +98,80 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: wangzicheng <wangzicheng@honor.com>
 Cc: Wei Xu <weixugc@google.com>
 Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Bo Zhang <zhangbo56@xiaomi.com>
 Cc: Hui Zhu <zhuhui@kylinos.cn>
 Cc: Siddharth Chintamaneni <sidchintamaneni@gmail.com>
+Cc: Bo Zhang <zhangbo0325@gmail.com>
 ---
 
- mm/vmscan.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/vmscan.c |   27 ++++++++++-----------------
+ 1 file changed, 10 insertions(+), 17 deletions(-)
 
---- a/mm/vmscan.c~mm-mglru-make-swappiness=1-file-reclaim-more-aggressive
+--- a/mm/vmscan.c~mm-mglru-avoid-scan-anon-while-swapcache-is-low-for-gfp_noio-allocation
 +++ a/mm/vmscan.c
-@@ -4952,7 +4952,11 @@ static void lru_gen_balance_scan(struct
- 	anon_weight = nr[LRU_GEN_ANON] + nr[LRU_GEN_FILE] / size_bias;
- 	file_weight = nr[LRU_GEN_FILE] + nr[LRU_GEN_ANON] / size_bias;
+@@ -272,13 +272,6 @@ static inline bool reclaimable_anon_is_l
+ 	if (!sc || (sc->gfp_mask & __GFP_IO))
+ 		return false;
  
--	anon_factor = (u64)swappiness * refault_rate[LRU_GEN_FILE] * anon_weight;
-+	if (swappiness == MIN_SWAPPINESS + 1)
-+		anon_factor = sc->priority <= DEF_PRIORITY / 2 ?
-+			      refault_rate[LRU_GEN_FILE] * anon_weight : 0;
-+	else
-+		anon_factor = (u64)swappiness * refault_rate[LRU_GEN_FILE] * anon_weight;
- 	if (swappiness == MAX_SWAPPINESS)
- 		file_factor = sc->priority < DEF_PRIORITY / 2 ?
- 			      refault_rate[LRU_GEN_ANON] * file_weight : 0;
+-	/*
+-	 * FIXME: MGLRU doesn't fully respect can_reclaim_anon_pages() for the
+-	 * scanning type, so only apply this to the traditional LRU for now.
+-	 */
+-	if (lru_gen_enabled())
+-		return false;
+-
+ 	if (memcg) {
+ 		struct lruvec *lruvec = mem_cgroup_lruvec(memcg, pgdat);
+ 
+@@ -4213,6 +4206,8 @@ static void lruvec_evictable_size(struct
+ 	int type;
+ 	unsigned long seq;
+ 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
++	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
++	int nid = lruvec_pgdat(lruvec)->node_id;
+ 	DEFINE_MAX_SEQ(lruvec);
+ 	DEFINE_MIN_SEQ(lruvec);
+ 
+@@ -4220,6 +4215,8 @@ static void lruvec_evictable_size(struct
+ 	nr[LRU_GEN_FILE] = 0;
+ 
+ 	for_each_evictable_type(type, swappiness) {
++		if (type == LRU_GEN_ANON && !can_reclaim_anon_pages(memcg, nid, sc))
++			continue;
+ 		for (seq = min_seq[type]; seq <= max_seq; seq++)
+ 			nr[type] += lruvec_gen_size(lrugen, type, seq, sc->reclaim_idx + 1);
+ 	}
+@@ -4900,23 +4897,19 @@ static void lru_gen_balance_scan(struct
+ {
+ 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	u64 refault_rate[ANON_AND_FILE], anon_factor, file_factor;
+-	u64 anon_scan, file_scan, total;
++	u64 anon_scan, file_scan;
+ 	u64 anon_weight, file_weight;
+ 	int size_bias;
+ 
+-	total = nr[LRU_GEN_ANON] + nr[LRU_GEN_FILE];
+-	if (!total)
+-		return;
+-
+-	if (swappiness <= MIN_SWAPPINESS) {
++	if (swappiness <= MIN_SWAPPINESS)
+ 		nr[LRU_GEN_ANON] = 0;
+-		nr[LRU_GEN_FILE] = min_t(u64, total_scan, nr[LRU_GEN_FILE]);
+-		return;
+-	}
+ 
+-	if (swappiness == SWAPPINESS_ANON_ONLY) {
++	if (swappiness == SWAPPINESS_ANON_ONLY)
+ 		nr[LRU_GEN_FILE] = 0;
++
++	if (!nr[LRU_GEN_ANON] || !nr[LRU_GEN_FILE]) {
+ 		nr[LRU_GEN_ANON] = min_t(u64, total_scan, nr[LRU_GEN_ANON]);
++		nr[LRU_GEN_FILE] = min_t(u64, total_scan, nr[LRU_GEN_FILE]);
+ 		return;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from baohua@kernel.org are
+Patches currently in -mm which might be from zhangbo56@xiaomi.com are
 
-arm64-vmalloc-allow-arch_vmap_pte_range_map_size-to-batch-multiple-cont_pte.patch
-mm-vmalloc-extend-page-table-walk-to-support-larger-page_shift-sizes-and-eliminate-page-table-rewalk.patch
-mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible.patch
-mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings.patch
 
