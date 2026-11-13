@@ -1,48 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794607150;
-	b=csSVCrPsf/5kMrDTtJ9FoyT2bR6gd9xQ+391hHTtyZO8cldjg1bLsIw0xAOfanJfdIXC
-	 cszKQHmmupOvZtxmnxCvIjyaIKkMd8nTgQe5zsjUaDmHeIAyPDOAXch8q84VGI2pgLSxg
-	 ZBAiYGVU6+/aVfuIPhnUEkRbXYq+Seit29gb8wr29z6iA9YINz3yp6eEGWwNzm64yiXBI
-	 TNoS2WbokqrKVsI9cGeJ1VzjBM9Ugry5DWIFwe5CSVy9RUdcpWeKZ1PvGI49HEGDbc7x4
-	 DW28rNWe17bdeRF50w7XtiAGJai6TJu1fzDqByfgtaTuD9+ONAWjV3VkaF/RWSkJkUA==
+	t=1794608075;
+	b=wCvyy+GLPnZzdq+zyRmpZhICU87sS9adGqtE0dbs/JN+vqxoTi/ebbFtvd17nK/hw0dG
+	 wXSz987sUg++H/QrOkKTJj2raOYFiimnuvnufNgPbtTiPg7yCCgEkstKkYK2S+6eQGxCf
+	 wKGQztJZTwZslxdJ54Ss44x4itm4ChoM2sXCT+BKkj0eIJVRH1GGMSGVN4ckejlKmSIf3
+	 WDXo7yHrUvEQdcWHQ6raC6UO1hxh4YkUABnBFN383aHIewhcWZluNZODI1b80jhxsUrZJ
+	 r9QmHfwVtw3UExPzEINpi2szztToWI4Pm56DrG3jBpEC25K7MRdWBzQ43UGEFMWWmYg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794607150;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794608075;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=AzFeFh7wYogs7Cm8iIjFMUYYFhyWs5Pv0D3GE5BCijQ=;
-	b=vvUIWPKVwZ65TIJFwSU4pDvH4TWEvSm9qBqa9rN2xU2SyJWJGDtagNQ5r2lb4YvzMpiW
-	 pegTcVYWeOvdMeci3bBY91053F3axV2dLmpe3UVBd2BAWjrp3Upspd4wS0S9v2X5LA5jT
-	 Xab3XZTXqnTcwr0v1MdmK9iRoMobY30Nk5JgmDesSNGxZXe+rb68C/VOplljtq+jfVChs
-	 BIY7CGJxzlajLu5mNS+3kanXMVrEUAdv2Wc3G6rL0WQwaQFkU03PvGcfiWPew1JD0qBKL
-	 cJIt1fETy6WGEEqc8cvDKvIU1ipJGSWGjAVxdTQRYiZDP3cvqN3T1azW1hTTe9yRLcQ==
+	bh=VzYwFPp8tq8ZK3wMNVGeFhQd+GBORRi6QWz8pc86eLk=;
+	b=QzxtEQPAe16so/04UHC0dmXffeqnufgaxT7GlZJfOtByTTTJ3TuwIF5hNeGbfOj/Lxud
+	 TTAnq+etwcgG7vvNVslQEzrdDPKmXGSEZx4/s+3ah/YWE2unIlx37GdqRLhtMDYjKNcAK
+	 E+CkRa+KP3hwWC8+fgI9CONIHSeCPdMMZCbtzKRl2uI3r1RIc1GqyTRjRECTLbvIV4Qyf
+	 N9TC6jGCHgur4bqcLc6jwg3m9q/lrhbKftMqR1aYqPiGqA8fI2M0q/IeR17aGU1QUsSsC
+	 aQwQJQ8dO0qEPl6KpAXoeG+4rdj18NoAvFSGyY5x1ghatHWBNjCBxDFUTS60xw4kBZg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=d1EYuVrO;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=goaoJFfV;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3A08606A334;
-	Fri, 13 Nov 2026 21:59:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEA0C606A88A
+	for <mm-commits@vger.kernel.org>; Fri, 13 Nov 2026 22:14:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=d1EYuVrO
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 484791F000C4;
-	Fri, 13 Nov 2026 21:59:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=goaoJFfV
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 506231F000C5;
+	Fri, 13 Nov 2026 22:14:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794607149;
-	bh=AzFeFh7wYogs7Cm8iIjFMUYYFhyWs5Pv0D3GE5BCijQ=;
+	d=linux-foundation.org; s=korg; t=1794608075;
+	bh=VzYwFPp8tq8ZK3wMNVGeFhQd+GBORRi6QWz8pc86eLk=;
 	h=Date:To:From:Subject;
-	b=d1EYuVrORA7qLXL0Bz/npH0GPMjcdaRgso7ixrXaBLWteXTvQ+efXY5SzzlevlaoV
-	 b1+S1kMYyjbXqH5XnMK4m6MV9jlIm8n8b8F1gXa5WeSixf3MMIFxHksBsNgf5rO88y
-	 17U8p27bxTxeWs7bpZgJyZCtlgz15DivsEj8u0Uc=
-Date: Fri, 13 Nov 2026 13:59:08 -0800
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,tz2294@columbia.edu,
-	surenb@google.com,stable@vger.kernel.org,shuah@kernel.org,rppt@kernel.org,
-	mhocko@suse.com,liam@infradead.org,jannh@google.com,david@kernel.org,
-	ljs@kernel.org,akpm@linux-foundation.org
+	b=goaoJFfV8DaJLXiElwyjCkEDk8TvSWzAZ5HfII1Um2e3undFAUteQ6YfLY6dOVSu/
+	 9SzGlSEoADSweeU3eYULsIspJfiHYgyXiL6ND13NWVMdutxMvB9uS9kSMV1Dza1eMN
+	 EONC5tYhxMwHs8Mdg+9mT1TffRqVrOl2qJ1XQNl8=
+Date: Fri, 13 Nov 2026 14:14:34 -0800
+To: mm-commits@vger.kernel.org,wfelipe@google.com,ryan.roberts@arm.com,
+	rppt@kernel.org,mhiramat@kernel.org,leitao@debian.org,ekffu200098@gmail.com,
+	brauner@kernel.org,blum@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-zap-markers-from-guard-regions.patch added to mm-new branch
-Message-Id: <20261113215909.484791F000C4@smtp.kernel.org>
+Subject: + init-reject-bare-rodata-parameter-before-architecture-parsing.patch added to mm-nonmm-unstable branch
+Message-Id: <20261113221435.506231F000C5@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,26 +53,15 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/madvise: zap markers from guard regions
-has been added to the -mm mm-new branch.  Its filename is
-     mm-madvise-zap-markers-from-guard-regions.patch
+     Subject: init: reject bare rodata parameter before architecture parsing
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     init-reject-bare-rodata-parameter-before-architecture-parsing.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-zap-markers-from-guard-regions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/init-reject-bare-rodata-parameter-before-architecture-parsing.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -88,155 +76,60 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/madvise: zap markers from guard regions
-Date: Fri, 13 Nov 2026 21:04:45 +0000
+From: Thorsten Blum <blum@kernel.org>
+Subject: init: reject bare rodata parameter before architecture parsing
+Date: Fri, 13 Nov 2026 21:23:19 +0100
 
-In order to establish guard regions, guard markers are installed in the
-page tables of a mapped VMA.
+When a bare rodata parameter is specified on the kernel command line
+without the '=' separator, early parameter parsing passes NULL to
+set_debug_rodata().
 
-However, problems arise when one tries to combine this with registering a
-VMA for userfaultfd, as such operations may themselves need to install page
-table markers such as uffd-wp.
+Current hooks already handle NULL safely.  Reject NULL before calling
+arch_parse_debug_rodata() so architecture hooks always receive a non-NULL
+string.
 
-When the installation is attempted the guard marker prevents these markers
-being applied, which can lead to unexpected results (especially if the
-guard regions are later removed.)
+Return -EINVAL to report the malformed option instead of falling through
+to the existing warning.  Also remove the now-redundant NULL checks from
+the "on" and "off" comparisons.
 
-This is especially problematic because guard region installation causes the
-regions to be zapped first, meaning that the removal of userfaultfd-tracked
-ranges will not be logged in this case.
-
-Additionally, the uffd-wp page table marker will be propagated regardless
-for file-backed mappings as the zap being performed does not clear these
-markers.
-
-This is problematic, as it can cause repeated failure to install guard
-markers resulting in an infinite loop.
-
-Therefore, update guard region installation to invoke the zap with the
-ZAP_FLAG_DROP_MARKER flag applied.
-
-Both before and after this change, uffd remove events will not trigger on
-guard region installation, nor will write protect state be propagated after
-guard region removal.
-
-This makes sense as conceptually, guard regions mark a part of a VMA as
-effectively unmapped at the page table level, and removing the markers is
-like mapping the VMA again, over which operation uffd markers would in any
-case be lost.
-
-A survey of open source users indicates nobody is relying on installing
-guard regions in uffd-armed VMAs. Software including glibc, android,
-tcmalloc and CRIU were checked.
-
-This change means that any already established guard regions are removed on
-zap. These will be overwritten with the newly installed guard markers on
-success.
-
-However, if this fails for some reason (fatal signal likely the only
-reasonable cause), guard regions may remain removed, and concurrent faults
-may succeed in the interim in the range.
-
-Since the installation failing guarantees nothing about the range being
-installed into, and since success overwrites with guard markers, this isn't
-an issue.
-
-Since MADV_DONTNEED does something similar, abstract the zapping to
-zap_range() and call it from both places.
-
-Link: https://lore.kernel.org/20261113-disallow-uffd-guard-install-v2-1-9d0063c70542@kernel.org
-Fixes: f807123d578d ("mm: allow guard regions in file-backed and read-only mappings")
-Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Link: https://lore.kernel.org/20261113202321.91770-2-blum@kernel.org
+Signed-off-by: Thorsten Blum <blum@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Tal Zussman <tz2294@columbia.edu>
-Closes: https://lore.kernel.org/all/20261111-uffd-state-fixes-v1-9-00713d368976@columbia.edu/
-Closes: https://lore.kernel.org/all/20261111-uffd-state-fixes-v1-10-00713d368976@columbia.edu/
-Closes: https://lore.kernel.org/all/20261111-uffd-state-fixes-v1-11-00713d368976@columbia.edu/
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Jann Horn <jannh@google.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Breno Leitao <leitao@debian.org>
+Cc: Sang-Heon Jeon <ekffu200098@gmail.com>
+Cc: Wilson Felipe Pereira <wfelipe@google.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: <stable@vger.kernel.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 ---
 
- mm/madvise.c |   28 +++++++++++++++++++---------
- 1 file changed, 19 insertions(+), 9 deletions(-)
+ init/main.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/mm/madvise.c~mm-madvise-zap-markers-from-guard-regions
-+++ a/mm/madvise.c
-@@ -850,6 +850,19 @@ static int madvise_free_single_vma(struc
- 	return 0;
- }
+--- a/init/main.c~init-reject-bare-rodata-parameter-before-architecture-parsing
++++ a/init/main.c
+@@ -1566,12 +1566,15 @@ static inline bool arch_parse_debug_roda
  
-+static void zap_range(struct madvise_behavior *madv_behavior,
-+		      zap_flags_t flags)
-+{
-+	const struct madvise_behavior_range *range = &madv_behavior->range;
-+	struct zap_details details = {
-+		.reclaim_pt = true,
-+		.zap_flags = flags,
-+	};
-+
-+	zap_vma_range_batched(madv_behavior->tlb, madv_behavior->vma,
-+			      range->start, range->end - range->start, &details);
-+}
-+
- /*
-  * Application no longer needs these pages.  If the pages are dirty,
-  * it's OK to just throw them away.  The app will be more careful about
-@@ -872,13 +885,7 @@ static int madvise_free_single_vma(struc
- static long madvise_dontneed_single_vma(struct madvise_behavior *madv_behavior)
- 
+ static int __init set_debug_rodata(char *str)
  {
--	struct madvise_behavior_range *range = &madv_behavior->range;
--	struct zap_details details = {
--		.reclaim_pt = true,
--	};
--
--	zap_vma_range_batched(madv_behavior->tlb, madv_behavior->vma,
--			      range->start, range->end - range->start, &details);
-+	zap_range(madv_behavior, 0);
- 	return 0;
- }
++	if (!str)
++		return -EINVAL;
++
+ 	if (arch_parse_debug_rodata(str))
+ 		return 0;
  
-@@ -1217,9 +1224,11 @@ static long madvise_guard_install(struct
- 
- 		/*
- 		 * OK some of the range have non-guard pages mapped, zap
--		 * them. This leaves existing guard pages in place.
-+		 * them. This also drops any PTE markers in the range,
-+		 * including existing guard markers, which we reinstall on
-+		 * the next attempt.
- 		 */
--		zap_vma_range(vma, range->start, range->end - range->start);
-+		zap_range(madv_behavior, ZAP_FLAG_DROP_MARKER);
- 	}
- 
- 	/*
-@@ -1845,6 +1854,7 @@ static bool madvise_batch_tlb_flush(int
- 	case MADV_DONTNEED:
- 	case MADV_DONTNEED_LOCKED:
- 	case MADV_FREE:
-+	case MADV_GUARD_INSTALL:
- 		return true;
- 	default:
- 		return false;
+-	if (str && !strcmp(str, "on"))
++	if (!strcmp(str, "on"))
+ 		rodata_enabled = true;
+-	else if (str && !strcmp(str, "off"))
++	else if (!strcmp(str, "off"))
+ 		rodata_enabled = false;
+ 	else
+ 		pr_warn("Invalid option string for rodata: '%s'\n", str);
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from blum@kernel.org are
 
-maintainers-remove-myself-from-mm-core-reviewership.patch
-maintainers-remove-myself-from-mm-misc-reclaim-reviewership.patch
-maintainers-remove-myself-from-mm-rust-reviewerships.patch
-credits-add-entry-for-thp-maintenance.patch
-mm-vma-predicate-vma_assert_stabilised-on-config_debug_vm.patch
-mm-only-assert-mmap-locks-if-config_debug_vm-or-lockdep-is-set.patch
-mm-only-assert-vma-locks-if-config_debug_vm-is-set.patch
-mm-convert-warn_on_onces-to-vm_warn_on_once-in-vma-lock-code.patch
-mm-madvise-zap-markers-from-guard-regions.patch
+init-reject-bare-rodata-parameter-before-architecture-parsing.patch
 
