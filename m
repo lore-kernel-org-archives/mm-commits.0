@@ -1,49 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794540154;
-	b=2hDmgIJp7VIctmGfNopJk/d6soxxuEhmiBr71kMyZap91g2PqEHuJWjgS0wN0r6q2tbB
-	 czxEsW0L1UBFEC8Snlo/fUSat2pLNawLcjNfRe4f8MtzxN5GDVUBsBOjcgcL90CrMlqw0
-	 2tBbkDww8shDgD7zyxdL8p6OdrMQ1Udcq6M/vfQD5+7vl4MYmxsTxyeBs7QCHMTZSTSH8
-	 d/xHf7nfhEdp38Qam4lOgETnAr/oTUVw91KIZDgVUmDfmN08YbX1ew9+DSpq072SvjOAD
-	 5+5JUdbqQVRfb3oO2XbsKJHZDJnwprVLq3CurEdfFdfbqBZ3YkFZpciOsUP35D6thSQ==
+	t=1794545767;
+	b=wne8wKcw2ca3NUeKX6BQSwQL7I/msbgUWHljbD/dZdod2U5iQxNzMB3BGZre8k5HnV4C
+	 k1eRPCqM+8JkyDafpxk7L/bjuSNxfjeuWojIT/w1mRVSS4iH2Sj/p3dxwBgFwgtMEaILw
+	 CwoFhZ+4h0msyAZi7EKjx+GAVcNtLEqzWjsZv0PAKCgkQ4Os5kMTxC6GTotNamMBVIlx0
+	 PRmwgdgM8wR8WihOc6gwcBQPm7yyCuuRR0lzWLZka8zulvxBivD/3e/zM0j8bQDy2V2Zc
+	 HCKQ2uPyJZPzws7vHV/ZFK86RDzadnuH+bgRe4hL4/lK74UbKkKUBLf2AceczE/VNnw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794540154;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794545767;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=Xaf7RFucS6UbtsFhT8r61jftFspQiHgm0mGXhp5Og98=;
-	b=T2pg/5tlzpuLAX9JukBQx+q50zPKqiXgkcv6/qoIWRHx4JVy8My97b6axYzla6r6f5Cl
-	 tnksrmAxYsO93lbYgWnY89awef/u8pyybAaPIbFe7mQd3GE5tqc69+dR8g2aUtoFv00jY
-	 8JKcyL6E9GziyRJB+p/elDw9f8p6Lw8fYa2rHyFc3CoeGv4GY5wdDCzF8UpwanI3ESdeb
-	 ZcM0vWJiIedbzCG/AMeyKyiav1tAX0uUYxEbusvHA9G/hXDAIJVPcSsVviPa5cJMOC058
-	 lI63cKb2Eo6IILJDhnc33AOU92MWQPLFQl6z4OmTnyntxWYAo4q1AAg3muDjPoUwIlg==
+	bh=We/st05orEIpntuW/9n+L0rBvBFlCCsWxwkiHvqr97s=;
+	b=S0car8hGR0G5zAcwTgBbMo28csTYVGAzc4nVNVP1C40CWG31LjCQr+Qm4QcyGYO0nh3V
+	 FHtqnfBqG7KM54H0kyNcRcGWDaPUT3uubgnnfNoQPr3XGoUTZl+vFn16KI/Eg+wlXx/Gg
+	 Q3mja9M+C9aR+5Y6S0QNgmsz+m7LNZNJvpoXa+EZznPQar7XtoMvfjGU34CoJVEazamDP
+	 LT8bZXBZ8F6q+YC7HfRx/kofBOJwC6cieOdWO3furi59IWIxnqgd0IAm0cZfMONfpcd7+
+	 eLPaQT0fVPdvvjafPfgnV1NzJdbRjNohLYIiTW9hD2GuouENp9c76HkNv3IwfSAHzpg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=CdjV6Weq;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tIgYu0hn;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87AB3606A321
-	for <mm-commits@vger.kernel.org>; Fri, 13 Nov 2026 03:22:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1BE9606A335
+	for <mm-commits@vger.kernel.org>; Fri, 13 Nov 2026 04:56:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=CdjV6Weq
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E200A1F000C4;
-	Fri, 13 Nov 2026 03:22:33 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tIgYu0hn
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C8F01F000C4;
+	Fri, 13 Nov 2026 04:56:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794540154;
-	bh=Xaf7RFucS6UbtsFhT8r61jftFspQiHgm0mGXhp5Og98=;
+	d=linux-foundation.org; s=korg; t=1794545766;
+	bh=We/st05orEIpntuW/9n+L0rBvBFlCCsWxwkiHvqr97s=;
 	h=Date:To:From:Subject;
-	b=CdjV6WeqWpePeTW75y8qsGJcR4WaEzmmjnBGbu8pW8EeNEz0OnTiOrHIDVQhfEgvo
-	 avsC8UmUrfDSf1MF93Vzy2ECn/lAeI69rAI3RM3mQL1fo1L4yGF7ewyO6et+HuQFEA
-	 Ftp4wcXAL3hflmYElc56GBWNcmNuL/jIyx+798Tk=
-Date: Thu, 12 Nov 2026 19:22:33 -0800
+	b=tIgYu0hnt4AdOWTxaJxVPn0lPWTUyItgqlNx7vYsjkrxgDQompQnF/FPsRKli6PdM
+	 +5EnHloEGjIzOdmiiBwcVu9vCGLwyfrUPrNYtGT0qcVliMDox89Y0/kuDXzRVra9oe
+	 YMd4h3up1TIfCfxEbkyWc8mGjN1Kd/BAiu9bGdUI=
+Date: Thu, 12 Nov 2026 20:56:05 -0800
 To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,
 	shakeel.butt@linux.dev,qi.zheng@linux.dev,mhocko@kernel.org,
 	kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baoquan.he@linux.dev,
 	baohua@kernel.org,axelrasmussen@google.com,baolin.wang@linux.alibaba.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-use-pte_table_clamped_end-helper-to-calculate-the-end.patch added to mm-new branch
-Message-Id: <20261113032233.E200A1F000C4@smtp.kernel.org>
+Subject: [obsolete] mm-mglru-use-pte_table_clamped_end-helper-to-calculate-the-end.patch removed from -mm tree
+Message-Id: <20261113045606.2C8F01F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,39 +54,12 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
+The quilt patch titled
      Subject: mm: mglru: use pte_table_clamped_end() helper to calculate the end
-has been added to the -mm mm-new branch.  Its filename is
+has been removed from the -mm tree.  Its filename was
      mm-mglru-use-pte_table_clamped_end-helper-to-calculate-the-end.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-use-pte_table_clamped_end-helper-to-calculate-the-end.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
@@ -133,5 +106,4 @@ _
 Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
 mm-synchronize-with-pte-table-reclaim-for-all-folio-sizes.patch
-mm-mglru-use-pte_table_clamped_end-helper-to-calculate-the-end.patch
 
