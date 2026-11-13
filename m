@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794600356;
-	b=xHoZC8tzc2EIuweTzb4bZKCwk9o9ONAPTZPNPcJEcouvoYBU5TdVy5tKxulJZ+E19/B2
-	 9fpuzNCwEWBXSmaUuZ3wfUV2pXXrjV5TePneFObKIYSjeiyc4tMDjSwnZFfcToiuUhQzB
-	 vbQBCrKWDH8O4gJQHQe6F4Iua/4WHwciJcEsHL8ZlJkN5YU9hv3qCYCUFMfdljTjSap+b
-	 +Gi/Sr+C3rnfmZcx0gnzTWZfQC10GCAPnwI/0lSue7ft4j14vextxqjC3CDlj8AFsLUut
-	 7wKWm0RV90YsLLuDtD0UO/pEEf2AkMJ2iHZsiHxXzaCqe8MlfuFmaNctlSA/664xJoQ==
+	t=1794600358;
+	b=0DG5msoce1oV7inrkTJEgp50kcvX9ZfgqEm+WrivixuMHtP7e0X4M6A6iwBL4f0GhVA9
+	 G7w3YlO7EkgPT4Hd6BN1HIKaPoQ4qIeSLRENmK2SRwP4VSWECmmkHjLXLWvKqgHbEB+WR
+	 Fp5h+DakJrktw+cYHKQDRs14wjmkqapTa272C4s08W7+SQlTAO5VT0FbEMkYZdXgRqBr1
+	 t5bruyKwSrMnXbV8P+Xon5uI0msSMyzJ191+4Be0hErLpA0/UhSqDkjAU9bnjBJQTHhkZ
+	 5jiiAEszxjBGBtX8znfHVznpbxiUjQN87YYKrvdldVWlMzMgu1Iy+CQODNJgm+ROOXg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794600356;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794600358;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=SbceXoDRrCQdBxeqaVbTfXuGcCYqlKi7IyHwfQjUTfo=;
-	b=47potJ8Q22sW46wv4i0T9XzJWjMqw4NB8YaM9Mu98QTFtimWIGKIFPzSXeQUYPFaSQzl
-	 G/NaU9nuCF0a/zsSkkbccP+3uDkmohcbM4Exfuc+GedLN6lwX5uY8VmTlDy2TrT1XsUkJ
-	 h8hMWQwUnxQXkLX4O2x2pZhnbm0+mup1TW+gLQ1Yj86bByA9jsfMY6Q4D3jcFvxsKketF
-	 DbBvBiOaEmPuhuclVLzGinJjZP7UDkCw2Z/QhAkBf+JqCWSFxgtTj4o408Eg7xFXKNORS
-	 uQ4pZSUb4UpZ7Oo9vwN9NbaxxbAeSlIlEjPcBOUmE4X3HSNLWiT7m3u81O1Fe1W+etA==
+	bh=L6KHFQTZLEASylfXBeJ8lH8DORdi9H2fwbd9RMfi7nY=;
+	b=fk9BD9lilDmB+waeF+hMSefqvOZ+IVRUkFYNNpCAHyvqkq7+bw5uDETi7YVAOlun4uIA
+	 l39bNrgUmNz+9gUk6YBkmunU7eTK3YZ677MJCuS+6IdAi8EjFbZoFgAEzMrwlcnyPicLY
+	 Tn47QOOrkDHiSDxhpKYp63//qzBA+i+F/kFZM2t8EC0nT+7axxV5J4IgWEhbVW+cDbsiz
+	 HEjyA4XXppph0tiQL7ThsXBQWAfvuKMOlNHrdgvUbTWFaq2o0UHHc0W3MslX/42x8umlH
+	 SOfcR8YKKQQzI11lwzj4N10YE6GfPS0Rc+P55O6XBVjvWgYKELgFFg7JHPhNkFrOGVA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=BihLGRaf;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=gb8eFB4f;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21504606A32D
-	for <mm-commits@vger.kernel.org>; Fri, 13 Nov 2026 20:05:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F665606A333
+	for <mm-commits@vger.kernel.org>; Fri, 13 Nov 2026 20:05:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=BihLGRaf
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C77C21F000C5;
-	Fri, 13 Nov 2026 20:05:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=gb8eFB4f
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16B301F000C4;
+	Fri, 13 Nov 2026 20:05:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794600355;
-	bh=SbceXoDRrCQdBxeqaVbTfXuGcCYqlKi7IyHwfQjUTfo=;
+	d=linux-foundation.org; s=korg; t=1794600358;
+	bh=L6KHFQTZLEASylfXBeJ8lH8DORdi9H2fwbd9RMfi7nY=;
 	h=Date:To:From:Subject;
-	b=BihLGRafWH4M3CpyzxU6BPLqbdbzYBdGPvGicP4AMx5NeuX7MEimy7jD04UF3VyQF
-	 NV3uB5Haq0oFiyPDudCicpwHc55i9JQApzSG3V3cJfLY2+XikDQ/A0QRAwX+KqZQ+b
-	 fouzpXdhcIlcq+uXAo2qaUQOU1Y90mAQwWrEmy6w=
-Date: Fri, 13 Nov 2026 12:05:55 -0800
-To: mm-commits@vger.kernel.org,lyugaofei@xiaomi.com,akpm@linux-foundation.org
+	b=gb8eFB4fAJ4LQrM3wMyUxb1gCWQgw/3thPAibZgMbK/6mshdKGuEoCuE0gEcqRqoQ
+	 S2sqQ6QdgzZTnZMxmG9BzPWxYVwIn7LbuFT3JVW981f/6Q4z3i4Bi5it30aVzqJfrR
+	 YPtVv3ai1gq9WyA6yHXu8Kc3m/OXEeVaFW9SCpFo=
+Date: Fri, 13 Nov 2026 12:05:57 -0800
+To: mm-commits@vger.kernel.org,baohua@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-avoid-prolonged-anon-reclaim-with-swappiness=200.patch added to mm-new branch
-Message-Id: <20261113200555.C77C21F000C5@smtp.kernel.org>
+Subject: + mm-mglru-make-swappiness=1-file-reclaim-more-aggressive.patch added to mm-new branch
+Message-Id: <20261113200558.16B301F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,12 +51,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/mglru: avoid prolonged anon reclaim with swappiness=200
+     Subject: mm/mglru: make swappiness=1 file reclaim more aggressive
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mglru-avoid-prolonged-anon-reclaim-with-swappiness=200.patch
+     mm-mglru-make-swappiness=1-file-reclaim-more-aggressive.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-avoid-prolonged-anon-reclaim-with-swappiness=200.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-make-swappiness=1-file-reclaim-more-aggressive.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -85,23 +85,29 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Gaofei Lyu <lyugaofei@xiaomi.com>
-Subject: mm/mglru: avoid prolonged anon reclaim with swappiness=200
-Date: Sat, 14 Nov 2026 02:55:39 +0800
+From: "Barry Song (Xiaomi)" <baohua@kernel.org>
+Subject: mm/mglru: make swappiness=1 file reclaim more aggressive
+Date: Sat, 14 Nov 2026 02:55:40 +0800
 
-It has been observed that swappiness=200 can significantly slow down
-reclaim on some machines, with some workloads running 3x slower under
-MGLRU than under CLRU.
+In MGLRU, swappiness=200 favors anon reclaim, while swappiness=1 favors
+file reclaim.  Swappiness=0 allows only file reclaim, while swappiness=201
+allows only anon reclaim.  Thus, swappiness=1 and swappiness=200 are
+counterparts for file and anon reclaim, respectively.
 
-This is because swappiness=200 currently results in file_factor=0.  Give
-file reclaim a small factor at lower priorities, for example, when
-sc->priority < DEF_PRIORITY / 2.
+Before this patchset, get_type_to_scan() always returned LRU_GEN_ANON for
+swappiness=200 and LRU_GEN_FILE for swappiness=1.
 
-Link: https://lore.kernel.org/20261113185541.70203-15-baohua@kernel.org
-Signed-off-by: Gaofei Lyu <lyugaofei@xiaomi.com>
+For swappiness=200, file_factor is set to 0 at higher reclaim priorities. 
+Similarly, for swappiness=1, anon_factor is set to 0 at higher reclaim
+priorities.  This makes the two settings behave similarly, although the
+thresholds differ slightly based on testing.
+
+This allows file pages to be reclaimed more aggressively and benefits
+workloads that prioritize file reclaim by using swappiness=1.
+
+Link: https://lore.kernel.org/20261113185541.70203-16-baohua@kernel.org
 Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Co-developed-by: Barry Song (Xiaomi) <baohua@kernel.org>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
@@ -112,6 +118,7 @@ Cc: Kunwu Chan <kunwu.chan@gmail.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: wang lian <lianux.mm@gmail.com>
 Cc: <liuxiang.277@bytedance.com>
+Cc: <lyugaofei@xiaomi.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Qi Zheng <qi.zheng@linux.dev>
 Cc: Ridong Chen <ridong.chen@linux.dev>
@@ -127,58 +134,35 @@ Cc: Siddharth Chintamaneni <sidchintamaneni@gmail.com>
 Cc: Bo Zhang <zhangbo0325@gmail.com>
 ---
 
- mm/vmscan.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ mm/vmscan.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/mm/vmscan.c~mm-mglru-avoid-prolonged-anon-reclaim-with-swappiness=200
+--- a/mm/vmscan.c~mm-mglru-make-swappiness=1-file-reclaim-more-aggressive
 +++ a/mm/vmscan.c
-@@ -4899,8 +4899,8 @@ static int get_tier_idx(struct lruvec *l
-  * We don't calculate the scan cost, MGLRU uses lazy promotion, which will
-  * cancel the scan budget natually.
-  */
--static void lru_gen_balance_scan(struct lruvec *lruvec, int swappiness,
--		unsigned long total_scan, unsigned long nr[])
-+static void lru_gen_balance_scan(struct lruvec *lruvec, struct scan_control *sc,
-+		int swappiness, unsigned long total_scan, unsigned long nr[])
- {
- 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 	u64 refault_rate[ANON_AND_FILE], anon_factor, file_factor;
-@@ -4957,7 +4957,12 @@ static void lru_gen_balance_scan(struct
+@@ -4956,7 +4956,11 @@ static void lru_gen_balance_scan(struct
+ 	anon_weight = nr[LRU_GEN_ANON] + nr[LRU_GEN_FILE] / size_bias;
  	file_weight = nr[LRU_GEN_FILE] + nr[LRU_GEN_ANON] / size_bias;
  
- 	anon_factor = (u64)swappiness * refault_rate[LRU_GEN_FILE] * anon_weight;
--	file_factor = (u64)(MAX_SWAPPINESS - swappiness) * refault_rate[LRU_GEN_ANON] * file_weight;
-+	if (swappiness == MAX_SWAPPINESS)
-+		file_factor = sc->priority < DEF_PRIORITY / 2 ?
-+			      refault_rate[LRU_GEN_ANON] * file_weight : 0;
+-	anon_factor = (u64)swappiness * refault_rate[LRU_GEN_FILE] * anon_weight;
++	if (swappiness == MIN_SWAPPINESS + 1)
++		anon_factor = sc->priority <= DEF_PRIORITY / 2 ?
++			      refault_rate[LRU_GEN_FILE] * anon_weight : 0;
 +	else
-+		file_factor = (u64)(MAX_SWAPPINESS - swappiness) *
-+			      refault_rate[LRU_GEN_ANON] * file_weight;
- 
- 	/* Cross-multiply the ratio above. */
- 	anon_scan = mul_u64_u64_div_u64(total_scan, anon_factor, anon_factor + file_factor);
-@@ -5154,7 +5159,7 @@ static void lru_gen_prepare_scan(struct
- 
- 	total = apply_proportional_protection(memcg, sc, total);
- 	total >>= sc->priority;
--	lru_gen_balance_scan(lruvec, swappiness, total, nr_to_scan);
-+	lru_gen_balance_scan(lruvec, sc, swappiness, total, nr_to_scan);
- }
- 
- static bool should_abort_scan(struct lruvec *lruvec, struct scan_control *sc)
-@@ -5914,7 +5919,7 @@ static int run_eviction(struct lruvec *l
- 			return 0;
- 
- 		lruvec_evictable_size(lruvec, sc, swappiness, nr_to_scan);
--		lru_gen_balance_scan(lruvec, swappiness,
-+		lru_gen_balance_scan(lruvec, sc, swappiness,
- 				     nr_to_reclaim - sc->nr_reclaimed, nr_to_scan);
- 
- 		if (!evict_folio_lists(nr_to_scan, lruvec, sc, swappiness, MAX_LRU_BATCH))
++		anon_factor = (u64)swappiness * refault_rate[LRU_GEN_FILE] * anon_weight;
+ 	if (swappiness == MAX_SWAPPINESS)
+ 		file_factor = sc->priority < DEF_PRIORITY / 2 ?
+ 			      refault_rate[LRU_GEN_ANON] * file_weight : 0;
 _
 
-Patches currently in -mm which might be from lyugaofei@xiaomi.com are
+Patches currently in -mm which might be from baohua@kernel.org are
 
-mm-mglru-run-aging-when-pages-are-rare-outside-the-youngest-gen.patch
-mm-mglru-avoid-prolonged-anon-reclaim-with-swappiness=200.patch
+arm64-vmalloc-allow-arch_vmap_pte_range_map_size-to-batch-multiple-cont_pte.patch
+mm-vmalloc-extend-page-table-walk-to-support-larger-page_shift-sizes-and-eliminate-page-table-rewalk.patch
+mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible.patch
+mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings.patch
+mm-mglru-avoid-placing-rejected-folios-below-populated-gen.patch
+mm-mglru-run-aging-when-one-type-has-no-populatable-folios.patch
+mm-mglru-restrict-eviction-accounting-to-eligible-zones.patch
+mm-mglru-reduce-lru-lock-contention-by-shrinking-folio-batches-in-inc_min_seq.patch
+mm-mglru-make-swappiness=1-file-reclaim-more-aggressive.patch
 
