@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794555559;
-	b=ZpKWoHTS1E3ie/hv4Kkms5jbVh8w5G+LKOhnkbiojRDME6gY98JAEf7YqEOF8Sh0oU55
-	 9OpQabTtDf3vdHLBSqk4dIrFiqx5ufBsFdcclfHLfcq5V1T+zd6uQldJy709UIVaMWZ/T
-	 6qLQ9wsLRrwLG2cG6c4oFLz03igggqYSpvK9AvFRHO15G57WXnSL/B5KWn4Rn88TVciGb
-	 EXhvVKnSRJjOkju2Is+qL/vxmImZp0sG095IlehgXLYNugMD3PLJ4Nwbty4KFM7cgkgUb
-	 ZlBHUYRUgsPwNAta2DBoWr/5b5Fj3MbQgZg8pDmxZw7zrjUYrIvxdcU5imoZ6qpBb5g==
+	t=1794555561;
+	b=p9nfUYREACCWRRSuk5rJd/05AsFqZsamtr2bQ2E/7wdP9I8oxV6BiHylkE+ny6F8X8rE
+	 KL8qte5eyq2JDyxWG+6NsvI9UY6dR7fivHIj7wg6PRq8DcucSq/69fvFXt8+h9mPqr9Z+
+	 0uCTQ2r4TfwnK2mJILhEhGYQypFpI3ya4QlV8OwjZlzxMVbtYcdjHFRuD2VSnlabTGGfJ
+	 pZeN7Y2KWDOHCkMbhoNGJXFpCmOgU0DB8ZCBFMC5OIC/jtV3Lcqw9xCaZC1lHhrEfc0MO
+	 e9WApO7KItFKC/2i0RXu3DFhD31Y+Dg8mgsFLu9Xx/+FvUiMgyYb6Bd6k+rFKllNFbA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794555559;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794555561;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=7dnDP5QdWh9PX7iIWl532yazQ4e3CW+xEeFz8xx3UuM=;
-	b=t731fCftj9HdtQcq6ie3CmUxWTf/cgl0umXjfJVNtI/j5zIWDo1vm/RWEaIVXsaQNEc1
-	 G5M06EC14XKZI4M24E7SVIrBjH165O5ogC+hvIEfG01MS4NdKQ/+LD2/ISUM+QzRd3V1u
-	 xQ03+bCiM0ZmdZH8x9P7e0XKa1RjSq8kRC00yPqdQyrBIdqO0dH49amfqZMFpToMiqRuY
-	 eqqWSaLCFiLUEDjYdismMI8fFrKCVfnXIwxd9aAdUjn8HSWGVp65gJlNroLB+vWR35Crp
-	 0bIScDL8J1p+gA6qAuJxBy95oN8za8OWtGI8afenilcHD1YnlbjG+QFHJcGDIKhZIyw==
+	bh=SVaVssamWAcEaTHOcF07ybMuZeNfTd31w25PlQgIv2A=;
+	b=44J0DW9I9inqtowT78yI3gcZKGIjzc6BiKJpqEmqE+nN0ChYHaZ5ShUOftATaAZRb4T7
+	 Q7ygAs2W6y4DQCj6i/Z0M7Qz7FTv+/jidNlx7X9D1vIxJH7iknACzUYQqo1o9YoBM+yjb
+	 UjvVxgXbPY7B4GwMdfGgcbQhA/8rxutNykD4N23hlKjCwcE00Eaffl4x8cqV8KdGiq8BJ
+	 iEXeoJZKNNHDhkg/OYfeNfDTDZ0O+nZgY4/v8tRRBKEbS//S/lyjaeCfN3cHQuBG/vTIz
+	 NKn4j6pnEaJMjMvkr99p+Tt+ZqWiUuSlBgAdk860a0eOWQ8ObEv1BxFHcozmF4Ln/yA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=M8vHgcAq;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1jceM0cN;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF070606A32A
-	for <mm-commits@vger.kernel.org>; Fri, 13 Nov 2026 07:39:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B03A606A321
+	for <mm-commits@vger.kernel.org>; Fri, 13 Nov 2026 07:39:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=M8vHgcAq
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9B1E1F000C4;
-	Fri, 13 Nov 2026 07:39:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1jceM0cN
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DAFC01F000C4;
+	Fri, 13 Nov 2026 07:39:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794555558;
-	bh=7dnDP5QdWh9PX7iIWl532yazQ4e3CW+xEeFz8xx3UuM=;
+	d=linux-foundation.org; s=korg; t=1794555561;
+	bh=SVaVssamWAcEaTHOcF07ybMuZeNfTd31w25PlQgIv2A=;
 	h=Date:To:From:Subject;
-	b=M8vHgcAqidHBSHRSKNqZMUiH2sYv1zss4sK8XlPPR/fnMJCxMiGE02XhItOqxJXt+
-	 aOYZcUKbNxHdGv4xXgZGh867FTPhREgod+t3/rjfixIJ0tdXHhdQGUoiLwCyTOfjM2
-	 K0ZubmP/Olo9JGgoj6CX2RFYENopcx4FPs/FWBag=
-Date: Thu, 12 Nov 2026 23:39:18 -0800
+	b=1jceM0cNFmC7J4G8LqbmsSzy8mXRdccCgDJ55hEvyJJjqOMVeFraX+TXoe3ua4dnk
+	 T3f20Ts3p84sdHx2gTRaoYR4JIuDnQKzyEB3AjYgFSxGnCj93LEqeY2YqTrD+voMwC
+	 nbWkZE202OcC+m0PY2UDw9m2wE2FXLW6N+Vs6qrI=
+Date: Thu, 12 Nov 2026 23:39:20 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-ops-common-implement-damon_filter_type_active-operation.patch added to mm-unstable branch
-Message-Id: <20261113073918.A9B1E1F000C4@smtp.kernel.org>
+Subject: + mm-damon-sysfs-support-lru-activeness-based-damon-filter-setup.patch added to mm-unstable branch
+Message-Id: <20261113073920.DAFC01F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,12 +51,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/damon/ops-common: implement DAMON_FILTER_TYPE_ACTIVE operation
+     Subject: mm/damon/sysfs: support LRU-activeness based DAMON filter setup
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-ops-common-implement-damon_filter_type_active-operation.patch
+     mm-damon-sysfs-support-lru-activeness-based-damon-filter-setup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-ops-common-implement-damon_filter_type_active-operation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-support-lru-activeness-based-damon-filter-setup.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,38 +75,35 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/ops-common: implement DAMON_FILTER_TYPE_ACTIVE operation
-Date: Thu, 12 Nov 2026 21:17:08 -0800
+Subject: mm/damon/sysfs: support LRU-activeness based DAMON filter setup
+Date: Thu, 12 Nov 2026 21:17:09 -0800
 
-Implement DAMON_FILTER_TYPE_ACTIVE operation.  Use folio_test_active()
-to show if the folio of the given memory is on an active LRU list.  The
-implementation is made on ops-common, so both vaddr and paddr gain the
-support of the filter type.
+Support DAMON sysfs interface based setup of DAMON_FILTER_TYPE_ACTIVE
+type DAMON filters.  For that, wire the type with a new user keyword,
+"active".  Users can set up the new type of filter using the existing
+DAMON filter setup interface with the new keyword.
 
-Link: https://lore.kernel.org/20261113051711.89274-3-sj@kernel.org
+Link: https://lore.kernel.org/20261113051711.89274-4-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/ops-common.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/damon/sysfs.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/damon/ops-common.c~mm-damon-ops-common-implement-damon_filter_type_active-operation
-+++ a/mm/damon/ops-common.c
-@@ -574,6 +574,13 @@ bool damon_ops_filter_match(struct damon
- 		matched = filter->range_min <= folio_sz &&
- 			folio_sz <= filter->range_max;
- 		break;
-+	case DAMON_FILTER_TYPE_ACTIVE:
-+		if (!folio) {
-+			matched = false;
-+			break;
-+		}
-+		matched = folio_test_active(folio);
-+		break;
- 	default:
- 		break;
- 	}
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-support-lru-activeness-based-damon-filter-setup
++++ a/mm/damon/sysfs.c
+@@ -1011,6 +1011,10 @@ damon_sysfs_filter_type_names[] = {
+ 		.type = DAMON_FILTER_TYPE_HUGEPAGE_SIZE,
+ 		.name = "hugepage_size",
+ 	},
++	{
++		.type = DAMON_FILTER_TYPE_ACTIVE,
++		.name = "active",
++	},
+ };
+ 
+ static ssize_t type_show(struct kobject *kobj,
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
