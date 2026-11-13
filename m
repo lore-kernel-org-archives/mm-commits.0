@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794539084;
-	b=jSdB65lKK1u/ilCVrhWvurQHIF/a+o3rYit0DdKqhb3Nw9j4kpKqgd1hdGvqD5F/m4RZ
-	 aqUInd/J7yzITXOQQdaXr+DZpFE8+Y6kqVw+x+xqZbOXyKu1TqeuSqa4ku+seqFcTb7Ib
-	 uI+Q8Teh/ec2IX/BVmVkh/+Zrmug7qV74gE+2Mt6XC/bPBv+6rrkzZ9M5VlEO7BnqLVeY
-	 m3+74N+FWhF8ZwAaJ1vUmV8wwfs7A/a6RYxw6crU3FfLk8T0EXpEaMTn9Ic9fz6qLg4sB
-	 iadqV3gLHivpd5WacWpvOYuewUmWwSKVGltkvbdRHxhZUrlV4SUuJSwlq0SsxTcYJqw==
+	t=1794539216;
+	b=XIbMnP1lt3gonRdSQe58SugmQXMcCM5hZPBTvtmzOUHsKATrNKgDD1plR0ZTkV9beSbe
+	 bGkcGoqalx62isDxWrRRrgPEdOT8DPbbPi2vT3hh/d5vyMiizDZZtQlRebwiFA6zGHwgt
+	 X27MX/O9kRaTLTHw5wVmGmHIIUotnovVyyTst9s4K5ai3A6n8EOzJNpzOWnJ8xQLaQscs
+	 uKeu4vtYJ1F7XF6rJwhF77+jBdpzEh5MsAd4P2hTLRqG5AGW4ms6e5OMXPt2S5fCM/DSc
+	 zjAuzCOFpfgjAMySVYCRXqfz7ly/x0D8qbUirlE50JpCUlXdOK6rBMuvcq2FQEPcDWw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794539084;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794539216;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=OchJebQWWvO5xwStwPSGEYDaM1cAO4y98APdKg/rRkc=;
-	b=XlH76K5N7uaC5RZOib+wjtrcRZec3u0jkjOoK4leOdpd4UNMsd//kSV/GTTd8TFvzWE+
-	 uAev5Ut7h8kQdrHseaeHVlupPkox2NaKYljeHKz40NSRvA0eC/DkKgxkIM/2q36wrjLd6
-	 8BXv7m1vnZPbLU6hJod/afMF55tSalHy92dCeyAg/Y4TU/oJXt2VV8MaFjp2Q/FD+V+kT
-	 vQ/wSMgwjXvCBQCDovzHaW5MgSenXIVC40YEz891X/9RSkePuidi18ZPlYlQJgFmeHk+b
-	 IC9PA9Ji+jt7kWBeVOGPGI/YvkTBKTH476cmR46Van2Vxmh4HdnXUWuaUrYmlHMg6lg==
+	bh=aCNUZLhrcivd0AJt+vf1pLWb5VPgRNTU+lwhHQXhqoY=;
+	b=quahpqZBYX7x0iJL9800uD2DDq3eL0MVrnBRgV3UhwBCRt+rblqMJ4fxjHnlHAHrTC7L
+	 Vv2T7a3QrKV/NtJIcuD/TU7ili0UpHS0YYSgFuX8vyn5JpukDr1izKaYODeFFJHYJrHHh
+	 j5/5tou3iWuU4t9/A9JkoFfuJuxEbJZ+PxifjkRikpr0I+goRRwQyCntgZoABVxPj0kJY
+	 dB4yhaSLIh6g9QdcaQq2kDQSFZMSNiJb5Gxdd+BxPFZK7I63Wp8rKS/xejw7AIpaqsYXW
+	 VpTGaXbmP22OebKL+n/ghbvdJpJ17b4JSsSwIuyV0jG9jTKlEx35YUfPzNrmCou9Quw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=KLUYYvBD;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ntibkS5C;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6BA7606A321;
-	Fri, 13 Nov 2026 03:04:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 221F4606A323;
+	Fri, 13 Nov 2026 03:06:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=KLUYYvBD
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D4221F000C4;
-	Fri, 13 Nov 2026 03:04:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ntibkS5C
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 909501F000C4;
+	Fri, 13 Nov 2026 03:06:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794539083;
-	bh=OchJebQWWvO5xwStwPSGEYDaM1cAO4y98APdKg/rRkc=;
+	d=linux-foundation.org; s=korg; t=1794539215;
+	bh=aCNUZLhrcivd0AJt+vf1pLWb5VPgRNTU+lwhHQXhqoY=;
 	h=Date:To:From:Subject;
-	b=KLUYYvBDqVOLKhy5pAYC5m0xgo+WWqxumi2456YVtpn6BSUp7GtOWdZ2itcE9Whqq
-	 e0pl9s1na6BsoJKwc/R4aMl8p0CbIE+fYuMbVp3QIwv9zeiWg41bP9lsMEby3JF6if
-	 HxAyHkSBT6EVLXA64oz+c3jraSb9Rs2Dan2oRSn4=
-Date: Thu, 12 Nov 2026 19:04:42 -0800
+	b=ntibkS5CRMJkJtRFbhqMtJOrSjB56VGyhinutsb9unK+XIAKw9ViHxKrZVIZuUtG2
+	 OieyRekMMJpd9tffIr4P95eMM6AHupU4sBNuC5e4TUGW3JuofuhM0bBgxYoxIBOZLg
+	 70L90Q+/0oyLn1e6ENCEYz96jXUAIUzhXkIP9aM4=
+Date: Thu, 12 Nov 2026 19:06:55 -0800
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,phillip@squashfs.org.uk,
 	kmehltretter@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] squashfs-make-the-fragment-index-table-bounds-check-overflow-safe.patch removed from -mm tree
-Message-Id: <20261113030443.2D4221F000C4@smtp.kernel.org>
+Subject: [obsolete] squashfs-fix-fragment-index-table-sizing-overflow-on-32-bit.patch removed from -mm tree
+Message-Id: <20261113030655.909501F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,39 +52,64 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: squashfs: make the fragment index table bounds check overflow-safe
+     Subject: squashfs: fix fragment index table sizing overflow on 32-bit
 has been removed from the -mm tree.  Its filename was
-     squashfs-make-the-fragment-index-table-bounds-check-overflow-safe.patch
+     squashfs-fix-fragment-index-table-sizing-overflow-on-32-bit.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Karl Mehltretter <kmehltretter@gmail.com>
-Subject: squashfs: make the fragment index table bounds check overflow-safe
-Date: Sat, 22 Aug 2026 16:33:28 +0200
+Subject: squashfs: fix fragment index table sizing overflow on 32-bit
+Date: Sat, 22 Aug 2026 16:33:27 +0200
 
-squashfs_read_fragment_index_table() checks that the table fits before the
-next one with:
+Patch series "squashfs: harden fragment index table sizing".
 
-	if (fragment_table_start + length > next_table)
-		return ERR_PTR(-EINVAL);
+Two integer overflows undermine fragment index table handling.  One is in
+the original fragment sizing macros.  The other is in a bounds check added
+by commit 1cac63cc9b2f ("Squashfs: add sanity checks to fragment reading
+at mount time").
 
-fragment_table_start comes from the superblock and is not validated before
-this point.  A start of 2^64 - length wraps the sum to zero, so the check
-passes regardless of next_table and fails to reject the invalid table
-ordering.
+Patch 1: the fragment byte count wraps on 32-bit, so the index table is
+allocated too small and squashfs_frag_lookup() reads out of bounds.  A
+crafted image triggers a KASAN out-of-bounds read on a 32-bit build.  With
+the fix the same image fails cleanly at mount.
 
-length then reaches kmalloc() through squashfs_read_table().  A fragment
-count of 0xffffffff asks for 64MB, order 14.  GFP_KERNEL does not include
-__GFP_NOWARN, so the page allocator warns before the mount fails with
--ENOMEM.  With panic_on_warn, the warning panics the kernel.
+Patch 2: the check that the table fits before the next one adds two u64
+values controlled by the filesystem image and can wrap.
 
-Compare the operands instead of adding them.  id.c and export.c avoid the
-same wrap with an exact-size check.  Keep the inequality here because a
-gap before the next table is still allowed.
 
-Link: https://lore.kernel.org/20260822143328.68867-3-kmehltretter@gmail.com
-Fixes: 1cac63cc9b2f ("Squashfs: add sanity checks to fragment reading at mount time")
+This patch (of 2):
+
+SQUASHFS_FRAGMENT_BYTES() multiplies the on-disk fragment count (an
+unsigned int) by sizeof(struct squashfs_fragment_entry), a size_t.  On a
+32-bit kernel that product is 32-bit and can wrap.
+
+squashfs_read_fragment_index_table() sizes the fragment index table from
+it, but squashfs_frag_lookup() bounds the fragment number against
+msblk->fragments, the unwrapped superblock value.  The two disagree: an
+image declaring 0x10000001 fragments wraps the product to 16, so a single
+index entry is allocated, yet the lookup still accepts fragment
+0x0fffffff:
+
+	if (fragment >= msblk->fragments)
+		return -EIO;
+	block = SQUASHFS_FRAGMENT_INDEX(fragment);
+	...
+	start_block = le64_to_cpu(msblk->fragment_index[block]);
+
+block is then 524287 and the read lands ~4MB past an 8-byte allocation. 
+On a 32-bit build KASAN catches it when the crafted image is mounted and
+the file is stat'd.
+
+Cast to u64 in the macro so the multiplication is 64-bit on all targets. 
+After conversion to index-table entries, SQUASHFS_FRAGMENT_INDEX_BYTES()
+is at most 64 MiB for any u32 count, so it fits both the unsigned int
+local and the int argument it feeds.  64-bit builds are unchanged.
+
+Link: https://lore.kernel.org/20260822143328.68867-1-kmehltretter@gmail.com
+Link: https://lore.kernel.org/20260822143328.68867-2-kmehltretter@gmail.com
+Fixes: ffae2cd73a9e ("Squashfs: header files")
 Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Assisted-by: Claude:claude-opus-5
@@ -92,29 +117,24 @@ Cc: Phillip Lougher <phillip@squashfs.org.uk>
 Cc: <stable@vger.kernel.org>
 ---
 
- fs/squashfs/fragment.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/squashfs/squashfs_fs.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/squashfs/fragment.c~squashfs-make-the-fragment-index-table-bounds-check-overflow-safe
-+++ a/fs/squashfs/fragment.c
-@@ -69,9 +69,11 @@ __le64 *squashfs_read_fragment_index_tab
- 	/*
- 	 * Sanity check, length bytes should not extend into the next table -
- 	 * this check also traps instances where fragment_table_start is
--	 * incorrectly larger than the next table start
-+	 * incorrectly larger than the next table start.  Both values are read
-+	 * from the filesystem image, so compare without adding them.
- 	 */
--	if (fragment_table_start + length > next_table)
-+	if (fragment_table_start > next_table ||
-+	    length > next_table - fragment_table_start)
- 		return ERR_PTR(-EINVAL);
+--- a/fs/squashfs/squashfs_fs.h~squashfs-fix-fragment-index-table-sizing-overflow-on-32-bit
++++ a/fs/squashfs/squashfs_fs.h
+@@ -136,7 +136,7 @@ static inline int squashfs_block_size(__
  
- 	table = squashfs_read_table(sb, fragment_table_start, length);
+ /* fragment and fragment table defines */
+ #define SQUASHFS_FRAGMENT_BYTES(A)	\
+-				((A) * sizeof(struct squashfs_fragment_entry))
++			((u64)(A) * sizeof(struct squashfs_fragment_entry))
+ 
+ #define SQUASHFS_FRAGMENT_INDEX(A)	(SQUASHFS_FRAGMENT_BYTES(A) / \
+ 					SQUASHFS_METADATA_SIZE)
 _
 
 Patches currently in -mm which might be from kmehltretter@gmail.com are
 
 userfaultfd-docs-fix-an-error-code-two-names-and-the-pollerr-cause.patch
-squashfs-fix-fragment-index-table-sizing-overflow-on-32-bit.patch
+squashfs-make-the-fragment-index-table-bounds-check-overflow-safe.patch
 
