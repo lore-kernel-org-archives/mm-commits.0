@@ -1,47 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794534326;
-	b=zf441tNVTWzZZaLKAgG/20CQwctF2LaGHUmUfJ9ArHmQ1qTHT3xIadU6MzteD8eT7538
-	 rOZp1pV3T9eJu9y5otEgh3txXFZME3u8J6asjirWsTPhEz4fF86K3C7lK3UWdgIV2aqyz
-	 C4A+AyLzVci72NsWUaXkArV6F7+O5X3Ihvx4OUaG2v+0NuviLKIgSUFlg7vlVa3FflWBb
-	 tiHUNHAkqhepjE2ew9gGs8GAMT9+LFMb9Kq2dynFvQFbgaEvHF8ye2xZm8nk/HZ7ppVgW
-	 YwsMj1Tl2U3ugZdaHqY43X1cSCNNoi2MrSw6wNzLno95q2iFu4HHhyuqr9q5KvVFhww==
+	t=1794534442;
+	b=IMlrIZEM3V7/ZvSkZsaP1JKBJptFeOdpD51nZnF0FpMecNf7r0b69VdS8pfkuZLvTEhw
+	 Z02gJhR0AA7MoC23SEzihNS3rBlrDo3K5ROfRBfuSvAJPQXllOtiun669Wu9IcWdomMc+
+	 BNFleygLuPq0UE9oAae1Wx74+3k1drH1gytgiY58PVMqQJ0zTz+joeU1qIAKayZVH4aim
+	 8VGex2mWSggz/JjnfGuUI0hW0Dspjdq+u+0M7WJ8ayGEdhMkH0rCakinyFZbdtpZnCCTM
+	 Uhs9JgicU8iDT/3ZGlfTIXWx3YgLeyH3bO8YcgWJq2aVD41zFkWpX4Yyu+k7VK/4RsA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794534326;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794534442;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=gawzVXH4dzdEianOgImCiVHQ5Of7fpMeTBSAC24HQ44=;
-	b=cyqnndc4NyZXLzFOK/ypj3+afhhhSJWrYP5n8QUPLJrYW2wypHBxvSrG7nQMR5jDaVhJ
-	 UDziiQ5P9DFL3amRmX+QuOobQvab7q9NE1roENabp4V4FPHfuZN03hEu6cgEAEOVP8uXb
-	 yT66lmO335ZRhsJYQKr3UH//X2zJVK4DoySYxsP0pwAT6/+qOa/WsvqbOuCfjMV3e83Lh
-	 APexzOldyCo0HYOHXMXyJWhDyD5ZB6gpIwiWzWLzBt1R5oRdYp7/s7BuZ9qRdYSHLYvzH
-	 vOVs0IEBjbbSklDA1ZXD+luX2FtTZjhoGNgKZ4cS9wKw+dS4jMXPE3hA/Cp5bFvnY6w==
+	bh=+6ELNXd483VAxie0iseebsng3T+J5R6tTq9KxvHzEYE=;
+	b=ZG8UYrXF1VrZvMnfIkJxACB7rcyB9H3x7WnapJJZi0TsEVzi8cIbVcVvrFntOWVrboSk
+	 VJPJEK7wZShkNtHQVDd/vT222mKYipaDIRYBxFekIQLY4e+aMLA/oCUyMcDe1/v7MZuSK
+	 Zu8ydbyu9eJ7CirVDxjy6t/kqZpljWODMZ9FGRQWoXljUbj053NjdYCn9aPFsDbWFbTw6
+	 K6ctIm8pRLAsJ0MptGGKKmZACDA2U06FcnG+Xd0nhqA/uo+A0ySICBEU6V/OijItEl7h8
+	 55kQkpV1UIcI5kCq5aLuQ+mhn6X9TVbqCrwMp34KHudSypLrygOINqiDgb/IF9v6wWg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=L8omhzjN;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=0LZehtJP;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D86A2606A31C
-	for <mm-commits@vger.kernel.org>; Fri, 13 Nov 2026 01:45:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABAD7606A31C
+	for <mm-commits@vger.kernel.org>; Fri, 13 Nov 2026 01:47:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=L8omhzjN
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 736451F000C4;
-	Fri, 13 Nov 2026 01:45:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=0LZehtJP
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B5D81F000C4;
+	Fri, 13 Nov 2026 01:47:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794534325;
-	bh=gawzVXH4dzdEianOgImCiVHQ5Of7fpMeTBSAC24HQ44=;
+	d=linux-foundation.org; s=korg; t=1794534442;
+	bh=+6ELNXd483VAxie0iseebsng3T+J5R6tTq9KxvHzEYE=;
 	h=Date:To:From:Subject;
-	b=L8omhzjNaRnboSQanwZAqvuuowz7lD+Sy3l/LUxlv5HsCgsyL0iKRJaYNHen2iXQ9
-	 Lg3Ed7cmoya6WKxaj22JG+m7cOO1zmmjRFPhxUTWFuTfUxxSiZbJzw7XWsV5AjG4MC
-	 Ro0JuFc78GcGvy81xS7u6ced8TSNu6FZCyQhfszA=
-Date: Thu, 12 Nov 2026 17:45:24 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,
-	surenb@google.com,mhocko@suse.com,hannes@cmpxchg.org,
-	brendan.jackman@linux.dev,aleszlucero@gmail.com,akpm@linux-foundation.org
+	b=0LZehtJPKtXe1tpzJnQIXHyQaUMCLQ8GuAmZIQbh7qdSKveFvhxRTUd3UvRzz3sTi
+	 rNYg0euBooFlQR2SHcQrbI43FtJHS6JOjMAjwgq+9uW2RbZVtEQQ0HfuKAok0mTGAd
+	 btCcbCnMa9kOPONU2LXAs09v/aL8CgGo5yV7hc+I=
+Date: Thu, 12 Nov 2026 17:47:21 -0800
+To: mm-commits@vger.kernel.org,vlad.wing@gmail.com,harry@kernel.org,
+	catalin.marinas@arm.com,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_reporting-document-order-parameter-in-page_reporting_notify_free.patch added to mm-new branch
-Message-Id: <20261113014525.736451F000C4@smtp.kernel.org>
+Subject: + mm-kmemleak-drop-kmemleak_lock-in-scan_block-when-it-is-contended.patch added to mm-new branch
+Message-Id: <20261113014722.3B5D81F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +52,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/page_reporting: document @order parameter in page_reporting_notify_free()
+     Subject: mm: kmemleak: drop kmemleak_lock in scan_block() when it is contended
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_reporting-document-order-parameter-in-page_reporting_notify_free.patch
+     mm-kmemleak-drop-kmemleak_lock-in-scan_block-when-it-is-contended.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_reporting-document-order-parameter-in-page_reporting_notify_free.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-drop-kmemleak_lock-in-scan_block-when-it-is-contended.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,39 +86,112 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Oscar Alejandro Sánchez Lucero <aleszlucero@gmail.com>
-Subject: mm/page_reporting: document @order parameter in page_reporting_notify_free()
-Date: Thu, 12 Nov 2026 10:18:19 -0600
+From: Breno Leitao <leitao@debian.org>
+Subject: mm: kmemleak: drop kmemleak_lock in scan_block() when it is contended
+Date: Thu, 12 Nov 2026 03:48:01 -0800
 
-Add missing kernel-doc description for @order to fix a kernel-doc warning.
+kmemleak_lock is a damn hot lock, used on allocations, free, NET_RX, etc. 
+It is also used on the scan, so, while scanning, most of the system is
+mostly waiting for the lock.
 
-Link: https://lore.kernel.org/20261112-page-reporting-doc-v1-1-593af69f3801@gmail.com
-Signed-off-by: Oscar Alejandro Sánchez Lucero <aleszlucero@gmail.com>
+On meta fleet, this is, by far, the most contented lock.  This is not a
+big deal, because very few hosts run with kmemleak enabled, but, I think
+we can do better here.
+
+scan_block() takes kmemleak_lock once per block and keeps it, with
+interrupts disabled, for up to MAX_SCAN_SIZE bytes: 512 words, each
+needing up to two object tree lookups. Every allocation and free in the
+system needs the same lock to insert or remove its object, so each of
+them can wait for a whole block.
+
+Keep taking the lock once per block, but in auto scan mode, check every
+64 words whether anybody is waiting for it and, if so, breathe (aka
+release it and take it again so that the waiters go first)
+
+Releasing the lock seems safe because it only keeps the object trees
+stable during each lookup, and scan_block() does not use an object found
+under it past the word being processed.
+
+Tested in an arm64 KVM guest with 48 vCPUs, KASAN and lockdep, running
+stress-ng sock, fork and dentry workers on 8 CPUs during five scans.
+The kmemleak_lock wait times of the other CPUs, from the lock_contended
+and lock_acquired tracepoints:
+
+                   average     p99     p99.9
+  no scan            3.7us    <16us    <32us
+  scan, before      15.8us   <256us   <512us
+  scan, after       11.7us    <64us   <256us
+
+The cost is a slower scan, as the scanner now queues behind the
+waiters: the five scans took 179s instead of 118s.
+
+This patch does not change interactive users (echo scan > kmemleak in
+debugfs), given current != scan_thread, and scan_breathe() will not be
+called.
+
+Link: https://lore.kernel.org/20261112-kmemleak-scan-lock-break-v1-1-95808108d03c@debian.org
+Signed-off-by: Breno Leitao <leitao@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
-Cc: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Vlad Poenaru <vlad.wing@gmail.com>
+Cc: Harry Yoo <harry@kernel.org>
 ---
 
- mm/page_reporting.h |    1 +
- 1 file changed, 1 insertion(+)
+ mm/kmemleak.c |   21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
---- a/mm/page_reporting.h~mm-page_reporting-document-order-parameter-in-page_reporting_notify_free
-+++ a/mm/page_reporting.h
-@@ -23,6 +23,7 @@ static inline bool page_reported(struct
+--- a/mm/kmemleak.c~mm-kmemleak-drop-kmemleak_lock-in-scan_block-when-it-is-contended
++++ a/mm/kmemleak.c
+@@ -112,6 +112,7 @@
+ #define SECS_FIRST_SCAN		60	/* delay before the first scan */
+ #define SECS_SCAN_WAIT		600	/* subsequent auto scanning delay */
+ #define MAX_SCAN_SIZE		4096	/* maximum size of a scanned block */
++#define SCAN_LOCK_BATCH		64	/* words between lock waiter checks */
  
- /**
-  * page_reporting_notify_free - Free page notification to start page processing
-+ * @order: allocation order of the freed pages
-  *
-  * This function is meant to act as a screener for __page_reporting_notify
-  * which will determine if a give zone has crossed over the high-water mark
+ #define BYTES_PER_POINTER	sizeof(void *)
+ 
+@@ -1540,6 +1541,18 @@ static int scan_should_stop(void)
+ }
+ 
+ /*
++ * Release kmemleak_lock and take it again if anybody is waiting for it, so
++ * that allocations and frees do not have to wait for a whole block.
++ */
++static void scan_breathe(unsigned long *flags)
++{
++	if (raw_spin_is_contended(&kmemleak_lock)) {
++		raw_spin_unlock_irqrestore(&kmemleak_lock, *flags);
++		raw_spin_lock_irqsave(&kmemleak_lock, *flags);
++	}
++}
++
++/*
+  * Scan a memory block (exclusive range) for valid pointers and add those
+  * found to the gray list. Return non-zero if the scan was interrupted.
+  */
+@@ -1561,6 +1574,14 @@ static int scan_block(void *_start, void
+ 			break;
+ 		}
+ 
++		/*
++		 * Only the background scan thread breathes, scans requested
++		 * through debugfs keep the lock and finish sooner.
++		 */
++		if (current == scan_thread && ptr != start &&
++		    !((ptr - start) % SCAN_LOCK_BATCH))
++			scan_breathe(&flags);
++
+ 		kasan_disable_current();
+ 		pointer = *(unsigned long *)kasan_reset_tag((void *)ptr);
+ 		kasan_enable_current();
 _
 
-Patches currently in -mm which might be from aleszlucero@gmail.com are
+Patches currently in -mm which might be from leitao@debian.org are
 
-mm-page_reporting-document-order-parameter-in-page_reporting_notify_free.patch
+mm-kmemleak-scan-modified-objects-as-soon-as-they-are-grayed.patch
+tools-mm-add-hwpoison-panic-tool.patch
+mm-split-out-memory-failure-declarations-from-internalh.patch
+mm-kmemleak-drop-kmemleak_lock-in-scan_block-when-it-is-contended.patch
+ratelimit-fix-data-race-on-burst-in-___ratelimit.patch
+stackdepot-dont-warn-when-the-depot-runs-out-of-pools.patch
 
