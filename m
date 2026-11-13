@@ -1,48 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794546449;
-	b=tbzRXC3GftRdLpb70D3+rr+9nrY/+GDXd5IH4yjl+Bn1Z1ydDu4h3hj7VX4pobaiKeSI
-	 XR6VRAWdUakv5gHLIbWsyxZuT+JnMouAxgRI21Ws496URMwFvNwn3SeG1QWIai2GM7hqe
-	 7L2vtK9s/m+iAI7Ajn9KTbeHEpTm690CgO3hL+gV2/1zOI61iu6clnc3SJjgbn8mSBde8
-	 Pec5ah67I57R7+aRjpbS+7w6Scdc4sdp8BWlcuzFBlUOhdJme6Mg7ImFDAIXE+IJPGVaw
-	 xafVoTH7QLQYVaul5EZPs30d97kMvkhkuLhkzsrl3JkRzCfPMt1h/ROCHA6asuUV5yQ==
+	t=1794546919;
+	b=iYrFkvq2pd5dsgUF3G+NF6krANUzqSCEP+vORe5wIbJ7APGf0hHpFmULlht55zgyqstU
+	 ABaUCxmXDKLOxup43Jwx7eZzKOXGEKvFtlVN1Pm19SdVwRY5/Vq1QnlEHMbCw4gCmWHsS
+	 rxRdZibh5Or7duAvYMyiBLDyRFzs3SlB/oblFvkzz93YOw/4QOlgjRyBsWYCiPFH2Av1P
+	 fCGV7jTMvxgSFlqH85oF9GY3MrlDXbET8R3xBvZOhSGDRBae1oft4Y6B8XaS7z3nyhisx
+	 VVe7dvap/7dUQr1uvP7K6M+2fsvmMVjy6yocZ2/JaOiRjJENl/TOSqKvlXyt6avoOlw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794546449;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794546919;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=FgQTYmGcfeLyshhKwQIF8Ia+yLO8lvdeNYghbl0j2UI=;
-	b=KS9/BpK6r1BCxlmBMDZWGj+NPWLdrTBGT+BECh9DSHTsQmn0w1l4GDvwODMZtKdRxnTN
-	 QaB7YU5M/Bx9ilB5hQOPaN8g0eSbdCQWxeVOslvGdyr1ynUOLSE1iyHct5apT5TrlTthP
-	 QiJfy78q6N3TxtRhm4sUgKso0LMN+YA6xYIFqANXQcN2+EuZL/pVaLJXxl6MqJW2yOLUE
-	 GBZGSgai60U9u9oTfl8WievgTktgSW53CdloK0rmmyTzciLt7r8mNab8NzOwtBmPLsd2g
-	 yDMT9Dj3iTQ/bo+FdOKMdr2yOjTgVULUmLhDF8T5DHf/EtHuWFYjTb0wSfJ1GHMezLw==
+	bh=PNVt6yu1ICPwL0RcI+uaDmi+oPPSh1bc1+NxVxSgaHM=;
+	b=cwZfbTwiqjyL4SMWq/HKfbnaViWhdn4q8fj5ZgLiXZTUbfBsVVU0OcQMIvfQW9N7XRBT
+	 eMkxw0pwjPZJt1nFhiIkQ9TJQnX3JXyiSQI46oYQ2bfP/ESg+zymmdYQIHpUceU/Bc1GD
+	 nQLd/TaciM98+hfeY3jiJ4NVvvIcpsdXMXZVQpeCUwR+DPtt4yOL0Rkkfjt92umJSse/r
+	 16rnatNgZfnxWw6wkJISUHq5vvOclY2Dh4YAjd8ZLrPLVcnRGWZ/Nom42iKcOsTf4/a2c
+	 6Kjgr7ZPpGkkwfxQiuJh3Yf6lFncruiR+p6nCeCOMAHxtEmmKEATU/E/uQDHjJLRC/g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GmGRqqWf;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=DmWp5NoR;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1F12606A321
-	for <mm-commits@vger.kernel.org>; Fri, 13 Nov 2026 05:07:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E428606A321
+	for <mm-commits@vger.kernel.org>; Fri, 13 Nov 2026 05:15:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GmGRqqWf
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51BD21F000C5;
-	Fri, 13 Nov 2026 05:07:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=DmWp5NoR
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8A3C1F000C4;
+	Fri, 13 Nov 2026 05:15:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794546449;
-	bh=FgQTYmGcfeLyshhKwQIF8Ia+yLO8lvdeNYghbl0j2UI=;
+	d=linux-foundation.org; s=korg; t=1794546918;
+	bh=PNVt6yu1ICPwL0RcI+uaDmi+oPPSh1bc1+NxVxSgaHM=;
 	h=Date:To:From:Subject;
-	b=GmGRqqWf8qt3GTqgdGc3CNNfMcjT48crO0rSMfQziOHy+GJiOM36RtiNB39AppG+P
-	 gX8sirxXvWvI6H/ojcrbOiOg+xn700AljaiVn5avofQdOSBAx5CHyFjc+Jv9prp0A4
-	 O/rRojqhxOLMOcbVP5yjeCI9NSRWvznc7ucG9aUE=
-Date: Thu, 12 Nov 2026 21:07:28 -0800
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,
-	roman.gushchin@linux.dev,qi.zheng@linux.dev,muchun.song@linux.dev,
-	mhocko@kernel.org,mason@kernel.org,hannes@cmpxchg.org,david@kernel.org,
-	david@fromorbit.com,akpm@linux-foundation.org
+	b=DmWp5NoRNOWyD3MDI9py7EEFJIco33RajJVPMPvC0R0g6O7wBEJXTLUKxWShEDxuP
+	 6hMfWHHkAJXoK2SIia6uKAmMAouJFJt3s4uY82Kg+ovir60l+k7m5tXyiPOmPGoKIr
+	 NBdmOg1HwU5IojncoGQ9tmq8LspmIVtVyZ+7EjlQ=
+Date: Thu, 12 Nov 2026 21:15:18 -0800
+To: mm-commits@vger.kernel.org,shuah@kernel.org,ljs@kernel.org,
+	david@kernel.org,chenxionggui@lanxincomputing.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-list_lru-dont-use-a-new-memcgs-lists-for-an-offline-memcg-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261113050729.51BD21F000C5@smtp.kernel.org>
+Subject: + selftests-mm-handle-implicit-read-permissions-in-madv_populate.patch added to mm-new branch
+Message-Id: <20261113051518.A8A3C1F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,15 +52,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/list_lru: verify memcg owner before skipping allocation
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-list_lru-dont-use-a-new-memcgs-lists-for-an-offline-memcg-fix.patch
+     Subject: selftests/mm: handle implicit read permissions in madv_populate
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-mm-handle-implicit-read-permissions-in-madv_populate.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-list_lru-dont-use-a-new-memcgs-lists-for-an-offline-memcg-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-handle-implicit-read-permissions-in-madv_populate.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,81 +86,151 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/list_lru: verify memcg owner before skipping allocation
-Date: Thu, 12 Nov 2026 16:08:59 -0800
+From: Xionggui Chen <chenxionggui@lanxincomputing.com>
+Subject: selftests/mm: handle implicit read permissions in madv_populate
+Date: Thu, 12 Nov 2026 03:18:11 +0000
 
-list_lru_from_memcg() rejects an entry at a reused kmemcg_id when it
-belongs to another memcg.  memcg_list_lru_allocated() still treats any
-entry at that index as a list for the requested memcg.  Its callers can
-therefore skip the allocation of that memcg's ancestor lists.
+The madv_populate selftest assumes that mmap(PROT_WRITE) creates a VMA
+without VM_READ and expects MADV_POPULATE_READ to fail with EINVAL.
 
-With child C and parent P's lists both unallocated, a reader can retain C
-while it is offlined.  If an unrelated new memcg reuses C's ID and
-allocates its own list, the reader mistakes that entry for C's and skips
-allocation of P's list.  Once the folio's objcg points to P,
-deferred_split_folio() can add it to the root list.  If P later gets a
-list, unqueue locks P's list while unlinking the folio from root's list,
-which can corrupt that list under concurrent operations.
+On RISC-V, commit 6c7559f22b6f ("riscv/mm: ensure PROT_WRITE leads to
+VM_READ | VM_WRITE") makes the kernel set VM_READ for mappings requested
+with PROT_WRITE.  MADV_POPULATE_READ checks this VMA permission, so it
+succeeds and the test fails incorrectly.  Whether the hardware can read a
+writable PTE does not, by itself, determine the madvise() result.
 
-Require the entry to belong to the requested memcg before returning true. 
-Hold RCU over the XArray load and owner comparison because this helper is
-also called outside the folio fast path's RCU section.
+Check the VMA permissions through /proc/self/maps and adjust the expected
+result accordingly.
 
-Link: https://lore.kernel.org/20261112161502.18d9d72c0139b8f69bb88ff4@linux-foundation.org
+Add a PROT_NONE test to verify that MADV_POPULATE_READ still fails with
+EINVAL for mappings without read permission.
+
+On RISC-V with Linux 7.2.0, the original test fails 1 out of 16 tests,
+while the updated test passes all 17 tests.
+
+Link: https://lore.kernel.org/20261112031811.56500-1-evers_chen@163.com
+Fixes: e5bfac53e310 ("selftests/vm: add test for MADV_POPULATE_(READ|WRITE)")
+Signed-off-by: Xionggui Chen <chenxionggui@lanxincomputing.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reported-by: <sashiko-bot@kernel.org>
-Closes: https://lore.kernel.org/sashiko-outbox-211977@kernel.org
-Cc: Chris Mason <mason@kernel.org>
-Cc: Dave Chinner <david@fromorbit.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
 ---
 
- mm/list_lru.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/madv_populate.c |   67 +++++++++++++++++--
+ 1 file changed, 63 insertions(+), 4 deletions(-)
 
---- a/mm/list_lru.c~mm-list_lru-dont-use-a-new-memcgs-lists-for-an-offline-memcg-fix
-+++ a/mm/list_lru.c
-@@ -568,9 +568,19 @@ void memcg_reparent_list_lrus(struct mem
- static inline bool memcg_list_lru_allocated(struct mem_cgroup *memcg,
- 					    struct list_lru *lru)
- {
-+	struct list_lru_memcg *mlru;
-+	bool allocated;
- 	int idx = memcg->kmemcg_id;
- 
--	return idx < 0 || xa_load(&lru->xa, idx);
-+	if (idx < 0)
-+		return true;
-+
-+	rcu_read_lock();
-+	mlru = xa_load(&lru->xa, idx);
-+	allocated = mlru && mlru->memcg == memcg;
-+	rcu_read_unlock();
-+
-+	return allocated;
+--- a/tools/testing/selftests/mm/madv_populate.c~selftests-mm-handle-implicit-read-permissions-in-madv_populate
++++ a/tools/testing/selftests/mm/madv_populate.c
+@@ -69,10 +69,38 @@ static void test_prot_read(void)
+ 	munmap(addr, SIZE);
  }
  
- static int __memcg_list_lru_alloc(struct mem_cgroup *memcg,
++static int mapping_is_readable(void *addr)
++{
++	FILE *maps;
++	char line[256];
++	unsigned long start, end;
++	char perms[5];
++	int readable = -1;
++
++	maps = fopen("/proc/self/maps", "r");
++	if (!maps)
++		return -1;
++
++	while (fgets(line, sizeof(line), maps)) {
++		if (sscanf(line, "%lx-%lx %4s",
++			   &start, &end, perms) != 3)
++			continue;
++
++		if (start <= (unsigned long)addr &&
++		    (unsigned long)addr < end) {
++			readable = perms[0] == 'r';
++			break;
++		}
++	}
++
++	fclose(maps);
++	return readable;
++}
++
+ static void test_prot_write(void)
+ {
+ 	char *addr;
+-	int ret;
++	int ret, readable;
+ 
+ 	ksft_print_msg("[RUN] %s\n", __func__);
+ 
+@@ -80,9 +108,19 @@ static void test_prot_write(void)
+ 	if (addr == MAP_FAILED)
+ 		ksft_exit_fail_msg("mmap failed\n");
+ 
++	readable = mapping_is_readable(addr);
++	if (readable < 0)
++		ksft_exit_fail_msg("Cannot determine VMA permissions\n");
++
++	errno = 0;
+ 	ret = madvise(addr, SIZE, MADV_POPULATE_READ);
+-	ksft_test_result(ret == -1 && errno == EINVAL,
+-			 "MADV_POPULATE_READ with PROT_WRITE\n");
++
++	if (readable)
++		ksft_test_result(ret == 0,
++				 "MADV_POPULATE_READ with readable PROT_WRITE mapping\n");
++	else
++		ksft_test_result(ret == -1 && errno == EINVAL,
++				 "MADV_POPULATE_READ with write-only mapping\n");
+ 
+ 	ret = madvise(addr, SIZE, MADV_POPULATE_WRITE);
+ 	ksft_test_result(!ret, "MADV_POPULATE_WRITE with PROT_WRITE\n");
+@@ -90,6 +128,26 @@ static void test_prot_write(void)
+ 	munmap(addr, SIZE);
+ }
+ 
++static void test_prot_none(void)
++{
++	char *addr;
++	int ret;
++
++	ksft_print_msg("[RUN] %s\n", __func__);
++
++	addr = mmap(0, SIZE, PROT_NONE,
++		    MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
++	if (addr == MAP_FAILED)
++		ksft_exit_fail_msg("mmap failed\n");
++
++	errno = 0;
++	ret = madvise(addr, SIZE, MADV_POPULATE_READ);
++	ksft_test_result(ret == -1 && errno == EINVAL,
++			 "MADV_POPULATE_READ with PROT_NONE\n");
++
++	munmap(addr, SIZE);
++}
++
+ static void test_holes(void)
+ {
+ 	char *addr;
+@@ -266,7 +324,7 @@ static void test_softdirty(void)
+ 
+ int main(int argc, char **argv)
+ {
+-	int nr_tests = 16;
++	int nr_tests = 17;
+ 	int err;
+ 
+ 	pagesize = getpagesize();
+@@ -280,6 +338,7 @@ int main(int argc, char **argv)
+ 	sense_support();
+ 	test_prot_read();
+ 	test_prot_write();
++	test_prot_none();
+ 	test_holes();
+ 	test_populate_read();
+ 	test_populate_write();
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from chenxionggui@lanxincomputing.com are
 
-mm-list_lru-dont-use-a-new-memcgs-lists-for-an-offline-memcg-fix.patch
-shmem-consume-the-reserved-xattr-space-despite-remount.patch
-selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
-selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
-profile-account-for-partial-proc-profile-reads.patch
-profile-simplify-proc-profile-read-layout.patch
-ipc-msg-clamp-negative-msg_info-usage-counts.patch
-squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+selftests-mm-handle-implicit-read-permissions-in-madv_populate.patch
 
