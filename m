@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794537479;
-	b=jBCdL0g3DmrpvI5yGJn0/7jcy6v6Fi4dM6Qd53rg9EqxCMyZN9/fEcO+MNl9PGMGfwcv
-	 nkm/Io01wSIUsYfauDS7C+PFWJYrGtJPjAC5suE+s5v7uNICgdg4yeuxgVsHSYsT/XCVn
-	 3udhWToCX2G9X/LC+PxfSDn5dKeEqBB5Hoo838y0AM6Xo0zI2Nj8sWxE1LG9UdEkphhhg
-	 Xvjq5mMsMvqTlTmqPdHieMLoXHnv47uStvRHVQNAE+it/m9Ot44rCQ2W1+5w27Z7KK4LM
-	 mUg6spLi8PkxvQnfRrWQF/HZl/encMV5Jk59HXaRkfBK+/3aHajc5GeYIw/GDSfaXSQ==
+	t=1794537673;
+	b=302fF6N73zdqaYRAJL9eWs9xbOuu5Fzs+hk1EDYPIYmGSbZkktF6pKi40MfyGKLs3Dqc
+	 LTGdpsRqFoPGasuewyv7AeyDncfbLoi4G7PSx1wlsVeWWUW/Ss8YdDua4aEkSUqJlIDae
+	 TUgu7KVVmREuaDpAbI/YCAw+O0mBmzoYEc8P9nOM0+Jt87Y0hhhErIlThPCP/eQbhS4Bc
+	 P5uAI39absvJ6Eh9Ipc9jKRnHqppqvC6C2ITNs1nKbBXh/CNjrQw2XBGSTTy3EYfCa6az
+	 VFXsxRK+aykkpWyrmHLRkRqLY+pBId8VUyZ7FWLNYU7y/jviHAF+RgKud11MVJngyTg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794537479;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794537673;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=MmMroKZ6qP/an0i685srpINq1TYiPMxG+Q5xiyoaPvM=;
-	b=qBJKxCi5yq6H4Fzt8urq+Ra8JrrCntEc10dhwEeWl2SDCg96+uRb8vTMMkjsEeK5g44Y
-	 5KzXUohDYHDxRLb5y7UfjXly73wDGnaCsvSibrz2DLXEfn+AOtPlsBRIcwT5PqhjCrsAl
-	 7865XDh9xhdIEgE9M3Z5FPJJLaMxGww5j2wrC0kYiGSt+ByAfsJdHpnn0Z5u0osw4hr9t
-	 tuZmJm23tfGhq1X7a3f7aBBb7KVrdRvdAyPoroYWb75f7GfOMggBJ3GELcdkjtwOMjOIq
-	 vYCUj9I31KWSpVyiPSjFdI51tzmUgw3Zdc162Ax9S7T18Mt8DudDKo+6+5J51JlkoSA==
+	bh=oOYUz5DYYYrzwO5eKdl2iR2LuZ5mx26Ev11XNE98bDY=;
+	b=1felOZJGSsTN8r2PehXbjKauj+Cwk+cnEw57z3ygO0aJv9+8TynlP60jhplp9U6CR1oG
+	 0NILHR+E4yoa5pt9s28sai/BZXF1ZdxmSNTp6eE7vNGu1/F6w9fCeXWpcp8E0K8lyyFTA
+	 bbvlabFX7tC4ivDpOGnGgLv8VoMXtH8h1ogaeGBGOd/uSx8peGjeSLkGpJ4YpcPpXzhUb
+	 6DDro71kvfkvoQeykHcpJghMPOWj4tgXEErsFnYKio1t+HRupAOp7STPSSdUklgLx4Rlh
+	 TORuLQsSP+KaXpqzJ2byeW4cZW7xHeKpRGTHyVw4BgL7xEd6/ktDNXgGfpunZ+C32iQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QG121BAp;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mGLDiA6q;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22B0A606A31C
-	for <mm-commits@vger.kernel.org>; Fri, 13 Nov 2026 02:37:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7D01606A31C
+	for <mm-commits@vger.kernel.org>; Fri, 13 Nov 2026 02:41:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QG121BAp
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F7E31F000C5;
-	Fri, 13 Nov 2026 02:37:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mGLDiA6q
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 630971F000C4;
+	Fri, 13 Nov 2026 02:41:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794537478;
-	bh=MmMroKZ6qP/an0i685srpINq1TYiPMxG+Q5xiyoaPvM=;
+	d=linux-foundation.org; s=korg; t=1794537673;
+	bh=oOYUz5DYYYrzwO5eKdl2iR2LuZ5mx26Ev11XNE98bDY=;
 	h=Date:To:From:Subject;
-	b=QG121BAphxUbQWbLsK9zxYtQTOHybQL85OKtvjb0MfgF4O6zcKI63zR2xStT/Rh+U
-	 J5jLJKJVZhvlhj9EV88RglDClxAdaDiPbc1XlqmrqrojDmnxtIbo6FMdjfSEDDo/gY
-	 MZNDr6nTtviUxS2H/Jyu0z6pm4It+4dvUKHfVjmo=
-Date: Thu, 12 Nov 2026 18:37:58 -0800
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
-	pfalcato@suse.de,ljs@kernel.org,liam@infradead.org,jannh@google.com,
-	ahuang12@lenovo.com,adrianhuang0701@gmail.com,akpm@linux-foundation.org
+	b=mGLDiA6qqg0s5Hypayc+SJMMJseUnUOl+mem3X3Nd3DKMMcHlmdDZD6UjmGOLonEQ
+	 EKxCR5ewUNHv2/7OTi0mGlIVmAkLOAI9LhqS1kHI8dGGB54Bu+M/9oh1JHnQMuHm/I
+	 T/2Agu+ngvY++1lKH0JIYN/B5d2XortwywnccYEw=
+Date: Thu, 12 Nov 2026 18:41:12 -0800
+To: mm-commits@vger.kernel.org,richard@nod.at,johannes@sipsolutions.net,
+	hch@lst.de,anton.ivanov@cambridgegreys.com,ebiggers@kernel.org,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-task_mmu-advance-seq_file-position-on-interrupted-vma-lookup.patch added to mm-new branch
-Message-Id: <20261113023758.8F7E31F000C5@smtp.kernel.org>
+Subject: + um-define-kernel_fpu_begin_mask.patch added to mm-nonmm-unstable branch
+Message-Id: <20261113024113.630971F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,26 +53,15 @@ Precedence: list
 
 
 The patch titled
-     Subject: fs/proc/task_mmu: advance seq_file position on interrupted VMA lookup
-has been added to the -mm mm-new branch.  Its filename is
-     fs-proc-task_mmu-advance-seq_file-position-on-interrupted-vma-lookup.patch
+     Subject: um: define kernel_fpu_begin_mask()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     um-define-kernel_fpu_begin_mask.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-advance-seq_file-position-on-interrupted-vma-lookup.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/um-define-kernel_fpu_begin_mask.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -87,71 +76,68 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Adrian Huang (Lenovo)" <adrianhuang0701@gmail.com>
-Subject: fs/proc/task_mmu: advance seq_file position on interrupted VMA lookup
-Date: Thu, 12 Nov 2026 22:01:01 +0800
+From: Eric Biggers <ebiggers@kernel.org>
+Subject: um: define kernel_fpu_begin_mask()
+Date: Wed, 11 Nov 2026 12:56:02 -0800
 
-Commit 5631da56c9a8 ("fs/proc/task_mmu: read proc/pid/maps under per-vma
-lock") introduced the possibility of returning -EINTR from proc_get_vma()
-when the VMA lookup is interrupted.
+Patch series "lib/raid: opt out of initializing MXCSR and 387 state".
 
-When this happens in m_next(), proc_get_vma() returns an error pointer
-without updating the position index.  Consequently, seq_read_iter()
-reports:
+This series slightly reduces the overhead of the x86 kernel-mode "FPU"
+sections in the RAID code by using kernel_fpu_begin_mask(0) instead of
+kernel_fpu_begin(), thus opting out of the 'ldmxcsr' (and on 32-bit
+kernels, also 'fninit').  MXCSR is irrelevant for integer code.
 
-  seq_file: buggy .next function m_next did not update position index
+This mirrors similar optimizations for the crypto and CRC code
+(https://lore.kernel.org/linux-crypto/20261105005523.84925-1-ebiggers@kernel.org/).
+It's more important there than in the RAID code, since short lengths are
+common in the x86-optimized crypto and CRC functions.  However, I think
+it's worth updating the RAID code too for consistency.
 
-The above buggy message is reproduced by the following command:
+Unlike the crypto and CRC code, the RAID code is built for user-mode
+Linux.  Therefore, as a prerequisite for this change, patch 1 also
+defines a stub for kernel_fpu_begin_mask() on user-mode Linux.
 
-  # stress-ng --vma 0 -t 60
 
-Update the position index when VMA lookup fails, as required by the
-seq_file interface.  Also save the original position in priv->last_pos so
-that subsequent iteration can restart from the correct address without
-skipping or repeating a VMA.
+This patch (of 3):
 
-Link: https://lore.kernel.org/20261112140101.647-1-adrianhuang0701@gmail.com
-Fixes: 5631da56c9a8 ("fs/proc/task_mmu: read proc/pid/maps under per-vma lock")
-Signed-off-by: Adrian Huang (Lenovo) <adrianhuang0701@gmail.com>
+Define a stub for kernel_fpu_begin_mask() on user-mode Linux so that
+lib/raid/ can switch from kernel_fpu_begin() to kernel_fpu_begin_mask().
+
+Note: this causes a checkpatch error due to the macro's value not having
+outer parentheses, but it's left as-is for consistency with the existing
+kernel_fpu_begin() and kernel_fpu_end() definitions right next to it.
+
+Link: https://lore.kernel.org/20261111205604.47547-1-ebiggers@kernel.org
+Link: https://lore.kernel.org/20261111205604.47547-2-ebiggers@kernel.org
+Signed-off-by: Eric Biggers <ebiggers@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Adrian Huang <ahuang12@lenovo.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
 ---
 
- fs/proc/task_mmu.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ arch/um/include/asm/fpu/api.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/fs/proc/task_mmu.c~fs-proc-task_mmu-advance-seq_file-position-on-interrupted-vma-lookup
-+++ a/fs/proc/task_mmu.c
-@@ -221,6 +221,16 @@ retry:
- 		if (PTR_ERR(vma) == -EAGAIN && fallback_to_mmap_lock(priv, *ppos))
- 			goto retry;
+--- a/arch/um/include/asm/fpu/api.h~um-define-kernel_fpu_begin_mask
++++ a/arch/um/include/asm/fpu/api.h
+@@ -11,6 +11,7 @@
+  * UML code tree. */
  
-+		/*
-+		 * seq_file checks that the position advanced before it looks at
-+		 * the returned pointer, so an error return that leaves *ppos
-+		 * alone is reported as a buggy ->next. Advance it, and keep
-+		 * last_pos at the pending position so m_start() would resume
-+		 * the lookup from there.
-+		 */
-+		priv->last_pos = *ppos;
-+		(*ppos)++;
-+
- 		return vma;
- 	}
+ #define kernel_fpu_begin() (void)0
++#define kernel_fpu_begin_mask(mask) (void)(mask)
+ #define kernel_fpu_end() (void)0
  
+ static inline bool irq_fpu_usable(void)
 _
 
-Patches currently in -mm which might be from adrianhuang0701@gmail.com are
+Patches currently in -mm which might be from ebiggers@kernel.org are
 
-mm-damon-core-remove-unnecessary-zero-initialization-in-damon_new_ctx.patch
-docs-admin-guide-mm-damon-fix-various-typos.patch
-docs-admin-guide-mm-damon-lru_sort-fix-copy-paste-mistakes.patch
-docs-admin-guide-mm-damon-usage-fix-incorrect-option-syntax-in-perf-example.patch
-fs-proc-task_mmu-advance-seq_file-position-on-interrupted-vma-lookup.patch
+xor-remove-obsolete-mmx-optimized-code.patch
+raid6-remove-obsolete-mmx-optimized-code.patch
+raid6-simplify-cpu-feature-checks.patch
+um-define-kernel_fpu_begin_mask.patch
+xor-opt-out-of-initializing-mxcsr-and-387-state.patch
+raid6-opt-out-of-initializing-mxcsr-and-387-state.patch
 
