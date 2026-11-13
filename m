@@ -1,49 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794545767;
-	b=wne8wKcw2ca3NUeKX6BQSwQL7I/msbgUWHljbD/dZdod2U5iQxNzMB3BGZre8k5HnV4C
-	 k1eRPCqM+8JkyDafpxk7L/bjuSNxfjeuWojIT/w1mRVSS4iH2Sj/p3dxwBgFwgtMEaILw
-	 CwoFhZ+4h0msyAZi7EKjx+GAVcNtLEqzWjsZv0PAKCgkQ4Os5kMTxC6GTotNamMBVIlx0
-	 PRmwgdgM8wR8WihOc6gwcBQPm7yyCuuRR0lzWLZka8zulvxBivD/3e/zM0j8bQDy2V2Zc
-	 HCKQ2uPyJZPzws7vHV/ZFK86RDzadnuH+bgRe4hL4/lK74UbKkKUBLf2AceczE/VNnw==
+	t=1794545806;
+	b=NHPpA5gBluQL2ZDEuetFEgZjblKO8mcZDlNMkNrwIo6KmrqFD3TB+2RBSaSsYmix6FOA
+	 LCvIytDeVI2d2iklAPuP/rRZxcZRBiJ3laR2tmlsQzyQCENOd243cU+gRSzkqt6EjTjoK
+	 mVz1CAB7YR9NC8LMVx+qL0oametecjqSemJcRRz2iqP/et4zmjXuFXQuKbMlmNYjhXEmw
+	 tLcjw/j/6hWMerqmKBeB8YN92uJOjD5yVHxF6sRiUWbf7C+VomP/Nr4757bFj3s1LIAXd
+	 Y7ze4f98dTynu9wpTaovqFBsc7l0w/5Ihaoh5664iOFA2UCYVyaJYUBWm0C8UfIeoiw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794545767;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794545806;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=We/st05orEIpntuW/9n+L0rBvBFlCCsWxwkiHvqr97s=;
-	b=S0car8hGR0G5zAcwTgBbMo28csTYVGAzc4nVNVP1C40CWG31LjCQr+Qm4QcyGYO0nh3V
-	 FHtqnfBqG7KM54H0kyNcRcGWDaPUT3uubgnnfNoQPr3XGoUTZl+vFn16KI/Eg+wlXx/Gg
-	 Q3mja9M+C9aR+5Y6S0QNgmsz+m7LNZNJvpoXa+EZznPQar7XtoMvfjGU34CoJVEazamDP
-	 LT8bZXBZ8F6q+YC7HfRx/kofBOJwC6cieOdWO3furi59IWIxnqgd0IAm0cZfMONfpcd7+
-	 eLPaQT0fVPdvvjafPfgnV1NzJdbRjNohLYIiTW9hD2GuouENp9c76HkNv3IwfSAHzpg==
+	bh=ugi4XyiyWwcvnRfoED9cjV5fXP5hPS97szZ9XwE0AKU=;
+	b=MmB1zU1gv1eohbQEBn5TNC9aIwoGswsvWNq2DH+3/RLm6z86CYmDDhoebA6Xz5pLrL5s
+	 4LmOu7LgpXh3UThxweGQdW9zbZ6BJlSQCsLluW9tOw6IArbHtlPN3MzsWoP5/6LdZInn9
+	 zH18W3rjVxXr3h3tAIy8ZPU7A+fLzu8qvCYbsvAjwiACJsF2VFn+6AAmOFji6cE3ycedK
+	 WzmVZpQz2t14XrgmZjT0OrANVwRA6udybyB60gAGWBRIi6FnwGXl0n+sG9aGomEaSuA7l
+	 xelnlej7mkI37yHvFqb98G49pAbNeHl0P6TZjbIqiIQwI7xWI32hNchSNLK5CQoUEHg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tIgYu0hn;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=BtEvlQsf;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1BE9606A335
-	for <mm-commits@vger.kernel.org>; Fri, 13 Nov 2026 04:56:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBD1F606A31C
+	for <mm-commits@vger.kernel.org>; Fri, 13 Nov 2026 04:56:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tIgYu0hn
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C8F01F000C4;
-	Fri, 13 Nov 2026 04:56:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=BtEvlQsf
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 465E21F000C4;
+	Fri, 13 Nov 2026 04:56:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794545766;
-	bh=We/st05orEIpntuW/9n+L0rBvBFlCCsWxwkiHvqr97s=;
+	d=linux-foundation.org; s=korg; t=1794545806;
+	bh=ugi4XyiyWwcvnRfoED9cjV5fXP5hPS97szZ9XwE0AKU=;
 	h=Date:To:From:Subject;
-	b=tIgYu0hnt4AdOWTxaJxVPn0lPWTUyItgqlNx7vYsjkrxgDQompQnF/FPsRKli6PdM
-	 +5EnHloEGjIzOdmiiBwcVu9vCGLwyfrUPrNYtGT0qcVliMDox89Y0/kuDXzRVra9oe
-	 YMd4h3up1TIfCfxEbkyWc8mGjN1Kd/BAiu9bGdUI=
-Date: Thu, 12 Nov 2026 20:56:05 -0800
-To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,
-	shakeel.butt@linux.dev,qi.zheng@linux.dev,mhocko@kernel.org,
-	kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baoquan.he@linux.dev,
-	baohua@kernel.org,axelrasmussen@google.com,baolin.wang@linux.alibaba.com,
+	b=BtEvlQsf4U3DPS921Mz6fISXViNxmJPbaVk1BIsmhGwdMe9uSdn6eTBmJrZSiJAWa
+	 TWCllHad1s9KqP6gVFMg0EH8jfeeiXSt0eDfD9yMcU/H+Dcji2gQw37863tZx9Y9PV
+	 AXh6aP1JKDJJD5Gj1B9TYgLRFYr3z3OafwoZ4s20=
+Date: Thu, 12 Nov 2026 20:56:45 -0800
+To: mm-commits@vger.kernel.org,joe@perches.com,elver@google.com,
+	dwaipayanray1@gmail.com,apw@canonical.com,vdonnefort@google.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] mm-mglru-use-pte_table_clamped_end-helper-to-calculate-the-end.patch removed from -mm tree
-Message-Id: <20261113045606.2C8F01F000C4@smtp.kernel.org>
+Subject: [to-be-updated] checkpatch-add-context-analysis-attributes.patch removed from -mm tree
+Message-Id: <20261113045646.465E21F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,55 +53,71 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm: mglru: use pte_table_clamped_end() helper to calculate the end
+     Subject: checkpatch: add context-analysis attributes
 has been removed from the -mm tree.  Its filename was
-     mm-mglru-use-pte_table_clamped_end-helper-to-calculate-the-end.patch
+     checkpatch-add-context-analysis-attributes.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: mglru: use pte_table_clamped_end() helper to calculate the end
-Date: Thu, 12 Nov 2026 19:12:39 +0800
+From: Vincent Donnefort <vdonnefort@google.com>
+Subject: checkpatch: add context-analysis attributes
+Date: Thu, 12 Nov 2026 15:12:03 +0000
 
-Use pte_table_clamped_end() to clamp the range to the PTE table and VMA
-boundaries when batch-checking young flags, making the code more readable.
+Checkpatch doesn't know about the context analysis attributes and
+misparses annotated declarations (e.g.  mistaking __guarded_by() fields
+for extern prototype).  Add them to the known attributes list.
 
-No functional changes intended.
-
-Link: https://lore.kernel.org/b2386c5da61f9a15e60daa421b033bc1e0bcdd41.1794481498.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Link: https://lore.kernel.org/20261112151203.3129005-1-vdonnefort@google.com
+Signed-off-by: Vincent Donnefort <vdonnefort@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Michal Hocko <mhocko@kernel.org>
+Acked-by: Marco Elver <elver@google.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
---- a/mm/vmscan.c~mm-mglru-use-pte_table_clamped_end-helper-to-calculate-the-end
-+++ a/mm/vmscan.c
-@@ -4340,7 +4340,7 @@ bool lru_gen_look_around(struct page_vma
- 	walk = current->reclaim_state ? current->reclaim_state->mm_walk : NULL;
+--- a/scripts/checkpatch.pl~checkpatch-add-context-analysis-attributes
++++ a/scripts/checkpatch.pl
+@@ -526,6 +526,25 @@ our $InitAttributeData = qr{$InitAttribu
+ our $InitAttributeConst = qr{$InitAttributePrefix(?:initconst\b)};
+ our $InitAttributeInit = qr{$InitAttributePrefix(?:init\b)};
+ our $InitAttribute = qr{$InitAttributeData|$InitAttributeConst|$InitAttributeInit};
++our $ContextAnalysis = qr{
++			__guarded_by\b|
++			__pt_guarded_by\b|
++			__rcu_guarded\b|
++			__must_hold\b|
++			__must_hold_shared\b|
++			__must_not_hold\b|
++			__acquires\b|
++			__acquires_shared\b|
++			__cond_acquires\b|
++			__cond_acquires_shared\b|
++			__releases\b|
++			__releases_shared\b|
++			__cond_releases\b|
++			__no_context_analysis\b|
++			__context_unsafe\b|
++			__acquires_ret\b|
++			__acquires_shared_ret\b
++		}x;
  
- 	start = max(addr & PMD_MASK, vma->vm_start);
--	end = min(addr | ~PMD_MASK, vma->vm_end - 1) + 1;
-+	end = pte_table_clamped_end(addr, vma->vm_end);
- 
- 	if (end - start == PAGE_SIZE)
- 		return true;
+ # Notes to $Attribute:
+ # We need \b after 'init' otherwise 'initconst' will cause a false positive in a check
+@@ -551,6 +570,7 @@ our $Attribute	= qr{
+ 			__ro_after_init|
+ 			__kprobes|
+ 			$InitAttribute|
++			$ContextAnalysis|
+ 			__aligned\s*\(.*\)|
+ 			____cacheline_aligned|
+ 			____cacheline_aligned_in_smp|
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from vdonnefort@google.com are
 
-mm-synchronize-with-pte-table-reclaim-for-all-folio-sizes.patch
 
