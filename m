@@ -1,47 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794538106;
-	b=U9XNrihs2vX4bObfXh72LtLbu/mwBqPiqi1oAhcNU64GRaxlmjRxfirAqvR9CY6rI5h4
-	 mTZNLISE73vbkLVT6U9oGR4jPlS3OoZfH+nIa7MhMBJbSuGSwU5LYW+SmIwtPXgV3urjR
-	 kuSa7f+nXl9gPIsZMSR6SzvWEsD5FKy6ncKrGrhszyPe3LBYyM78AewFEWNqW7mbD4aXK
-	 ilaUvAi6csT5J04NCwuqs6vCIQJ+koqTkCDabbSeFAIlvPVc15kwPer5Qr0ymm+E/fV5c
-	 POYEgBfYK32GwMNivDmE99vPZW5d7C1CzqZwzGBH+QlpXWYESRHItLaSsC4RQskYA4g==
+	t=1794539084;
+	b=jSdB65lKK1u/ilCVrhWvurQHIF/a+o3rYit0DdKqhb3Nw9j4kpKqgd1hdGvqD5F/m4RZ
+	 aqUInd/J7yzITXOQQdaXr+DZpFE8+Y6kqVw+x+xqZbOXyKu1TqeuSqa4ku+seqFcTb7Ib
+	 uI+Q8Teh/ec2IX/BVmVkh/+Zrmug7qV74gE+2Mt6XC/bPBv+6rrkzZ9M5VlEO7BnqLVeY
+	 m3+74N+FWhF8ZwAaJ1vUmV8wwfs7A/a6RYxw6crU3FfLk8T0EXpEaMTn9Ic9fz6qLg4sB
+	 iadqV3gLHivpd5WacWpvOYuewUmWwSKVGltkvbdRHxhZUrlV4SUuJSwlq0SsxTcYJqw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794538106;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794539084;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=I+dGkrjBPqL2FU3aleoPSPTED6sd0gsnAxrJjS9QbUE=;
-	b=3fn/GqramtovD7eSismKxsI7tm5VKr72tnxV1xA0omkuliWNAORI8CTw1F65BmyTcWvG
-	 MSKusi52PTvYc0eUvQhRkN7RXKYS7yml+dP2ECeDnxxlLQS79uXE6rkzbRQUf5InmvUaM
-	 gxTqHtBIMvXZ52EvQPBDL4L410O5TQ/PVJSisgSkjhcAAzcG0aq+A1TNdlRTZ6mKSGdF7
-	 L7mVvZYlS+/9I/Vc6FmodjUCiC48wIQvN/OzpuZE6SahfBqCjZ6hMslXSUcITY/PUbJct
-	 0KY79T8YD+y1J6xWX4IIXKa0Y5kEbpZhsP8rckm9nKPoMYJJxXpr6XBPTSqDrQCBMTw==
+	bh=OchJebQWWvO5xwStwPSGEYDaM1cAO4y98APdKg/rRkc=;
+	b=XlH76K5N7uaC5RZOib+wjtrcRZec3u0jkjOoK4leOdpd4UNMsd//kSV/GTTd8TFvzWE+
+	 uAev5Ut7h8kQdrHseaeHVlupPkox2NaKYljeHKz40NSRvA0eC/DkKgxkIM/2q36wrjLd6
+	 8BXv7m1vnZPbLU6hJod/afMF55tSalHy92dCeyAg/Y4TU/oJXt2VV8MaFjp2Q/FD+V+kT
+	 vQ/wSMgwjXvCBQCDovzHaW5MgSenXIVC40YEz891X/9RSkePuidi18ZPlYlQJgFmeHk+b
+	 IC9PA9Ji+jt7kWBeVOGPGI/YvkTBKTH476cmR46Van2Vxmh4HdnXUWuaUrYmlHMg6lg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=x7wru82R;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=KLUYYvBD;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26663606A321
-	for <mm-commits@vger.kernel.org>; Fri, 13 Nov 2026 02:48:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6BA7606A321;
+	Fri, 13 Nov 2026 03:04:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=x7wru82R
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9295A1F000C5;
-	Fri, 13 Nov 2026 02:48:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=KLUYYvBD
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D4221F000C4;
+	Fri, 13 Nov 2026 03:04:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794538105;
-	bh=I+dGkrjBPqL2FU3aleoPSPTED6sd0gsnAxrJjS9QbUE=;
+	d=linux-foundation.org; s=korg; t=1794539083;
+	bh=OchJebQWWvO5xwStwPSGEYDaM1cAO4y98APdKg/rRkc=;
 	h=Date:To:From:Subject;
-	b=x7wru82RjMSSx6r2aoVeLxzMzRu7W8H3DyaP8+zjO9t26EJlsWmVS2KJ9SZdrH6Pa
-	 x1VeStjyfwjf09QxUH1L+ADhv3dVhM3KDN5lSpRW7gEKC/jD+ocKxtlq48+MQ02Ls0
-	 kPel9H6AU4p7A9CJWwApxFAmNYQ1aSMPkdfwGAX0=
-Date: Thu, 12 Nov 2026 18:48:25 -0800
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
-	rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,
-	david@kernel.org,aleszlucero@gmail.com,akpm@linux-foundation.org
+	b=KLUYYvBDqVOLKhy5pAYC5m0xgo+WWqxumi2456YVtpn6BSUp7GtOWdZ2itcE9Whqq
+	 e0pl9s1na6BsoJKwc/R4aMl8p0CbIE+fYuMbVp3QIwv9zeiWg41bP9lsMEby3JF6if
+	 HxAyHkSBT6EVLXA64oz+c3jraSb9Rs2Dan2oRSn4=
+Date: Thu, 12 Nov 2026 19:04:42 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,phillip@squashfs.org.uk,
+	kmehltretter@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pagewalk-document-missing-struct-members.patch added to mm-new branch
-Message-Id: <20261113024825.9295A1F000C5@smtp.kernel.org>
+Subject: [obsolete] squashfs-make-the-fragment-index-table-bounds-check-overflow-safe.patch removed from -mm tree
+Message-Id: <20261113030443.2D4221F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,98 +51,70 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
-     Subject: mm/pagewalk: document missing struct members
-has been added to the -mm mm-new branch.  Its filename is
-     mm-pagewalk-document-missing-struct-members.patch
+The quilt patch titled
+     Subject: squashfs: make the fragment index table bounds check overflow-safe
+has been removed from the -mm tree.  Its filename was
+     squashfs-make-the-fragment-index-table-bounds-check-overflow-safe.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-document-missing-struct-members.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Oscar Alejandro Sánchez Lucero <aleszlucero@gmail.com>
-Subject: mm/pagewalk: document missing struct members
-Date: Thu, 12 Nov 2026 18:44:07 -0600
+From: Karl Mehltretter <kmehltretter@gmail.com>
+Subject: squashfs: make the fragment index table bounds check overflow-safe
+Date: Sat, 22 Aug 2026 16:33:28 +0200
 
-Add missing kernel-doc entries for @walk_lock in struct mm_walk_ops, and
-for @ptep, @pudp, @pmdp, and @vma in struct folio_walk.  Also fix @pte,
-@pud, and @pmd descriptions to state they hold entry values, not pointers.
+squashfs_read_fragment_index_table() checks that the table fits before the
+next one with:
 
-Link: https://lore.kernel.org/20261112-pagewalk-doc-v1-1-6cc5ce7148da@gmail.com
-Signed-off-by: Oscar Alejandro Sánchez Lucero <aleszlucero@gmail.com>
+	if (fragment_table_start + length > next_table)
+		return ERR_PTR(-EINVAL);
+
+fragment_table_start comes from the superblock and is not validated before
+this point.  A start of 2^64 - length wraps the sum to zero, so the check
+passes regardless of next_table and fails to reject the invalid table
+ordering.
+
+length then reaches kmalloc() through squashfs_read_table().  A fragment
+count of 0xffffffff asks for 64MB, order 14.  GFP_KERNEL does not include
+__GFP_NOWARN, so the page allocator warns before the mount fails with
+-ENOMEM.  With panic_on_warn, the warning panics the kernel.
+
+Compare the operands instead of adding them.  id.c and export.c avoid the
+same wrap with an exact-size check.  Keep the inequality here because a
+gap before the next table is still allowed.
+
+Link: https://lore.kernel.org/20260822143328.68867-3-kmehltretter@gmail.com
+Fixes: 1cac63cc9b2f ("Squashfs: add sanity checks to fragment reading at mount time")
+Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Assisted-by: Claude:claude-opus-5
+Cc: Phillip Lougher <phillip@squashfs.org.uk>
+Cc: <stable@vger.kernel.org>
 ---
 
- include/linux/pagewalk.h |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ fs/squashfs/fragment.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/include/linux/pagewalk.h~mm-pagewalk-document-missing-struct-members
-+++ a/include/linux/pagewalk.h
-@@ -63,6 +63,8 @@ enum page_walk_lock {
-  *                      install. If allocations fail, the walk is aborted. This
-  *                      operation is only available for userland memory. Not
-  *                      usable for hugetlb ranges.
-+ * @walk_lock:          locking requirement during the page walk (see
-+ *                      enum page_walk_lock).
-  *
-  * p?d_entry callbacks are called even if those levels are folded on a
-  * particular architecture/configuration.
-@@ -161,10 +163,14 @@ enum folio_walk_level {
-  * struct folio_walk - folio_walk_start() / folio_walk_end() data
-  * @page:	exact folio page referenced (if applicable)
-  * @level:	page table level identifying the entry type
-- * @pte:	pointer to the page table entry (FW_LEVEL_PTE).
-- * @pmd:	pointer to the page table entry (FW_LEVEL_PMD).
-- * @pud:	pointer to the page table entry (FW_LEVEL_PUD).
-- * @ptl:	pointer to the page table lock.
-+ * @ptep:	pointer to the page table entry (FW_LEVEL_PTE).
-+ * @pudp:	pointer to the page table entry (FW_LEVEL_PUD).
-+ * @pmdp:	pointer to the page table entry (FW_LEVEL_PMD).
-+ * @pte:	page table entry value (FW_LEVEL_PTE).
-+ * @pud:	page table entry value (FW_LEVEL_PUD).
-+ * @pmd:	page table entry value (FW_LEVEL_PMD).
-+ * @vma:	pointer to the VMA (for internal use only).
-+ * @ptl:	pointer to the page table lock (for internal use only).
-  *
-  * (see folio_walk_start() documentation for more details)
-  */
+--- a/fs/squashfs/fragment.c~squashfs-make-the-fragment-index-table-bounds-check-overflow-safe
++++ a/fs/squashfs/fragment.c
+@@ -69,9 +69,11 @@ __le64 *squashfs_read_fragment_index_tab
+ 	/*
+ 	 * Sanity check, length bytes should not extend into the next table -
+ 	 * this check also traps instances where fragment_table_start is
+-	 * incorrectly larger than the next table start
++	 * incorrectly larger than the next table start.  Both values are read
++	 * from the filesystem image, so compare without adding them.
+ 	 */
+-	if (fragment_table_start + length > next_table)
++	if (fragment_table_start > next_table ||
++	    length > next_table - fragment_table_start)
+ 		return ERR_PTR(-EINVAL);
+ 
+ 	table = squashfs_read_table(sb, fragment_table_start, length);
 _
 
-Patches currently in -mm which might be from aleszlucero@gmail.com are
+Patches currently in -mm which might be from kmehltretter@gmail.com are
 
-mm-page_reporting-document-order-parameter-in-page_reporting_notify_free.patch
-mm-pagewalk-document-missing-struct-members.patch
+userfaultfd-docs-fix-an-error-code-two-names-and-the-pollerr-cause.patch
+squashfs-fix-fragment-index-table-sizing-overflow-on-32-bit.patch
 
