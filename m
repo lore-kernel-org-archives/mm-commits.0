@@ -1,50 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794548093;
-	b=bVn73+b8WCtGA4WlN1SHo+czGLrhafOkITSR4gxwEiwyVZWBOHPfX5qW5YC54uY3jJVn
-	 /JykGLhnREAlx1LyjMQI//M2DjuD7A8rh2DLyNUYhrn8zEU8oBUOoKwdHcOSf7WkHfC3U
-	 87CYdYnm3+hu5dt7Qjt8qaib+69wQUngzL23bZSrRjCm8uhkpUH6B56xPIWqIRAEFGQNo
-	 Buxmu76qWDY3V56Xdwsj8Wp8xgbAaX2LMUz8IWfqyzPgzyvNFw4Od1MLbiNFMamHt+YJO
-	 x0NuNuupLtk8butAYcXF68iiszbkZUugOhf2xOY75Jmm0vTqtbv6YahZIP8yU8bruOA==
+	t=1794551955;
+	b=DAPgyzJMB9JSFk9qa7u1WJC5o39SsruTg/Cx8dfBvOranohMZf5HTNkA9G7nNKv/kaLz
+	 3TA82fNbxTYV+e+lYHvxyQZrhgc5IXrQm6pS4yvtfr2pIgtWGhr+5weBj66GEQJYCNxQk
+	 gj0YLgP0hxHf0Yv7WmDGFkg5+8Zfa/yNT2vRu1nAMbCSHsK7lovliN5BPDzrGCF+SzXB7
+	 YuxyctGZZRMQnvG3aaV7QseNJhNEUyqi5SAGSbN71HKloRRitCTfr1zbCGZkjeBkcJCUe
+	 e8d/evZibuN7a6hpUn1Z2uYFDw/dOnz4CojLxCRb//XQQKQCfxDzV9Vu/ObxpvutQfw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794548093;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794551955;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=q5eNS8d42Hh/+55yAfICgQ4kX/msclKzcV5UwEFKHkA=;
-	b=1oRZKIEit2hw8r0lNoD6c4A5h3Gea9gDPIxHt9MN1LcyZxPxJpG+Z/bdZ4iaCFPHYiE9
-	 ZzsRRabooI4cqjnp5ZzLV3m7M55uroftkc7UKcwEEwmDMjUk6UW3rtSPlnKSEOq8oHEef
-	 OU1goiRtM1gD9Lggh4L4/VF7YaMGSe97GSTKZGJc/3WYlfxseiJFrngZR71sNeGYrwZYV
-	 z+olhbs3g7Rmj6nHyWUBkArTsmon86vtjffT+bUz55vjl6ukL9esp0xZv4iCBMkL2lAwc
-	 pUOpnuvMza6TesGKU5L8yS3fsejurxy6wSC26r5bHf+VEcAIfW86Ri8L1sU0BvW3WUQ==
+	bh=sMYdB3zaD8cbobmEqkEHhUuDGq9UaZixLBIJQcXJzos=;
+	b=xeoO4pUhXekk09qUkGgXlPMkbV9DRBHEeIZXhE9VkX+yVw6U4tlYHielMbmYQhIJQMoZ
+	 QzG6R6MQUOR6SQtFzBwA3duKzKEDTUlfgoHsURSnsXJtZtAL+wZMgxRn2ud81VF+WuU78
+	 97QgdLtZ0ECLe9PCqBIRoOHzMRBTF0vp2mamNQ9DHFTT4+zsP8d0FzkcJFDscZNDG0aI+
+	 dFKh/oDP+dY1z54ZywFxEiRZ81jNvMySgyk151psyVSSitvsGNtEk1lH6v1T9+0QCEAoR
+	 OECYCxjJorDpyTlTSIunqrAe4bbO13o3aXRsbristlqvbiThE99PdVmK2ReTWVQwT7w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=y6aQrq7r;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="Bv/iPj6F";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37B7B606A32E;
-	Fri, 13 Nov 2026 05:34:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E41F606A323
+	for <mm-commits@vger.kernel.org>; Fri, 13 Nov 2026 06:39:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=y6aQrq7r
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9860E1F000C4;
-	Fri, 13 Nov 2026 05:34:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Bv/iPj6F
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21E0B1F000C4;
+	Fri, 13 Nov 2026 06:39:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794548092;
-	bh=q5eNS8d42Hh/+55yAfICgQ4kX/msclKzcV5UwEFKHkA=;
+	d=linux-foundation.org; s=korg; t=1794551955;
+	bh=sMYdB3zaD8cbobmEqkEHhUuDGq9UaZixLBIJQcXJzos=;
 	h=Date:To:From:Subject;
-	b=y6aQrq7rfn/csG121AymOBxPkajaAbVudifKGctkXPgTxu0FI9DEw2YwpmwTKSfjQ
-	 pWMTGfop+f1fLqTHWTHQ0a138jRgjRYUMNUJgoSLOS01DYrKM8K+l8b92pj2A+YLaU
-	 Yp6C9k8aXaD9tLNZi5iU385Y+FO4LWQ0n7M9+Sig=
-Date: Thu, 12 Nov 2026 21:34:52 -0800
-To: mm-commits@vger.kernel.org,
-	syzbot+8fdf0d8e10bdde1c2e88@syzkaller.appspotmail.com,stable@vger.kernel.org,
-	peterz@infradead.org,oleg@redhat.com,npiggin@gmail.com,
-	matthias.bgg@gmail.com,ebiederm@xmission.com,bradley.morgan@linux.dev,
-	angelogioacchino.delregno@collabora.com,leitao@debian.org,
+	b=Bv/iPj6FFu6ZrG+NIvIZ7Y9ShCVTd8Xzqby0UcmK7E5ttItuuOdD1oi8GBeh464hu
+	 nMe9JddlxugRsG/CbJyfQ6p98WHFtgcKWpG80sanUd5AYOia9AI+RGOaou8czLwFwY
+	 Ik5wTXNrna+rao5gzVVU9K9e94oveRQKvgglCzew=
+Date: Thu, 12 Nov 2026 22:39:14 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
+	skunkolee@gmail.com,osalvador@kernel.org,mhocko@suse.com,ljs@kernel.org,
+	liam@infradead.org,fvdl@google.com,david@kernel.org,rppt@kernel.org,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + reboot-halt-when-power-off-fails.patch added to mm-nonmm-unstable branch
-Message-Id: <20261113053452.9860E1F000C4@smtp.kernel.org>
+Subject: + mm-cma-simplify-cma_declare_contiguous_multi.patch added to mm-new branch
+Message-Id: <20261113063915.21E0B1F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,15 +54,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: reboot: halt when power off fails
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     reboot-halt-when-power-off-fails.patch
+     Subject: mm/cma: simplify cma_declare_contiguous_multi()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-cma-simplify-cma_declare_contiguous_multi.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/reboot-halt-when-power-off-fails.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-simplify-cma_declare_contiguous_multi.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -79,95 +88,408 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: reboot: halt when power off fails
-Date: Tue, 10 Nov 2026 07:24:34 -0800
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: mm/cma: simplify cma_declare_contiguous_multi()
+Date: Thu, 12 Nov 2026 10:16:57 +0200
 
-The reboot syscall calls do_exit(0) when kernel_power_off() returns.  That
-happens when no power off handler takes the machine down, since
-machine_power_off() returns to its caller on x86, arm, arm64 and sh.
+When cma_declare_contiguous_multi() cannot allocate a CMA area as a single
+range, it falls back to collecting a list of up to CMA_MAX_RANGES largest
+free ranges above 4G, reserves them in memblock and adds them to
+cma->ranges.
 
-For example, an x86 kernel built with CONFIG_ACPI_REDUCED_HARDWARE_ONLY
-cannot power off QEMU's pc and q35 machines.  Their FADT is not
-hardware-reduced, so acpi_power_off() is still registered.  But the legacy
-sleep code is compiled out and the FADT has no sleep control register, so
-acpi_enter_sleep_state() returns AE_NOT_EXIST.
+The list and subsequently cma->ranges are supposed to be sorted in the
+order of base addresses of the "allocated" ranges.
 
-On x86, arm and arm64, interrupts are disabled by then, and do_exit()
-warns. syzbot hit this on a GCE VM:
+This implementation has two bugs:
 
-  ACPI: PM: Preparing to enter system sleep state S5
-  kvm: exiting hardware virtualization
-  reboot: Power down
-  ------------[ cut here ]------------
-  irqs_disabled()
-  WARNING: kernel/exit.c:930 at do_exit+0x1cf7/0x2ae0 kernel/exit.c:930, CPU#0: init/6193
-  CPU: 0 UID: 0 PID: 6193 Comm: init Tainted: G             L      syzkaller #0 PREEMPT(full)
-  Call Trace:
-   <TASK>
-   __do_sys_reboot+0x36e/0x400 kernel/reboot.c:784
-   do_syscall_64+0x115/0x840 arch/x86/entry/syscall_64.c:94
-   entry_SYSCALL_64_after_hwframe+0x77/0x7f
-   </TASK>
+* The allocation may fail even when there is enough free memory because
+  list_insert_sorted() sorts the list in the wrong order.
 
-If the caller is init, do_exit() then panics. Exiting does not help
-the other callers either: the devices are already shut down, and the
-task still holds system_transition_mutex.
+  When the list is full, the largest range is evicted rather than the
+  smallest, the final list is not sorted by address, and the smallest
+  ranges are used first.
 
-Halt instead, as the syscall already does when no power off handler is
-registered, and as most other architectures do in machine_power_off().
+* the function may report success while it reserved less memory than
+  requested because sizesum accounts for ranges that were skipped.
 
-Use machine_halt() rather than kernel_halt(). kernel_power_off() has
-already run the shutdown sequence, and kernel_halt() would call the
-reboot notifiers again with interrupts disabled.
+And overall it is a lot of list management and open coded range
+selection for no real gain.
 
-Keep the fallback in the syscall.  hw_failure_emergency_action_func()
-relies on kernel_power_off() returning, so that it can try an emergency
-restart.
+Replace the current code with a loop that finds the largest free range
+above 4G, reserves as much of it as needed and repeats until the entire
+area is reserved or CMA_MAX_RANGES ranges are used.
 
-Link: https://lore.kernel.org/20261110-reboot-make-task-dead-v1-1-af88a3f37bf7@debian.org
-Link: https://lore.kernel.org/all/20260713062332.21131-1-include@grrlz.net/
-Fixes: 001c28e57187 ("exit: Detect and fix irq disabled state in oops")
-Signed-off-by: Breno Leitao <leitao@debian.org>
+After successful alocation sort the cma->ranges by their base address.
+
+The new code scans free memory once for every range rather than once for
+all ranges, so it is slightly slower, but it is way simpler and more
+robust.
+
+Link: https://lore.kernel.org/20261112-cma-multi-v3-1-663407328e0a@kernel.org
+Fixes: c009da4258f9 ("mm, cma: support multiple contiguous ranges, if requested")
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: <syzbot+8fdf0d8e10bdde1c2e88@syzkaller.appspotmail.com>
-Closes: https://syzkaller.appspot.com/bug?extid=8fdf0d8e10bdde1c2e88
-Suggested-by: Oleg Nesterov <oleg@redhat.com>
-Link: https://lore.kernel.org/all/20250404152006.GF3720@redhat.com/
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Reviewed-by: Bradley Morgan <bradley.morgan@linux.dev>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Konrad Dybcio <angelogioacchino.delregno@collabora.com>
-Cc: <stable@vger.kernel.org>
+Reported-by: Ivy Lopez <skunkolee@gmail.com>
+Closes: https://lore.kernel.org/all/cover.1792032699.git.skunkolee@gmail.com
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Liam R. Howlett (Google) <liam@infradead.org>
+Reviewed-by: Oscar Salvador (SUSE) <osalvador@kernel.org>
+Cc: Frank van der Linden <fvdl@google.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
 ---
 
- kernel/reboot.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/cma.c |  269 +++++++++++++++--------------------------------------
+ 1 file changed, 81 insertions(+), 188 deletions(-)
 
---- a/kernel/reboot.c~reboot-halt-when-power-off-fails
-+++ a/kernel/reboot.c
-@@ -791,6 +791,9 @@ SYSCALL_DEFINE4(reboot, int, magic1, int
+--- a/mm/cma.c~mm-cma-simplify-cma_declare_contiguous_multi
++++ a/mm/cma.c
+@@ -23,8 +23,8 @@
+ #include <linux/sizes.h>
+ #include <linux/slab.h>
+ #include <linux/string.h>
+-#include <linux/string_choices.h>
+ #include <linux/log2.h>
++#include <linux/sort.h>
+ #include <linux/cma.h>
+ #include <linux/highmem.h>
+ #include <linux/io.h>
+@@ -310,56 +310,6 @@ int __init cma_init_reserved_mem(phys_ad
+ 	return 0;
+ }
  
- 	case LINUX_REBOOT_CMD_POWER_OFF:
- 		kernel_power_off();
-+		pr_emerg("Power off failed: System halted instead\n");
-+		/* kernel_power_off() already ran the shutdown, only halt. */
-+		machine_halt();
- 		do_exit(0);
- 		break;
+-/*
+- * Structure used while walking physical memory ranges and finding out
+- * which one(s) to use for a CMA area.
+- */
+-struct cma_init_memrange {
+-	phys_addr_t base;
+-	phys_addr_t size;
+-	struct list_head list;
+-};
+-
+-/*
+- * Work array used during CMA initialization.
+- */
+-static struct cma_init_memrange memranges[CMA_MAX_RANGES] __initdata;
+-
+-static bool __init revsizecmp(struct cma_init_memrange *mlp,
+-			      struct cma_init_memrange *mrp)
+-{
+-	return mlp->size > mrp->size;
+-}
+-
+-static bool __init basecmp(struct cma_init_memrange *mlp,
+-			   struct cma_init_memrange *mrp)
+-{
+-	return mlp->base < mrp->base;
+-}
+-
+-/*
+- * Helper function to create sorted lists.
+- */
+-static void __init list_insert_sorted(
+-	struct list_head *ranges,
+-	struct cma_init_memrange *mrp,
+-	bool (*cmp)(struct cma_init_memrange *lh, struct cma_init_memrange *rh))
+-{
+-	struct list_head *mp;
+-	struct cma_init_memrange *mlp;
+-
+-	if (list_empty(ranges))
+-		list_add(&mrp->list, ranges);
+-	else {
+-		list_for_each(mp, ranges) {
+-			mlp = list_entry(mp, struct cma_init_memrange, list);
+-			if (cmp(mlp, mrp))
+-				break;
+-		}
+-		__list_add(&mrp->list, mlp->list.prev, &mlp->list);
+-	}
+-}
+-
+ static int __init cma_fixed_reserve(phys_addr_t base, phys_addr_t size)
+ {
+ 	if (IS_ENABLED(CONFIG_HIGHMEM)) {
+@@ -525,36 +475,74 @@ static int __init __cma_declare_contiguo
+ }
+ 
+ /*
++ * Find the largest free range above 4G that can hold a part of a multi-range
++ * CMA area.
++ */
++static phys_addr_t __init cma_find_free_range(phys_addr_t align,
++		phys_addr_t size_align, int nid, phys_addr_t *basep)
++{
++	phys_addr_t start, end, size;
++	phys_addr_t max = 0;
++	u64 i;
++
++	/* no point searching if the system can't addres above 4G */
++	if (!IS_ENABLED(CONFIG_PHYS_ADDR_T_64BIT))
++		return 0;
++
++	for_each_free_mem_range(i, nid, MEMBLOCK_NONE, &start, &end, NULL) {
++		if (start < SZ_4G)
++			continue;
++
++		start = ALIGN(start, align);
++		if (start >= end)
++			continue;
++
++		size = ALIGN_DOWN(end - start, size_align);
++		if (size > max) {
++			max = size;
++			*basep = start;
++		}
++	}
++
++	return max;
++}
++
++static int __init cma_range_cmp(const void *a, const void *b)
++{
++	const struct cma_memrange *cmr_a = a;
++	const struct cma_memrange *cmr_b = b;
++
++	return cmp_int(cmr_a->base_pfn, cmr_b->base_pfn);
++}
++
++/*
+  * Create CMA areas with a total size of @total_size. A normal allocation
+- * for one area is tried first. If that fails, the biggest memblock
+- * ranges above 4G are selected, and allocated bottom up.
+- *
+- * The complexity here is not great, but this function will only be
+- * called during boot, and the lists operated on have fewer than
+- * CMA_MAX_RANGES elements (default value: 8).
++ * for one area is tried first. If that fails, the area is assembled from
++ * up to CMA_MAX_RANGES of the biggest free memblock ranges above 4G.
+  */
+ int __init cma_declare_contiguous_multi(phys_addr_t total_size,
+ 			phys_addr_t align, unsigned int order_per_bit,
+ 			const char *name, struct cma **res_cma, int nid)
+ {
+-	phys_addr_t start = 0, end;
+-	phys_addr_t size, sizesum, sizeleft;
+-	struct cma_init_memrange *mrp, *mlp, *failed;
++	const unsigned long size_mb = (unsigned long)total_size / SZ_1M;
++	phys_addr_t size, remaining, size_align;
+ 	struct cma_memrange *cmrp;
+-	LIST_HEAD(ranges);
+-	LIST_HEAD(final_ranges);
+-	struct list_head *mp, *next;
+-	int ret, nr = 1;
+-	u64 i;
++	phys_addr_t start = 0;
+ 	struct cma *cma;
++	int nr = 0;
++	int ret;
+ 
+ 	/*
+ 	 * First, try it the normal way, producing just one range.
+ 	 */
+ 	ret = __cma_declare_contiguous_nid(&start, total_size, 0, align,
+ 			order_per_bit, false, name, res_cma, nid);
++	if (!ret) {
++		pr_info("Reserved %lu MiB at %pa\n", size_mb, &start);
++		return 0;
++	}
+ 	if (ret != -ENOMEM)
+-		goto out;
++		goto err;
+ 
+ 	/*
+ 	 * Couldn't find one range that fits our needs, so try multiple
+@@ -572,151 +560,56 @@ int __init cma_declare_contiguous_multi(
+ 	 * aligned to @align, and a size that is aligned to
+ 	 * both @align and @order_to_bit, things will work out.
+ 	 */
+-	nr = 0;
+-	sizesum = 0;
+-	failed = NULL;
+-
+ 	ret = cma_new_area(name, total_size, order_per_bit, &cma);
+-	if (ret != 0)
+-		goto out;
++	if (ret)
++		goto err;
+ 
+ 	align = max_t(phys_addr_t, align, CMA_MIN_ALIGNMENT_BYTES);
+-	/*
+-	 * Create a list of ranges above 4G, largest range first.
+-	 */
+-	for_each_free_mem_range(i, nid, MEMBLOCK_NONE, &start, &end, NULL) {
+-		if (upper_32_bits(start) == 0)
+-			continue;
+-
+-		start = ALIGN(start, align);
+-		if (start >= end)
+-			continue;
+-
+-		end = ALIGN_DOWN(end, align);
+-		if (end <= start)
+-			continue;
++	size_align = max_t(phys_addr_t, align, PAGE_SIZE << order_per_bit);
+ 
+-		size = end - start;
+-		size = ALIGN_DOWN(size, (PAGE_SIZE << order_per_bit));
++	remaining = total_size;
++	while (remaining && nr < CMA_MAX_RANGES) {
++		size = cma_find_free_range(align, size_align, nid, &start);
+ 		if (!size)
+-			continue;
+-		sizesum += size;
+-
+-		pr_debug("consider %016llx - %016llx\n", (u64)start, (u64)end);
+-
+-		/*
+-		 * If we don't yet have used the maximum number of
+-		 * areas, grab a new one.
+-		 *
+-		 * If we can't use anymore, see if this range is not
+-		 * smaller than the smallest one already recorded. If
+-		 * not, re-use the smallest element.
+-		 */
+-		if (nr < CMA_MAX_RANGES)
+-			mrp = &memranges[nr++];
+-		else {
+-			mrp = list_last_entry(&ranges,
+-					      struct cma_init_memrange, list);
+-			if (size < mrp->size)
+-				continue;
+-			list_del(&mrp->list);
+-			sizesum -= mrp->size;
+-			pr_debug("deleted %016llx - %016llx from the list\n",
+-				(u64)mrp->base, (u64)mrp->base + size);
+-		}
+-		mrp->base = start;
+-		mrp->size = size;
+-
+-		/*
+-		 * Now do a sorted insert.
+-		 */
+-		list_insert_sorted(&ranges, mrp, revsizecmp);
+-		pr_debug("added %016llx - %016llx to the list\n",
+-		    (u64)mrp->base, (u64)mrp->base + size);
+-		pr_debug("total size now %llu\n", (u64)sizesum);
+-	}
+-
+-	/*
+-	 * There is not enough room in the CMA_MAX_RANGES largest
+-	 * ranges, so bail out.
+-	 */
+-	if (sizesum < total_size) {
+-		cma_drop_area(cma);
+-		ret = -ENOMEM;
+-		goto out;
+-	}
+-
+-	/*
+-	 * Found ranges that provide enough combined space.
+-	 * Now, sorted them by address, smallest first, because we
+-	 * want to mimic a bottom-up memblock allocation.
+-	 */
+-	sizesum = 0;
+-	list_for_each_safe(mp, next, &ranges) {
+-		mlp = list_entry(mp, struct cma_init_memrange, list);
+-		list_del(mp);
+-		list_insert_sorted(&final_ranges, mlp, basecmp);
+-		sizesum += mlp->size;
+-		if (sizesum >= total_size)
+ 			break;
+-	}
+ 
+-	/*
+-	 * Walk the final list, and add a CMA range for
+-	 * each range, possibly not using the last one fully.
+-	 */
+-	nr = 0;
+-	sizeleft = total_size;
+-	list_for_each(mp, &final_ranges) {
+-		mlp = list_entry(mp, struct cma_init_memrange, list);
+-		size = min(sizeleft, mlp->size);
+-		if (memblock_reserve(mlp->base, size)) {
+-			/*
+-			 * Unexpected error. Could go on to
+-			 * the next one, but just abort to
+-			 * be safe.
+-			 */
+-			failed = mlp;
++		size = min(size, remaining);
++		if (memblock_reserve(start, size))
+ 			break;
+-		}
+-
+-		accept_memory(mlp->base, size);
++		accept_memory(start, size);
+ 
+ 		pr_debug("created region %d: %016llx - %016llx\n",
+-		    nr, (u64)mlp->base, (u64)mlp->base + size);
++		    nr, (u64)start, (u64)start + size);
+ 		cmrp = &cma->ranges[nr++];
+-		cmrp->base_pfn = PHYS_PFN(mlp->base);
++		cmrp->base_pfn = PHYS_PFN(start);
+ 		cmrp->early_pfn = cmrp->base_pfn;
+ 		cmrp->count = size >> PAGE_SHIFT;
+ 
+-		sizeleft -= size;
+-		if (sizeleft == 0)
+-			break;
++		remaining -= size;
+ 	}
+ 
+-	if (failed) {
+-		list_for_each(mp, &final_ranges) {
+-			mlp = list_entry(mp, struct cma_init_memrange, list);
+-			if (mlp == failed)
+-				break;
+-			memblock_phys_free(mlp->base, mlp->size);
+-		}
+-		cma_drop_area(cma);
++	if (remaining) {
+ 		ret = -ENOMEM;
+-		goto out;
++		goto err_free_ranges;
+ 	}
+ 
++	/* allocate from lower addresses first */
++	sort(cma->ranges, nr, sizeof(cma->ranges[0]), cma_range_cmp, NULL);
++
+ 	cma->nranges = nr;
+ 	cma->nid = nid;
+ 	*res_cma = cma;
+ 
+-out:
+-	if (ret != 0)
+-		pr_err("Failed to reserve %lu MiB\n",
+-			(unsigned long)total_size / SZ_1M);
+-	else
+-		pr_info("Reserved %lu MiB in %d range%s\n",
+-			(unsigned long)total_size / SZ_1M, nr, str_plural(nr));
++	pr_info("Reserved %lu MiB in %d ranges\n", size_mb, nr);
++	return 0;
++
++err_free_ranges:
++	for (int i = 0; i < nr; i++)
++		memblock_phys_free(PFN_PHYS(cma->ranges[i].base_pfn),
++				   PFN_PHYS(cma->ranges[i].count));
++	cma_drop_area(cma);
++err:
++	pr_err("Failed to reserve %lu MiB\n", size_mb);
+ 	return ret;
+ }
  
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-mm-kmemleak-scan-modified-objects-as-soon-as-they-are-grayed.patch
-tools-mm-add-hwpoison-panic-tool.patch
-mm-split-out-memory-failure-declarations-from-internalh.patch
-mm-kmemleak-drop-kmemleak_lock-in-scan_block-when-it-is-contended.patch
-ratelimit-fix-data-race-on-burst-in-___ratelimit.patch
-stackdepot-dont-warn-when-the-depot-runs-out-of-pools.patch
-reboot-halt-when-power-off-fails.patch
+mm-cma-simplify-cma_declare_contiguous_multi.patch
+hibernation-make-swsusp_page-helpers-static.patch
+hibernation-ensure-secretmem-pages-dont-reach-a-snapshot.patch
+hibernate-handle-potential-errors-in-hibernate_mapunmap_page.patch
+hibernation-kfence-explicitly-map-unmap-kfence-pages.patch
+hibernation-make-hibernation-unavailable-when-debug_pagealloc-is-on.patch
 
