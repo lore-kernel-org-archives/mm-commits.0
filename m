@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794694262;
-	b=VgnmWVOZE2VYLVUyg/zRzf/A00BKC7sR/RgkC2JhbbQglTy4tb0F3X7i89rf1MCHHq8h
-	 wV3l4AVLPE97tkia0EnKfgja/DOxsSeMyWIMhQmVXDrwRgpLauSNScN7NUMLxTPuIMDbg
-	 NmI55XhW2VkPAsj/TQgi9E4w/OhCDF7ElDCk3CatWhLs0/kIn6z5+x3h5VBV6+Kv4DIU/
-	 HKwA+L0A/IngsxXXgiQHwW8RpRMC1mid4imw/zqAj3RCic3FG4Iiedrn19FNqiZPIRr7b
-	 oA0AezTJizF9BEPX0osRD6iJXw4ANoWRrkZQ+golni3fpJWeiAbTKxYnXljh3IlTEfA==
+	t=1794694264;
+	b=OT/l/DeTx+QVNSFFPBd2cXC7UMMW2m5xbL35LWKhAvoRt1qrtPK6+tVrDKwvg7TGXaFP
+	 iuUl5o203YyVkGX35XeHidZ9ombdc4zP3VJsmQIAMyn0x12qYCHHEJpYStKlTiYONTRtL
+	 gtYvu9uFjQjF6s2uzMqE9msjS6dl6rXSTRYzsRFnxrV5shifJzewyNZlg3oWR4dx/LnpU
+	 cVienlBx9Tl8nX+EwfRypPLayTtQs2QAZVkaQ2XUUHx9rW6Z/Go/7lAGtVr7o6vXGfEOU
+	 +rW1UbiB/8y5vKmUiNYqbmPCEDxb0WOqjVYGy/XAKNGU/XUzznj5VfLwOibQVdDYx5A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794694262;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794694264;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=6+8+kRcZXWqZcCOPMqyQRSpT9FY+drQ1MvcJU+1rjBE=;
-	b=yFRvGJygno/jiEX0O4Tp6OnnyW4gdMXvvfICjBfa2Ro0MDj7m9AZmugZZx0iAsjIyjVw
-	 6TWIsEyKZracnNp0a0bg+nbRBTmNNht2Hsjl2B7XLBH04tt0mORwfTQF9ZPlLx0kOVygN
-	 i5LAAVqbJWqzH3gPbS4DjQr5Jtf1ZIBHakgtyJz88vvXIvHwzEANcNeYFpAITJ0xCZEp7
-	 y/GC7skUarbkUC+t4WKYXy8YIlZdkVnxwtWoLG1uWogJuWuCERwuonL+6OPbH1pboVR0S
-	 9nv7pUK0pQcg2eSJ/TN2TcKzYtUdYnij1RMSG90mR7I30HtnmJUS2kp7mLvd8qt4xqw==
+	bh=go7Vy/carIhKKcBz1cd/mDIJnuhiLKDJQmfiDKBFIZY=;
+	b=mj/RW210QnJaru52QTNLNaa5K83JPVjNaOfxIShTepgpBowO6u1bXMAQ6yQ0cIqBzzGH
+	 uLyZ6FtE5anIIzPG1wV9B53Wd7GBcLP3F7MR667NTsx6OsvajCAAIA7RVX2QfoUageQpb
+	 PMPjMlGLHkFYa8VRMy1kcXKSZ6KLLEQN10hGHOHY8Fvoyvxq1elpvKPWugnK010/UrkY0
+	 5H9nH9oLqEHYIhBQBhMDrtLQcmIjWBCTbVnkG5na/uNrq/pXG2iF9jXTaebnU+gGV5YLH
+	 qXl9/ZyPq3jBWn8YespfUKPiX85C9qSgUnQ0zJaVf+VQLZE9Fr2raK3FkSKFNcUzAAg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=cIruqY8t;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ildFhTNl;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2937606A323
-	for <mm-commits@vger.kernel.org>; Sat, 14 Nov 2026 22:11:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D00C4606A323
+	for <mm-commits@vger.kernel.org>; Sat, 14 Nov 2026 22:11:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=cIruqY8t
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BDEC1F000C4;
-	Sat, 14 Nov 2026 22:11:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ildFhTNl
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99AF11F000C4;
+	Sat, 14 Nov 2026 22:11:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794694262;
-	bh=6+8+kRcZXWqZcCOPMqyQRSpT9FY+drQ1MvcJU+1rjBE=;
+	d=linux-foundation.org; s=korg; t=1794694264;
+	bh=go7Vy/carIhKKcBz1cd/mDIJnuhiLKDJQmfiDKBFIZY=;
 	h=Date:To:From:Subject;
-	b=cIruqY8tjXzFtjwH/ttqYJ070hXSohhJANP9gm4v84EIMwuBCxG8vPuYe3m5sCMW6
-	 cvDy/FC33yeE0vcGh6IMxZ9gsA07dIWCi19aBFmMQKVa35nRdXTjGZ7Z7Vro7sILr2
-	 sNLEl3ruERmWerDXMKqEdX5Jc3Eq8GD0qryBW2SM=
-Date: Sat, 14 Nov 2026 14:11:02 -0800
-To: mm-commits@vger.kernel.org,baohua@kernel.org,akpm@linux-foundation.org
+	b=ildFhTNlAzr2SwFVA6uTOcOySPhTVIBjwCWTeMYLRyTFD9qxrIRk5ncSKa2F+qrGN
+	 9mA4u5usgD4ELP7VC/Ccd62jsRgls6sfZ5o3uFQZNNCWvEjWaGr5KzH/fl8Nynj6QP
+	 yppH5X2JVSetYf5Xwvp5Bw9XdybIqg9YoOgzlcoU=
+Date: Sat, 14 Nov 2026 14:11:04 -0800
+To: mm-commits@vger.kernel.org,lyugaofei@xiaomi.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-reduce-lru-lock-contention-by-shrinking-folio-batches-in-inc_min_seq.patch added to mm-new branch
-Message-Id: <20261114221102.6BDEC1F000C4@smtp.kernel.org>
+Subject: + mm-mglru-avoid-prolonged-anon-reclaim-with-swappiness=200.patch added to mm-new branch
+Message-Id: <20261114221104.99AF11F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,12 +51,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/mglru: Reduce LRU lock contention by shrinking folio batches in inc_min_seq
+     Subject: mm/mglru: Avoid prolonged anon reclaim with swappiness=200
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mglru-reduce-lru-lock-contention-by-shrinking-folio-batches-in-inc_min_seq.patch
+     mm-mglru-avoid-prolonged-anon-reclaim-with-swappiness=200.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-reduce-lru-lock-contention-by-shrinking-folio-batches-in-inc_min_seq.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-avoid-prolonged-anon-reclaim-with-swappiness=200.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -85,18 +85,23 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Barry Song (Xiaomi)" <baohua@kernel.org>
-Subject: mm/mglru: Reduce LRU lock contention by shrinking folio batches in inc_min_seq
-Date: Sun, 15 Nov 2026 04:08:00 +0800
+From: Gaofei Lyu <lyugaofei@xiaomi.com>
+Subject: mm/mglru: Avoid prolonged anon reclaim with swappiness=200
+Date: Sun, 15 Nov 2026 04:08:01 +0800
 
-Reduce the number of folios moved from the oldest generation to the
-second-oldest generation in each batch. This shortens the time the
-lruvec lock is held, allowing concurrent LRU operations to make
-progress and significantly reducing LRU lock contention.
+It has been observed that swappiness=200 can significantly slow down
+reclaim on some machines, with some workloads running 3x slower
+under MGLRU than under CLRU.
 
-Link: https://lore.kernel.org/20261114200803.23129-14-baohua@kernel.org
+This is because swappiness=200 currently results in file_factor=0.
+Give file reclaim a small factor at lower priorities, for example,
+when sc->priority < DEF_PRIORITY / 2.
+
+Link: https://lore.kernel.org/20261114200803.23129-15-baohua@kernel.org
+Signed-off-by: Gaofei Lyu <lyugaofei@xiaomi.com>
 Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Co-developed-by: Barry Song (Xiaomi) <baohua@kernel.org>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
@@ -107,7 +112,6 @@ Cc: Kunwu Chan <kunwu.chan@gmail.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: wang lian <lianux.mm@gmail.com>
 Cc: <liuxiang.277@bytedance.com>
-Cc: <lyugaofei@xiaomi.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Qi Zheng <qi.zheng@linux.dev>
 Cc: Ridong Chen <ridong.chen@linux.dev>
@@ -122,32 +126,58 @@ Cc: Hui Zhu <zhuhui@kylinos.cn>
 Cc: Siddharth Chintamaneni <sidchintamaneni@gmail.com>
 Cc: Bo Zhang <zhangbo0325@gmail.com>
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
---- a/mm/vmscan.c~mm-mglru-reduce-lru-lock-contention-by-shrinking-folio-batches-in-inc_min_seq
+--- a/mm/vmscan.c~mm-mglru-avoid-prolonged-anon-reclaim-with-swappiness=200
 +++ a/mm/vmscan.c
-@@ -3914,7 +3914,7 @@ static inline void flush_lru_batch(struc
- static bool inc_min_seq(struct lruvec *lruvec, int type, int swappiness)
+@@ -4901,8 +4901,8 @@ static int get_tier_idx(struct lruvec *l
+  * We don't calculate the scan cost. MGLRU uses lazy promotion, which will
+  * cancel the scan budget naturally.
+  */
+-static void lru_gen_balance_scan(struct lruvec *lruvec, int swappiness,
+-		unsigned long total_scan, unsigned long nr[])
++static void lru_gen_balance_scan(struct lruvec *lruvec, struct scan_control *sc,
++		int swappiness, unsigned long total_scan, unsigned long nr[])
  {
- 	int zone;
--	int remaining = MAX_LRU_BATCH;
-+	int remaining = MIN_LRU_BATCH;
  	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 	int hist = lru_hist_from_seq(lrugen->min_seq[type]);
- 	int new_gen, old_gen = lru_gen_from_seq(lrugen->min_seq[type]);
+ 	u64 refault_rate[ANON_AND_FILE], anon_factor, file_factor;
+@@ -4959,7 +4959,12 @@ static void lru_gen_balance_scan(struct
+ 	file_weight = nr[LRU_GEN_FILE] + nr[LRU_GEN_ANON] / size_bias;
+ 
+ 	anon_factor = (u64)swappiness * refault_rate[LRU_GEN_FILE] * anon_weight;
+-	file_factor = (u64)(MAX_SWAPPINESS - swappiness) * refault_rate[LRU_GEN_ANON] * file_weight;
++	if (swappiness == MAX_SWAPPINESS)
++		file_factor = sc->priority < AGING_PRIORITY ?
++			      refault_rate[LRU_GEN_ANON] * file_weight : 0;
++	else
++		file_factor = (u64)(MAX_SWAPPINESS - swappiness) *
++			      refault_rate[LRU_GEN_ANON] * file_weight;
+ 
+ 	/* Cross-multiply the ratio above. */
+ 	anon_scan = mul_u64_u64_div_u64(total_scan, anon_factor, anon_factor + file_factor);
+@@ -5147,7 +5152,7 @@ static void lru_gen_prepare_scan(struct
+ 
+ 	total = apply_proportional_protection(memcg, sc, total);
+ 	total >>= sc->priority;
+-	lru_gen_balance_scan(lruvec, swappiness, total, nr_to_scan);
++	lru_gen_balance_scan(lruvec, sc, swappiness, total, nr_to_scan);
+ }
+ 
+ static bool should_abort_scan(struct lruvec *lruvec, struct scan_control *sc)
+@@ -5913,7 +5918,7 @@ static int run_eviction(struct lruvec *l
+ 			return 0;
+ 
+ 		lruvec_evictable_size(lruvec, sc, swappiness, nr_to_scan, sc->reclaim_idx + 1);
+-		lru_gen_balance_scan(lruvec, swappiness,
++		lru_gen_balance_scan(lruvec, sc, swappiness,
+ 				     nr_to_reclaim - sc->nr_reclaimed, nr_to_scan);
+ 
+ 		if (!evict_folio_lists(nr_to_scan, lruvec, sc, swappiness, MAX_LRU_BATCH, NULL))
 _
 
-Patches currently in -mm which might be from baohua@kernel.org are
+Patches currently in -mm which might be from lyugaofei@xiaomi.com are
 
-arm64-vmalloc-allow-arch_vmap_pte_range_map_size-to-batch-multiple-cont_pte.patch
-mm-vmalloc-extend-page-table-walk-to-support-larger-page_shift-sizes-and-eliminate-page-table-rewalk.patch
-mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible.patch
-mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings.patch
-mm-mglru-avoid-placing-rejected-folios-below-populated-gen.patch
-mm-mglru-run-aging-when-one-type-is-drained.patch
-mm-mglru-run-aging-when-one-type-is-drained-fix.patch
-mm-mglru-restrict-eviction-accounting-to-eligible-zones.patch
-mm-mglru-reduce-lru-lock-contention-by-shrinking-folio-batches-in-inc_min_seq.patch
-mm-mglru-make-swappiness=1-file-reclaim-more-aggressive.patch
+mm-mglru-run-aging-when-pages-are-rare-outside-the-youngest-gen.patch
+mm-mglru-avoid-prolonged-anon-reclaim-with-swappiness=200.patch
 
