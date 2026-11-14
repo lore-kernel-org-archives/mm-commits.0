@@ -1,48 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794624311;
-	b=MdU/Dy/U5A5Vo226xX5hV4IpPWiUt7bxLEkEBpRy/bowIoggPM6Q3HDoSpRdnkhctm3S
-	 rYfj4Ez0MOBnEq1pjk45+9iy+QGVLanC9o9ocSt6ikXhSYZR+OIC48dwwiDyR2pTxpBKk
-	 1n9PN7UKdeh6N7VKz5WibQCQAYkvIDyxmpkt5lXYBbyRO3EdxPhSUF95a0FMyWspf4RHn
-	 b5DKgjgjT/O/dGgQYWsv121xj+0COZU19JLXTIMnfQSwtgYchN3iabWs1I27XA5f6QeGR
-	 z0DnVcTtuMMbNrB6WtkhctknCKe68CkblrQdMmsz/siuCClNrWNJdrB9lqSPm3WQUmQ==
+	t=1794626178;
+	b=K0gxTUjKXMSNiOQw4N3ZfPkPE6yLQqEGUrfDsDDGvmjZ1EaLFqygPSww+MqS5xCKUVMe
+	 cQ0HHEkU5+G0ITBu6A58MFFDQDybkaGce0WC2OOeC+2YUzmP9vQyWXU0mS3yWi6ATOOmf
+	 kcUVKeXlTF+MHYRFwwhBOmxZbbqd0E6dxFUrEG0cfBhNLnDbK8AQtFp203B92rAgbaxXs
+	 Py1zxBte7psqyrhQ4iPATyxB0x4chS5wrsw97l/3uZEXZAyeg0TOnnP9ZPvLK2VEWa2bg
+	 T4L4HgWjmWrYxbLMRhUFUGr8VjjB/HzOvGRvkaJQf6lMNebtzKvtDAfkEJsmughnrRA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794624311;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794626178;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=q2E8XRtcZ2uovaLi7QEhrSiMRymKImj3eiGr2usZt94=;
-	b=QTumoPIhOPC6aS9bZA0Bvpq0y0VIIS2129TAHwEhF0tDI1xVN2aX1QuqHZsuYCagRDHB
-	 +sBStYacG1zg/tafR9MZ5+ePMoUKLinbGXBdtNO30zpqmfq11ympsWvPcGp9xj3GenSWj
-	 grin8OOHLjMVums9AwF+e0NG1XvQwjgKvmDx9Y+F3SlNGj46uEMFuSEwzaHwJ3hqvakbl
-	 VLyDs7RKCBjV1lKJ838eFwbxtBn6HVRaMJq3ffEBva5ieBe2kMvMM4L6oO7Kmkhnl0+0I
-	 gJECzMoUM6+4qJ/8OQYtH0IFYaMwlzGED757yIVPcm7cWARtTkWQ81Vl+G+8hKvwl/w==
+	bh=zoNHeT1XJtmR3/ddpeTwS615sy6YTRsR7eenA2Oqxbs=;
+	b=oAXp3sq8pDSgTC1knMOCyvLi0KE3sUdl37bjoWK9WkR7jCi7uJmGSdUArDJcPAmA4ngt
+	 kzKF1d25vCcxhFaMhTxqfrFRMfwSzlcoVLfLaNWcctEO4jR68tzHcX5YG+D3zX74QdloP
+	 wm8L7VBbHFC4zW58VJPTihcupIJDq7PkyrTSk5aKaxugX3zMeOwZjV1i+IWR8yqGEhry9
+	 ommATcwWT4AmccpRH3SNTGtH/kF+fg7p8MaGaxGwRtRz1SER+pJZtlHGtdbU3sFpU96XX
+	 yKtnaxbXoSHyi0YiFmEaj/n7V3mxEEyfohD3kX76ekPtB/g0yayevptVbyfBGfaU+Sg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tzI2liVS;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=dLJ4+ksO;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37691606A330
-	for <mm-commits@vger.kernel.org>; Sat, 14 Nov 2026 02:45:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BC36606A8A4
+	for <mm-commits@vger.kernel.org>; Sat, 14 Nov 2026 03:16:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tzI2liVS
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6324F1F000C4;
-	Sat, 14 Nov 2026 02:45:10 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=dLJ4+ksO
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1EBC1F000C5;
+	Sat, 14 Nov 2026 03:16:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794624310;
-	bh=q2E8XRtcZ2uovaLi7QEhrSiMRymKImj3eiGr2usZt94=;
+	d=linux-foundation.org; s=korg; t=1794626177;
+	bh=zoNHeT1XJtmR3/ddpeTwS615sy6YTRsR7eenA2Oqxbs=;
 	h=Date:To:From:Subject;
-	b=tzI2liVSWSaV49L/F/snPz49amz/fpnGMG+C0ax6wdIsalVrW8JxNiVEBwAU9geGA
-	 XjZy83uiyQSlkPR+w74u5+nslyRP+0W0hlnEG1Rf8ADRN88BYW3MnBihZFJGFKFOHl
-	 fUzLnD++7wFV8mjizxbxfPVdOuVkKrTyzBBzhNB4=
-Date: Fri, 13 Nov 2026 18:45:09 -0800
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
-	shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,
-	liam@infradead.org,hongfu.li@linux.dev,david@kernel.org,lihongfu@kylinos.cn,
-	akpm@linux-foundation.org
+	b=dLJ4+ksOFotqv1EXCgd7lPEdkjagUecH67HIDmNd8y/sGjVm5iQhw8gwMzGiXlqG7
+	 KjD1mWGV1QjIki2BEZL+JNqe6Upppgz5s+qNCZbByD2Rygfxgy250uFxTgUiuVZGMi
+	 A2e62XJiXJ12VbGEcT5nmMAU3y2RWxODWPfqzCN8=
+Date: Fri, 13 Nov 2026 19:16:17 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,p.raghav@samsung.com,
+	jack@suse.cz,gopalmalaviya53@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-mlock2-tests-fix-fclosenull-in-is_vmflag_set.patch added to mm-new branch
-Message-Id: <20261114024510.6324F1F000C4@smtp.kernel.org>
+Subject: + mm-readahead-dont-skip-the-fallback-after-aligning-index-down.patch added to mm-new branch
+Message-Id: <20261114031617.B1EBC1F000C5@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +52,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: selftests/mm: mlock2-tests: fix fclose(NULL) in is_vmflag_set()
+     Subject: mm/readahead: don't skip the fallback after aligning index down
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-mlock2-tests-fix-fclosenull-in-is_vmflag_set.patch
+     mm-readahead-dont-skip-the-fallback-after-aligning-index-down.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-mlock2-tests-fix-fclosenull-in-is_vmflag_set.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-readahead-dont-skip-the-fallback-after-aligning-index-down.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -88,73 +86,87 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Hongfu Li <lihongfu@kylinos.cn>
-Subject: selftests/mm: mlock2-tests: fix fclose(NULL) in is_vmflag_set()
-Date: Fri, 13 Nov 2026 10:52:37 +0800
+From: Gopal Malaviya <gopalmalaviya53@gmail.com>
+Subject: mm/readahead: don't skip the fallback after aligning index down
+Date: Fri, 13 Nov 2026 07:27:11 +0000
 
-is_vmflag_set() jumps to the shared 'out' label when seek_to_smaps_entry()
-fails.  smaps is NULL on that path, and the code at the 'out' label calls
-fclose(smaps) unconditionally.  fclose(NULL) is undefined behaviour, so
-the test crashes before it can report a test result.
+page_cache_ra_order() rounds the start of the readahead window down to the
+minimum folio size of the mapping, so on a file system with blocks larger
+than the page size, index can end up below start.  If adding the first
+folio then fails, for example with -EEXIST because that folio is already
+cached, the loop stops with index still below start, and the check before
+the fallback
 
-Return early on that error path instead, so smaps is always valid at the
-'out' label.
+	if (ra->size > index - start)
 
-get_value_for_name() follows the same pattern.  Return early on the
-seek_to_smaps_entry() error path there as well, and drop the now redundant
-'if (smaps)' guard on the fclose().
+wraps around, so do_page_cache_ra() is not called and nothing of the
+window is read.
 
-Link: https://lore.kernel.org/20261113-for-mlock2-v2-1-f62195fc8394@kylinos.cn
-Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
+For example, with read_ahead_kb 128 and 16 KiB blocks, the mmap
+read-around window for a fault on page 1042 starts at page 1026, index
+becomes 1024, and if pages 1024-1027 are cached, pages 1028-1057 are not
+read ahead.
+
+Compare with the end of the window instead.  Where index is not below
+start, this is the same check and the same number of pages as before.
+
+Tested in a KVM guest (x86_64, 2 vCPUs, 3 GiB) on mm-hotfixes-unstable,
+with XFS with 16 KiB blocks and with ext4 on virtio-blk, read_ahead_kb
+128.  A test caches page 1026 of a file with pread() on a
+POSIX_FADV_RANDOM descriptor, then faults page 1042 through a mapping, and
+counts the cached pages of the window [1026, 1058) with mincore():
+
+                                       before   after
+  XFS, 16 KiB blocks                      6       32
+  XFS, 16 KiB blocks, nothing cached     32       32
+  ext4                                   32       32
+
+Tracing shows the fallback now running after the -EEXIST, as
+page_cache_ra_unbounded with index=1024 and nr_to_read=34.
+
+Touching 1% of the pages of a cold 20 GiB file on XFS with 16 KiB blocks,
+at random, at a stride of 2053 pages, or as random runs of 2 or 4 adjacent
+pages, reads the same amount before and after, within 5% over two runs
+each, at read_ahead_kb 128 and 8192.
+
+The problem was pointed out by the Sashiko AI review of an unrelated patch
+[1].  An AI assistant (Claude) helped with the analysis and the test, and
+drafted this changelog.  I reviewed, implemented, built and tested the
+change.
+
+Link: https://lore.kernel.org/20261113072711.235264-1-gopalmalaviya53@gmail.com
+Link: https://sashiko.dev/#/bug/linux-da6e8836-f808-4b39-9f04-de52995a0162 [1]
+Fixes: d5ea5e5e50df ("readahead: properly shorten readahead when falling back to do_page_cache_ra()")
+Signed-off-by: Gopal Malaviya <gopalmalaviya53@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: <hongfu.li@linux.dev>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Pankaj Raghav <p.raghav@samsung.com>
 
- tools/testing/selftests/mm/mlock2-tests.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/readahead.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/mm/mlock2-tests.c~selftests-mm-mlock2-tests-fix-fclosenull-in-is_vmflag_set
-+++ a/tools/testing/selftests/mm/mlock2-tests.c
-@@ -66,7 +66,7 @@ static bool is_vmflag_set(unsigned long
- 	smaps = seek_to_smaps_entry(addr);
- 	if (!smaps) {
- 		ksft_print_msg("Unable to parse /proc/self/smaps\n");
--		goto out;
-+		return false;
- 	}
- 
- 	while (getline(&line, &size, smaps) > 0) {
-@@ -103,7 +103,7 @@ static unsigned long get_value_for_name(
- 	smaps = seek_to_smaps_entry(addr);
- 	if (!smaps) {
- 		ksft_print_msg("Unable to parse /proc/self/smaps\n");
--		goto out;
-+		return value;
- 	}
- 
- 	while (getline(&line, &size, smaps) > 0) {
-@@ -123,9 +123,8 @@ static unsigned long get_value_for_name(
- 	}
- 
- out:
--	if (smaps)
--		fclose(smaps);
- 	free(line);
-+	fclose(smaps);
- 	return value;
+--- a/mm/readahead.c~mm-readahead-dont-skip-the-fallback-after-aligning-index-down
++++ a/mm/readahead.c
+@@ -552,10 +552,12 @@ void page_cache_ra_order(struct readahea
+ fallback:
+ 	/*
+ 	 * ->readahead() may have updated readahead window size so we have to
+-	 * check there's still something to read.
++	 * check there's still something to read. Compare with the end of the
++	 * window, as index may have been rounded down below start to the
++	 * minimum folio size.
+ 	 */
+-	if (ra->size > index - start)
+-		do_page_cache_ra(ractl, ra->size - (index - start),
++	if (index < start + ra->size)
++		do_page_cache_ra(ractl, start + ra->size - index,
+ 				 ra->async_size);
  }
  
 _
 
-Patches currently in -mm which might be from lihongfu@kylinos.cn are
+Patches currently in -mm which might be from gopalmalaviya53@gmail.com are
 
-mm-hugetlb-charge-hugetlb-cgroup-and-memcg-in-alloc_hugetlb_folio_reserve.patch
-selftests-mm-mlock2-tests-fix-fclosenull-in-is_vmflag_set.patch
+mm-readahead-dont-skip-the-fallback-after-aligning-index-down.patch
 
