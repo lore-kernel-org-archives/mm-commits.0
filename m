@@ -1,48 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794696765;
-	b=fw599Yy/j9t3KRtB+O6dWjEvoSRz6KbFuAQQY9kYww+0Ol5SQUUk92703QCIGJKC/41Q
-	 NHHjcCB8rwlJok7CqciHP76ZNUBzLdcNjYf7r0FkP7vH70Y7ECvhSEkux+NLua7wiSvDL
-	 PwP+5R3KHWkoH0K8jtan4czD0iI4rJaE6xLL4eO4s+M0vVB/asmSeirQXSPoguyZCYRxE
-	 c2ShcVwMUFbtsakscDlYYLOCuMZiIrMx05sQunpHpA2TXKGKCxhZGrkm0pCEe3K6zk8Y1
-	 a2Gqc4v2W6/LkIlVOr15yEjnBTFo7+Y7lgt00yNOIEFTaRGpPL+2NWhrvXa0wYY/oJA==
+	t=1794696817;
+	b=3vxQ1XtwsZTTt6HftNY30fDVu+C96FhifARVMFaNmxikTSwl0BiQRcn/83RCIUzYYPNw
+	 ELjpxcLJIaaUyCv/hKPYAVYxfQ/xYksbmcxswRt5GdkYFAy5GxnUaVaolzv7RCwC5/CXR
+	 ntLUNA5AXA3hDknX6D02mEBqgdsEdefh6j3xDnkXNn6xzvPaOtQrgsMe10cQlX0PfMHbO
+	 2kzLa1Gc3LIXH/CKzzyYs8H1yTijIXLhRjiIyLXBl5/hBxfvv6HMcNwzWr4luxFvpbRW0
+	 zT5gu6m8ZJSMaDR9ae/LA+5iVAzAJeELsMbgOcIjgJnT+EvBKR3iyXpWMG7oCU+YRJQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794696765;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794696817;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=+1ShE89fdK1XdTrSTR3hrte1xDLJU7N1BjjU1XV5uxk=;
-	b=DHxq2xlVF8yb9kWG1PjKtSMxgRAWqhpqV80qG4OZObTND/5QyTz6ZiAw/jehNs4EL+tg
-	 hkCHgHRp0/eGNpKPw/BVz6j604mRTGk893mzQcoukmPAZOzl+upOhxZb3hv1QIVWY+Tff
-	 9e+9WoY5gHd+9jKRmcrm+UkegqY6yHcCwoPjZmSyWh0JD0fuEMkVnr1PkK8V6+XTQa/px
-	 Ny7QZmmYn6iUp9RtUrQjf9aiBgRORit2/1xIw3MqqfUsqt6Jx/f3enVGOk5wzmfj57nFD
-	 iGtWMN0tR3q0EJFHtN28/lixLwy0AAF2CwmvU4BgagPSiciP8WLu0UAVXUZg9eYjmAw==
+	bh=PbT8vJYDlo+qSlAXu6zcJfjiJY4gNzDyXvfbsy8gX38=;
+	b=WSeh+asBOIIuaxw/btosR6aPrPO3p8r4wRqF2KCzavmDl7mWh2a+Fy+4LKZ6A4QQiADc
+	 qsB3ftBW5K0DcV7H1+Y+D//Mv0nc8pmdYbasI9Zz3qY5qMJl+xjrHcUf0xWhe5eDCqsgM
+	 bvi+yRfp2tH1TK5AP8M5mQ6KBbEeBF/AKiGbZknJQ9U+usBhen7VbPXneYleUA4LfvYrM
+	 zAu4NQ0ZnYhq4jCTMBVt0RjOdmVzWzoEhSP04Yjrvqh1bB+mxwJxYIG6+kaSg4e8NLUIk
+	 jlEmG47A0xwAbW6wvqV78eaHP8lxTWLti433fJr335yiCnCVrVw8+p+Wt9uR4ORE4lg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ACows8n5;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="CG/vVGzL";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36AE7606A327;
-	Sat, 14 Nov 2026 22:52:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C17C606A32E
+	for <mm-commits@vger.kernel.org>; Sat, 14 Nov 2026 22:53:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ACows8n5
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B61BE1F000C4;
-	Sat, 14 Nov 2026 22:52:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=CG/vVGzL
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98AF11F000C5;
+	Sat, 14 Nov 2026 22:53:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794696764;
-	bh=+1ShE89fdK1XdTrSTR3hrte1xDLJU7N1BjjU1XV5uxk=;
+	d=linux-foundation.org; s=korg; t=1794696816;
+	bh=PbT8vJYDlo+qSlAXu6zcJfjiJY4gNzDyXvfbsy8gX38=;
 	h=Date:To:From:Subject;
-	b=ACows8n5XdzER8WMrOxbdNHYPHyGOgz5TgaU1MdRxCa6VaMq5ZkqvlbKtAfFojX9O
-	 LeJhIg34L+yxBXOEo2PNbfa8+IdoHrjd43JpleW7yPAlZF/+ZVSVcIfu9higoOL0WT
-	 8Jk+mhtb9xIbd2OqcNizLd1lkbm8tAecD3NsrRLM=
-Date: Sat, 14 Nov 2026 14:52:44 -0800
-To: mm-commits@vger.kernel.org,wangyang.guo@intel.com,
-	tim.c.chen@linux.intel.com,tianyou.li@intel.com,tglx@kernel.org,
-	stable@vger.kernel.org,dan.liang@intel.com,bp@alien8.de,
-	Vishal.Badole@amd.com,akpm@linux-foundation.org
+	b=CG/vVGzLeco+ITCicgcKmeOwIcaDg3LEVko4+FB9JVgM2XRA0ibqCJ8rulm4lm1l9
+	 yQlr2MI/zWTe44r+Gp5O4mAZzGqR0hGQeXsKp3s2WumOw0b2WHbOsOduCGb9n+8x8j
+	 ok6J/PC5LEaX5CihyPYgV2xntlvXfbg2oa5LLNdo=
+Date: Sat, 14 Nov 2026 14:53:36 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
+	sj@kernel.org,rakie.kim@sk.com,joshua.hahnjy@gmail.com,david@kernel.org,
+	gourry@gourry.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-group_cpus-snapshot-cluster-masks-to-keep-grouping-hotplug-invariant.patch added to mm-nonmm-unstable branch
-Message-Id: <20261114225244.B61BE1F000C4@smtp.kernel.org>
+Subject: [merged] mm-mempolicy-ignore-a-bind-policy-whose-nodes-have-no-memory.patch removed from -mm tree
+Message-Id: <20261114225336.98AF11F000C5@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,333 +52,80 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
-     Subject: lib/group_cpus: snapshot cluster masks to keep grouping hotplug invariant
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-group_cpus-snapshot-cluster-masks-to-keep-grouping-hotplug-invariant.patch
+The quilt patch titled
+     Subject: mm/mempolicy: ignore a bind policy whose nodes have no memory
+has been removed from the -mm tree.  Its filename was
+     mm-mempolicy-ignore-a-bind-policy-whose-nodes-have-no-memory.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-group_cpus-snapshot-cluster-masks-to-keep-grouping-hotplug-invariant.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vishal Badole <Vishal.Badole@amd.com>
-Subject: lib/group_cpus: snapshot cluster masks to keep grouping hotplug invariant
-Date: Sat, 14 Nov 2026 20:44:03 +0530
+From: "Gregory Price (Meta)" <gourry@gourry.net>
+Subject: mm/mempolicy: ignore a bind policy whose nodes have no memory
+Date: Fri, 13 Nov 2026 14:26:42 -0500
 
-group_cpus_evenly() builds the managed-IRQ affinity spread used by
-multi-queue devices such as NVMe.  That spread is meant to be a property
-of the static CPU topology: it walks cpu_present_mask and then
-cpu_possible_mask so every hardware queue owns a fixed set of CPUs,
-including CPUs that are offline at the time.  A driver depends on that
-partition staying stable across re-computation - the CPUs a queue is given
-at probe must still describe the same queue after the device is later
-reset and its affinity recomputed.
+apply_policy_zone() assumes that policy->nodes intersects N_MEMORY, so
+it reads a bind policy with no N_HIGH_MEMORY node as movable-only.
 
-On an AMD system that stability breaks across an s2idle cycle.  CPUs 3-11
-are offlined before suspend, leaving only CPUs 0-2 online.  s2idle itself
-does not offline secondary CPUs.  The NVMe controller uses the
-simple-suspend quirk, so resume fully re-initialises it and recomputes the
-affinity spread while CPUs 3-11 remain offline.  The system then hangs for
-roughly two minutes and stays sluggish afterwards, the controller only
-making progress through its command-timeout poll:
+On systems with CONFIG_CPUSETS=n, nothing rebinds policies when memory
+is removed, so offlining all memory on the nodes a bind policy names
+leaves it with none. The policy is then treated as movable-only, and
+movable allocations are restricted to nodes without memory.
 
-  nvme nvme0: I/O tag 898 (3382) QID 9 timeout, completion polled
-  nvme nvme0: I/O tag 398 (618e) QID 11 timeout, completion polled
+This results in allocations failures, a VM_FAULT_OOM leak, and then
+an infinitely retrying fault that hangs the process.
 
-QID 9 and QID 11 are the queues whose CPUs were offline when the spread
-was recomputed.  "completion polled" means the commands did finish in
-hardware, but their interrupts were never delivered to a CPU that was
-watching the queue, so nothing reaped them until the timeout fired.
+  page allocation failure: order:0, mode:0x140dca ... nodemask=2
+  Huh VM_FAULT_OOM leaked out to the #PF handler. Retrying PF
 
-It happens because commit 89802ca36c96 ("lib/group_cpus: make group CPU
-cluster aware") derives the cluster groups from
-topology_cluster_cpumask(), which lists only the cluster siblings that are
-online when it is called.  The resulting partition therefore depends on
-the transient online mask rather than on the topology alone.  Recomputed
-on resume while CPUs 3-11 remain offline, it no longer matches the
-boot-time partition, and a queue is left with an affinity that does not
-cover the CPU it is meant to serve once that CPU comes back online.  The
-dependence is on the online mask, not on any AMD-specific behaviour, so
-the same stall is reproducible on Intel platforms as well.
+Ignore a bind policy whose nodes have no memory. policy_nodemask()
+already ignores a bind policy that does not intersect the cpuset.
+This covers hugetlb's policy_mbind_nodemask() as well.
 
-Fix this by snapshotting cluster and SMT masks together under
-cpus_read_trylock() when all present CPUs are online.  Latch the first
-capture attempt, permanently using CPU-order grouping if it fails, and
-propagate later allocation errors instead of switching algorithms.  This
-keeps successful spreads stable across CPU offline/online cycles for an
-unchanged group count, present/possible CPU sets and NUMA topology.
+If the nodes regain memory, the policy applies again.
 
-Link: https://lore.kernel.org/20261114151403.1379591-1-Vishal.Badole@amd.com
-Fixes: 89802ca36c96 ("lib/group_cpus: make group CPU cluster aware")
-Signed-off-by: Vishal Badole <Vishal.Badole@amd.com>
+CPUSETS=n with HOTREMOVE=y is unlikely a common configuration, so this
+isn't marked for stable.
+
+Link: https://lore.kernel.org/20261113192642.2618878-1-gourry@gourry.net
+Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Thomas Gleixner <tglx@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Wangyang Guo <wangyang.guo@intel.com>
-Cc: Tianyou Li <tianyou.li@intel.com>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: Dan Liang <dan.liang@intel.com>
-Cc: <stable@vger.kernel.org>
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: SJ Park <sj@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+---
 
- lib/group_cpus.c |  125 ++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 106 insertions(+), 19 deletions(-)
+ mm/mempolicy.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/lib/group_cpus.c~lib-group_cpus-snapshot-cluster-masks-to-keep-grouping-hotplug-invariant
-+++ a/lib/group_cpus.c
-@@ -6,11 +6,14 @@
- #include <linux/kernel.h>
- #include <linux/slab.h>
- #include <linux/cpu.h>
-+#include <linux/mutex.h>
- #include <linux/sort.h>
- #include <linux/group_cpus.h>
+--- a/mm/mempolicy.c~mm-mempolicy-ignore-a-bind-policy-whose-nodes-have-no-memory
++++ a/mm/mempolicy.c
+@@ -2100,6 +2100,10 @@ bool apply_policy_zone(struct mempolicy
  
- #ifdef CONFIG_SMP
+ 	BUG_ON(dynamic_policy_zone == ZONE_MOVABLE);
  
-+static cpumask_var_t *sibling_snapshot;
++	/* Memory hot-remove can leave policy->nodes without memory. */
++	if (!nodes_intersects(policy->nodes, node_states[N_MEMORY]))
++		return false;
 +
- static void grp_spread_init_one(struct cpumask *irqmsk, struct cpumask *nmsk,
- 				unsigned int cpus_per_grp)
- {
-@@ -29,7 +32,7 @@ static void grp_spread_init_one(struct c
- 		cpus_per_grp--;
- 
- 		/* If the cpu has siblings, use them first */
--		siblmsk = topology_sibling_cpumask(cpu);
-+		siblmsk = sibling_snapshot ? sibling_snapshot[cpu] : cpumask_of(cpu);
- 		for (sibl = -1; cpus_per_grp > 0; ) {
- 			sibl = cpumask_next(sibl, siblmsk);
- 			if (sibl >= nr_cpu_ids)
-@@ -286,6 +289,84 @@ static void assign_cpus_to_groups(unsign
- 	}
- }
- 
-+/*
-+ * Cluster and SMT sibling masks change when CPUs go offline. Snapshot both
-+ * on the first spread if every present CPU is online. Latch the attempt even
-+ * on failure, so later spreads cannot enable a different grouping algorithm.
-+ *
-+ * Without a snapshot, use CPU order without cluster or SMT preference.
-+ * Successful spreads remain stable for the same group count, present/possible
-+ * CPU sets and NUMA topology. The snapshot is not refreshed for CPU hot-add.
-+ */
-+static cpumask_var_t *cluster_snapshot;
-+static bool cluster_snapshot_initialized;
-+static DEFINE_MUTEX(cluster_snapshot_lock);
-+
-+static void capture_cluster_snapshot(void)
-+{
-+	cpumask_var_t *snapshot, *siblings;
-+	unsigned int cpu;
-+
-+	/* Pairs with the smp_store_release() below. */
-+	if (smp_load_acquire(&cluster_snapshot_initialized))
-+		return;
-+
-+	mutex_lock(&cluster_snapshot_lock);
-+	if (cluster_snapshot_initialized)
-+		goto out;
-+
-+	/* Only capture when all present CPUs are online. */
-+	if (!data_race(cpumask_equal(cpu_present_mask, cpu_online_mask)))
-+		goto done;
-+
-+	snapshot = kcalloc(nr_cpu_ids, sizeof(*snapshot), GFP_KERNEL);
-+	if (!snapshot)
-+		goto done;
-+	siblings = kcalloc(nr_cpu_ids, sizeof(*siblings), GFP_KERNEL);
-+	if (!siblings)
-+		goto free_snapshot;
-+
-+	for_each_possible_cpu(cpu)
-+		if (!zalloc_cpumask_var(&snapshot[cpu], GFP_KERNEL) ||
-+		    !zalloc_cpumask_var(&siblings[cpu], GFP_KERNEL))
-+			goto free_snapshot;
-+
-+	/* Trylock: a caller may hold a lock the hotplug writer needs. */
-+	if (!cpus_read_trylock())
-+		goto free_snapshot;
-+
-+	/* Recheck with CPU hotplug excluded before copying the masks. */
-+	if (!data_race(cpumask_equal(cpu_present_mask, cpu_online_mask))) {
-+		cpus_read_unlock();
-+		goto free_snapshot;
-+	}
-+
-+	for_each_possible_cpu(cpu) {
-+		cpumask_copy(snapshot[cpu], topology_cluster_cpumask(cpu));
-+		cpumask_copy(siblings[cpu], topology_sibling_cpumask(cpu));
-+	}
-+	cpus_read_unlock();
-+
-+	cluster_snapshot = snapshot;
-+	sibling_snapshot = siblings;
-+	goto done;
-+
-+free_snapshot:
-+	/* Unallocated entries are NULL, which free_cpumask_var() ignores. */
-+	for_each_possible_cpu(cpu) {
-+		free_cpumask_var(snapshot[cpu]);
-+		if (siblings)
-+			free_cpumask_var(siblings[cpu]);
-+	}
-+	kfree(snapshot);
-+	kfree(siblings);
-+done:
-+	/* Publish the capture outcome, including failure, before grouping. */
-+	smp_store_release(&cluster_snapshot_initialized, true);
-+out:
-+	mutex_unlock(&cluster_snapshot_lock);
-+}
-+
- static int alloc_cluster_groups(unsigned int ncpus,
- 				unsigned int ngroups,
- 				struct cpumask *node_cpumask,
-@@ -307,7 +388,7 @@ static int alloc_cluster_groups(unsigned
- 		if (cpu >= nr_cpu_ids)
- 			break;
- 
--		cluster_mask = topology_cluster_cpumask(cpu);
-+		cluster_mask = cluster_snapshot[cpu];
- 		if (!cpumask_weight(cluster_mask))
- 			goto no_cluster;
- 		/* Clean out CPUs on the same cluster. */
-@@ -322,7 +403,7 @@ static int alloc_cluster_groups(unsigned
- 	/* Allocate memory based on cluster number. */
- 	clusters = kzalloc_objs(*clusters, ncluster);
- 	if (!clusters)
--		goto no_cluster;
-+		return -ENOMEM;
- 	cluster_groups = kzalloc_objs(struct node_groups, ncluster);
- 	if (!cluster_groups)
- 		goto fail_cluster_groups;
-@@ -331,7 +412,7 @@ static int alloc_cluster_groups(unsigned
- 	cpumask_copy(msk, node_cpumask);
- 	for (n = 0; n < ncluster; n++) {
- 		cpu = cpumask_first(msk);
--		cluster_mask = topology_cluster_cpumask(cpu);
-+		cluster_mask = cluster_snapshot[cpu];
- 		nc = cpumask_weight_and(cluster_mask, node_cpumask);
- 		clusters[n] = cluster_mask;
- 		cluster_groups[n].id = n;
-@@ -347,6 +428,7 @@ static int alloc_cluster_groups(unsigned
- 
-  fail_cluster_groups:
- 	kfree(clusters);
-+	return -ENOMEM;
-  no_cluster:
- 	return 0;
- }
-@@ -354,9 +436,9 @@ static int alloc_cluster_groups(unsigned
- /*
-  * Try group CPUs evenly for cluster locality within a NUMA node.
-  *
-- * Return: true if success, false otherwise.
-+ * Return: cluster count on success, 0 if inapplicable, or -ENOMEM on failure.
-  */
--static bool __try_group_cluster_cpus(unsigned int ncpus,
-+static int __try_group_cluster_cpus(unsigned int ncpus,
- 				     unsigned int ngroups,
- 				     struct cpumask *node_cpumask,
- 				     struct cpumask *masks,
-@@ -365,18 +447,20 @@ static bool __try_group_cluster_cpus(uns
- {
- 	struct node_groups *cluster_groups;
- 	const struct cpumask **clusters;
--	unsigned int ncluster;
--	bool ret = false;
-+	int ncluster;
- 	cpumask_var_t nmsk;
- 	unsigned int i, nc;
- 
-+	if (!cluster_snapshot)
-+		return 0;
-+
- 	if (!zalloc_cpumask_var(&nmsk, GFP_KERNEL))
--		goto fail_nmsk_alloc;
-+		return -ENOMEM;
- 
- 	ncluster = alloc_cluster_groups(ncpus, ngroups, node_cpumask, nmsk,
- 					&clusters, &cluster_groups);
- 
--	if (ncluster == 0)
-+	if (ncluster <= 0)
- 		goto fail_no_clusters;
- 
- 	for (i = 0; i < ncluster; i++) {
-@@ -392,13 +476,11 @@ static bool __try_group_cluster_cpus(uns
- 		assign_cpus_to_groups(nc, nmsk, nv, masks, curgrp, last_grp);
- 	}
- 
--	ret = true;
- 	kfree(cluster_groups);
- 	kfree(clusters);
-  fail_no_clusters:
- 	free_cpumask_var(nmsk);
-- fail_nmsk_alloc:
--	return ret;
-+	return ncluster;
- }
- 
- static int __group_cpus_evenly(unsigned int startgrp, unsigned int numgrps,
-@@ -442,6 +524,7 @@ static int __group_cpus_evenly(unsigned
- 	for (i = 0; i < nr_node_ids; i++) {
- 		unsigned int ncpus;
- 		struct node_groups *nv = &node_groups[i];
-+		int ret;
- 
- 		if (nv->ngroups == UINT_MAX)
- 			continue;
-@@ -454,14 +537,16 @@ static int __group_cpus_evenly(unsigned
- 
- 		WARN_ON_ONCE(nv->ngroups > ncpus);
- 
--		if (__try_group_cluster_cpus(ncpus, nv->ngroups, nmsk,
--					     masks, &curgrp, last_grp)) {
--			done += nv->ngroups;
--			continue;
-+		ret = __try_group_cluster_cpus(ncpus, nv->ngroups, nmsk,
-+					       masks, &curgrp, last_grp);
-+		if (ret < 0) {
-+			kfree(node_groups);
-+			return ret;
- 		}
- 
--		assign_cpus_to_groups(ncpus, nmsk, nv, masks, &curgrp,
--				      last_grp);
-+		if (!ret)
-+			assign_cpus_to_groups(ncpus, nmsk, nv, masks, &curgrp,
-+					      last_grp);
- 		done += nv->ngroups;
- 	}
- 	kfree(node_groups);
-@@ -496,6 +581,8 @@ struct cpumask *group_cpus_evenly(unsign
- 	if (numgrps == 0)
- 		return NULL;
- 
-+	capture_cluster_snapshot();
-+
- 	if (!zalloc_cpumask_var(&nmsk, GFP_KERNEL))
- 		return NULL;
- 
+ 	/*
+ 	 * if policy->nodes has movable memory only,
+ 	 * we apply policy when gfp_zone(gfp) = ZONE_MOVABLE only.
 _
 
-Patches currently in -mm which might be from Vishal.Badole@amd.com are
+Patches currently in -mm which might be from gourry@gourry.net are
 
-lib-group_cpus-snapshot-cluster-masks-to-keep-grouping-hotplug-invariant.patch
+mm-memory-tiers-reset-demotion-targets-of-nodes-without-memory.patch
+mm-mempolicy-convert-mempolicy-refcnt-to-refcount_t.patch
+selftests-mm-add-madv_cold-and-madv_pageout-contract-tests.patch
+selftests-mm-check-madv_cold-and-madv_pageout-range-handling.patch
+selftests-mm-check-that-madv_cold-and-madv_pageout-reject-hugetlb.patch
+selftests-mm-check-that-madv_cold-and-madv_pageout-preserve-shared-memory.patch
+selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps.patch
+selftests-mm-check-madv_pageout-file-permissions.patch
+selftests-mm-check-that-unauthorized-madv_pageout-skips-large-file-folios.patch
+mm-hmm-reject-shadow-stack-mappings.patch
 
