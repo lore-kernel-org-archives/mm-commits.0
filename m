@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794694249;
-	b=5eSn9ygZalY+bwUxVhW9lREObN2fmhTtbGfsShlsD8TzGuuuB/ZNE9IHITP3EEBrNLwf
-	 tZrLVamqLbpT+0WJnFfr12jfAM1XpKCTKtZAFpzG6iXtt2JH/cYjLi4AWILy4UgbzKOmo
-	 AkRmXnRxRrBg4YMhXBw6S5ONhDgNH4uq5NN+y7pHWFDULC3zbYK+bhLhLcg+RbvNcibE5
-	 SFkd9z/kJkyqjXfW0pkZsvbcVnYawznZHlKJelh5Q1RFY2cbmB3gw0P6EamG+QLdRjIa/
-	 PDfnZzrmqawheTCkiCAakEFd5oO8rKFVO22U5X+QnULIh/F+iu9v+eE68iT0xTPHl4w==
+	t=1794694252;
+	b=IuNHvIANQqUA2zCPmM+UjCq0CVqDG+ym7gu7ihUsweXrOnrlr3xzXvEPqUB1g2lcgRME
+	 CzdeP/gU5UFU32p4Nj/nw30/a14ceohPpTJuNUqb9iCf2lH8oyPFy2t61ykg/QKQ/hUJS
+	 uTYswyYDN3zFQo5qKTmhfOvmrK7GtT96N0OcE4aOWkBTXpdUvZcS1t6bTXv0I8XJMRxFY
+	 ApSpVO2fSHSBxiKNNyi5JMLFa8TvZw4Ah8HLQd9Hope+Lj4nXzO9pbUUBd1Im2Cd+I5A3
+	 +xicagQeU2/Ga6nfDlZukqCQI3IhaGU1SP9Zal9TKc+VfNoy3TrG0U52fTW/N+EG4KQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794694249;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794694252;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=1vuV9YzvnfnH7k0LQTEV24sBXfDSFj7xcxXtiBWDhPM=;
-	b=bKLDbNWd1+yRiX5bN/wks3GNGbl4VR4J9KoPEUNRSJe8lKp933KcgiJi5ITGSKBHyOdN
-	 o+BGLlgxNnD0RRm5L2Me3WIg6NLqqhnXpbO9d3Wbt1FWvgqX60/hIzLI+cvAlSy61jpMl
-	 ZWqz1kFbu92juPzANARBsnqbp3P6loV7IZLhpCPZ6H2snqxZQuliG7lldmqoe7GVO0c3z
-	 aN7xBegQw0rSUFF198xCnkPV0UOdOvEuCWb/bh+v2K0c1EvPMDOhn7zA8ARNdJRFB1WPk
-	 fXWtSSjRJu03VM6KCyqH1shscv+Y/6pX7EgxyYb8nxSfmCFI4JaniAnaF06/Xi28hDw==
+	bh=CEEqzLkJdwjwFftgTP87mBtd8CeWh/uuWiuFAnnXs9E=;
+	b=hi/f814xxQ+CgDPMJE7YoyTcdD81P9E5etQoQ3d4+nL8epD/1IrTrCJGVqyZzfXAl0PG
+	 edH4QZR+RnMmmCIIJvQy6ujwmTPvOkHw1nixa1b8lXK39cFcCrmYv8wGkjtIjSySrlgR9
+	 0TYVOPDIRPmEDrTdzF0AsEWJXmyshX0YKZU1bUv4q0MnQ28iD2iTSyQfFtNKztZij7Q6J
+	 SBjM7GvYRd+wrMMC7Ds6mrJIisIQ5wbJ9tbPDDcZhh1QCNxAu1WlQUB7lTNz0nF2ogQyD
+	 24l/G9atll35T5L4r+hP1Cbkq1YA3gfcmGPzo7hFV47dn7bE92LD8Y8J9ACXw3umFvg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=X0ZqOofu;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Po4aqlVm;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3D0F606A329
-	for <mm-commits@vger.kernel.org>; Sat, 14 Nov 2026 22:10:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F861606A329
+	for <mm-commits@vger.kernel.org>; Sat, 14 Nov 2026 22:10:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=X0ZqOofu
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E4511F000C4;
-	Sat, 14 Nov 2026 22:10:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Po4aqlVm
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A3A71F000C5;
+	Sat, 14 Nov 2026 22:10:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794694249;
-	bh=1vuV9YzvnfnH7k0LQTEV24sBXfDSFj7xcxXtiBWDhPM=;
+	d=linux-foundation.org; s=korg; t=1794694252;
+	bh=CEEqzLkJdwjwFftgTP87mBtd8CeWh/uuWiuFAnnXs9E=;
 	h=Date:To:From:Subject;
-	b=X0ZqOofu+CuT27xBBj3ZJHgrkZIYI3Llm8f+d1IfnBOjjLEGEHZqtgI+p+nVxa8cl
-	 2ukTWlD/o73Vcu++ZROcXA0txFQCXeWhZCcs5yt9xw3CjVhjRKacQ+TuHAdgFnFFtn
-	 E5mi9wEl/DeZ+tCgJZCTgQCgW/65vRDSJ+3idB38=
-Date: Sat, 14 Nov 2026 14:10:49 -0800
-To: mm-commits@vger.kernel.org,baohua@kernel.org,akpm@linux-foundation.org
+	b=Po4aqlVmg5w0xn4X1av3/FJ+JywHMQ7JlMbwONhrT+SApzMQ/m8I9m/90E47RBWYd
+	 0Ze9rjlv8Wn7Dk0ToSbNu5nmkWgtHKarTFIdm/EfMZzLKRrYTTtSGdaZmUSSpondPh
+	 a89YE/ExQqf0/XbxmDuT+NqxNbt7RuOyabByWFAA=
+Date: Sat, 14 Nov 2026 14:10:52 -0800
+To: mm-commits@vger.kernel.org,lyugaofei@xiaomi.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-avoid-placing-rejected-folios-below-populated-gen.patch added to mm-new branch
-Message-Id: <20261114221049.9E4511F000C4@smtp.kernel.org>
+Subject: + mm-mglru-run-aging-when-pages-are-rare-outside-the-youngest-gen.patch added to mm-new branch
+Message-Id: <20261114221052.6A3A71F000C5@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,12 +51,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/mglru: Avoid placing rejected folios below populated gen
+     Subject: mm/mglru: Run aging when pages are rare outside the youngest gen
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mglru-avoid-placing-rejected-folios-below-populated-gen.patch
+     mm-mglru-run-aging-when-pages-are-rare-outside-the-youngest-gen.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-avoid-placing-rejected-folios-below-populated-gen.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-run-aging-when-pages-are-rare-outside-the-youngest-gen.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -85,57 +85,38 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Barry Song (Xiaomi)" <baohua@kernel.org>
-Subject: mm/mglru: Avoid placing rejected folios below populated gen
-Date: Sun, 15 Nov 2026 04:07:56 +0800
+From: Gaofei Lyu <lyugaofei@xiaomi.com>
+Subject: mm/mglru: Run aging when pages are rare outside the youngest gen
+Date: Sun, 15 Nov 2026 04:07:57 +0800
 
-We used to scan only the oldest generation in scan_folios(). In
-evict_folios(), we checked whether
-lru_gen_folio_seq(lruvec, folio, false) == min_seq[type]. If so, the
-folio was marked active and moved to younger generations.
+Run aging when the total number of pages outside the youngest
+generation across both types falls below 1/MAX_NR_GENS of the number
+of pages in the youngest generation. For extreme swappiness values
+such as 1 and 200, also consider the balance of the corresponding
+type.
 
-This was itself buggy, as folios in generation min_seq[type] - 1
-would not be marked active by folio_set_active(), potentially causing
-a cold/hot inversion.
+This improves reclaim efficiency, especially at extreme swappiness
+values, while reducing system time.
 
-Besides this issue, the old approach also differs from the current
-behavior, where we can scan fewer than two generations.
-Now that we can scan younger generations, including the youngest
-generation, this no longer prevents rejected folios from being placed
-in a generation below or at the populated generation. Such rejected
-folios would then be scanned again and again, resulting in extremely
-low `pg_steal/pg_scan` ratios. For example:
-  pgsteal_file: 2312605
-  pgscan_file:  36465693
-  reclamation efficiency: 6.34%
+To avoid the overhead of aging, we only allow imbalance-based aging
+when the reclaim priority is low enough that we might reclaim the
+youngest generation.
 
-We pass `scanned_seq` to `move_folios_to_lru()` and make sure we either
-promote the folio or place it in the youngest generation when the
-populated generation is already the youngest one.
-Also, folio_set_active() is no longer needed.
-
-With this change, the results become:
-  pgsteal_file: 2683815
-  pgscan_file:  4224244
-  reclamation efficiency: 63.53%
-
-The sys time for building the kernel also decreased from 4m30.532s to
-3m50.188s while swappiness==1.
-
-Link: https://lore.kernel.org/20261114200803.23129-10-baohua@kernel.org
+Link: https://lore.kernel.org/20261114200803.23129-11-baohua@kernel.org
+Signed-off-by: Gaofei Lyu <lyugaofei@xiaomi.com>
 Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Kunwu Chan <kunwu.chan@gmail.com>
+Co-developed-by: Barry Song (Xiaomi) <baohua@kernel.org>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: <hui.zhu@linux.dev>
 Cc: Kairui Song <kasong@tencent.com>
+Cc: Kunwu Chan <kunwu.chan@gmail.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: wang lian <lianux.mm@gmail.com>
 Cc: <liuxiang.277@bytedance.com>
-Cc: <lyugaofei@xiaomi.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Qi Zheng <qi.zheng@linux.dev>
 Cc: Ridong Chen <ridong.chen@linux.dev>
@@ -148,175 +129,89 @@ Cc: Yuanchu Xie <yuanchu@google.com>
 Cc: Bo Zhang <zhangbo56@xiaomi.com>
 Cc: Hui Zhu <zhuhui@kylinos.cn>
 Cc: Siddharth Chintamaneni <sidchintamaneni@gmail.com>
-Cc: Kunwu Chan <chentao@kylinos.cn>
 Cc: Bo Zhang <zhangbo0325@gmail.com>
 
- include/linux/mm_inline.h |   22 +++++++++++++++++++++-
- mm/vmscan.c               |   24 ++++++++++++------------
- 2 files changed, 33 insertions(+), 13 deletions(-)
+ mm/vmscan.c |   44 ++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 42 insertions(+), 2 deletions(-)
 
---- a/include/linux/mm_inline.h~mm-mglru-avoid-placing-rejected-folios-below-populated-gen
-+++ a/include/linux/mm_inline.h
-@@ -332,7 +332,8 @@ static inline unsigned long lru_gen_foli
- 	return max(READ_ONCE(lrugen->max_seq) - gen + 1, READ_ONCE(lrugen->min_seq[type]));
+--- a/mm/vmscan.c~mm-mglru-run-aging-when-pages-are-rare-outside-the-youngest-gen
++++ a/mm/vmscan.c
+@@ -2743,6 +2743,8 @@ static bool should_clear_pmd_young(void)
+ #define get_memcg_gen(seq)	((seq) % MEMCG_NR_GENS)
+ #define get_memcg_bin(bin)	((bin) % MEMCG_NR_BINS)
+ 
++#define AGING_PRIORITY	(DEF_PRIORITY / 2)
++
+ static int get_swappiness(struct lruvec *lruvec, struct scan_control *sc)
+ {
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+@@ -4780,7 +4782,7 @@ static int scan_folios(unsigned long nr_
+ 	 */
+ 	if (sc->priority == DEF_PRIORITY)
+ 		seq = lrugen->max_seq - MIN_NR_GENS;
+-	else if (sc->priority > DEF_PRIORITY / 2)
++	else if (sc->priority > AGING_PRIORITY)
+ 		seq = lrugen->max_seq - 1;
+ 	else
+ 		seq = lrugen->max_seq;
+@@ -5073,6 +5075,40 @@ retry:
+ 	return scanned;
  }
  
--static inline bool lru_gen_add_folio(struct lruvec *lruvec, struct folio *folio, bool reclaiming)
-+static inline bool __lru_gen_add_folio(struct lruvec *lruvec, struct folio *folio,
-+		unsigned long scanned_seq, bool reclaiming)
++static bool lru_gen_imbalanced(struct lruvec *lruvec, struct scan_control *sc,
++		int swappiness)
++{
++	unsigned long youngest[ANON_AND_FILE] = {0}, old[ANON_AND_FILE] = {0};
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
++	DEFINE_MAX_SEQ(lruvec);
++	DEFINE_MIN_SEQ(lruvec);
++	int type;
++
++	if (sc->priority > AGING_PRIORITY)
++		return false;
++
++	/*
++	 * Round up or down corner swappiness, to balance the heavy biased
++	 * type better
++	 */
++	if (swappiness == MIN_SWAPPINESS + 1)
++		swappiness = MIN_SWAPPINESS;
++	else if (swappiness == MAX_SWAPPINESS)
++		swappiness = MAX_SWAPPINESS + 1;
++
++	for_each_evictable_type(type, swappiness) {
++		unsigned long seq;
++
++		youngest[type] = lruvec_gen_size(lrugen, type, max_seq);
++		for (seq = min_seq[type]; seq < max_seq; seq++)
++			old[type] += lruvec_gen_size(lrugen, type, seq);
++	}
++
++	/* the vast majority of pages sit in the youngest gen */
++	return youngest[LRU_GEN_ANON] + youngest[LRU_GEN_FILE] >
++	       (old[LRU_GEN_ANON] + old[LRU_GEN_FILE]) * MAX_NR_GENS;
++}
++
+ static bool should_run_aging(struct lruvec *lruvec, unsigned long max_seq,
+ 			     struct scan_control *sc, int swappiness)
  {
- 	unsigned long seq;
- 	unsigned long flags;
-@@ -347,6 +348,8 @@ static inline bool lru_gen_add_folio(str
+@@ -5087,7 +5123,11 @@ static bool should_run_aging(struct lruv
  		return false;
  
- 	seq = lru_gen_folio_seq(lruvec, folio, reclaiming);
-+	if (scanned_seq != -1UL)
-+		seq = max(seq, min(scanned_seq + 1, lrugen->max_seq));
- 	gen = lru_gen_from_seq(seq);
- 	flags = (gen + 1UL) << LRU_GEN_PGOFF;
- 	/* see the comment on MIN_NR_GENS about PG_active */
-@@ -362,6 +365,17 @@ static inline bool lru_gen_add_folio(str
- 	return true;
+ 	/* better to run aging even though eviction is still possible */
+-	return evictable_min_seq(min_seq, swappiness) + MIN_NR_GENS == max_seq;
++	if (evictable_min_seq(min_seq, swappiness) + MIN_NR_GENS == max_seq)
++		return true;
++
++	/* run aging when folios outside the youngest gen are rare */
++	return lru_gen_imbalanced(lruvec, sc, swappiness);
  }
  
-+static inline bool lru_gen_add_folio(struct lruvec *lruvec, struct folio *folio, bool reclaiming)
-+{
-+	return __lru_gen_add_folio(lruvec, folio, -1UL, reclaiming);
-+}
-+
-+static inline bool lru_gen_add_rejected_folio(struct lruvec *lruvec, struct folio *folio,
-+		unsigned long scanned_seq)
-+{
-+	return __lru_gen_add_folio(lruvec, folio, scanned_seq, false);
-+}
-+
- static inline bool lru_gen_del_folio(struct lruvec *lruvec, struct folio *folio, bool reclaiming)
- {
- 	unsigned long flags;
-@@ -419,6 +433,12 @@ static inline bool lru_gen_add_folio(str
- {
- 	return false;
- }
-+
-+static inline bool lru_gen_add_rejected_folio(struct lruvec *lruvec, struct folio *folio,
-+		unsigned long scanned_seq)
-+{
-+	return false;
-+}
- 
- static inline bool lru_gen_del_folio(struct lruvec *lruvec, struct folio *folio, bool reclaiming)
- {
---- a/mm/vmscan.c~mm-mglru-avoid-placing-rejected-folios-below-populated-gen
-+++ a/mm/vmscan.c
-@@ -1865,7 +1865,8 @@ static bool too_many_isolated(struct pgl
-  *
-  * Note: The caller must not hold any lruvec lock.
-  */
--static unsigned int move_folios_to_lru(struct list_head *list, bool do_rotate)
-+static unsigned int move_folios_to_lru(struct list_head *list, unsigned long seq,
-+		bool do_rotate)
- {
- 	int nr_pages, nr_moved = 0;
- 	struct lruvec *lruvec = NULL;
-@@ -1922,7 +1923,7 @@ static unsigned int move_folios_to_lru(s
- 		    !folio_test_referenced(folio) &&
- 		    folio_ref_count(folio) == folio_expected_ref_count(folio))
- 			lruvec_add_folio_tail(lruvec, folio);
--		else
-+		else if (seq == -1UL || !lru_gen_add_rejected_folio(lruvec, folio, seq))
- 			lruvec_add_folio(lruvec, folio);
- 
- 		nr_pages = folio_nr_pages(folio);
-@@ -2041,7 +2042,7 @@ static unsigned long shrink_inactive_lis
- 	nr_reclaimed = shrink_folio_list(&folio_list, pgdat, sc, &stat, false,
- 					 lruvec_memcg(lruvec));
- 
--	move_folios_to_lru(&folio_list, true);
-+	move_folios_to_lru(&folio_list, -1UL, true);
- 
- 	mod_lruvec_state(lruvec, PGDEMOTE_KSWAPD + reclaimer_offset(sc),
- 					stat.nr_demoted);
-@@ -2152,8 +2153,8 @@ static void shrink_active_list(unsigned
- 	/*
- 	 * Move folios back to the lru list.
- 	 */
--	nr_activate = move_folios_to_lru(&l_active, false);
--	nr_deactivate = move_folios_to_lru(&l_inactive, false);
-+	nr_activate = move_folios_to_lru(&l_active, -1UL, false);
-+	nr_deactivate = move_folios_to_lru(&l_inactive, -1UL, false);
- 
- 	count_vm_events(PGDEACTIVATE, nr_deactivate);
- 	count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE, nr_deactivate);
-@@ -4753,7 +4754,8 @@ static bool isolate_folio(struct lruvec
- 
- static int scan_folios(unsigned long nr_to_scan, struct lruvec *lruvec,
- 		       struct scan_control *sc, int type, int tier,
--		       struct list_head *list, int *isolatedp)
-+		       struct list_head *list, int *isolatedp,
-+		       unsigned long *scanned_seq)
- {
- 	enum node_stat_item item;
- 	int zone_idx;
-@@ -4784,6 +4786,7 @@ static int scan_folios(unsigned long nr_
- 		seq = lrugen->max_seq;
- 
- 	seq = lruvec_populated_min_seq(lruvec, type, sc->reclaim_idx + 1, seq);
-+	*scanned_seq = seq;
- 	gen = lru_gen_from_seq(seq);
- 	max_gen = lru_gen_from_seq(max_seq);
- 
-@@ -4980,6 +4983,7 @@ static int evict_folios(unsigned long nr
- 	int tier, scanned, reclaimed;
- 	int isolated = 0, nr_isolated = 0;
- 	unsigned long total_reclaimed = 0;
-+	unsigned long scanned_seq;
- 	bool skip_retry = false;
- 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
-@@ -4991,7 +4995,7 @@ static int evict_folios(unsigned long nr
- 
- 	tier = get_tier_idx(lruvec, type);
- 	scanned = scan_folios(nr_to_scan, lruvec, sc,
--			      type, tier, &list, &isolated);
-+			      type, tier, &list, &isolated, &scanned_seq);
- 	nr_isolated = isolated;
- 	if (nr_isolated)
- 		__mod_node_page_state(pgdat, NR_ISOLATED_ANON + type,
-@@ -5017,8 +5021,6 @@ retry:
- 			type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
- 
- 	list_for_each_entry_safe_reverse(folio, next, &list, lru) {
--		DEFINE_MIN_SEQ(lruvec);
--
- 		/* move_folios_to_lru() culls unevictable folios via folio_putback_lru() */
- 		if (!folio_evictable(folio))
- 			continue;
-@@ -5037,11 +5039,9 @@ retry:
- 		 * so this effectively promotes them by at least one generation.
- 		 */
- 		folio_set_lru_refs(folio, 0);
--		if (lru_gen_folio_seq(lruvec, folio, false) == min_seq[type])
--			folio_set_active(folio);
- 	}
- 
--	move_folios_to_lru(&list, false);
-+	move_folios_to_lru(&list, scanned_seq, false);
- 
- 	walk = current->reclaim_state->mm_walk;
- 	if (walk && walk->batched) {
+ static void lru_gen_prepare_scan(struct lruvec *lruvec, struct scan_control *sc,
 _
 
-Patches currently in -mm which might be from baohua@kernel.org are
+Patches currently in -mm which might be from lyugaofei@xiaomi.com are
 
-arm64-vmalloc-allow-arch_vmap_pte_range_map_size-to-batch-multiple-cont_pte.patch
-mm-vmalloc-extend-page-table-walk-to-support-larger-page_shift-sizes-and-eliminate-page-table-rewalk.patch
-mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible.patch
-mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings.patch
-mm-mglru-avoid-placing-rejected-folios-below-populated-gen.patch
-mm-mglru-run-aging-when-one-type-is-drained.patch
-mm-mglru-run-aging-when-one-type-is-drained-fix.patch
-mm-mglru-restrict-eviction-accounting-to-eligible-zones.patch
-mm-mglru-reduce-lru-lock-contention-by-shrinking-folio-batches-in-inc_min_seq.patch
-mm-mglru-make-swappiness=1-file-reclaim-more-aggressive.patch
+mm-mglru-run-aging-when-pages-are-rare-outside-the-youngest-gen.patch
+mm-mglru-avoid-prolonged-anon-reclaim-with-swappiness=200.patch
 
