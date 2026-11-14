@@ -1,45 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794696712;
-	b=fVVFSH5ph3xFTJzWkDU+ZhBTi6xELfYTp9OgPfBztOYP8zm4qH+rwc8kX9GsgrLGubXF
-	 2hXbJuTk6fnzwc1ZXsQkTWLYmUUIrOy2L48rKmBkAMxcl6BuAD0t+gD5mwDuyoOYmXr4b
-	 2DPM4ITKit3AqlWtBsNDqbKtJeyCrwup7jIhC/u1IzSdYfm8vXM9IMT6qahXFM2Gg3OHA
-	 2RNXrn3Ikeb1CaP0RBgByAdYszVj1pIbUVruSU1o5SVHUWsI1OLLnBBqgt0lyQoKwOvoa
-	 6Doqvl5tCvG7BGIf6Qf3LbeQ9Eh5TQbOHoIBvKCRYKYZ5HMN6ViFq180UinC5yZKhRw==
+	t=1794696765;
+	b=fw599Yy/j9t3KRtB+O6dWjEvoSRz6KbFuAQQY9kYww+0Ol5SQUUk92703QCIGJKC/41Q
+	 NHHjcCB8rwlJok7CqciHP76ZNUBzLdcNjYf7r0FkP7vH70Y7ECvhSEkux+NLua7wiSvDL
+	 PwP+5R3KHWkoH0K8jtan4czD0iI4rJaE6xLL4eO4s+M0vVB/asmSeirQXSPoguyZCYRxE
+	 c2ShcVwMUFbtsakscDlYYLOCuMZiIrMx05sQunpHpA2TXKGKCxhZGrkm0pCEe3K6zk8Y1
+	 a2Gqc4v2W6/LkIlVOr15yEjnBTFo7+Y7lgt00yNOIEFTaRGpPL+2NWhrvXa0wYY/oJA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794696712;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794696765;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=9gGcO8Gruy05ijPp2Rx3HaLoy5Ei9P6sYCGo4C5H1p8=;
-	b=r2fYJVoTUWmCA1s4bJApSakkKuNRNzywPXv6/U7iD60o8OZdCoPZfhx5K9pTN7nBUcs0
-	 3aHQIrxFh0zbtdSDln3eid4vqJk0wZyOESRDQ/wlnxDzgFFqJ4uVBDnnzvE/eN4SQxHqE
-	 iOBbf/DXKOBBQhekI20YxZ2BzkPQwqYbNBTTgZfRn3fqXgwq4JANzwfp5bnQ0Cl3G/4In
-	 CZeBaQ8+aozvZbli29z71F0xFzwzHH6OY0oov7AjVsnJbVMdFF4ARReEmvKrdEwr0GtQD
-	 FsPUVsvXoXmGopLXzFib/IZFZ/Tb6E5M4GUxpo5ENjmJHwl8c1SU9cgwWsK1dla6RyQ==
+	bh=+1ShE89fdK1XdTrSTR3hrte1xDLJU7N1BjjU1XV5uxk=;
+	b=DHxq2xlVF8yb9kWG1PjKtSMxgRAWqhpqV80qG4OZObTND/5QyTz6ZiAw/jehNs4EL+tg
+	 hkCHgHRp0/eGNpKPw/BVz6j604mRTGk893mzQcoukmPAZOzl+upOhxZb3hv1QIVWY+Tff
+	 9e+9WoY5gHd+9jKRmcrm+UkegqY6yHcCwoPjZmSyWh0JD0fuEMkVnr1PkK8V6+XTQa/px
+	 Ny7QZmmYn6iUp9RtUrQjf9aiBgRORit2/1xIw3MqqfUsqt6Jx/f3enVGOk5wzmfj57nFD
+	 iGtWMN0tR3q0EJFHtN28/lixLwy0AAF2CwmvU4BgagPSiciP8WLu0UAVXUZg9eYjmAw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vOVapjJd;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ACows8n5;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13D59606A327
-	for <mm-commits@vger.kernel.org>; Sat, 14 Nov 2026 22:51:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36AE7606A327;
+	Sat, 14 Nov 2026 22:52:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vOVapjJd
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7CC9C1F000C4;
-	Sat, 14 Nov 2026 22:51:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ACows8n5
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B61BE1F000C4;
+	Sat, 14 Nov 2026 22:52:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794696711;
-	bh=9gGcO8Gruy05ijPp2Rx3HaLoy5Ei9P6sYCGo4C5H1p8=;
+	d=linux-foundation.org; s=korg; t=1794696764;
+	bh=+1ShE89fdK1XdTrSTR3hrte1xDLJU7N1BjjU1XV5uxk=;
 	h=Date:To:From:Subject;
-	b=vOVapjJd+rM72mjyz2uD87wHaF7P3NHGTnnwLk/eFh/MkWQKWCoNm/Df8eY4rBVa4
-	 3BNKZ6Fgb341VmOQs/HHet53ZXHbfeyL5/xOnXS1hXXBjpaotm2tO+lda0D2yBEhlh
-	 pI2CVNg1kdq6xcnwMnG3uHlslurn60jPyHjpCJD8=
-Date: Sat, 14 Nov 2026 14:51:51 -0800
-To: mm-commits@vger.kernel.org,Vishal.Badole@amd.com,akpm@linux-foundation.org
+	b=ACows8n5XdzER8WMrOxbdNHYPHyGOgz5TgaU1MdRxCa6VaMq5ZkqvlbKtAfFojX9O
+	 LeJhIg34L+yxBXOEo2PNbfa8+IdoHrjd43JpleW7yPAlZF/+ZVSVcIfu9higoOL0WT
+	 8Jk+mhtb9xIbd2OqcNizLd1lkbm8tAecD3NsrRLM=
+Date: Sat, 14 Nov 2026 14:52:44 -0800
+To: mm-commits@vger.kernel.org,wangyang.guo@intel.com,
+	tim.c.chen@linux.intel.com,tianyou.li@intel.com,tglx@kernel.org,
+	stable@vger.kernel.org,dan.liang@intel.com,bp@alien8.de,
+	Vishal.Badole@amd.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] lib-group_cpus-snapshot-cluster-masks-to-keep-grouping-hotplug-invariant.patch removed from -mm tree
-Message-Id: <20261114225151.7CC9C1F000C4@smtp.kernel.org>
+Subject: + lib-group_cpus-snapshot-cluster-masks-to-keep-grouping-hotplug-invariant.patch added to mm-nonmm-unstable branch
+Message-Id: <20261114225244.B61BE1F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -50,17 +53,33 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The quilt patch titled
+The patch titled
      Subject: lib/group_cpus: snapshot cluster masks to keep grouping hotplug invariant
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
      lib-group_cpus-snapshot-cluster-masks-to-keep-grouping-hotplug-invariant.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-group_cpus-snapshot-cluster-masks-to-keep-grouping-hotplug-invariant.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Vishal Badole <Vishal.Badole@amd.com>
 Subject: lib/group_cpus: snapshot cluster masks to keep grouping hotplug invariant
-Date: Tue, 10 Nov 2026 23:15:13 +0530
+Date: Sat, 14 Nov 2026 20:44:03 +0530
 
 group_cpus_evenly() builds the managed-IRQ affinity spread used by
 multi-queue devices such as NVMe.  That spread is meant to be a property
@@ -105,18 +124,17 @@ propagate later allocation errors instead of switching algorithms.  This
 keeps successful spreads stable across CPU offline/online cycles for an
 unchanged group count, present/possible CPU sets and NUMA topology.
 
-Link: https://lore.kernel.org/20261110174513.461743-1-Vishal.Badole@amd.com
+Link: https://lore.kernel.org/20261114151403.1379591-1-Vishal.Badole@amd.com
 Fixes: 89802ca36c96 ("lib/group_cpus: make group CPU cluster aware")
 Signed-off-by: Vishal Badole <Vishal.Badole@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Thomas Gleixner <tglx@kernel.org>
-Cc: <bp@alien8.de>
+Cc: Borislav Petkov <bp@alien8.de>
 Cc: Wangyang Guo <wangyang.guo@intel.com>
 Cc: Tianyou Li <tianyou.li@intel.com>
 Cc: Tim Chen <tim.c.chen@linux.intel.com>
 Cc: Dan Liang <dan.liang@intel.com>
 Cc: <stable@vger.kernel.org>
----
 
  lib/group_cpus.c |  125 ++++++++++++++++++++++++++++++++++++++-------
  1 file changed, 106 insertions(+), 19 deletions(-)
@@ -232,17 +250,7 @@ Cc: <stable@vger.kernel.org>
  static int alloc_cluster_groups(unsigned int ncpus,
  				unsigned int ngroups,
  				struct cpumask *node_cpumask,
-@@ -299,6 +380,9 @@ static int alloc_cluster_groups(unsigned
- 	const struct cpumask **clusters;
- 	struct node_groups *cluster_groups;
- 
-+	if (!cluster_snapshot)
-+		goto no_cluster;
-+
- 	cpumask_copy(msk, node_cpumask);
- 
- 	/* Probe how many clusters in this node. */
-@@ -307,7 +391,7 @@ static int alloc_cluster_groups(unsigned
+@@ -307,7 +388,7 @@ static int alloc_cluster_groups(unsigned
  		if (cpu >= nr_cpu_ids)
  			break;
  
@@ -251,7 +259,7 @@ Cc: <stable@vger.kernel.org>
  		if (!cpumask_weight(cluster_mask))
  			goto no_cluster;
  		/* Clean out CPUs on the same cluster. */
-@@ -322,7 +406,7 @@ static int alloc_cluster_groups(unsigned
+@@ -322,7 +403,7 @@ static int alloc_cluster_groups(unsigned
  	/* Allocate memory based on cluster number. */
  	clusters = kzalloc_objs(*clusters, ncluster);
  	if (!clusters)
@@ -260,7 +268,7 @@ Cc: <stable@vger.kernel.org>
  	cluster_groups = kzalloc_objs(struct node_groups, ncluster);
  	if (!cluster_groups)
  		goto fail_cluster_groups;
-@@ -331,7 +415,7 @@ static int alloc_cluster_groups(unsigned
+@@ -331,7 +412,7 @@ static int alloc_cluster_groups(unsigned
  	cpumask_copy(msk, node_cpumask);
  	for (n = 0; n < ncluster; n++) {
  		cpu = cpumask_first(msk);
@@ -269,7 +277,7 @@ Cc: <stable@vger.kernel.org>
  		nc = cpumask_weight_and(cluster_mask, node_cpumask);
  		clusters[n] = cluster_mask;
  		cluster_groups[n].id = n;
-@@ -347,6 +431,7 @@ static int alloc_cluster_groups(unsigned
+@@ -347,6 +428,7 @@ static int alloc_cluster_groups(unsigned
  
   fail_cluster_groups:
  	kfree(clusters);
@@ -277,7 +285,7 @@ Cc: <stable@vger.kernel.org>
   no_cluster:
  	return 0;
  }
-@@ -354,9 +439,9 @@ static int alloc_cluster_groups(unsigned
+@@ -354,9 +436,9 @@ static int alloc_cluster_groups(unsigned
  /*
   * Try group CPUs evenly for cluster locality within a NUMA node.
   *
@@ -289,7 +297,7 @@ Cc: <stable@vger.kernel.org>
  				     unsigned int ngroups,
  				     struct cpumask *node_cpumask,
  				     struct cpumask *masks,
-@@ -365,18 +450,17 @@ static bool __try_group_cluster_cpus(uns
+@@ -365,18 +447,20 @@ static bool __try_group_cluster_cpus(uns
  {
  	struct node_groups *cluster_groups;
  	const struct cpumask **clusters;
@@ -299,6 +307,9 @@ Cc: <stable@vger.kernel.org>
  	cpumask_var_t nmsk;
  	unsigned int i, nc;
  
++	if (!cluster_snapshot)
++		return 0;
++
  	if (!zalloc_cpumask_var(&nmsk, GFP_KERNEL))
 -		goto fail_nmsk_alloc;
 +		return -ENOMEM;
@@ -370,4 +381,5 @@ _
 
 Patches currently in -mm which might be from Vishal.Badole@amd.com are
 
+lib-group_cpus-snapshot-cluster-masks-to-keep-grouping-hotplug-invariant.patch
 
