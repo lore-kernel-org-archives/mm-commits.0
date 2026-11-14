@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794693559;
-	b=ztGUKF9tZl4CKtbevDkLFF4+GhCFOXfJQDqigVt14RlqibYNQeDSe38aHFEls1NpLajv
-	 pZBd6jV3MJY8NLjpmkkDM9xu2DbGJCuUDTkAwQ7MQMr78nh9ffqJKl/8VQPwKHIux1Q62
-	 JWCk0nqclZ4P6Kc3HM+0MOMut18lM95kjcuUfXI9G09UOXm9EVbuBoDyecZLJUQx2sekJ
-	 ZA8vHgrGAvzjT7YcyAuBeUMMapzSZttQv3wkoqWv0jZ5I4+lDVliwdQAr2T5x5bOhEOMK
-	 +96Lm7O3U3/UtJiIPhiun0UxXC0fwDwugcv0ATmX2/8unx/nxbIY9QJ351efrP6pZrA==
+	t=1794693561;
+	b=W0b0xBENjOZX+grDvpIiuuePL9xX8S7BO+1yg5fOz5NgliFShoKPR704J1FHWBUvL4hl
+	 WlQp4PYHqypHYx96f/9RAMqbj8e2v0E8KKTNWyxy4CJ2cNntQF3sQ8OJh9enqvNBPmVn8
+	 S1FU3nZo5qTxeEz4HndZCgYSQxN/XIfXbrYQSK82WkvVK2weBAE3ccnMFN0O3eELwjvpe
+	 50qUkrQ2kl1XRBd7D65AzNUTkQFIJ2+58LQUiCzSyocVbhjOLdliWjTsjFSXyZ5E2Ujx2
+	 3aETtE+ckAFhzjsoXgpzcIYL8Pe66Jazz5cmaDi9Tfv/Wj+b0D9nNK/4Mo1TCZTBdig==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794693559;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794693561;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=ZHu0FKvPgyR2NuPJp3RICjbGrqXwCbfm2QZeN1iKetM=;
-	b=OpLZer6Hh+knrNc/Ps15Fa+PdZxXhHykNzI1wJgcnGC1e4t413nySy6brDPFgrlHewM5
-	 f20LETTKvq3GkkIfV2m2Zi1kaChz1qCehoKagDY5WXx6KH3GsGLt2sBKyk4x/WY/SS8I6
-	 n5KpvyQA2Ju+NO7lw9xxiMVBWtzgdda+8t2IpCdkM55/PXRoHzl0NG5ZfLPwbgXAjTWkl
-	 tlwNmEWDJsDSla775JGw6CxXgVOrxK/3ndHrzDUleI0To08cQWVI5ujykZoLy1QOCOsMf
-	 KcN2qIOladw2IcrL9FuLKAezsLEwtL0kOXJSwsvKea9uET9/I+iWDCgghEMyr4GVRRw==
+	bh=7OwIlsD516Zdfq1D/DUT+CCmjZOkOgTi8PvH2HxgKk8=;
+	b=MVNrWxDNtu6mqsN2+5+VOoL36edahlE5qCyE2VZASfCK9i3eRxCAhI0LuxBsi6DHVv2/
+	 9ri1HXkyFNU/n9M1wMsU1VYNilUBVGFyYXAH5fajm4fPEEgncGjLFFyvOaV0QWaaIfOX0
+	 dAXTNYdDk9oa7pYJVfyE6jc/9gmv7gzEbVtZePf2wrO8OpdaRPEJm3YIcsu2B7dBtfJb/
+	 Ydl/PtXnRpoOR7oH0zHnipAmwIu+PNCZbNX4DyVQZ+I9/czayCz0fJc7BRFAKLw7oWinA
+	 8ho5No/msI2a0ICAbWXen2UUIeSlpX1WFwnAZV5GJpgQd5YPQrsvfJ3nUUAzrfRuw5A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="YQMu/CUX";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ylGFbi4p;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 605FF606A327
-	for <mm-commits@vger.kernel.org>; Sat, 14 Nov 2026 21:59:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E235A606A327
+	for <mm-commits@vger.kernel.org>; Sat, 14 Nov 2026 21:59:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=YQMu/CUX
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29D2A1F000C4;
-	Sat, 14 Nov 2026 21:59:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ylGFbi4p
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD6BF1F000C4;
+	Sat, 14 Nov 2026 21:59:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794693559;
-	bh=ZHu0FKvPgyR2NuPJp3RICjbGrqXwCbfm2QZeN1iKetM=;
+	d=linux-foundation.org; s=korg; t=1794693560;
+	bh=7OwIlsD516Zdfq1D/DUT+CCmjZOkOgTi8PvH2HxgKk8=;
 	h=Date:To:From:Subject;
-	b=YQMu/CUXgYFl73gIU1OiAJasGbCpMeO4kyzGeu8d4HTfhSgHR60DyhzifrhpEeMNM
-	 /TnYKihfTQyCECLaLIIZ0jedIjVdz4t/4QoVJ+JyVbALkorlVPIueBirC48reo4TfF
-	 UTLnoYXlI8Marz66MoFcE8LkZXDLQ5vi5KNXRthE=
-Date: Sat, 14 Nov 2026 13:59:18 -0800
+	b=ylGFbi4ppaYHwpcTUxGHRTA34VfJM6XqDi4pbc+kcohWpWVA0a+HLsrLN8dCyAZ4k
+	 Fm+efTRnfeV9mdXqokvqCRVhqdyDwfZXL3/V95OgYwxk8KLgkYEkhsXPbaYu1PrxYe
+	 kncLVnK1ze9S0TYtDUhSAhrz5u/sQsB9dO4p30PE=
+Date: Sat, 14 Nov 2026 13:59:20 -0800
 To: mm-commits@vger.kernel.org,baohua@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-mglru-run-aging-when-one-type-has-no-populatable-folios.patch removed from -mm tree
-Message-Id: <20261114215919.29D2A1F000C4@smtp.kernel.org>
+Subject: [to-be-updated] mm-mglru-restrict-eviction-accounting-to-eligible-zones.patch removed from -mm tree
+Message-Id: <20261114215920.AD6BF1F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,35 +51,43 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/mglru: run aging when one type has no populatable folios
+     Subject: mm/mglru: restrict eviction accounting to eligible zones
 has been removed from the -mm tree.  Its filename was
-     mm-mglru-run-aging-when-one-type-has-no-populatable-folios.patch
+     mm-mglru-restrict-eviction-accounting-to-eligible-zones.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Barry Song (Xiaomi)" <baohua@kernel.org>
-Subject: mm/mglru: run aging when one type has no populatable folios
-Date: Sat, 14 Nov 2026 02:55:36 +0800
+Subject: mm/mglru: restrict eviction accounting to eligible zones
+Date: Sat, 14 Nov 2026 02:55:37 +0800
 
-We may have scan budget remaining for anon or file but no folios in
-populatable generations to scan.  In this case, `scan_folios()` may waste
-time scanning that type while the other type still has populatable folios.
+For both lruvec_evictable_size() and lru_gen_imbalanced(), only count
+eligible zones up to sc->reclaim_idx.  This avoids overestimating the
+number of pages available for scanning and allows aging to proceed more
+promptly when eligible zones contain few folios.
 
-Run aging in this case to make more folios populatable.  This also helps
-respect the scan budget distribution determined by swappiness.
+lru_gen_age_node() uses lruvec_is_reclaimable() to determine whether any
+memcg has generations old enough to reclaim under min_ttl.  If none are
+reclaimable, it may trigger OOM.  However, lruvec_is_reclaimable() also
+uses lruvec_is_sizable() to estimate the LRU size.
 
-To avoid excessive aging, allow no-populatable aging only once per
-`try_to_shrink_lruvec()` invocation.
+Previously, lruvec_is_sizable() counted folios across all zones.  With
+accounting now restricted to zones up to sc->reclaim_idx, the estimated
+size may be significantly smaller, potentially leading to premature OOM.
 
-With extreme swappiness values such as 1 and 200, reclaim initially
-focuses exclusively on the preferred type.  In this case, defer aging the
-lagging type until `sc->priority` reaches `DEF_PRIORITY / 2`.  This avoids
-unnecessary aging and has shown better performance in testing.
+To avoid this, skip the sizing check when reclaim is restricted to zones
+below ZONE_NORMAL.  As in __alloc_pages_may_oom(), triggering OOM for
+low-zone allocations is generally pointless.
 
-Link: https://lore.kernel.org/20261113185541.70203-12-baohua@kernel.org
+Furthermore, defer the sizing check until reclaim reaches a very low
+sc->priority to reduce the risk of premature OOM.
+
+Link: https://lore.kernel.org/20261113185541.70203-13-baohua@kernel.org
+Signed-off-by: Bo Zhang <zhangbo56@xiaomi.com>
 Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Co-developed-by: Bo Zhang <zhangbo56@xiaomi.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
@@ -100,107 +108,133 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: wangzicheng <wangzicheng@honor.com>
 Cc: Wei Xu <weixugc@google.com>
 Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Bo Zhang <zhangbo56@xiaomi.com>
 Cc: Hui Zhu <zhuhui@kylinos.cn>
 Cc: Siddharth Chintamaneni <sidchintamaneni@gmail.com>
 Cc: Bo Zhang <zhangbo0325@gmail.com>
 ---
 
- mm/vmscan.c |   49 ++++++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 38 insertions(+), 11 deletions(-)
+ mm/trace_vmscan.h |    4 ++--
+ mm/vmscan.c       |   26 ++++++++++++++++----------
+ mm/vmscan.h       |    5 +++--
+ 3 files changed, 21 insertions(+), 14 deletions(-)
 
---- a/mm/vmscan.c~mm-mglru-run-aging-when-one-type-has-no-populatable-folios
+--- a/mm/trace_vmscan.h~mm-mglru-restrict-eviction-accounting-to-eligible-zones
++++ a/mm/trace_vmscan.h
+@@ -488,9 +488,9 @@ TRACE_EVENT(mm_mglru_aging,
+ 			unsigned long seq = max_seq - MAX_NR_GENS + 1 + i;
+ 
+ 			__entry->nr_anon[i] =
+-				lruvec_gen_size(lrugen, LRU_GEN_ANON, seq);
++				lruvec_gen_size(lrugen, LRU_GEN_ANON, seq, MAX_NR_ZONES);
+ 			__entry->nr_file[i] =
+-				lruvec_gen_size(lrugen, LRU_GEN_FILE, seq);
++				lruvec_gen_size(lrugen, LRU_GEN_FILE, seq, MAX_NR_ZONES);
+ 		}
+ 		__entry->nid = lruvec_pgdat(lruvec)->node_id;
+ 		__entry->priority = sc->priority;
+--- a/mm/vmscan.c~mm-mglru-restrict-eviction-accounting-to-eligible-zones
 +++ a/mm/vmscan.c
-@@ -5109,7 +5109,8 @@ static bool lru_gen_imbalanced(struct lr
+@@ -4205,8 +4205,8 @@ static void set_initial_priority(struct
+ 	sc->priority = clamp(priority, DEF_PRIORITY / 2, DEF_PRIORITY);
  }
  
- static bool should_run_aging(struct lruvec *lruvec, unsigned long max_seq,
--			     struct scan_control *sc, int swappiness)
-+			     struct scan_control *sc, int swappiness,
-+			     bool no_populatable)
+-static void lruvec_evictable_size(struct lruvec *lruvec, int swappiness,
+-				  unsigned long nr[])
++static void lruvec_evictable_size(struct lruvec *lruvec, struct scan_control *sc,
++				  int swappiness, unsigned long nr[])
  {
- 	DEFINE_MIN_SEQ(lruvec);
+ 	int type;
+ 	unsigned long seq;
+@@ -4219,7 +4219,7 @@ static void lruvec_evictable_size(struct
  
-@@ -5121,6 +5122,13 @@ static bool should_run_aging(struct lruv
- 	if (sc->priority == DEF_PRIORITY)
+ 	for_each_evictable_type(type, swappiness) {
+ 		for (seq = min_seq[type]; seq <= max_seq; seq++)
+-			nr[type] += lruvec_gen_size(lrugen, type, seq);
++			nr[type] += lruvec_gen_size(lrugen, type, seq, sc->reclaim_idx + 1);
+ 	}
+ }
+ 
+@@ -4228,7 +4228,7 @@ static bool lruvec_is_sizable(struct lru
+ 	unsigned long total, sizes[ANON_AND_FILE];
+ 	int swappiness = get_swappiness(lruvec, sc);
+ 
+-	lruvec_evictable_size(lruvec, swappiness, sizes);
++	lruvec_evictable_size(lruvec, sc, swappiness, sizes);
+ 	total = sizes[LRU_GEN_ANON] + sizes[LRU_GEN_FILE];
+ 
+ 	/* whether the size is big enough to be helpful */
+@@ -4247,7 +4247,13 @@ static bool lruvec_is_reclaimable(struct
+ 	if (mem_cgroup_below_min(NULL, memcg))
  		return false;
  
+-	if (!lruvec_is_sizable(lruvec, sc))
 +	/*
-+	 * Run aging if scan budget remains but no folios
-+	 * in populatable generations are available to scan.
++	 * As in __alloc_pages_may_oom(), avoid triggering OOM for low-zone
++	 * allocations. Also, defer the LRU size check until reclaim reaches
++	 * a very low priority to avoid premature OOM.
 +	 */
-+	if (no_populatable)
-+		return true;
-+
- 	/* better to run aging even though eviction is still possible */
- 	if (evictable_min_seq(min_seq, swappiness) + MIN_NR_GENS == max_seq)
- 		return true;
-@@ -5208,6 +5216,13 @@ static bool try_to_shrink_lruvec(struct
- 	bool need_rotate = false, should_age = false;
- 	int swappiness = get_swappiness(lruvec, sc);
- 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
-+	/*
-+	 * Avoid aging the lagging type under extreme swappiness,
-+	 * as reclaim of the unpreferred type is disabled until
-+	 * DEF_PRIORITY / 2.
-+	 */
-+	bool allow_no_populatable_age = (sc->priority <= DEF_PRIORITY / 2) ||
-+		(swappiness > MIN_SWAPPINESS + 1 && swappiness < MAX_SWAPPINESS);
++	if (sc->priority <= 1 && sc->reclaim_idx >= ZONE_NORMAL &&
++	    !lruvec_is_sizable(lruvec, sc))
+ 		return false;
  
- 	/*
- 	 * Proactive reclaim initiated by userspace for anonymous memory only.
-@@ -5225,22 +5240,19 @@ static bool try_to_shrink_lruvec(struct
- 	lru_gen_prepare_scan(lruvec, sc, memcg, swappiness, nr);
+ 	gen = lru_gen_from_seq(evictable_min_seq(min_seq, swappiness));
+@@ -5088,9 +5094,9 @@ static bool lru_gen_imbalanced(struct lr
+ 	for_each_evictable_type(type, swappiness) {
+ 		unsigned long seq;
  
- 	while (nr[LRU_GEN_ANON] > 0 || nr[LRU_GEN_FILE] > 0) {
--		DEFINE_MAX_SEQ(lruvec);
-+		unsigned long orig_file, orig_anon;
-+		unsigned long max_seq;
-+		bool no_populatable;
-+		long scanned;
- 
- 		if (mem_cgroup_below_min(sc->target_mem_cgroup, memcg)) {
- 			need_rotate = true;
- 			break;
- 		}
- 
--		if (should_run_aging(lruvec, max_seq, sc, swappiness)) {
--			trace_mm_mglru_aging(lruvec, sc, swappiness);
--			if (try_to_inc_max_seq(lruvec, max_seq, swappiness, false))
--				need_rotate = true;
--			should_age = true;
--		}
--
--		if (!evict_folio_lists(nr, lruvec, sc, swappiness, MIN_LRU_BATCH))
--			break;
-+		orig_anon = nr[LRU_GEN_ANON];
-+		orig_file = nr[LRU_GEN_FILE];
-+		scanned = evict_folio_lists(nr, lruvec, sc, swappiness, MIN_LRU_BATCH);
- 
- 		if (should_abort_scan(lruvec, sc))
- 			break;
-@@ -5252,6 +5264,21 @@ static bool try_to_shrink_lruvec(struct
- 		if (root_reclaim(sc) && should_age)
- 			break;
- 
-+		/* Limit no_populatable aging to once per try_to_shrink_lruvec() */
-+		no_populatable = allow_no_populatable_age &&
-+			((nr[LRU_GEN_ANON] && nr[LRU_GEN_ANON] == orig_anon) ||
-+			(nr[LRU_GEN_FILE] && nr[LRU_GEN_FILE] == orig_file));
-+		allow_no_populatable_age &= !no_populatable;
-+		max_seq = READ_ONCE((lruvec)->lrugen.max_seq);
-+		if (should_run_aging(lruvec, max_seq, sc, swappiness, no_populatable)) {
-+			trace_mm_mglru_aging(lruvec, sc, swappiness);
-+			if (try_to_inc_max_seq(lruvec, max_seq, swappiness, false))
-+				need_rotate = true;
-+			should_age = true;
-+		}
-+		if (!scanned)
-+			break;
-+
- 		cond_resched();
+-		youngest[type] = lruvec_gen_size(lrugen, type, max_seq);
++		youngest[type] = lruvec_gen_size(lrugen, type, max_seq, sc->reclaim_idx + 1);
+ 		for (seq = min_seq[type]; seq < max_seq; seq++)
+-			old[type] += lruvec_gen_size(lrugen, type, seq);
++			old[type] += lruvec_gen_size(lrugen, type, seq, sc->reclaim_idx + 1);
  	}
  
+ 	/* the vast majority of pages sit in the youngest gen */
+@@ -5143,7 +5149,7 @@ static void lru_gen_prepare_scan(struct
+ {
+ 	unsigned long total;
+ 
+-	lruvec_evictable_size(lruvec, swappiness, nr_to_scan);
++	lruvec_evictable_size(lruvec, sc, swappiness, nr_to_scan);
+ 	total = nr_to_scan[LRU_GEN_ANON] + nr_to_scan[LRU_GEN_FILE];
+ 
+ 	total = apply_proportional_protection(memcg, sc, total);
+@@ -5854,7 +5860,7 @@ static int lru_gen_seq_show(struct seq_f
+ 			char mark = full && seq < min_seq[type] ? 'x' : ' ';
+ 
+ 			seq_printf(m, " %10lu%c",
+-				   lruvec_gen_size(lrugen, type, seq), mark);
++				   lruvec_gen_size(lrugen, type, seq, MAX_NR_ZONES), mark);
+ 		}
+ 
+ 		seq_putc(m, '\n');
+@@ -5907,7 +5913,7 @@ static int run_eviction(struct lruvec *l
+ 		if (sc->nr_reclaimed >= nr_to_reclaim)
+ 			return 0;
+ 
+-		lruvec_evictable_size(lruvec, swappiness, nr_to_scan);
++		lruvec_evictable_size(lruvec, sc, swappiness, nr_to_scan);
+ 		lru_gen_balance_scan(lruvec, swappiness,
+ 				     nr_to_reclaim - sc->nr_reclaimed, nr_to_scan);
+ 
+--- a/mm/vmscan.h~mm-mglru-restrict-eviction-accounting-to-eligible-zones
++++ a/mm/vmscan.h
+@@ -119,12 +119,13 @@ struct scan_control {
+ #ifdef CONFIG_LRU_GEN
+ /* The number of pages of @type in the generation @seq, summed over all zones */
+ static inline unsigned long lruvec_gen_size(struct lru_gen_folio *lrugen,
+-					    int type, unsigned long seq)
++					    int type, unsigned long seq,
++					    int max_zone)
+ {
+ 	int gen = lru_gen_from_seq(seq);
+ 	unsigned long size = 0;
+ 
+-	for (int zone = 0; zone < MAX_NR_ZONES; zone++)
++	for (int zone = 0; zone < max_zone; zone++)
+ 		size += max(READ_ONCE(lrugen->nr_pages[gen][type][zone]), 0L);
+ 
+ 	return size;
 _
 
 Patches currently in -mm which might be from baohua@kernel.org are
@@ -209,7 +243,6 @@ arm64-vmalloc-allow-arch_vmap_pte_range_map_size-to-batch-multiple-cont_pte.patc
 mm-vmalloc-extend-page-table-walk-to-support-larger-page_shift-sizes-and-eliminate-page-table-rewalk.patch
 mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible.patch
 mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings.patch
-mm-mglru-restrict-eviction-accounting-to-eligible-zones.patch
 mm-mglru-reduce-lru-lock-contention-by-shrinking-folio-batches-in-inc_min_seq.patch
 mm-mglru-make-swappiness=1-file-reclaim-more-aggressive.patch
 
