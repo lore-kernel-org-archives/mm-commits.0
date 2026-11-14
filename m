@@ -1,46 +1,50 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794626178;
-	b=K0gxTUjKXMSNiOQw4N3ZfPkPE6yLQqEGUrfDsDDGvmjZ1EaLFqygPSww+MqS5xCKUVMe
-	 cQ0HHEkU5+G0ITBu6A58MFFDQDybkaGce0WC2OOeC+2YUzmP9vQyWXU0mS3yWi6ATOOmf
-	 kcUVKeXlTF+MHYRFwwhBOmxZbbqd0E6dxFUrEG0cfBhNLnDbK8AQtFp203B92rAgbaxXs
-	 Py1zxBte7psqyrhQ4iPATyxB0x4chS5wrsw97l/3uZEXZAyeg0TOnnP9ZPvLK2VEWa2bg
-	 T4L4HgWjmWrYxbLMRhUFUGr8VjjB/HzOvGRvkaJQf6lMNebtzKvtDAfkEJsmughnrRA==
+	t=1794628243;
+	b=E0U9SD0jC2y4d/lqOs3jBtRKryW0WehsQR3FsSb1YaKKnuVpQks2yhKjkvvkFlf4MHFk
+	 WjwUxUN9tnhkEmFYk69MdK9IbFB3p2wnBqBNHl+HKnfAp78Xw7MMlHoQt/wr6/JU98bPq
+	 l2OQbC7iWF54+MYn5OV4BrA8Ga5L7QBAgk/cfsglWXwAU0IPDEkU0kSgmt+AhpoUZmfBx
+	 bCByzUoH5vW5zfjarLGabY12xXlRrOzv8qdGvLG2vLLK8Vm0c8lKuvlP2ry/ym/KtWWMm
+	 gerwATD29QEjuljDiiAnQhgPdLI4Lsh3H/RuD01Bp3s5XDwJJd7Zujyg5MxhU0uHjkg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794626178;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794628243;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=zoNHeT1XJtmR3/ddpeTwS615sy6YTRsR7eenA2Oqxbs=;
-	b=oAXp3sq8pDSgTC1knMOCyvLi0KE3sUdl37bjoWK9WkR7jCi7uJmGSdUArDJcPAmA4ngt
-	 kzKF1d25vCcxhFaMhTxqfrFRMfwSzlcoVLfLaNWcctEO4jR68tzHcX5YG+D3zX74QdloP
-	 wm8L7VBbHFC4zW58VJPTihcupIJDq7PkyrTSk5aKaxugX3zMeOwZjV1i+IWR8yqGEhry9
-	 ommATcwWT4AmccpRH3SNTGtH/kF+fg7p8MaGaxGwRtRz1SER+pJZtlHGtdbU3sFpU96XX
-	 yKtnaxbXoSHyi0YiFmEaj/n7V3mxEEyfohD3kX76ekPtB/g0yayevptVbyfBGfaU+Sg==
+	bh=KOAujgWhSnbK4vuBS0U5BsZyu6nJYOTXcBvLbmbUkRs=;
+	b=5tSLbqwgBTxVSK9rhCHTpu1xP5BbxhjAy7t4V3YSyLS9YGCqYH2UnC2mWVfoN5YflcYD
+	 K6Ht4kUQWDCQDgJh8Rm769+dDT4n8Ba2JVr+/7Bbme26X69RFx3ooQLtgdALIvsue3fqE
+	 i2qvuWF/mUl2XxlfpjtDH5+7LBK6Qb8h7pMGMKe/L0zU99zTkwuUWOqrR6AjM3BrtBI4m
+	 pHLILdAs9iqT2MuMhn6fUVs1+goiLADUD+4+m9Jll9y6JS3YGqySmA33PQXrr/4tNyyiY
+	 W8pE4xfRo8RKY+got4K1+vCrE1QHIuRWfR7WAlF5sWq2i7S2x4TIDfrFf+CSRuy/QHQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=dLJ4+ksO;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=MqHivRab;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BC36606A8A4
-	for <mm-commits@vger.kernel.org>; Sat, 14 Nov 2026 03:16:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDE70606A327
+	for <mm-commits@vger.kernel.org>; Sat, 14 Nov 2026 03:50:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=dLJ4+ksO
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1EBC1F000C5;
-	Sat, 14 Nov 2026 03:16:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=MqHivRab
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66BC81F000C4;
+	Sat, 14 Nov 2026 03:50:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794626177;
-	bh=zoNHeT1XJtmR3/ddpeTwS615sy6YTRsR7eenA2Oqxbs=;
+	d=linux-foundation.org; s=korg; t=1794628243;
+	bh=KOAujgWhSnbK4vuBS0U5BsZyu6nJYOTXcBvLbmbUkRs=;
 	h=Date:To:From:Subject;
-	b=dLJ4+ksOFotqv1EXCgd7lPEdkjagUecH67HIDmNd8y/sGjVm5iQhw8gwMzGiXlqG7
-	 KjD1mWGV1QjIki2BEZL+JNqe6Upppgz5s+qNCZbByD2Rygfxgy250uFxTgUiuVZGMi
-	 A2e62XJiXJ12VbGEcT5nmMAU3y2RWxODWPfqzCN8=
-Date: Fri, 13 Nov 2026 19:16:17 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,p.raghav@samsung.com,
-	jack@suse.cz,gopalmalaviya53@gmail.com,akpm@linux-foundation.org
+	b=MqHivRabbe1HIVMxpB7YAUgbLlI8eaIPXkXcCwQijEFNuFoC6A0K2jJ+UPGZ+FkSR
+	 rSR+gLYUkbiKiAHs/BK1yLBI06ux+t6kYQ2O9ElwmGkLh1HQzXBQHIUf5utDsbbm+x
+	 29RmT3B9vPjjFcxPlaqVp9ejFPTHjv+xRz8jo2M0=
+Date: Fri, 13 Nov 2026 19:50:43 -0800
+To: mm-commits@vger.kernel.org,wy@wyuan.org,users@kernel.org,
+	skhan@linuxfoundation.org,si.yanteng@linux.dev,rdunlap@infradead.org,
+	petr.pavlu@suse.com,joe@perches.com,federico.vaga@vaga.pv.it,
+	dzm91@hust.edu.cn,corbet@lwn.net,chenyou910331@gmail.com,
+	carlos.bilbao@kernel.org,avadhut.naik@amd.com,alexs@kernel.org,
+	akiyks@gmail.com,konstantin@linuxfoundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-readahead-dont-skip-the-fallback-after-aligning-index-down.patch added to mm-new branch
-Message-Id: <20261114031617.B1EBC1F000C5@smtp.kernel.org>
+Subject: + get_maintainer-only-use-the-rest-as-a-fallback.patch added to mm-nonmm-hotfixes-unstable branch
+Message-Id: <20261114035043.66BC81F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,26 +56,15 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/readahead: don't skip the fallback after aligning index down
-has been added to the -mm mm-new branch.  Its filename is
-     mm-readahead-dont-skip-the-fallback-after-aligning-index-down.patch
+     Subject: get_maintainer: only use THE REST as a fallback
+has been added to the -mm mm-nonmm-hotfixes-unstable branch.  Its filename is
+     get_maintainer-only-use-the-rest-as-a-fallback.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-readahead-dont-skip-the-fallback-after-aligning-index-down.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/get_maintainer-only-use-the-rest-as-a-fallback.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -86,87 +79,149 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Gopal Malaviya <gopalmalaviya53@gmail.com>
-Subject: mm/readahead: don't skip the fallback after aligning index down
-Date: Fri, 13 Nov 2026 07:27:11 +0000
+From: Konstantin Ryabitsev <konstantin@linuxfoundation.org>
+Subject: get_maintainer: only use THE REST as a fallback
+Date: Fri, 13 Nov 2026 18:02:45 -0500
 
-page_cache_ra_order() rounds the start of the readahead window down to the
-minimum folio size of the mapping, so on a file system with blocks larger
-than the page size, index can end up below start.  If adding the first
-folio then fails, for example with -EEXIST because that folio is already
-cached, the loop stops with index still below start, and the check before
-the fallback
+Patch series "get_maintainer: stop sending every patch to LKML", v3.
 
-	if (ra->size > index - start)
+LKML has become mostly a firehose of patches that are already going to a
+subsystem list.  The reason is THE REST: it matches every file in the
+tree, so get_maintainer.pl adds linux-kernel@vger.kernel.org to every
+single patch.  During the week of Oct 1-7, 2026:
 
-wraps around, so do_page_cache_ra() is not called and nothing of the
-window is read.
+  - LKML carried 13,641 messages (~1,950/day), 90% of which were also
+    sent to at least one other list;
+  - with ~2,100 subscribers, that is about 29 million deliveries per
+    week for LKML alone.
 
-For example, with read_ahead_kb 128 and 16 KiB blocks, the mmap
-read-around window for a fault on page 1042 starts at page 1026, index
-becomes 1024, and if pages 1024-1027 are cached, pages 1028-1057 are not
-read ahead.
+This problem is becoming urgent and untenable.  The increased volume of
+patches sent using AI tooling has resulted in dramatically higher delivery
+queues and if this change is not implemented, we will have to start
+force-unsubscribing addresses that do not show any developer activity or
+use similar drastic measures.
 
-Compare with the end of the window instead.  Where index is not below
-start, this is the same check and the same number of pages as before.
+This issue came up during the 2026 Maintainer Summit and the consensus was
+that "always include linux-kernel for every patch" was never the intent.
 
-Tested in a KVM guest (x86_64, 2 vCPUs, 3 GiB) on mm-hotfixes-unstable,
-with XFS with 16 KiB blocks and with ext4 on virtio-blk, read_ahead_kb
-128.  A test caches page 1026 of a file with pread() on a
-POSIX_FADV_RANDOM descriptor, then faults page 1042 through a mapping, and
-counts the cached pages of the window [1026, 1058) with mincore():
+This series makes THE REST a fallback as initially intended: it is only
+added for a file when no other matching MAINTAINERS section provides a
+mailing list that get_maintainer.pl would actually output for it.  Patch 2
+updates submitting-patches.rst, which currently tells submitters to send
+every patch to LKML.
 
-                                       before   after
-  XFS, 16 KiB blocks                      6       32
-  XFS, 16 KiB blocks, nothing cached     32       32
-  ext4                                   32       32
+Several v1 reviewers asked for a catch-all list that would keep carrying
+every patch for those who want to follow all kernel development.  That is
+a worthwhile discussion, but it is separate from this series, which only
+restores THE REST to its original role.
 
-Tracing shows the fallback now running after the -EEXIST, as
-page_cache_ra_unbounded with index=1024 and nr_to_read=34.
+Translation maintainers are Cc'd because the it_IT, ja_JP, sp_SP, zh_CN
+and zh_TW versions of submitting-patches.rst carry the same "send every
+patch to LKML" advice and will need a follow-up update once the English
+text is settled.
 
-Touching 1% of the pages of a cold 20 GiB file on XFS with 16 KiB blocks,
-at random, at a stride of 2053 pages, or as random runs of 2 or 4 adjacent
-pages, reads the same amount before and after, within 5% over two runs
-each, at read_ahead_kb 128 and 8192.
 
-The problem was pointed out by the Sashiko AI review of an unrelated patch
-[1].  An AI assistant (Claude) helped with the analysis and the test, and
-drafted this changelog.  I reviewed, implemented, built and tested the
-change.
+This patch (of 2):
 
-Link: https://lore.kernel.org/20261113072711.235264-1-gopalmalaviya53@gmail.com
-Link: https://sashiko.dev/#/bug/linux-da6e8836-f808-4b39-9f04-de52995a0162 [1]
-Fixes: d5ea5e5e50df ("readahead: properly shorten readahead when falling back to do_page_cache_ra()")
-Signed-off-by: Gopal Malaviya <gopalmalaviya53@gmail.com>
+THE REST matches every file in the tree via "F: *" and "F: */", so
+get_maintainer.pl currently adds linux-kernel@vger.kernel.org to every
+patch, regardless of whether the touched files already belong to a
+subsystem with its own mailing list.
+
+Only add THE REST for a file when no other matching section provides a
+mailing list that get_maintainer.pl would actually output. Lists marked
+"subscribers-only" are omitted unless --s is given, and lists marked
+"moderated" are omitted with --no-moderated, so such lists don't count
+as a destination in those cases. Files that match no section, or only
+sections without such a list, still fall back to THE REST, so every
+patch keeps reaching at least one known-public mailing list.
+
+Link: https://lore.kernel.org/20261113-get-maintainer-the-rest-fallback-v3-0-36ee5a3e8d13@linuxfoundation.org
+Link: https://lore.kernel.org/20261113-get-maintainer-the-rest-fallback-v3-1-36ee5a3e8d13@linuxfoundation.org
+Signed-off-by: Konstantin Ryabitsev <konstantin@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Pankaj Raghav <p.raghav@samsung.com>
+Acked-by: Joe Perches <joe@perches.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Federico Vaga <federico.vaga@vaga.pv.it>
+Cc: Akira Yokosawa <akiyks@gmail.com>
+Cc: Carlos Bilbao <carlos.bilbao@kernel.org>
+Cc: Avadhut Naik <avadhut.naik@amd.com>
+Cc: Alex Shi <alexs@kernel.org>
+Cc: Yanteng Si <si.yanteng@linux.dev>
+Cc: Dongliang Mu <dzm91@hust.edu.cn>
+Cc: Chen-Yu Yeh <chenyou910331@gmail.com>
+Cc: Weijie Yuan <wy@wyuan.org>
+Cc: <users@kernel.org>
+Cc: Petr Pavlu <petr.pavlu@suse.com>
 
- mm/readahead.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ scripts/get_maintainer.pl |   43 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
 
---- a/mm/readahead.c~mm-readahead-dont-skip-the-fallback-after-aligning-index-down
-+++ a/mm/readahead.c
-@@ -552,10 +552,12 @@ void page_cache_ra_order(struct readahea
- fallback:
- 	/*
- 	 * ->readahead() may have updated readahead window size so we have to
--	 * check there's still something to read.
-+	 * check there's still something to read. Compare with the end of the
-+	 * window, as index may have been rounded down below start to the
-+	 * minimum folio size.
- 	 */
--	if (ra->size > index - start)
--		do_page_cache_ra(ractl, ra->size - (index - start),
-+	if (index < start + ra->size)
-+		do_page_cache_ra(ractl, start + ra->size - index,
- 				 ra->async_size);
+--- a/scripts/get_maintainer.pl~get_maintainer-only-use-the-rest-as-a-fallback
++++ a/scripts/get_maintainer.pl
+@@ -959,6 +959,15 @@ sub get_maintainers {
+ 	    $tvi = $end + 1;
+ 	}
+ 
++	# THE REST matches every file, so only fall back to it when no
++	# other matching section provides a mailing list for this file
++	# that we would actually output with the current options.
++	my ($the_rest) = grep { get_section_name($_) eq "THE REST" } keys %hash;
++	if (defined($the_rest) &&
++	    grep { $_ != $the_rest && section_has_list($_) } keys %hash) {
++	    delete $hash{$the_rest};
++	}
++
+ 	foreach my $line (sort {$hash{$b} <=> $hash{$a}} keys %hash) {
+ 	    add_categories($line, "");
+ 	    if ($sections) {
+@@ -1295,6 +1304,40 @@ sub find_ending_index {
+     return $index;
  }
+ 
++sub get_section_name {
++    my ($index) = @_;
++
++    return $typevalue[find_starting_index($index)];
++}
++
++sub section_has_list {
++    my ($index) = @_;
++
++    my $start = find_starting_index($index);
++    my $end = find_ending_index($index);
++    for (my $i = $start; $i < $end; $i++) {
++	next if ($typevalue[$i] !~ m/^L:\s*(.*)/);
++	my $list_additional = "";
++	if ($1 =~ m/[^\s]+\s+(.*)$/) {
++	    $list_additional = $1;
++	}
++	return 1 if (list_is_selected($list_additional));
++    }
++    return 0;
++}
++
++# Must match the list selection in add_categories()
++sub list_is_selected {
++    my ($list_additional) = @_;
++
++    if ($list_additional =~ m/subscribers-only/) {
++	return $email_subscriber_list;
++    } elsif ($list_additional =~ m/moderated/) {
++	return $email_list && $email_moderated_list;
++    }
++    return $email_list;
++}
++
+ sub get_subsystem_name {
+     my ($index) = @_;
  
 _
 
-Patches currently in -mm which might be from gopalmalaviya53@gmail.com are
+Patches currently in -mm which might be from konstantin@linuxfoundation.org are
 
-mm-readahead-dont-skip-the-fallback-after-aligning-index-down.patch
+get_maintainer-only-use-the-rest-as-a-fallback.patch
+docs-submitting-patches-make-lkml-a-list-of-last-resort-again.patch
 
