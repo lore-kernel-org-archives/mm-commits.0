@@ -1,47 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794698489;
-	b=UeS4firHWLBNMzJdc0ZFNhKnLnjhAPy1iOWWtvXKLmsdkcHVhO8aQKKIDANPMwBWDbJ4
-	 hqNRrfRTd5vunPeW2urrNM58saN83KAPPyswn+CV0hTH4XlIy3/MKMXGoRLYqs4T/Fk5r
-	 8bjZY7CB0Sho8n8fyHPgEYpgO/cFql1fQKUfYlkKLlnPsqdBTrOxgYZ1fw7RwZWDYWqyy
-	 I8hZOVBKb0ttSLWlJRygV9+Q+7NupgqJRztvnR563WathnsZGLXi98HoFik+ErnySAJsQ
-	 8DHWg8yM29z2mnJcrb8q22vzUvLVZkCqlCj0uKVLcK5E6aac0QGBBNCZR5H7+EkYt6Q==
+	t=1794709332;
+	b=aWYxLyQtypLMVA9B3ZV9p/+uBpTuEVmCi+uZgqRcLo+PVZaALyOLF8uIQOzqym8LoT82
+	 Ell5wK4Cy9f2FS+BWDMTS7Qkt0M7qINjGD8IOcVxUyCQAObZBGedCpcowPqwi1tGcZ8pk
+	 0qOmCRd18kbYtOTsdxK1bI/XtyX9Hw3P7rnXXCnXa1hAHh6kkO2sZ5gn6O2L2AhJ+zjQa
+	 LsJ0ocJ+VHmnFHkNPvctm2UQnxWnNosaxeN6JvhytDwl3rPpVFRKZIjtkp413sNEbDRul
+	 DCksrXnkHBS+az1EiyJtVlwm0+4lXmFbV65329N776SmJC0L8CTDEVtNKXAdIf+wnKQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794698489;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794709332;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=B+f3+gDyfyVvD0h0pPBUZxnjUu1WDovrMoJhhdxQFnw=;
-	b=kY8ztzC9w9DqokPI4hMt6tJI4JpUMv2J7v/azRCA1fYPip5dJ1y8bWDhbN3z8B6AniAP
-	 C9sPFZdh4vE7h3AcGYJ6xyMxpUdrUWY4OovF+M2dBG/771VZ4YKoPeXItqdcSxIu7IZV4
-	 cIkhywUbA0PVf4TfmBGfrObkhLafl/sFdxu+m0sn6/9rSkFKE5clfl1LMC9QZAhlKlHsJ
-	 //xKgu5HslPC5hBfWEQIeOP8ZYfkXa1Y8cJgS5Cmf01uYDitk6K49UrLUWFwq+hSCJVYQ
-	 G/7SK27xxlgGgLVoor8QQQucwjaBYg9KG+bW9HQ7OZNE6U/2bQSwgH+Za6gI3qiYcug==
+	bh=IfTWypLcVl6tA97zFL+kaePGR2SJw+Mg/zWm4wpfJ8Y=;
+	b=aJo3kiNMqTkkrW+oJTti4VNlpN31eQAsT7QCl3+2ylBvoFUjfv7qENuJ2liXHnglS+5p
+	 TKHGrkla4kyaUqH1+Oi6Bm7cqihzf+YQG6UvxVvKLvPh6Pw58LNoX5aoAz/rfhWaL5nDr
+	 D8768QSerA91t/ILRThqt0Dy/1X63/pW8bauBwj8+p784VT24NWqmVNxVQXKRnCYfpMYE
+	 fkpY3lSmUPpf2iDwPN95yd00rQo09C5VMaIKPWOJW41jqr6EB3ngFpZRRm27DMBRLZN9q
+	 sDnnvB4EHP/q2Kg5nn9lAduDfnnakJmzzdcskgZv/k+erOTIOhY0kWj4oxgwBLUIu9g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=oERk2MRo;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=MHFdZKtp;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBB95606A329
-	for <mm-commits@vger.kernel.org>; Sat, 14 Nov 2026 23:21:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA2D2606A323;
+	Sun, 15 Nov 2026 02:22:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=oERk2MRo
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35F1C1F000C4;
-	Sat, 14 Nov 2026 23:21:29 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=MHFdZKtp
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 127BA1F000C4;
+	Sun, 15 Nov 2026 02:22:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794698489;
-	bh=B+f3+gDyfyVvD0h0pPBUZxnjUu1WDovrMoJhhdxQFnw=;
+	d=linux-foundation.org; s=korg; t=1794709332;
+	bh=IfTWypLcVl6tA97zFL+kaePGR2SJw+Mg/zWm4wpfJ8Y=;
 	h=Date:To:From:Subject;
-	b=oERk2MRo2BZhiKIC82bov/WUzjGdTRuKD6bZ7rM7BYNZCY0dHK1rmbnRakUFpYtBc
-	 Pn0zHlfVdnF3oOuz26Ww34EZvRtBJM6hLHxv8d2+tyr7BYGpT3e1j5e/ZO/UhVlRrJ
-	 iAa1fr70SHG7m94VkjUH6e380wKqEafIjWhBkQsI=
-Date: Sat, 14 Nov 2026 15:21:28 -0800
-To: mm-commits@vger.kernel.org,wfelipe@google.com,ryan.roberts@arm.com,
-	rppt@kernel.org,mhiramat@kernel.org,leitao@debian.org,ekffu200098@gmail.com,
-	brauner@kernel.org,blum@kernel.org,akpm@linux-foundation.org
+	b=MHFdZKtp2V7e7okXCeFUB6hr9rLQk5evTUicZelXGAeCXm1GT4eCi2wF3Aao0y8qH
+	 P2Dnim2CWRG/qdZu/JEo0mXfDzwaDQ/hVZfwuVbJ/jyPGbsjrcn9YtqhUXxFUUmPCT
+	 BMN+ouJbREGgV57MWsciFtns+wi/lUePOS6G/hcw=
+Date: Sat, 14 Nov 2026 18:22:11 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rppt@kernel.org,
+	moonafterrain@outlook.com,mark@fasheh.com,kurt.hackel@oracle.com,
+	kees@kernel.org,julia.lawall@inria.fr,joseph.qi@linux.alibaba.com,
+	jlbec@evilplan.org,jjzuming@gmail.com,brauner@kernel.org,
+	baijiaju1990@gmail.com,zzzccc427@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + init-remove-strlcat-and-sprintf-from-do_one_initcall.patch added to mm-nonmm-unstable branch
-Message-Id: <20261114232129.35F1C1F000C4@smtp.kernel.org>
+Subject: + ocfs2-drain-domain-handlers-before-destroying-the-dlm-worker.patch added to mm-nonmm-unstable branch
+Message-Id: <20261115022212.127BA1F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: init: remove strlcat() and sprintf() from do_one_initcall()
+     Subject: ocfs2: drain domain handlers before destroying the DLM worker
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     init-remove-strlcat-and-sprintf-from-do_one_initcall.patch
+     ocfs2-drain-domain-handlers-before-destroying-the-dlm-worker.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/init-remove-strlcat-and-sprintf-from-do_one_initcall.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-drain-domain-handlers-before-destroying-the-dlm-worker.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,74 +78,149 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Thorsten Blum <blum@kernel.org>
-Subject: init: remove strlcat() and sprintf() from do_one_initcall()
-Date: Sat, 14 Nov 2026 12:05:31 +0100
+From: Cen Zhang <zzzccc427@gmail.com>
+Subject: ocfs2: drain domain handlers before destroying the DLM worker
+Date: Fri,  9 Oct 2026 16:11:23 +0800
 
-In preparation for removing strlcat() from the kernel [1], format the
-warning directly in WARN().  This also removes the temporary 64-byte
-buffer and the sprintf() call while preserving the warning text.
+The domain workqueue must remain usable until every network handler that
+can submit work has finished.  dlm_unregister_domain_handlers() removes
+handlers from the o2net lookup tree, but an already referenced handler can
+still run.  Its dlm_grab() reference pins the context, not dlm_worker.
 
-Link: https://lore.kernel.org/20261114110531.26138-2-blum@kernel.org
-Link: https://github.com/KSPP/linux/issues/370 [1]
-Signed-off-by: Thorsten Blum <blum@kernel.org>
+On the final local domain disconnect, a migration receive callback can
+have passed dlm_joined() before shutdown changes the domain state, yet
+still be preparing its work item when teardown destroys the queue:
+
+  o2net receive worker             Final domain teardown
+  --------------------             ---------------------
+  Get the handler reference
+  dlm_grab(); pass dlm_joined()
+                                   Unregister domain handlers
+                                   Stop the DLM threads
+                                   destroy_workqueue(dlm_worker)
+                                   dlm_worker = NULL
+  Publish the migration work item
+  queue_work(dlm_worker, ...)
+
+The handler lookup reference lets the callback continue after unregister. 
+The work-list lock does not protect the queue lifetime, and destroying the
+queue drains submitted work without waiting for this producer.  The late
+queue_work() therefore passes NULL to __queue_work() and crashes.
+
+Use o2net_unregister_and_flush_handler_list() at the existing domain
+handler unregister point.  Removing the handlers prevents new lookups, and
+flushing o2net receive work waits for already referenced callbacks and
+their post handlers.  They can finish submitting while dlm_worker is still
+live; the subsequent destroy_workqueue() drains those submissions.  The
+same unregister helper covers failed registration and join cleanup,
+without changing the DLM thread or workqueue teardown order.
+
+KASAN report as below:
+
+    Oops: general protection fault, probably for non-canonical address 0xdffffc0000000038: 0000 [#1] SMP KASAN NOPTI
+    KASAN: null-ptr-deref in range [0x00000000000001c0-0x00000000000001c7]
+    CPU: 0 UID: 0 PID: 14 Comm: kworker/u8:1 Not tainted 7.3.0-rc4-next-20260921-pmb-bt-functional-v1+ #1 PREEMPT(lazy)
+
+[Hardware details omitted.]
+
+    Workqueue: o2net o2net_rx_until_empty
+    RIP: 0010:__queue_work+0x9b/0x1600
+
+[Instruction and register dump omitted.]
+
+    Call Trace:
+     <TASK>
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __pfx___queue_work+0x10/0x10
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? clear_pending_if_disabled+0x83/0x1c0
+     ? __pfx_clear_pending_if_disabled+0x10/0x10
+     ? __pfx_pmbd_probe_hit_cookie+0x10/0x10
+     ? dlm_mig_lockres_handler+0x984/0x1500
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? lock_release+0xc8/0x290
+     queue_work_on+0xda/0xf0
+     dlm_mig_lockres_handler+0x9d5/0x1500
+     ? percpu_rwsem_wake_function+0x10/0x480
+     ? __pfx_dlm_mig_lockres_handler+0x10/0x10
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? trace_hardirqs_on+0x18/0x160
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? kvm_clock_get_cycles+0x31/0x60
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     o2net_rx_until_empty+0x1a55/0x32f0
+     ? reacquire_held_locks+0xdd/0x200
+     ? __pfx_o2net_rx_until_empty+0x10/0x10
+     ? lock_acquire+0x190/0x300
+     ? process_one_work+0x935/0x1b40
+     ? process_one_work+0x834/0x1b40
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? lock_release+0xc8/0x290
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     process_one_work+0x9a8/0x1b40
+     ? __pfx_process_one_work+0x10/0x10
+     ? lock_acquire+0x190/0x300
+     ? lock_is_held_type+0x8f/0x100
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     worker_thread+0x65c/0xe40
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __kthread_parkme+0x177/0x220
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __pfx_worker_thread+0x10/0x10
+     kthread+0x351/0x460
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __pfx_kthread+0x10/0x10
+     ret_from_fork+0x659/0x940
+     ? __pfx_ret_from_fork+0x10/0x10
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __switch_to+0x74f/0xf70
+     ? __pfx_kthread+0x10/0x10
+     ret_from_fork_asm+0x1a/0x30
+     </TASK>
+
+[Empty module list omitted.]
+
+    ---[ end trace 0000000000000000 ]---
+
+Link: https://lore.kernel.org/pm-ocfs2-objects-candidate-0056-v2-57239c657ac017b50fa1@gmail.com
+Fixes: 3156d2670166 ("ocfs2: move dlm work to a private work queue")
+Signed-off-by: Cen Zhang <zzzccc427@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Junrui Luo <moonafterrain@outlook.com>
 Cc: Christian Brauner <brauner@kernel.org>
-Cc: Sang-Heon Jeon <ekffu200098@gmail.com>
-Cc: Breno Leitao <leitao@debian.org>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Wilson Felipe Pereira <wfelipe@google.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Julia Lawall <julia.lawall@inria.fr>
+Cc: Kurt Hackel <kurt.hackel@oracle.com>
+Cc: Jia-Ju Bai <baijiaju1990@gmail.com>
+Cc: <jjzuming@gmail.com>
+Cc: <stable@vger.kernel.org>
 
- init/main.c |   21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ fs/ocfs2/dlm/dlmdomain.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/init/main.c~init-remove-strlcat-and-sprintf-from-do_one_initcall
-+++ a/init/main.c
-@@ -1409,7 +1409,8 @@ static inline void do_trace_initcall_lev
- int __init_or_module do_one_initcall(initcall_t fn)
+--- a/fs/ocfs2/dlm/dlmdomain.c~ocfs2-drain-domain-handlers-before-destroying-the-dlm-worker
++++ a/fs/ocfs2/dlm/dlmdomain.c
+@@ -1708,7 +1708,7 @@ static void dlm_unregister_domain_handle
  {
- 	int count = preempt_count();
--	char msgbuf[64];
-+	bool preempt_imbalanced;
-+	bool irqs_left_disabled;
- 	int ret;
+ 	o2hb_unregister_callback(dlm->name, &dlm->dlm_hb_up);
+ 	o2hb_unregister_callback(dlm->name, &dlm->dlm_hb_down);
+-	o2net_unregister_handler_list(&dlm->dlm_domain_handlers);
++	o2net_unregister_and_flush_handler_list(&dlm->dlm_domain_handlers);
+ }
  
- 	if (initcall_blacklisted(fn))
-@@ -1419,17 +1420,17 @@ int __init_or_module do_one_initcall(ini
- 	ret = fn();
- 	do_trace_initcall_finish(fn, ret);
- 
--	msgbuf[0] = 0;
--
--	if (preempt_count() != count) {
--		sprintf(msgbuf, "preemption imbalance ");
-+	preempt_imbalanced = preempt_count() != count;
-+	if (preempt_imbalanced)
- 		preempt_count_set(count);
--	}
--	if (irqs_disabled()) {
--		strlcat(msgbuf, "disabled interrupts ", sizeof(msgbuf));
-+
-+	irqs_left_disabled = irqs_disabled();
-+	if (irqs_left_disabled)
- 		local_irq_enable();
--	}
--	WARN(msgbuf[0], "initcall %pS returned with %s\n", fn, msgbuf);
-+
-+	WARN(preempt_imbalanced || irqs_left_disabled, "initcall %pS returned with %s%s\n", fn,
-+	     preempt_imbalanced ? "preemption imbalance " : "",
-+	     irqs_left_disabled ? "disabled interrupts " : "");
- 
- 	add_latent_entropy();
- 	return ret;
+ static int dlm_register_domain_handlers(struct dlm_ctxt *dlm)
 _
 
-Patches currently in -mm which might be from blum@kernel.org are
+Patches currently in -mm which might be from zzzccc427@gmail.com are
 
-init-reject-bare-rodata-parameter-before-architecture-parsing.patch
-init-use-strscpy-in-do_initcalls.patch
-init-use-kmalloc-in-do_initcalls.patch
-init-remove-strlcat-and-sprintf-from-do_one_initcall.patch
+ocfs2-serialize-inode-journal-access-with-shutdown.patch
+ocfs2-dlmfs-keep-the-superblock-alive-during-lock-work.patch
+ocfs2-advance-locking_state-through-the-live-cursor.patch
+ocfs2-drain-domain-handlers-before-destroying-the-dlm-worker.patch
 
