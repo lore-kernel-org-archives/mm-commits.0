@@ -1,48 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794780748;
-	b=Lm/T2VaJNs27qkS+2OcQfydnvU6mESxdSoYXmfZavREYdVyxPlVrOG2gEh9w/rXV//Jy
-	 KKo6OoHt8IUkmEvdcsEeFBsbR8EGrm28vD3k4c5p4J74pgLEXXFY4m4dm4LFOgcpGGGDa
-	 +MQEdSa43uDPt1+H7ayRwjKTBZAcNLXXC0hVhP96yAsa5gPRT+UBYoXllb/tPiRcYljTK
-	 zGjJCN5xubWNBAr8JevM0r7rute83tegdc3X0XLikI9RFgFhcnneeF3KnTfFzBXlpoR68
-	 daekf0WhgqrhQzpG1KTFVMDn6jTvOR2aV1jdXTNUqIeHhF6+MUJsSoMCguiiZQ6sktA==
+	t=1794780744;
+	b=VjMzkc7HhquazTmeyyTfqXjBqqbKGcKxt00d2RQYas5QOcEPbDewPfavouVJHY61pnQO
+	 TmZpwZzxIzIXTwVoQWrbVvTm4CoA1LoM5blGu1FXtja8ByasBInc2deLe9ye2oi5jjlGC
+	 cmKYf+VqoWTNNuZZryERQjSz5Q5C7AxkAvDrsQmzCRdp4WvvCd9XlU5VXpa8jSZb/4VxW
+	 nQwqi4Ypkc2/MbSgd2S/MPGwCBqepTmocJxryGNV/N4gkJCiNihAvd2LFdTyeH1H8YYoY
+	 F4h/rCjYaYm6VHpBo7qeL2G0itRzR+sLGsrf5QxbpOIOWNelb6RftFkqPmHnB58ajng==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794780748;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794780744;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=CCTE+Xs38HKVZWjd/woYGiujBnNobGez+Ij9lGwWl+Y=;
-	b=Sh1VeP5tNLy56aGgRnUpjEcNYrxVYReuI7drCvU98+QG1kx2dh3hGBrwm9Nr5JFFPqHG
-	 GKXpn/N2MJMPVrO19AGuEOCusoE6ElpVZ6PDD6gWCGOGX79vL3AhBBscKKgxKeQTDoArX
-	 CrjDpPBxMx4A62Jtl16r/QJvBN58wIpMItuNrYg/b56MsiF8PH5ezMOB7uZcLrPBFHOyh
-	 f4f9QPvKFHB0XVj+fpgy+96Zao7wMdw5YP8dv6yn8HcyygHUIKJT0MiaFlZJNPaZOnA4a
-	 M5PZv9lTokkH7tNd1o9LV8i9sCW7KPiQlslfaNi8cY2gkIbepEnwsA5MDGlFuqF3wcQ==
+	bh=Tlz1HD7InWvScfZCqPO83hodDuMu9crozjyFOjIU1xs=;
+	b=F7HZUNuH9lhPBw+3OdQ67iVy2CmdLukS8ErGsIaBtTelnoJ8egULvem3xZvVMORbUwo8
+	 zcQi38D3JxE+Twp0RW5Yveztu+sLZ04EqSKQjxG11o6aJxFWxHsa3Xzk2fSG/USx4Wf36
+	 D8wZGxvcwcFZiBlgV5U6Iet6AYCEIzhnJU4QhpJVMAafyBiQbrtrtt7LeyZp7KLvT52qZ
+	 67WiX1uVThYlA0vPwQwXfYvmEe9zdENVb919P3F2Cwibgdt52SnWJ4DaIAkaX0WTk5LWh
+	 zrWxm5MBo9HgfGWEQ2ga8n7c8tHdtOtyKD8NBpxSBvaRBaDA+KolZQnRLNYf+WR++Sg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=wPUBMvDE;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=b35PkCNE;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3439B606A32F
-	for <mm-commits@vger.kernel.org>; Sun, 15 Nov 2026 22:12:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81B3E606A329;
+	Sun, 15 Nov 2026 22:12:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=wPUBMvDE
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FBC91F000C4;
-	Sun, 15 Nov 2026 22:12:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=b35PkCNE
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C0B61F000C5;
+	Sun, 15 Nov 2026 22:12:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794780747;
-	bh=CCTE+Xs38HKVZWjd/woYGiujBnNobGez+Ij9lGwWl+Y=;
+	d=linux-foundation.org; s=korg; t=1794780744;
+	bh=Tlz1HD7InWvScfZCqPO83hodDuMu9crozjyFOjIU1xs=;
 	h=Date:To:From:Subject;
-	b=wPUBMvDEOHAr+I4UPv2trJUnlCPpKGDdIxG3jmWD8HX8yl85lAV437hQsx2TQYRAM
-	 qj6DsOuVo+GTxlF/hntypVOUTeQwX95CHPICwQmm5VmwqUDkWLwJzeBjXZEBtqoD6s
-	 WTJhYT2kpe7PnQ0yljRK9HhmdwQ9onqfW8Wpe1K4=
-Date: Sun, 15 Nov 2026 14:12:27 -0800
-To: mm-commits@vger.kernel.org,vasily.averin@linux.dev,shakeel.butt@linux.dev,
-	mkoutny@suse.com,mhocko@suse.com,manfred@colorfullife.com,legion@kernel.org,
-	hannes@cmpxchg.org,ebiederm@xmission.com,dave@stgolabs.net,alx@kernel.org,
-	x-professor@outlook.com,akpm@linux-foundation.org
+	b=b35PkCNEIWLW8z2F0ks7kWUZ5J+64kGplVfjFdt7kb15ZVyP9gsUAbVYgI+FOAXsi
+	 MxqU93LVwQHNX26s2v+dx0g0t5SOeQOkqxhkrqjp1EJUdYWR99ZhVurXNZfYFfVqpT
+	 8Lw8fLuW/9if/Kx5QFWG70ibeVnZ1TYSnwCi3mi0=
+Date: Sun, 15 Nov 2026 14:12:23 -0800
+To: mm-commits@vger.kernel.org,vasily.averin@linux.dev,stable@vger.kernel.org,
+	shakeel.butt@linux.dev,mkoutny@suse.com,mhocko@suse.com,
+	manfred@colorfullife.com,legion@kernel.org,hannes@cmpxchg.org,
+	ebiederm@xmission.com,dave@stgolabs.net,alx@kernel.org,
+	akpm@linux-foundation.org,x-professor@outlook.com
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ipc-sem-remove-obsolete-semopm-fragmentation-warning.patch added to mm-nonmm-unstable branch
-Message-Id: <20261115221227.9FBC91F000C4@smtp.kernel.org>
+Subject: + ipc-sem-reject-negative-semopm-values.patch added to mm-nonmm-unstable branch
+Message-Id: <20261115221224.0C0B61F000C5@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: ipc/sem: remove obsolete SEMOPM fragmentation warning
+     Subject: ipc/sem: reject negative SEMOPM values
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ipc-sem-remove-obsolete-semopm-fragmentation-warning.patch
+     ipc-sem-reject-negative-semopm-values.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ipc-sem-remove-obsolete-semopm-fragmentation-warning.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ipc-sem-reject-negative-semopm-values.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -78,23 +79,46 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Yingjie Wang <x-professor@outlook.com>
-Subject: ipc/sem: remove obsolete SEMOPM fragmentation warning
-Date: Thu, 29 Oct 2026 05:03:28 +0000
+Subject: ipc/sem: reject negative SEMOPM values
+Date: Thu, 29 Oct 2026 05:03:26 +0000
 
-The UAPI comment advises keeping SEMOPM at or below 1000 because a larger
-operation array may fail due to physical memory fragmentation.
+A negative SEMOPM becomes a large unsigned limit in semop(), allowing
+operation counts that the configured limit should reject.  Separately, a
+kernel.sem write can return ERANGE for an invalid SEMMNI while leaving
+earlier fields changed; if it leaves SEMOPM at zero, subsequent nonempty
+semop() calls in that IPC namespace fail with E2BIG.  Validate the whole
+write before changing the live settings.
 
-Commit e4243b8062c1 ("ipc/sem: play nicer with large nsops allocations")
-changed the operation array to kvmalloc() specifically to support larger
-configured limits, with vmalloc fallback when a physically contiguous
-allocation is unavailable.
+The SEMOPM field has been stored as an int while semop() receives an
+unsigned operation count since the beginning of Git history. A negative
+SEMOPM accepted by proc_dointvec() is converted to a large unsigned value
+in the comparison, defeating the intended operation-count limit.
 
-Replace the obsolete warning with a description of the compiled-in
-default and the runtime sysctl.
+Commit 50ec499b9a43 ("sysctl: allow change system v ipc sysctls inside ipc
+namespace") made kernel.sem writable by IPC namespace owners without
+capabilities in the initial user namespace.
 
-Link: https://lore.kernel.org/6d795eecfd0beb666251e6bc03ef9fd135386362.1793250194.git.x-professor@outlook.com
+Parse writes against a temporary copy and validate SEMOPM and SEMMNI
+before changing the live settings. Hold a per-namespace mutex from the
+snapshot through publication so concurrent sysctl writers cannot publish
+stale values for fields they did not supply. Access the live fields with
+READ_ONCE() and WRITE_ONCE(), preserving the per-field access semantics of
+proc_dointvec(). Read requests continue to use proc_dointvec() directly.
+
+Failed writes leave the live settings unchanged. Successful partial writes
+change only the supplied fields relative to the latest locked snapshot.
+The writer mutex retains the existing per-field visibility for readers.
+
+Keep zero and positive SEMOPM values valid. Zero continues to reject every
+non-empty semop() request.
+
+Link: https://lore.kernel.org/16988f0510fc9ebe56c4f337facf92071fb52355.1793250194.git.x-professor@outlook.com
+Link: https://lore.kernel.org/r/51c93c19-f1dd-455f-8698-6b1ee30eb630@colorfullife.com
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
 Signed-off-by: Yingjie Wang <x-professor@outlook.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Link: https://lore.kernel.org/r/20261016155905.2a659b7bb7d61f33467a3263@linux-foundation.org
 Reviewed-by: Manfred Spraul <manfred@colorfullife.com>
 Cc: Alexey Gladkov <legion@kernel.org>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
@@ -105,32 +129,111 @@ Cc: Michal Koutný <mkoutny@suse.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Alejandro Colomar <alx@kernel.org>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: <stable@vger.kernel.org>
 
- include/uapi/linux/sem.h |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ include/linux/ipc_namespace.h |    3 ++
+ ipc/ipc_sysctl.c              |   35 +++++++++++++++++++++++---------
+ ipc/sem.c                     |    1 
+ ipc/util.h                    |    9 --------
+ 4 files changed, 30 insertions(+), 18 deletions(-)
 
---- a/include/uapi/linux/sem.h~ipc-sem-remove-obsolete-semopm-fragmentation-warning
-+++ a/include/uapi/linux/sem.h
-@@ -71,16 +71,15 @@ struct  seminfo {
-  * The values has been chosen to be larger than necessary for any
-  * known configuration.
-  *
-- * SEMOPM should not be increased beyond 1000, otherwise there is the
-- * risk that semop()/semtimedop() fails due to kernel memory fragmentation when
-- * allocating the sop array.
-+ * SEMOPM is the default maximum number of operations per semop() call. The
-+ * runtime limit can be changed through /proc/sys/kernel/sem.
-  */
+--- a/include/linux/ipc_namespace.h~ipc-sem-reject-negative-semopm-values
++++ a/include/linux/ipc_namespace.h
+@@ -4,6 +4,7 @@
  
+ #include <linux/err.h>
+ #include <linux/idr.h>
++#include <linux/mutex.h>
+ #include <linux/rwsem.h>
+ #include <linux/notifier.h>
+ #include <linux/nsproxy.h>
+@@ -31,6 +32,8 @@ struct ipc_ids {
+ struct ipc_namespace {
+ 	struct ipc_ids	ids[3];
  
- #define SEMMNI  32000           /* <= IPCMNI  max # of semaphore identifiers */
- #define SEMMSL  32000           /* <= INT_MAX max num of semaphores per id */
- #define SEMMNS  (SEMMNI*SEMMSL) /* <= INT_MAX max # of semaphores in system */
--#define SEMOPM  500	        /* <= 1 000 max num of ops per semop call */
-+#define SEMOPM  500	        /* <= INT_MAX max num of ops per semop call */
- #define SEMVMX  32767           /* <= 32767 semaphore maximum value */
- #define SEMAEM  SEMVMX          /* adjust on exit max value */
++	/* Serialize kernel.sem writers. */
++	struct mutex	sem_ctls_mutex;
+ 	int		sem_ctls[4];
+ 	int		used_sems;
  
+--- a/ipc/ipc_sysctl.c~ipc-sem-reject-negative-semopm-values
++++ a/ipc/ipc_sysctl.c
+@@ -51,21 +51,38 @@ static int proc_ipc_auto_msgmni(const st
+ static int proc_ipc_sem_dointvec(const struct ctl_table *table, int write,
+ 	void *buffer, size_t *lenp, loff_t *ppos)
+ {
++	struct ctl_table ipc_table;
+ 	struct ipc_namespace *ns =
+ 		container_of(table->data, struct ipc_namespace, sem_ctls);
+-	int ret, semmni;
++	int sem_ctls[ARRAY_SIZE(ns->sem_ctls)];
++	size_t i;
++	int ret;
+ 
+-	semmni = ns->sem_ctls[3];
+-	ret = proc_dointvec(table, write, buffer, lenp, ppos);
++	if (!write)
++		return proc_dointvec(table, write, buffer, lenp, ppos);
+ 
+-	if (!ret)
+-		ret = sem_check_semmni(ns);
++	mutex_lock(&ns->sem_ctls_mutex);
++	for (i = 0; i < ARRAY_SIZE(sem_ctls); i++)
++		sem_ctls[i] = READ_ONCE(ns->sem_ctls[i]);
+ 
+-	/*
+-	 * Reset the semmni value if an error happens.
+-	 */
++	ipc_table = *table;
++	ipc_table.data = sem_ctls;
++
++	ret = proc_dointvec(&ipc_table, write, buffer, lenp, ppos);
+ 	if (ret)
+-		ns->sem_ctls[3] = semmni;
++		goto out_unlock;
++
++	if (sem_ctls[2] < 0 ||
++	    sem_ctls[3] < 0 || sem_ctls[3] > ipc_mni) {
++		ret = -ERANGE;
++		goto out_unlock;
++	}
++
++	for (i = 0; i < ARRAY_SIZE(sem_ctls); i++)
++		WRITE_ONCE(ns->sem_ctls[i], sem_ctls[i]);
++
++out_unlock:
++	mutex_unlock(&ns->sem_ctls_mutex);
+ 	return ret;
+ }
+ 
+--- a/ipc/sem.c~ipc-sem-reject-negative-semopm-values
++++ a/ipc/sem.c
+@@ -248,6 +248,7 @@ static int sysvipc_sem_proc_show(struct
+ 
+ void sem_init_ns(struct ipc_namespace *ns)
+ {
++	mutex_init(&ns->sem_ctls_mutex);
+ 	ns->sc_semmsl = SEMMSL;
+ 	ns->sc_semmns = SEMMNS;
+ 	ns->sc_semopm = SEMOPM;
+--- a/ipc/util.h~ipc-sem-reject-negative-semopm-values
++++ a/ipc/util.h
+@@ -246,15 +246,6 @@ int ipcget(struct ipc_namespace *ns, str
+ void free_ipcs(struct ipc_namespace *ns, struct ipc_ids *ids,
+ 		void (*free)(struct ipc_namespace *, struct kern_ipc_perm *));
+ 
+-static inline int sem_check_semmni(struct ipc_namespace *ns) {
+-	/*
+-	 * Check semmni range [0, ipc_mni]
+-	 * semmni is the last element of sem_ctls[4] array
+-	 */
+-	return ((ns->sem_ctls[3] < 0) || (ns->sem_ctls[3] > ipc_mni))
+-		? -ERANGE : 0;
+-}
+-
+ #ifdef CONFIG_COMPAT
+ #include <linux/compat.h>
+ struct compat_ipc_perm {
 _
 
 Patches currently in -mm which might be from x-professor@outlook.com are
