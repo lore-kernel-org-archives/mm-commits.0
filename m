@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794712652;
-	b=fldf8RhmNhIsbOJjLkYFLo6QZk3knUkcCdWhVZM0HkVlMA1j+9pRT6BeaW1zhkUTSK46
-	 7BnFHPuMTwPcuVRZmFfMKPGG/dSEr/TMtXM85uGzs4RtnjDmNPFMhu5WhWlV7N/2jhcZy
-	 glYO3sBGliUoH5EN1a7OLfjvn5Z8QnrHLZV5/0n5QmxurJKKWIkRPbDfzDodAS6TmaVoN
-	 h5yGWoR+nFl25bRgumiucPTdW+q7uOMS0d1NJrlRV/okF1esYTOHlINXhpQaKeiJak48t
-	 v3G0o/kok9JzHAt7Y7zEDrQ+eBBt0Pw49emY561VRFwHqKDry83zMsEGRw5cKSiH/VQ==
+	t=1794712660;
+	b=fT6vSP4MZrP1iXICwqZX+gSrCGCcMMu4ZYKLsXgGYeG7ZXe8+xBg7sqTK5tKn0Pudr/Y
+	 SB2MYt4n0ovV38CGHF4vCyWycZxMFXsh8VbvPOK48fp2g1a9QKZ64rJHPC6s8SpD8V4Kk
+	 2i80024FKIKl05+eksFnzl4KmJiTXYa5V+r57cC7XRWgglMwO7+SPaLN6XGWewRzj/4Jc
+	 AqKQoBONmrJjoXx70GkrbyVEudAvUZBapZFYiQU3JTMghI+d/vvmYahUmtXACSZMUkbAF
+	 oUzWozXqPDB2Ts+wOOWOu9wXFNzmTJsurobJfusK6mEXe9/yVDER90BLoYbVmgkTt3Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794712652;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794712660;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=pKgiMRhc0jkYmr/7+BMWHOOl/NccrVcjN9Qo1bIeFvk=;
-	b=lTQbPs3VzIpRbV0HfAsOKdq+pi+J1TTMBtrH3k2otV5Ch9hFr/40eO8F2jYDx8RCsa87
-	 cdqZzThrpO7tQgd+l2mPhObN7x3lXhS9kgMPqKkTPmhdXoR70c1kR2G23UwCHEQtaGE4M
-	 RxLEMNmAEocRq5aR8VpmFg5Q6tMzjjc+Kzuna4mgl+VT99mznqXW1LquGmLlx26kmgpVu
-	 y4+mfGzdoLzcSC8lJnMkEe1Pl1UA/771W0iryhGFK4fVZGKuydxj+a4vYgWsE2K1z5BjM
-	 XsuPubCMy79g9ERTpKfrqpwPDjUluF35A+1hQ5jFANuiVvq54rNsHFSJXS64zDskvFw==
+	bh=J1/xLtC+Oc+FHp5F/IqmigeM38URmv/n3kMpWZHMx8c=;
+	b=ko82gz0CN8KHGIFnrMOjUK3puw26uYGkifBuzm9IXdrSyiGo175UIRRY7Sl1V6NQoZ5S
+	 KIxtViG5b2drDCPH26vFijLs7q28N1P+sVgX8Uxl8EbiGJCHg8vYlYnamaaffTN6y9eMZ
+	 Fwc3qcz8vNXptIPrk0wJktNUBaskBHGFsdHXk8qx0os26xfMcEQiOZBAv2MQJzKhEXpQB
+	 BXv3X+cecDifEgYWzodya1bSr8gq1NTKnG7zPVdh0Jw+eltPkYneZFgLj/J6VUKgXWf9i
+	 mWSg0oWaimeGMbI8fOoR1hv/0+WRgsmDkmLwH4SfY+KtLNRKDVAJMpDhwhqomM/Ef8Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LVgmlNRo;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WUnCWxxz;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77991606A323
-	for <mm-commits@vger.kernel.org>; Sun, 15 Nov 2026 03:17:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71C8D606A329
+	for <mm-commits@vger.kernel.org>; Sun, 15 Nov 2026 03:17:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LVgmlNRo
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCE641F000C4;
-	Sun, 15 Nov 2026 03:17:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WUnCWxxz
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F17621F000C4;
+	Sun, 15 Nov 2026 03:17:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794712651;
-	bh=pKgiMRhc0jkYmr/7+BMWHOOl/NccrVcjN9Qo1bIeFvk=;
+	d=linux-foundation.org; s=korg; t=1794712660;
+	bh=J1/xLtC+Oc+FHp5F/IqmigeM38URmv/n3kMpWZHMx8c=;
 	h=Date:To:From:Subject;
-	b=LVgmlNRoX8hPSAHYNUoJZJhftoplhp4DDa+wzOqGduSSK+mRPL7rFj0BDFdq4fyN8
-	 4uGZ1K1kP8C4LcBefWrULcsVmmxVKaZqazSUXXdkfxgkGl9tTFjRwwTnS8Ol8Ldrje
-	 XfTcxASzlCrUgDTfObbPplyxyv+XolUM3OO7BmCw=
-Date: Sat, 14 Nov 2026 19:17:31 -0800
+	b=WUnCWxxzF41J7RBEQT7A9otimjk/1P53CiMaQ7OCP1a6jSL+cUmNy2tv28tcB5x7I
+	 c6V5Uy5w4RHk2oCah3+ox3mR0GNaW9qRwMKq38zxgm519LilEgt//TtpeeQDnGecUH
+	 nNSTOtk0O3PMhCVV58OI07s/wBflwN1dc5E16BtY=
+Date: Sat, 14 Nov 2026 19:17:39 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,tujinjiang@huawei.com,
-	janak@mpiricsoftware.com,dev.jain@arm.com,david@kernel.org,
-	akpm@linux-foundation.org,shardul.b@mpiricsoftware.com
+	shardul.b@mpiricsoftware.com,janak@mpiricsoftware.com,dev.jain@arm.com,
+	david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-xarray-free-unused-spare-node-in-xas_create_range.patch added to mm-new branch
-Message-Id: <20261115031731.CCE641F000C4@smtp.kernel.org>
+Subject: + lib-test_xarray-check-unused-spare-node-after-range-creation.patch added to mm-new branch
+Message-Id: <20261115031739.F17621F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: lib: xarray: free unused spare node in xas_create_range()
+     Subject: lib/test_xarray: check unused spare node after range creation
 has been added to the -mm mm-new branch.  Its filename is
-     lib-xarray-free-unused-spare-node-in-xas_create_range.patch
+     lib-test_xarray-check-unused-spare-node-after-range-creation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-xarray-free-unused-spare-node-in-xas_create_range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_xarray-check-unused-spare-node-after-range-creation.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,87 +87,95 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Shardul Bankar <shardul.b@mpiricsoftware.com>
-Subject: lib: xarray: free unused spare node in xas_create_range()
-Date: Thu, 04 Dec 2025 19:56:25 +0530
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib/test_xarray: check unused spare node after range creation
+Date: Sun, 15 Nov 2026 00:10:24 +0000
 
-Patch series "xarray: free unused spare node after range creation".
+Shardul Bankar's "[PATCH v4] lib: xarray: free unused spare node in
+xas_create_range()" [1] releases a spare node left over after range
+creation.  Exercise the case without depending on allocator failures or
+timing: let xas_nomem() reserve a node, then populate the relevant XArray
+node through a separate operation before xas_create_range() retries.
 
-xas_nomem() can leave a spare xa_node in an XA state when another user
-populates the tree before xas_create_range() retries.  Free an unused
-spare at the end of range creation, and add a deterministic lib/test_xarray
-check for that path.  The fix is first and the test is second.
+Check that the retry succeeds and releases the unused spare node.
 
-The test patch was held on both sides of a kernel A/B run while only the
-fix was removed and restored.  Without the fix, its spare-node assertion
-failed (158825705 of 158825706 checks passed).  With the fix, all
-158825706 checks passed.  Both runs used the same verified guest test
-script.
-
-
-This patch (of 2):
-
-xas_create_range() is typically called in a retry loop that uses
-xas_nomem() to handle -ENOMEM errors.  xas_nomem() may allocate a spare
-xa_node and store it in xas->xa_alloc for use in the retry.
-
-If the lock is dropped after xas_nomem(), another thread can expand the
-xarray tree in the meantime.  On the next retry, xas_create_range() can
-then succeed without consuming the spare node stored in xas->xa_alloc.  If
-the function returns without freeing this spare node, it leaks.
-
-xas_create_range() calls xas_create() multiple times in a loop for
-different index ranges.  A spare node that isn't needed for one range
-iteration might be needed for the next, so we cannot free it after each
-xas_create() call.  We can only safely free it after xas_create_range()
-completes.
-
-Fix this by calling xas_destroy() at the end of xas_create_range() to free
-any unused spare node.  This makes the API safer by default and prevents
-callers from needing to remember cleanup.
-
-This fixes a memory leak in mm/khugepaged.c and potentially other callers
-that use xas_nomem() with xas_create_range().
-
-Link: https://lore.kernel.org/20251204142625.1763372-1-shardul.b@mpiricsoftware.com
-Link: https://syzkaller.appspot.com/bug?id=a274d65fc733448ed518ad15481ed575669dd98c
-Link: https://lore.kernel.org/all/20251201074540.3576327-1-shardul.b@mpiricsoftware.com/ ("v3")
-Fixes: cae106dd67b9 ("mm/khugepaged: refactor collapse_file control flow")
-Signed-off-by: Shardul Bankar <shardul.b@mpiricsoftware.com>
+Link: https://lore.kernel.org/r/20251204142625.1763372-1-shardul.b@mpiricsoftware.com [1]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: David Hildenbrand (ARM) <david@kernel.org>
-Tested-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Shardul Bankar <shardul.b@mpiricsoftware.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: David Hildenbrand (ARM) <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: <janak@mpiricsoftware.com>
 Cc: Jinjiang Tu <tujinjiang@huawei.com>
 
- lib/xarray.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ lib/test_xarray.c |   31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
---- a/lib/xarray.c~lib-xarray-free-unused-spare-node-in-xas_create_range
-+++ a/lib/xarray.c
-@@ -745,11 +745,16 @@ restore:
- 	xas->xa_shift = shift;
- 	xas->xa_sibs = sibs;
- 	xas->xa_index = index;
--	return;
-+	goto cleanup;
-+
- success:
- 	xas->xa_index = index;
- 	if (xas->xa_node)
- 		xas_set_offset(xas);
-+
-+cleanup:
-+	/* Free any unused spare node from xas_nomem() */
-+	xas_destroy(xas);
+--- a/lib/test_xarray.c~lib-test_xarray-check-unused-spare-node-after-range-creation
++++ a/lib/test_xarray.c
+@@ -1834,6 +1834,34 @@ static noinline void check_create_range_
+ 	xa_destroy(xa);
  }
- EXPORT_SYMBOL_GPL(xas_create_range);
  
++#ifdef CONFIG_XARRAY_MULTI
++static noinline void check_create_range_spare(struct xarray *xa)
++{
++	XA_STATE_ORDER(xas, xa, 0, XA_CHUNK_SHIFT);
++	bool spare_left;
++
++	XA_BUG_ON(xa, !xa_empty(xa));
++
++	/* Model a failed allocation followed by a successful xas_nomem(). */
++	xas_set_err(&xas, -ENOMEM);
++	XA_BUG_ON(xa, !xas_nomem(&xas, GFP_KERNEL));
++
++	/* Model another user populating the tree before the retry. */
++	xa_insert_index(xa, 0);
++	xa_insert_index(xa, 1);
++
++	xas_lock(&xas);
++	xas_create_range(&xas);
++	xas_unlock(&xas);
++
++	XA_BUG_ON(xa, xas_error(&xas));
++	spare_left = xas.xa_alloc != NULL;
++	xas_destroy(&xas);
++	XA_BUG_ON(xa, spare_left);
++	xa_destroy(xa);
++}
++#endif
++
+ static noinline void check_create_range(struct xarray *xa)
+ {
+ 	unsigned int order;
+@@ -1867,6 +1895,9 @@ static noinline void check_create_range(
+ 	}
+ 
+ 	check_create_range_3();
++#ifdef CONFIG_XARRAY_MULTI
++	check_create_range_spare(xa);
++#endif
+ }
+ 
+ static noinline void __check_store_range(struct xarray *xa, unsigned long first,
 _
 
-Patches currently in -mm which might be from shardul.b@mpiricsoftware.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-lib-xarray-free-unused-spare-node-in-xas_create_range.patch
+mm-list_lru-dont-use-a-new-memcgs-lists-for-an-offline-memcg-fix.patch
+shmem-consume-the-reserved-xattr-space-despite-remount.patch
+selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
+alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
+alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
+selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
+mm-cma-simplify-cma_declare_contiguous_multi-fix.patch
+selftests-mm-allocate-nr_pages-based-on-pmd-size-for-uffd-pmd_move-tests-fix.patch
+selftests-mm-retain-move-pmd-coverage-and-verify-huge-pmds.patch
+mm-mremap-reject-gaps-before-fixed-moves.patch
+lib-test_xarray-check-unused-spare-node-after-range-creation.patch
+profile-account-for-partial-proc-profile-reads.patch
+profile-simplify-proc-profile-read-layout.patch
+ipc-msg-clamp-negative-msg_info-usage-counts.patch
+squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
