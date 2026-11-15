@@ -1,47 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794712660;
-	b=fT6vSP4MZrP1iXICwqZX+gSrCGCcMMu4ZYKLsXgGYeG7ZXe8+xBg7sqTK5tKn0Pudr/Y
-	 SB2MYt4n0ovV38CGHF4vCyWycZxMFXsh8VbvPOK48fp2g1a9QKZ64rJHPC6s8SpD8V4Kk
-	 2i80024FKIKl05+eksFnzl4KmJiTXYa5V+r57cC7XRWgglMwO7+SPaLN6XGWewRzj/4Jc
-	 AqKQoBONmrJjoXx70GkrbyVEudAvUZBapZFYiQU3JTMghI+d/vvmYahUmtXACSZMUkbAF
-	 oUzWozXqPDB2Ts+wOOWOu9wXFNzmTJsurobJfusK6mEXe9/yVDER90BLoYbVmgkTt3Q==
+	t=1794753665;
+	b=szwjjCgT7lUgzZUDsk0x2+4L0DexcFrPpztCHivxTQbXMYe1vi0I/msP8CAnuUoFF7xZ
+	 lwIni68XmJM6CYDwXamqsFYcjFxUiHIAb75qVSaei32O9d9yndDKmuK5013Ac1iA32Pso
+	 O+O6PaPv6aHZ6RpgKF8IFwjIsKUBHV2+SSVigW2hYYNhViOaDP1Rbv2NoFybOrYmxKdy8
+	 b/cy2l/ksEWt8rB5QfKAtVb83/kieHTf7vV2XTb1VJDx/gFytOCgM+JXpmF5I48wKsstF
+	 fr/9DNnCNVUnUipZlWKfV24pBiBrncdVXiMFpYwe5cex0Bm6MtfyK5ZhCkHFTBZncdA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794712660;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794753665;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=J1/xLtC+Oc+FHp5F/IqmigeM38URmv/n3kMpWZHMx8c=;
-	b=ko82gz0CN8KHGIFnrMOjUK3puw26uYGkifBuzm9IXdrSyiGo175UIRRY7Sl1V6NQoZ5S
-	 KIxtViG5b2drDCPH26vFijLs7q28N1P+sVgX8Uxl8EbiGJCHg8vYlYnamaaffTN6y9eMZ
-	 Fwc3qcz8vNXptIPrk0wJktNUBaskBHGFsdHXk8qx0os26xfMcEQiOZBAv2MQJzKhEXpQB
-	 BXv3X+cecDifEgYWzodya1bSr8gq1NTKnG7zPVdh0Jw+eltPkYneZFgLj/J6VUKgXWf9i
-	 mWSg0oWaimeGMbI8fOoR1hv/0+WRgsmDkmLwH4SfY+KtLNRKDVAJMpDhwhqomM/Ef8Q==
+	bh=+UhcFGYhPcDppuinw/0i64Xnb54T5h3AWlekp80tohs=;
+	b=Sdm7hhKCTizjnA276iVRYeT6z82q22LP8dO3PnwtMVC+ATanWSGrCjFhWmbDm6lcKh7o
+	 FWWgnJNi2WgPiu9Q6A8RxKNZW0KFWfb+xRmg/4RDvxrhVvpoUy6hwzbeZF8PpmyOgpo85
+	 KE6HmLyzqb44tY0KRJLD2LL7QWV2PYafQ8OLD7aGbY2V2zRf4hlJ1TzT9lwlQyhZYOfta
+	 +nQTnXWu73I+t28E+50urP5a7AtY6scJ/I3/7R/QrV4aMcGJp0DZfe8wKPittQ26adXez
+	 yePwbE/fPqZWGqk+etV2ZzCH01sT82gjosgPlOoTOq9vuaKtySG0hNCDKw8rZaDpajw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WUnCWxxz;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GFC4E1hT;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71C8D606A329
-	for <mm-commits@vger.kernel.org>; Sun, 15 Nov 2026 03:17:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B602606A31D
+	for <mm-commits@vger.kernel.org>; Sun, 15 Nov 2026 14:41:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WUnCWxxz
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F17621F000C4;
-	Sun, 15 Nov 2026 03:17:39 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GFC4E1hT
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5806A1F000C4;
+	Sun, 15 Nov 2026 14:41:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794712660;
-	bh=J1/xLtC+Oc+FHp5F/IqmigeM38URmv/n3kMpWZHMx8c=;
+	d=linux-foundation.org; s=korg; t=1794753664;
+	bh=+UhcFGYhPcDppuinw/0i64Xnb54T5h3AWlekp80tohs=;
 	h=Date:To:From:Subject;
-	b=WUnCWxxzF41J7RBEQT7A9otimjk/1P53CiMaQ7OCP1a6jSL+cUmNy2tv28tcB5x7I
-	 c6V5Uy5w4RHk2oCah3+ox3mR0GNaW9qRwMKq38zxgm519LilEgt//TtpeeQDnGecUH
-	 nNSTOtk0O3PMhCVV58OI07s/wBflwN1dc5E16BtY=
-Date: Sat, 14 Nov 2026 19:17:39 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,tujinjiang@huawei.com,
-	shardul.b@mpiricsoftware.com,janak@mpiricsoftware.com,dev.jain@arm.com,
-	david@kernel.org,akpm@linux-foundation.org
+	b=GFC4E1hTo+qiXLw9rkZuhBs2DE27zflPOFslu9oBNeWazSpq0YpS0+I09C9NC7goV
+	 jXtAmh0ZG1qt+ZfX5iPML74XUN06c2vqHXu+epl9q3G2zbw02TOQFR6j2pS4bK/1sM
+	 nCQia4wY7B79gllMEMNQ6TF+MepNlIrrMXxiG9pI=
+Date: Sun, 15 Nov 2026 06:41:03 -0800
+To: mm-commits@vger.kernel.org,
+	syzbot+3f66416993279938e957@syzkaller.appspotmail.com,mark@fasheh.com,
+	joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,
+	ngocthang2710.1999@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-test_xarray-check-unused-spare-node-after-range-creation.patch added to mm-new branch
-Message-Id: <20261115031739.F17621F000C4@smtp.kernel.org>
+Subject: + ocfs2-dont-reuse-single_depth_nesting-for-unpublished-inode-ip_alloc_sem.patch added to mm-nonmm-unstable branch
+Message-Id: <20261115144104.5806A1F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,26 +54,15 @@ Precedence: list
 
 
 The patch titled
-     Subject: lib/test_xarray: check unused spare node after range creation
-has been added to the -mm mm-new branch.  Its filename is
-     lib-test_xarray-check-unused-spare-node-after-range-creation.patch
+     Subject: ocfs2: don't reuse SINGLE_DEPTH_NESTING for unpublished inode ip_alloc_sem
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-dont-reuse-single_depth_nesting-for-unpublished-inode-ip_alloc_sem.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_xarray-check-unused-spare-node-after-range-creation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-dont-reuse-single_depth_nesting-for-unpublished-inode-ip_alloc_sem.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -87,95 +77,63 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib/test_xarray: check unused spare node after range creation
-Date: Sun, 15 Nov 2026 00:10:24 +0000
+From: Nguyen Ngoc Thang <ngocthang2710.1999@gmail.com>
+Subject: ocfs2: don't reuse SINGLE_DEPTH_NESTING for unpublished inode ip_alloc_sem
+Date: Sun, 15 Nov 2026 17:46:56 +0700
 
-Shardul Bankar's "[PATCH v4] lib: xarray: free unused spare node in
-xas_create_range()" [1] releases a spare node left over after range
-creation.  Exercise the case without depending on allocator failures or
-timing: let xas_nomem() reserve a node, then populate the relevant XArray
-node through a separate operation before xas_create_range() retries.
+Commit c204bf5ac3ee ("ocfs2: fix deadlock in inline-data truncate
+transactions") made ocfs2_xattr_set_handle() take ip_alloc_sem of a
+not-yet-published inode inside the create transaction, under subclass
+OCFS2_IP_ALLOC_SEM_UNPUBLISHED = 1, so lockdep records:
 
-Check that the retry succeeds and releases the unused spare node.
+  sb_internal -> j_trans_barrier -> ip_alloc_sem/1
 
-Link: https://lore.kernel.org/r/20251204142625.1763372-1-shardul.b@mpiricsoftware.com [1]
+But subclass 1 is SINGLE_DEPTH_NESTING, which ocfs2_remap_file_range()
+already uses for the destination inode, and the remap then starts a
+transaction in ocfs2_duplicate_inline_data():
+
+  ip_alloc_sem/1 -> sb_internal
+
+Lockdep merges the two and reports a circular dependency.  It cannot
+deadlock, since the unpublished inode is unreachable by anyone else, but
+the warning hides real reports.
+
+Give the unpublished subclass its own value past SINGLE_DEPTH_NESTING.
+
+Link: https://lore.kernel.org/20261115104656.210945-1-ngocthang2710.1999@gmail.com
+Fixes: c204bf5ac3ee ("ocfs2: fix deadlock in inline-data truncate transactions")
+Signed-off-by: Nguyen Ngoc Thang <ngocthang2710.1999@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Shardul Bankar <shardul.b@mpiricsoftware.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: David Hildenbrand (ARM) <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: <janak@mpiricsoftware.com>
-Cc: Jinjiang Tu <tujinjiang@huawei.com>
+Reported-by: <syzbot+3f66416993279938e957@syzkaller.appspotmail.com>
+Closes: https://syzkaller.appspot.com/bug?extid=3f66416993279938e957
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Heming Zhao <heming.zhao@suse.com>
 
- lib/test_xarray.c |   31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ fs/ocfs2/xattr.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/lib/test_xarray.c~lib-test_xarray-check-unused-spare-node-after-range-creation
-+++ a/lib/test_xarray.c
-@@ -1834,6 +1834,34 @@ static noinline void check_create_range_
- 	xa_destroy(xa);
- }
+--- a/fs/ocfs2/xattr.c~ocfs2-dont-reuse-single_depth_nesting-for-unpublished-inode-ip_alloc_sem
++++ a/fs/ocfs2/xattr.c
+@@ -3867,10 +3867,11 @@ out:
+  * ip_alloc_sem there adds a transaction -> ip_alloc_sem order that would
+  * form a lockdep cycle with the ip_alloc_sem -> transaction order used
+  * elsewhere, if not for this separate subclass.  The inode is unpublished
+- * so the acquisition can never contend.
++ * so the acquisition can never contend.  It must not collide with the
++ * SINGLE_DEPTH_NESTING subclass ocfs2_remap_file_range() uses.
+  */
+ enum {
+-	OCFS2_IP_ALLOC_SEM_UNPUBLISHED = 1,
++	OCFS2_IP_ALLOC_SEM_UNPUBLISHED = SINGLE_DEPTH_NESTING + 1,
+ };
  
-+#ifdef CONFIG_XARRAY_MULTI
-+static noinline void check_create_range_spare(struct xarray *xa)
-+{
-+	XA_STATE_ORDER(xas, xa, 0, XA_CHUNK_SHIFT);
-+	bool spare_left;
-+
-+	XA_BUG_ON(xa, !xa_empty(xa));
-+
-+	/* Model a failed allocation followed by a successful xas_nomem(). */
-+	xas_set_err(&xas, -ENOMEM);
-+	XA_BUG_ON(xa, !xas_nomem(&xas, GFP_KERNEL));
-+
-+	/* Model another user populating the tree before the retry. */
-+	xa_insert_index(xa, 0);
-+	xa_insert_index(xa, 1);
-+
-+	xas_lock(&xas);
-+	xas_create_range(&xas);
-+	xas_unlock(&xas);
-+
-+	XA_BUG_ON(xa, xas_error(&xas));
-+	spare_left = xas.xa_alloc != NULL;
-+	xas_destroy(&xas);
-+	XA_BUG_ON(xa, spare_left);
-+	xa_destroy(xa);
-+}
-+#endif
-+
- static noinline void check_create_range(struct xarray *xa)
- {
- 	unsigned int order;
-@@ -1867,6 +1895,9 @@ static noinline void check_create_range(
- 	}
- 
- 	check_create_range_3();
-+#ifdef CONFIG_XARRAY_MULTI
-+	check_create_range_spare(xa);
-+#endif
- }
- 
- static noinline void __check_store_range(struct xarray *xa, unsigned long first,
+ /*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ngocthang2710.1999@gmail.com are
 
-mm-list_lru-dont-use-a-new-memcgs-lists-for-an-offline-memcg-fix.patch
-shmem-consume-the-reserved-xattr-space-despite-remount.patch
-selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
-selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
-mm-cma-simplify-cma_declare_contiguous_multi-fix.patch
-selftests-mm-allocate-nr_pages-based-on-pmd-size-for-uffd-pmd_move-tests-fix.patch
-selftests-mm-retain-move-pmd-coverage-and-verify-huge-pmds.patch
-mm-mremap-reject-gaps-before-fixed-moves.patch
-lib-test_xarray-check-unused-spare-node-after-range-creation.patch
-profile-account-for-partial-proc-profile-reads.patch
-profile-simplify-proc-profile-read-layout.patch
-ipc-msg-clamp-negative-msg_info-usage-counts.patch
-squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails.patch
+ocfs2-dont-reuse-single_depth_nesting-for-unpublished-inode-ip_alloc_sem.patch
 
