@@ -1,48 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794769202;
-	b=OF2njXaGuvOtsEwmeKhi3Y0lYIa+uyPK7avFyDHClK0CJjzHycmZyCzjzXe93G0BNRMe
-	 teL0VvOKTqXOBnBkcpHzFFXyOJ203XRu7UOph2qHrDVx6xBJRJ0UeW8O6sIV+8G1r0tCJ
-	 4gknIRRX02F9+FBchg9yWJ9Sup30TDgH1LtkG2HlXby8XO8jpiPHL3UFxqYWro7VjWKwP
-	 yJuJbZOnRNisw+c31m+pfOPUAgxjoTAlHKq5RZbSdRavEfOBhT5P+CLeEWshd3m9q4TDf
-	 rQpxU0jU84wdr5SUA3TqkJCHxeZSoRHwPk4ZTYI1z4Z5thwgkWHCQgX8z8Cw8VPyb1A==
+	t=1794780742;
+	b=Jlnyv5Y5AXolwgY77dVOUF7AjXPEmagChKMleMK5ANCq2NGUJRipDOxBgtVZFN+ZdOms
+	 nY+qWFHxV2tzJFcA8nzVJt7r44oQRDU/4mnOTcucgsdCX7LRdpvVU6HFsZG2ap+zud8ZM
+	 o9wPRTHTPkuN5m8PgnTFJAIJXGi3qYguN6bYCv6CWVmC25ZNxBI/Au+a/FtTVYwsyI1us
+	 n6D5hUC8n5mSE/0AY5F8WC0012N6Rl1GxSDFDxY2U/T4vUSZyE3aTPCbFmIfY25fxMGkW
+	 DcQB9XabWXorBwB5YCxmwDn2M4y7Gj7GrI8wfsZqEYlF3NFWQ5g9FsFVuJeyYCCkx+g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794769202;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794780742;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=PcsEMPma0aPtbpGhxmGqfPWnnboxGp/Q0AWe7EoRK6Q=;
-	b=lUWhQxf+4gpvHT9bksSu0GRSkk5a8sD+JDKU85WIS6KVWWi1CuPRMXLZgEsuFNRfiisE
-	 nE6GSObWy3ZJ4qjrxFqzn0jt+ikPjbeTxC4OZt8NcrezeSTeJNB+zPylxnWWmbUhnSJMW
-	 pQsjJzaC1k+t6cbODcFyKut9+xgSEtBWXSGSOFwl1q2wnqzSyBgVS8iBRsywG15DzlfR7
-	 e+uRu8XV6wed/rmf1P4OTwzPvkxL7UBsxirCmORoZ1MBwujEwAMUGI9NwxxH1g3rqqHzM
-	 GcINLda0o1zNctw2d4l0amdBRHfzYFkdjCQ6B2emlc6v1AD/7l1mqXWfTepmXuBlxpQ==
+	bh=6fVlNmq42yEQJPqenmjOd2r5Ik3PBpzqTtDkObGh7TM=;
+	b=ncGiirLmSPjF8bdgVXsFZGKYJiUIQUrC3jia9XIcxFc8IPAiacmpklNEa3PEyMEDkYy7
+	 vRFx6Fop+Yq+yyZWbC22gC/xgsbf4l2Y6GzHc/t+Apc2CNFSCvh6xxPmzC4i/MmgnnOs4
+	 4f/twa65UcIn5gZFD2B6v66FjcrIfarocDGFGrdsQxtCqMLeq3wJqVNBQosOYWx4ABQDR
+	 jS8aXzaf+3hr7JiZSHNFFJam+aa456pGvNFoDEOK7K6ykMfS5Wi1bdDdZJSU0laIk3z9z
+	 D4lCho7RP/rQMB6jVGIUF8OHVDMhzJRxfoSzTvgi9MWNMvVSbrNONziMqrevbXZyj3w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QHapS7Y4;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=cNwfrZFK;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5556606A31F
-	for <mm-commits@vger.kernel.org>; Sun, 15 Nov 2026 19:00:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4169F606A31F;
+	Sun, 15 Nov 2026 22:12:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QHapS7Y4
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CF0B1F000C4;
-	Sun, 15 Nov 2026 19:00:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=cNwfrZFK
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBE771F000C5;
+	Sun, 15 Nov 2026 22:12:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794769201;
-	bh=PcsEMPma0aPtbpGhxmGqfPWnnboxGp/Q0AWe7EoRK6Q=;
+	d=linux-foundation.org; s=korg; t=1794780741;
+	bh=6fVlNmq42yEQJPqenmjOd2r5Ik3PBpzqTtDkObGh7TM=;
 	h=Date:To:From:Subject;
-	b=QHapS7Y4GDEMa9uXkLFXGTO0YqMQ2Sh2vCaxjj6KoFem1X8a8LIE53srNrLmmUDSJ
-	 +JRnUhU8OaJDMlxQILPFDWpjdSvdgojROfiTPhOU3+257wlninFgebFrQTBaB9whyL
-	 SB447ZK6YaooZ3fmYi0DV26sZklKy7reO+6ZFci4=
-Date: Sun, 15 Nov 2026 11:00:00 -0800
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
-	skunkolee@gmail.com,osalvador@kernel.org,mhocko@suse.com,ljs@kernel.org,
-	liam@infradead.org,fvdl@google.com,david@kernel.org,rppt@kernel.org,
-	akpm@linux-foundation.org
+	b=cNwfrZFKBdnrGlJquGa92aU0Xh092RW0dnDIxVcubaaixSWIDZBOxP7ssu1KKXq7U
+	 NPGjvNjpuveQKwmsJVfglzMT8BC7KIanRI6O4NOEixGJBjwQS2o5S4i7WwuKXotnFN
+	 au+Tm8uGOko7vqY0CpAubFlvryPXBwdjLrpa3Xw0=
+Date: Sun, 15 Nov 2026 14:12:21 -0800
+To: mm-commits@vger.kernel.org,vasily.averin@linux.dev,stable@vger.kernel.org,
+	shakeel.butt@linux.dev,mkoutny@suse.com,mhocko@suse.com,
+	manfred@colorfullife.com,legion@kernel.org,hannes@cmpxchg.org,
+	ebiederm@xmission.com,dave@stgolabs.net,alx@kernel.org,
+	x-professor@outlook.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-cma-simplify-cma_declare_contiguous_multi.patch added to mm-new branch
-Message-Id: <20261115190001.2CF0B1F000C4@smtp.kernel.org>
+Subject: + ipc-sem-account-dynamically-allocated-sops-arrays-to-memcg.patch added to mm-nonmm-unstable branch
+Message-Id: <20261115221221.BBE771F000C5@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,26 +55,15 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/cma: simplify cma_declare_contiguous_multi()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-cma-simplify-cma_declare_contiguous_multi.patch
+     Subject: ipc/sem: account dynamically allocated sops arrays to memcg
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ipc-sem-account-dynamically-allocated-sops-arrays-to-memcg.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-simplify-cma_declare_contiguous_multi.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ipc-sem-account-dynamically-allocated-sops-arrays-to-memcg.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -88,407 +78,117 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: mm/cma: simplify cma_declare_contiguous_multi()
-Date: Sun, 15 Nov 2026 08:27:03 +0200
+From: Yingjie Wang <x-professor@outlook.com>
+Subject: ipc/sem: account dynamically allocated sops arrays to memcg
+Date: Thu, 29 Oct 2026 05:03:25 +0000
 
-When cma_declare_contiguous_multi() cannot allocate a CMA area as a single
-range, it falls back to collecting a list of up to CMA_MAX_RANGES largest
-free ranges above 4G, reserves them in memblock and adds them to
-cma->ranges.
+Patch series "ipc/sem: account dynamic sops arrays and validate SEMOPM",
+v5.
 
-The list and subsequently cma->ranges are supposed to be sorted in the
-order of base addresses of the "allocated" ranges.
+Subject: [PATCH v5 0/3] ipc/sem: account dynamic sops arrays and validate SEMOPM
 
-This implementation has two bugs:
+An IPC namespace owner can raise SEMOPM and make semop() allocate a large
+operation array.  A blocked call retains the array.  These allocations are
+currently uncharged to the caller's memory cgroup, so repeated calls can
+consume host memory beyond a container's limit.  In one test, a call
+retained 60,936,448 bytes while a 32 MiB cgroup recorded less than 1 MiB. 
+Sixteen concurrent calls retained 100,860,416 bytes while the cgroup
+recorded about 1.3 MiB.
 
-* The allocation may fail even when there is enough free memory because
-  list_insert_sorted() sorts the list in the wrong order.
+The SEMOPM sysctl also accepts negative values.  Because the operation
+count is unsigned, SEMOPM=-1 becomes an effective limit of UINT_MAX. 
+Separately, a rejected kernel.sem write can leave earlier fields changed:
+an invalid SEMMNI can return ERANGE after setting SEMOPM to zero, causing
+subsequent nonempty semop() calls in that IPC namespace to fail with
+E2BIG.
 
-  When the list is full, the largest range is evicted rather than the
-  smallest, the final list is not sorted by address, and the smallest
-  ranges are used first.
+Patch 1 charges dynamically allocated operation arrays in the regular
+semop() path to the caller's memory cgroup.  Patch 2 parses and validates
+kernel.sem writes before publishing them and serializes writers within
+each IPC namespace.  Patch 3 removes the obsolete warning that SEMOPM
+above 1000 risks physical memory fragmentation; the operation array uses
+kvmalloc().
 
-* the function may report success while it reserved less memory than
-  requested because sizesum accounts for ranges that were skipped.
+Accounting contains the large-array case when the caller's memory cgroup
+has an effective limit.  The series does not impose a maximum on positive
+SEMOPM values, so a root or unlimited cgroup can still request large
+allocations.
 
-And overall it is a lot of list management and open coded range
-selection for no real gain.
+Validation included x86-64 and i386 builds, initial and user-owned IPC
+namespace checks, concurrent sysctl writes, operation-count boundaries,
+and allocation cleanup on success and error paths.  In a limited memory
+cgroup, accounting increased median successful-call time by 2.3% to 3.2%
+for 65, 500 and 1000 operations; the allocation-focused invalid semaphore
+ID case increased by 5.6% to 11.9%.
 
-Replace the current code with a loop that finds the largest free range
-above 4G, reserves as much of it as needed and repeats until the entire
-area is reserved or CMA_MAX_RANGES ranges are used.
 
-After successful alocation sort the cma->ranges by their base address.
+This patch (of 3):
 
-The new code scans free memory once for every range rather than once for
-all ranges, so it is slightly slower, but it is way simpler and more
-robust.
+A caller can raise SEMOPM and keep large, uncharged operation arrays alive
+in blocked semop() calls.  Repeating this from a memory-limited cgroup can
+exhaust host memory outside that cgroup, causing reclaim, stalls, or OOM
+kills of unrelated processes.  Charging the arrays lets an effective memcg
+limit contain that memory use.
 
-Link: https://lore.kernel.org/20261115-cma-multi-v4-1-d159631171d5@kernel.org
-Fixes: c009da4258f9 ("mm, cma: support multiple contiguous ranges, if requested")
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Commit 6a4746ba0619 ("ipc: remove memcg accounting for sops objects in
+do_semtimedop()") removed accounting based on the assumption that sops
+arrays would remain small, describing a maximum cost of two pages.
+
+SEMOPM is a UAPI default that can be changed at build time and through
+the per-namespace sysctl. Commit 50ec499b9a43 ("sysctl: allow change
+system v ipc sysctls inside ipc namespace") made that limit tunable by
+IPC namespace owners without capabilities in the initial user namespace.
+
+do_semtimedop() keeps up to SEMOPM_FAST operations on the stack. Charge
+every larger, dynamically allocated operation array to the caller's memory
+cgroup. This avoids a second size threshold and prevents a configured
+SEMOPM limit from expanding an unaccounted heap-allocation range.
+
+In a 4-vCPU KVM guest, with the benchmark pinned to one vCPU in a leaf
+memory cgroup, accounting raised the median time per successful semop()
+call by 2.3% to 3.2% for 65, 500 and 1000 operations, compared with
+unaccounted allocation. An invalid semid, which allocates and copies the
+array before returning EINVAL, rose by 5.6% to 11.9%. The 64-operation
+stack path changed by at most 0.9%, and successful calls in the root
+cgroup by at most 2.3%. Each result used 21 samples from three boots.
+
+Link: https://lore.kernel.org/cover.1793250194.git.x-professor@outlook.com
+Link: https://lore.kernel.org/07d9034ec1fb5b6fd5eed2cf60ef3c84d5149e51.1793250194.git.x-professor@outlook.com
+Fixes: 6a4746ba0619 ("ipc: remove memcg accounting for sops objects in do_semtimedop()")
+Signed-off-by: Yingjie Wang <x-professor@outlook.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Ivy Lopez <skunkolee@gmail.com>
-Closes: https://lore.kernel.org/all/cover.1792032699.git.skunkolee@gmail.com
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Liam R. Howlett (Google) <liam@infradead.org>
-Reviewed-by: Oscar Salvador (SUSE) <osalvador@kernel.org>
-Cc: Frank van der Linden <fvdl@google.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Suggested-by: Shakeel Butt <shakeel.butt@linux.dev>
+Link: https://lore.kernel.org/r/20261016152609.2528805-1-x-professor@outlook.com
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Alexey Gladkov <legion@kernel.org>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Vasily Averin <vasily.averin@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Koutný <mkoutny@suse.com>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Alejandro Colomar <alx@kernel.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: <stable@vger.kernel.org>
 
- mm/cma.c |  269 +++++++++++++++--------------------------------------
- 1 file changed, 81 insertions(+), 188 deletions(-)
+ ipc/sem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/cma.c~mm-cma-simplify-cma_declare_contiguous_multi
-+++ a/mm/cma.c
-@@ -23,8 +23,8 @@
- #include <linux/sizes.h>
- #include <linux/slab.h>
- #include <linux/string.h>
--#include <linux/string_choices.h>
- #include <linux/log2.h>
-+#include <linux/sort.h>
- #include <linux/cma.h>
- #include <linux/highmem.h>
- #include <linux/io.h>
-@@ -310,56 +310,6 @@ int __init cma_init_reserved_mem(phys_ad
- 	return 0;
- }
+--- a/ipc/sem.c~ipc-sem-account-dynamically-allocated-sops-arrays-to-memcg
++++ a/ipc/sem.c
+@@ -2253,7 +2253,7 @@ static long do_semtimedop(int semid, str
+ 		return -EINVAL;
  
--/*
-- * Structure used while walking physical memory ranges and finding out
-- * which one(s) to use for a CMA area.
-- */
--struct cma_init_memrange {
--	phys_addr_t base;
--	phys_addr_t size;
--	struct list_head list;
--};
--
--/*
-- * Work array used during CMA initialization.
-- */
--static struct cma_init_memrange memranges[CMA_MAX_RANGES] __initdata;
--
--static bool __init revsizecmp(struct cma_init_memrange *mlp,
--			      struct cma_init_memrange *mrp)
--{
--	return mlp->size > mrp->size;
--}
--
--static bool __init basecmp(struct cma_init_memrange *mlp,
--			   struct cma_init_memrange *mrp)
--{
--	return mlp->base < mrp->base;
--}
--
--/*
-- * Helper function to create sorted lists.
-- */
--static void __init list_insert_sorted(
--	struct list_head *ranges,
--	struct cma_init_memrange *mrp,
--	bool (*cmp)(struct cma_init_memrange *lh, struct cma_init_memrange *rh))
--{
--	struct list_head *mp;
--	struct cma_init_memrange *mlp;
--
--	if (list_empty(ranges))
--		list_add(&mrp->list, ranges);
--	else {
--		list_for_each(mp, ranges) {
--			mlp = list_entry(mp, struct cma_init_memrange, list);
--			if (cmp(mlp, mrp))
--				break;
--		}
--		__list_add(&mrp->list, mlp->list.prev, &mlp->list);
--	}
--}
--
- static int __init cma_fixed_reserve(phys_addr_t base, phys_addr_t size)
- {
- 	if (IS_ENABLED(CONFIG_HIGHMEM)) {
-@@ -525,36 +475,74 @@ static int __init __cma_declare_contiguo
- }
- 
- /*
-+ * Find the largest free range above 4G that can hold a part of a multi-range
-+ * CMA area.
-+ */
-+static phys_addr_t __init cma_find_free_range(phys_addr_t align,
-+		phys_addr_t size_align, int nid, phys_addr_t *basep)
-+{
-+	phys_addr_t start, end, size;
-+	phys_addr_t max = 0;
-+	u64 i;
-+
-+	/* no point searching if the system can't address above 4G */
-+	if (!IS_ENABLED(CONFIG_PHYS_ADDR_T_64BIT))
-+		return 0;
-+
-+	for_each_free_mem_range(i, nid, MEMBLOCK_NONE, &start, &end, NULL) {
-+		if (!upper_32_bits(start))
-+			continue;
-+
-+		start = ALIGN(start, align);
-+		if (start >= end)
-+			continue;
-+
-+		size = ALIGN_DOWN(end - start, size_align);
-+		if (size > max) {
-+			max = size;
-+			*basep = start;
-+		}
-+	}
-+
-+	return max;
-+}
-+
-+static int __init cma_range_cmp(const void *a, const void *b)
-+{
-+	const struct cma_memrange *cmr_a = a;
-+	const struct cma_memrange *cmr_b = b;
-+
-+	return cmp_int(cmr_a->base_pfn, cmr_b->base_pfn);
-+}
-+
-+/*
-  * Create CMA areas with a total size of @total_size. A normal allocation
-- * for one area is tried first. If that fails, the biggest memblock
-- * ranges above 4G are selected, and allocated bottom up.
-- *
-- * The complexity here is not great, but this function will only be
-- * called during boot, and the lists operated on have fewer than
-- * CMA_MAX_RANGES elements (default value: 8).
-+ * for one area is tried first. If that fails, the area is assembled from
-+ * up to CMA_MAX_RANGES of the biggest free memblock ranges above 4G.
-  */
- int __init cma_declare_contiguous_multi(phys_addr_t total_size,
- 			phys_addr_t align, unsigned int order_per_bit,
- 			const char *name, struct cma **res_cma, int nid)
- {
--	phys_addr_t start = 0, end;
--	phys_addr_t size, sizesum, sizeleft;
--	struct cma_init_memrange *mrp, *mlp, *failed;
-+	const unsigned long size_mb = (unsigned long)total_size / SZ_1M;
-+	phys_addr_t size, remaining, size_align;
- 	struct cma_memrange *cmrp;
--	LIST_HEAD(ranges);
--	LIST_HEAD(final_ranges);
--	struct list_head *mp, *next;
--	int ret, nr = 1;
--	u64 i;
-+	phys_addr_t start = 0;
- 	struct cma *cma;
-+	int nr = 0;
-+	int ret;
- 
- 	/*
- 	 * First, try it the normal way, producing just one range.
- 	 */
- 	ret = __cma_declare_contiguous_nid(&start, total_size, 0, align,
- 			order_per_bit, false, name, res_cma, nid);
-+	if (!ret) {
-+		pr_info("Reserved %lu MiB at %pa\n", size_mb, &start);
-+		return 0;
-+	}
- 	if (ret != -ENOMEM)
--		goto out;
-+		goto err;
- 
- 	/*
- 	 * Couldn't find one range that fits our needs, so try multiple
-@@ -572,151 +560,56 @@ int __init cma_declare_contiguous_multi(
- 	 * aligned to @align, and a size that is aligned to
- 	 * both @align and @order_to_bit, things will work out.
- 	 */
--	nr = 0;
--	sizesum = 0;
--	failed = NULL;
--
- 	ret = cma_new_area(name, total_size, order_per_bit, &cma);
--	if (ret != 0)
--		goto out;
-+	if (ret)
-+		goto err;
- 
- 	align = max_t(phys_addr_t, align, CMA_MIN_ALIGNMENT_BYTES);
--	/*
--	 * Create a list of ranges above 4G, largest range first.
--	 */
--	for_each_free_mem_range(i, nid, MEMBLOCK_NONE, &start, &end, NULL) {
--		if (upper_32_bits(start) == 0)
--			continue;
--
--		start = ALIGN(start, align);
--		if (start >= end)
--			continue;
--
--		end = ALIGN_DOWN(end, align);
--		if (end <= start)
--			continue;
-+	size_align = max_t(phys_addr_t, align, PAGE_SIZE << order_per_bit);
- 
--		size = end - start;
--		size = ALIGN_DOWN(size, (PAGE_SIZE << order_per_bit));
-+	remaining = total_size;
-+	while (remaining && nr < CMA_MAX_RANGES) {
-+		size = cma_find_free_range(align, size_align, nid, &start);
- 		if (!size)
--			continue;
--		sizesum += size;
--
--		pr_debug("consider %016llx - %016llx\n", (u64)start, (u64)end);
--
--		/*
--		 * If we don't yet have used the maximum number of
--		 * areas, grab a new one.
--		 *
--		 * If we can't use anymore, see if this range is not
--		 * smaller than the smallest one already recorded. If
--		 * not, re-use the smallest element.
--		 */
--		if (nr < CMA_MAX_RANGES)
--			mrp = &memranges[nr++];
--		else {
--			mrp = list_last_entry(&ranges,
--					      struct cma_init_memrange, list);
--			if (size < mrp->size)
--				continue;
--			list_del(&mrp->list);
--			sizesum -= mrp->size;
--			pr_debug("deleted %016llx - %016llx from the list\n",
--				(u64)mrp->base, (u64)mrp->base + size);
--		}
--		mrp->base = start;
--		mrp->size = size;
--
--		/*
--		 * Now do a sorted insert.
--		 */
--		list_insert_sorted(&ranges, mrp, revsizecmp);
--		pr_debug("added %016llx - %016llx to the list\n",
--		    (u64)mrp->base, (u64)mrp->base + size);
--		pr_debug("total size now %llu\n", (u64)sizesum);
--	}
--
--	/*
--	 * There is not enough room in the CMA_MAX_RANGES largest
--	 * ranges, so bail out.
--	 */
--	if (sizesum < total_size) {
--		cma_drop_area(cma);
--		ret = -ENOMEM;
--		goto out;
--	}
--
--	/*
--	 * Found ranges that provide enough combined space.
--	 * Now, sorted them by address, smallest first, because we
--	 * want to mimic a bottom-up memblock allocation.
--	 */
--	sizesum = 0;
--	list_for_each_safe(mp, next, &ranges) {
--		mlp = list_entry(mp, struct cma_init_memrange, list);
--		list_del(mp);
--		list_insert_sorted(&final_ranges, mlp, basecmp);
--		sizesum += mlp->size;
--		if (sizesum >= total_size)
- 			break;
--	}
- 
--	/*
--	 * Walk the final list, and add a CMA range for
--	 * each range, possibly not using the last one fully.
--	 */
--	nr = 0;
--	sizeleft = total_size;
--	list_for_each(mp, &final_ranges) {
--		mlp = list_entry(mp, struct cma_init_memrange, list);
--		size = min(sizeleft, mlp->size);
--		if (memblock_reserve(mlp->base, size)) {
--			/*
--			 * Unexpected error. Could go on to
--			 * the next one, but just abort to
--			 * be safe.
--			 */
--			failed = mlp;
-+		size = min(size, remaining);
-+		if (memblock_reserve(start, size))
- 			break;
--		}
--
--		accept_memory(mlp->base, size);
-+		accept_memory(start, size);
- 
- 		pr_debug("created region %d: %016llx - %016llx\n",
--		    nr, (u64)mlp->base, (u64)mlp->base + size);
-+		    nr, (u64)start, (u64)start + size);
- 		cmrp = &cma->ranges[nr++];
--		cmrp->base_pfn = PHYS_PFN(mlp->base);
-+		cmrp->base_pfn = PHYS_PFN(start);
- 		cmrp->early_pfn = cmrp->base_pfn;
- 		cmrp->count = size >> PAGE_SHIFT;
- 
--		sizeleft -= size;
--		if (sizeleft == 0)
--			break;
-+		remaining -= size;
+ 	if (nsops > SEMOPM_FAST) {
+-		sops = kvmalloc_objs(*sops, nsops);
++		sops = kvmalloc_objs(*sops, nsops, GFP_KERNEL_ACCOUNT);
+ 		if (sops == NULL)
+ 			return -ENOMEM;
  	}
- 
--	if (failed) {
--		list_for_each(mp, &final_ranges) {
--			mlp = list_entry(mp, struct cma_init_memrange, list);
--			if (mlp == failed)
--				break;
--			memblock_phys_free(mlp->base, mlp->size);
--		}
--		cma_drop_area(cma);
-+	if (remaining) {
- 		ret = -ENOMEM;
--		goto out;
-+		goto err_free_ranges;
- 	}
- 
-+	/* allocate from lower addresses first */
-+	sort(cma->ranges, nr, sizeof(cma->ranges[0]), cma_range_cmp, NULL);
-+
- 	cma->nranges = nr;
- 	cma->nid = nid;
- 	*res_cma = cma;
- 
--out:
--	if (ret != 0)
--		pr_err("Failed to reserve %lu MiB\n",
--			(unsigned long)total_size / SZ_1M);
--	else
--		pr_info("Reserved %lu MiB in %d range%s\n",
--			(unsigned long)total_size / SZ_1M, nr, str_plural(nr));
-+	pr_info("Reserved %lu MiB in %d ranges\n", size_mb, nr);
-+	return 0;
-+
-+err_free_ranges:
-+	for (int i = 0; i < nr; i++)
-+		memblock_phys_free(PFN_PHYS(cma->ranges[i].base_pfn),
-+				   PFN_PHYS(cma->ranges[i].count));
-+	cma_drop_area(cma);
-+err:
-+	pr_err("Failed to reserve %lu MiB\n", size_mb);
- 	return ret;
- }
- 
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from x-professor@outlook.com are
 
-mm-cma-simplify-cma_declare_contiguous_multi.patch
-hibernation-make-swsusp_page-helpers-static.patch
-hibernation-ensure-secretmem-pages-dont-reach-a-snapshot.patch
-hibernate-handle-potential-errors-in-hibernate_mapunmap_page.patch
-hibernation-kfence-explicitly-map-unmap-kfence-pages.patch
-hibernation-make-hibernation-unavailable-when-debug_pagealloc-is-on.patch
+ipc-sem-account-dynamically-allocated-sops-arrays-to-memcg.patch
+ipc-sem-reject-negative-semopm-values.patch
+ipc-sem-remove-obsolete-semopm-fragmentation-warning.patch
 
