@@ -1,52 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794858184;
-	b=BSwk/ZxcO0QbpE5Lv0NObuDpMg03tUdZRbZueHU48/a/VFOdc+CpsB4SeuAaNF7SxhxY
-	 QX1EBJS45meW9YhTtx93KxdxHbZBqvr2QqHHoqq0IaY7pCMYIP2/tEPKARl/GGJIgVf0C
-	 Cby5u1u4n363JAVTc4ozrgEhmkf1MJ7MPlP/BtpL+XW2hU/YqYpPzQR/pyv3Ntdn6hgkb
-	 qMbGCBFm51zF5HW28APoOlWg7RANptGC1AditMtgYVGyeip4TKv995r8thBpys+w56eLb
-	 MswBwoX+wUzU2r90cpqUVrzz2rsqZMXs3cQ9ZTIBs+yZ4Mp1if9uqf51hD9ICzqSZ+g==
+	t=1794859843;
+	b=fLlYzjdMcyRoqTdkjFXysIdWX/8nMuIe0IInYmhIiCQpX37LU4Ymu2NvSGkEsVOJMamH
+	 zXuq/DGtw6RlOHmO0El0TvbPAwyzWJUa85lrMU/lOIBPI4NlG+2ElJe+3hXSwrjpaf++z
+	 y9Bqh57G4gMf+H/iaPEDEGbOHci4UPsdomdTkRIaB0srq+AaLK3L+yS4cheZwiFo0fP2F
+	 3PzRmBNz0w+QguGHK3GiQENGJweDyEK3Ot9+e9Srjq0oh+jI4h0oA30/DzLtGKa2bpp4f
+	 P6wB20GBZrwCzb7knhzZbiLPIMmAb7Bvb6tu8jeZ7Js60hEgplnmAcNf5avFPnJvzZw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794858184;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794859843;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=SSrNpYGVZ/ID66M2OUi1JtF6+lM6gIM9kuK0R4uNBvU=;
-	b=cfHq9bqs46y5XJxXvSkEXCZ17R9vALtnEw9P6mT6xUU8TJ5dZ7R4VkltFIGKeCT4R4rF
-	 hzPJIG7R09N3FNMfdmkZ2P8yytaNfSyMkLetX7AaPG3yY8NFFR1whTMaU2SnR4hUlptnr
-	 99K586UCFxFOK0DMgLZQJXWFgl6vbWdsIlHK/VdAABusL6xDzMWOjlPvfXHiVOeZsZRAF
-	 6vZRBY/ioiCpzq7VmoKnqc6I8Z6/mn8E5wlg3Hr+OmpW6QeXKdxEnD+7ktF0aPvEPj7cI
-	 Tzr3IpC6w16grTzJ0GFwbyQNZxWMEukdR9ur/daBT0oAm66XVKtoXp4r6WlWLZiF5Pg==
+	bh=wibrfQAWcGMVaStgkco3gg46MlfqUZuqrEZbt0ZB9Zg=;
+	b=PUjEekefRp3GoxgCEVMM5yZ3ZHy8ZT3PYY8znGOQEpqocjTZWVJbzW7rEdCNhBYI86A1
+	 Y8h+mGev2IjTqyEmLIa4rW9otgBFylu3Xjwwc2TKdIg0Zp8wKcjomf4Wv5sGgPkCEIcqo
+	 Z+nV/wbTWQM+elm/Nd/abGAPqPhA3UvQNh4utzj2Hms4sPbkmvmfDioBuQqAa+IQ6fQ+I
+	 qlXKR0LDnB1MTNhG8CmCiagQ9EkLrOeGArLy9Bw+WVFuxipJliKZDGkIJmlmBz/N4jYds
+	 O4GqWSoYFmLFZ6R2bROiAdi+9xBy8SqSINVPV6lbPmzaIc5sU5B3MggooZVgTnZuuMA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LORW1O7x;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=JL7biYT5;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA4AD606A337
-	for <mm-commits@vger.kernel.org>; Mon, 16 Nov 2026 19:43:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3ABD606A32F
+	for <mm-commits@vger.kernel.org>; Mon, 16 Nov 2026 20:10:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LORW1O7x
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A08C1F000C4;
-	Mon, 16 Nov 2026 19:43:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=JL7biYT5
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61D201F000C5;
+	Mon, 16 Nov 2026 20:10:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794858184;
-	bh=SSrNpYGVZ/ID66M2OUi1JtF6+lM6gIM9kuK0R4uNBvU=;
+	d=linux-foundation.org; s=korg; t=1794859842;
+	bh=wibrfQAWcGMVaStgkco3gg46MlfqUZuqrEZbt0ZB9Zg=;
 	h=Date:To:From:Subject;
-	b=LORW1O7xzZV+8nnUlrjsy4sbgs620b70R+NsSdD6qJoz6lixxSWht5rw/nwDGvCCn
-	 vYIIX7nZdeJlAucl2CrvccXdqtdToZOjPLTKCiEOkFlQtYI054g9JThCKj2qExBW32
-	 eoITgI3b8Erma7W3sqbI68TjtL9wUYpxrfzdp1Es=
-Date: Mon, 16 Nov 2026 11:43:03 -0800
-To: mm-commits@vger.kernel.org,zaslonko@linux.ibm.com,
-	sourabhjain@linux.ibm.com,skhan@linuxfoundation.org,shakeel.butt@linux.dev,
-	ruirui.yang@linux.dev,ruanjinjie@huawei.com,rppt@kernel.org,riel@surriel.com,
-	rdunlap@infradead.org,pratyush@kernel.org,pasha.tatashin@soleen.com,
-	osalvador@suse.de,muchun.song@linux.dev,leitao@debian.org,kas@kernel.org,
-	jbohac@suse.cz,hannes@cmpxchg.org,david@kernel.org,corbet@lwn.net,
-	bradley.morgan@linux.dev,baoquan.he@linux.dev,usama.arif@linux.dev,
-	akpm@linux-foundation.org
+	b=JL7biYT5FE8MkdVV8aQjv083Dil7/cURnruF+IMH5iLI2A1TARoJCEIUK7v2AcksK
+	 lV6dgT6SmEN/OTCPUoMTCC08nHaagegTY+H6s/FAcGJMSxE3669VoC9z6Z4/8speo2
+	 7f9pbWxSdqPvdd4w3/SkXj///aYPCjl3/yqPZ+UM=
+Date: Mon, 16 Nov 2026 12:10:41 -0800
+To: mm-commits@vger.kernel.org,dmonakhov@openvz.org,axboe@kernel.dk,
+	akinobu.mita@gmail.com,ekffu200098@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory.patch removed from -mm tree
-Message-Id: <20261116194304.5A08C1F000C4@smtp.kernel.org>
+Subject: + fault-inject-fix-wrong-unit-of-verbose_ratelimit_interval_ms.patch added to mm-nonmm-unstable branch
+Message-Id: <20261116201042.61D201F000C5@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -57,508 +51,155 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The quilt patch titled
-     Subject: mm/hugetlb: allow crashkernel to reuse hugetlb CMA memory
-has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory.patch
+The patch titled
+     Subject: fault-inject: fix wrong unit of verbose_ratelimit_interval_ms
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     fault-inject-fix-wrong-unit-of-verbose_ratelimit_interval_ms.patch
 
-This patch was dropped because it is obsolete
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fault-inject-fix-wrong-unit-of-verbose_ratelimit_interval_ms.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Usama Arif <usama.arif@linux.dev>
-Subject: mm/hugetlb: allow crashkernel to reuse hugetlb CMA memory
-Date: Fri, 06 Nov 2026 08:51:42 -0800
+From: Sang-Heon Jeon <ekffu200098@gmail.com>
+Subject: fault-inject: fix wrong unit of verbose_ratelimit_interval_ms
+Date: Tue, 17 Nov 2026 01:16:12 +0900
 
-crashkernel=size,cma reserves a separate CMA pool.  On systems that
-already reserve several gigabytes with hugetlb_cma= (which is common in
-the Meta fleet), the crash kernel cannot use that existing memory as part
-of its working set.  With hugetlb_cma=6G, requesting another 2G with
-crashkernel=2G,cma brings the total CMA reservation to 8G, none of which
-can serve unmovable kernel allocations.
+The interval of ratelimit_state is in jiffies.  But
+verbose_ratelimit_interval_ms is read and written without converting the
+interval, so the value is in milliseconds only if HZ is 1000.
 
-Use existing HugeTLB CMA memory first for crashkernel=size,cma and reserve
-dedicated CMA areas only for the remainder.  With hugetlb_cma=6G, a 2G
-request reuses 2G without reserving more CMA.  With hugetlb_cma=2G, a 4G
-request reuses 2G and reserves another 2G.
+If HZ is 250, writing 1000 sets the interval to 4 seconds.
 
-The full HugeTLB CMA pool remains available to HugeTLB and movable
-allocations during normal operation.  After a crash, the capture kernel
-can use the selected ranges as working memory.  The conventional
-reservation is still required to hold the kernel image and initrd.
+So use jiffies_to_msecs() and msecs_to_jiffies() when reading and writing.
+Also clamp values which are too large for the interval.
 
-The ,cma option already opts into excluding userspace memory from the
-vmcore.  This includes allocated HugeTLB pages in the selected ranges,
-which the capture kernel can overwrite.  The existing dump completeness
-and pending DMA risks apply to these ranges as well.
-
-Have architecture code record the requested CMA size and perform the
-reservation in mm_core_init_early(), immediately after
-hugetlb_cma_reserve().  The HugeTLB CMA areas are then available for reuse
-while memblock can still reserve any remainder.
-
-Use the existing four range slots for both reused and dedicated memory. 
-Limit reused memory to the page-aligned request, account for dedicated CMA
-alignment, and report any shortfall.  Ignore malformed optional sizes and
-reject requests that would overflow page rounding.
-
-Link: https://lore.kernel.org/20261106165142.2847916-1-usama.arif@linux.dev
-Signed-off-by: Usama Arif <usama.arif@linux.dev>
+Link: https://lore.kernel.org/20261116161613.3663822-1-ekffu200098@gmail.com
+Fixes: 6adc4a22f20b ("fault-inject: add ratelimit option")
+Fixes: 4668c7a2940d ("fault-inject: allow configuration via configfs")
+Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Breno Leitao <leitao@debian.org>
-Reviewed-by: Bradley Morgan <bradley.morgan@linux.dev>
-Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Pratyush Yadav <pratyush@kernel.org>
-Cc: <ruirui.yang@linux.dev>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: <skhan@linuxfoundation.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jiri Bohac <jbohac@suse.cz>
-Cc: Sourabh Jain <sourabhjain@linux.ibm.com>
-Cc: Jinjie Ruan <ruanjinjie@huawei.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Mikhail Zaslonko <zaslonko@linux.ibm.com>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Dmitry Monakhov <dmonakhov@openvz.org>
+Cc: Jens Axboe <axboe@kernel.dk>
 
- Documentation/ABI/testing/sysfs-kernel-kexec-kdump |    3 
- Documentation/admin-guide/kdump/kdump.rst          |   22 ++++
- Documentation/admin-guide/kernel-parameters.txt    |   16 +++
- arch/arm64/mm/init.c                               |    2 
- arch/powerpc/include/asm/kexec.h                   |    2 
- arch/powerpc/kexec/core.c                          |   12 --
- arch/powerpc/mm/mem.c                              |    6 -
- arch/riscv/mm/init.c                               |    2 
- arch/x86/kernel/setup.c                            |    2 
- include/linux/crash_reserve.h                      |   14 ++-
- include/linux/hugetlb.h                            |   12 ++
- kernel/crash_reserve.c                             |   51 +++++++----
- mm/hugetlb_cma.c                                   |   50 ++++++++++
- mm/mm_init.c                                       |    2 
- 14 files changed, 159 insertions(+), 37 deletions(-)
+ lib/fault-inject.c |   58 ++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 54 insertions(+), 4 deletions(-)
 
---- a/arch/arm64/mm/init.c~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/arch/arm64/mm/init.c
-@@ -114,7 +114,7 @@ static void __init arch_reserve_crashker
- 		return;
+--- a/lib/fault-inject.c~fault-inject-fix-wrong-unit-of-verbose_ratelimit_interval_ms
++++ a/lib/fault-inject.c
+@@ -199,6 +199,8 @@ bool should_fail(struct fault_attr *attr
+ }
+ EXPORT_SYMBOL_GPL(should_fail);
  
- 	reserve_crashkernel_generic(crash_size, crash_base, low_size, high);
--	reserve_crashkernel_cma(cma_size);
-+	crashkernel_cma_set_size(cma_size);
++#define FAULT_RATELIMIT_INTERVAL_MAX_MS	(INT_MAX / DIV_ROUND_UP(HZ, MSEC_PER_SEC))
++
+ #ifdef CONFIG_FAULT_INJECTION_DEBUG_FS
+ 
+ static int debugfs_ul_set(void *data, u64 val)
+@@ -221,6 +223,29 @@ static void debugfs_create_ul(const char
+ 	debugfs_create_file(name, mode, parent, value, &fops_ul);
  }
  
- static phys_addr_t __init max_zone_phys(phys_addr_t zone_limit)
---- a/arch/powerpc/include/asm/kexec.h~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/arch/powerpc/include/asm/kexec.h
-@@ -117,11 +117,9 @@ int setup_new_fdt_ppc64(const struct kim
- #ifdef CONFIG_CRASH_RESERVE
- int __init overlaps_crashkernel(unsigned long start, unsigned long size);
- extern void arch_reserve_crashkernel(void);
--extern void kdump_cma_reserve(void);
- #else
- static inline void arch_reserve_crashkernel(void) {}
- static inline int overlaps_crashkernel(unsigned long start, unsigned long size) { return 0; }
--static inline void kdump_cma_reserve(void) { }
- #endif
- 
- #if defined(CONFIG_CRASH_DUMP)
---- a/arch/powerpc/kexec/core.c~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/arch/powerpc/kexec/core.c
-@@ -62,8 +62,6 @@ void machine_kexec(struct kimage *image)
- 
- #ifdef CONFIG_CRASH_RESERVE
- 
--static unsigned long long crashk_cma_size;
--
- static unsigned long long __init get_crash_base(unsigned long long crash_base)
- {
- 
-@@ -107,6 +105,7 @@ static unsigned long long __init get_cra
- void __init arch_reserve_crashkernel(void)
- {
- 	unsigned long long crash_size, crash_base, crash_end;
-+	unsigned long long cma_size = 0;
- 	unsigned long long kernel_start, kernel_size;
- 	unsigned long long total_mem_sz;
- 	int ret;
-@@ -115,7 +114,7 @@ void __init arch_reserve_crashkernel(voi
- 
- 	/* use common parsing */
- 	ret = parse_crashkernel(boot_command_line, total_mem_sz, &crash_size,
--				&crash_base, NULL, &crashk_cma_size, NULL);
-+				&crash_base, NULL, &cma_size, NULL);
- 
- 	if (ret)
- 		return;
-@@ -133,12 +132,7 @@ void __init arch_reserve_crashkernel(voi
- 	}
- 
- 	reserve_crashkernel_generic(crash_size, crash_base, 0, false);
--}
--
--void __init kdump_cma_reserve(void)
--{
--	if (crashk_cma_size)
--		reserve_crashkernel_cma(crashk_cma_size);
-+	crashkernel_cma_set_size(cma_size);
- }
- 
- int __init overlaps_crashkernel(unsigned long start, unsigned long size)
---- a/arch/powerpc/mm/mem.c~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/arch/powerpc/mm/mem.c
-@@ -271,12 +271,10 @@ void __init arch_mm_preinit(void)
- {
- 
- 	/*
--	 * Reserve large chunks of memory for use by CMA for kdump, fadump, KVM
--	 * and hugetlb. These must be called after pageblock_order is
--	 * initialised.
-+	 * Reserve large chunks of memory for use by CMA for fadump and KVM.
-+	 * These must be called after pageblock_order is initialised.
- 	 */
- 	fadump_cma_init();
--	kdump_cma_reserve();
- 	kvm_cma_reserve();
- 
- 	/*
---- a/arch/riscv/mm/init.c~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/arch/riscv/mm/init.c
-@@ -1357,7 +1357,7 @@ static void __init arch_reserve_crashker
- 		return;
- 
- 	reserve_crashkernel_generic(crash_size, crash_base, low_size, high);
--	reserve_crashkernel_cma(cma_size);
-+	crashkernel_cma_set_size(cma_size);
- }
- 
- void __init paging_init(void)
---- a/arch/x86/kernel/setup.c~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/arch/x86/kernel/setup.c
-@@ -627,7 +627,7 @@ static void __init arch_reserve_crashker
- 	}
- 
- 	reserve_crashkernel_generic(crash_size, crash_base, low_size, high);
--	reserve_crashkernel_cma(cma_size);
-+	crashkernel_cma_set_size(cma_size);
- }
- 
- static struct resource standard_io_resources[] = {
---- a/Documentation/ABI/testing/sysfs-kernel-kexec-kdump~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/Documentation/ABI/testing/sysfs-kernel-kexec-kdump
-@@ -58,4 +58,7 @@ Description:	read only
- 		the Contiguous Memory Allocator (CMA) area that are allocated
- 		to the crash (kdump) kernel. It lists the start and end physical
- 		addresses of CMA regions assigned for crashkernel use.
-+		This includes existing HugeTLB CMA memory selected with
-+		crashkernel=size,cma. These ranges remain usable
-+		by the running kernel and are excluded from the vmcore.
- User:		kdump service
---- a/Documentation/admin-guide/kdump/kdump.rst~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/Documentation/admin-guide/kdump/kdump.rst
-@@ -313,9 +313,25 @@ crashkernel syntax
- 
- 4) crashkernel=size,cma
- 
--	Reserve additional crash kernel memory from CMA. This reservation is
--	usable by the first system's userspace memory and kernel movable
--	allocations (memory balloon, zswap). Pages allocated from this memory
-+	Reserve additional crash kernel memory from CMA. Existing HugeTLB CMA
-+	memory is used first, and dedicated CMA areas are reserved for any
-+	remaining amount. For example, this reuses 2G from the existing 6G pool
-+	without reserving additional CMA memory::
-+
-+	    hugetlb_cma=6G crashkernel=256M crashkernel=2G,cma
-+
-+	With a smaller HugeTLB CMA pool, the remainder is reserved separately::
-+
-+	    hugetlb_cma=2G crashkernel=256M crashkernel=4G,cma
-+
-+	This reuses the existing 2G and reserves another 2G of dedicated CMA.
-+	Both kinds of area use the same limit of four physical ranges. If there
-+	is insufficient memory or too few range slots, the kernel reports the
-+	shortfall. Normal CMA alignment applies to dedicated reservations.
-+
-+	The selected memory remains usable by the first system's userspace,
-+	including HugeTLB allocations, and kernel movable allocations
-+	(memory balloon, zswap). Pages allocated from this memory
- 	range will not be included in the vmcore so this should not be used if
- 	dumping of userspace memory is intended and it has to be expected that
- 	some movable kernel pages may be missing from the dump.
---- a/Documentation/admin-guide/kernel-parameters.txt~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -1100,7 +1100,21 @@ Kernel parameters
- 			or memory reserved is below 4G.
- 	crashkernel=size[KMG],cma
- 			[KNL, X86, ARM64, RISCV, PPC] Reserve additional crash
--			kernel memory from CMA. This reservation is usable by
-+			kernel memory from CMA. Existing hugetlb_cma memory is
-+			used first, and dedicated CMA areas are reserved for any
-+			remaining amount. For example:
-+			  hugetlb_cma=6G crashkernel=256M crashkernel=2G,cma
-+			reuses 2G without reserving more CMA, while:
-+			  hugetlb_cma=2G crashkernel=256M crashkernel=4G,cma
-+			reuses 2G and reserves another 2G of dedicated CMA.
-+
-+			Both kinds of area use the same limit of four physical
-+			ranges. If the available memory or range slots cannot
-+			cover the requested size, the kernel reports the
-+			shortfall. Normal CMA alignment applies to dedicated
-+			reservations.
-+
-+			The selected memory remains usable by
- 			the first system's userspace memory and kernel movable
- 			allocations (memory balloon, zswap). Pages allocated
- 			from this memory range will not be included in the vmcore
---- a/include/linux/crash_reserve.h~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/include/linux/crash_reserve.h
-@@ -5,6 +5,7 @@
- #include <linux/linkage.h>
- #include <linux/elfcore.h>
- #include <linux/elf.h>
-+#include <linux/range.h>
- #ifdef CONFIG_ARCH_HAS_GENERIC_CRASHKERNEL_RESERVATION
- #include <asm/crash_reserve.h>
- #endif
-@@ -31,7 +32,18 @@ int __init parse_crashkernel(char *cmdli
- 		unsigned long long *low_size, unsigned long long *cma_size,
- 		bool *high);
- 
--void __init reserve_crashkernel_cma(unsigned long long cma_size);
-+#if defined(CONFIG_CRASH_RESERVE) && defined(CONFIG_ARCH_HAS_GENERIC_CRASHKERNEL_RESERVATION)
-+void __init crashkernel_cma_set_size(unsigned long long size);
-+void __init reserve_crashkernel_cma(void);
-+#else
-+static inline void __init crashkernel_cma_set_size(unsigned long long size)
++static int debugfs_ratelimit_interval_set(void *data, u64 val)
 +{
-+}
++	val = min_t(u64, val, FAULT_RATELIMIT_INTERVAL_MAX_MS);
++	*(int *)data = msecs_to_jiffies(val);
 +
-+static inline void __init reserve_crashkernel_cma(void)
-+{
-+}
-+#endif
- 
- #ifdef CONFIG_ARCH_HAS_GENERIC_CRASHKERNEL_RESERVATION
- #ifndef arch_add_crash_res_to_iomem
---- a/include/linux/hugetlb.h~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/include/linux/hugetlb.h
-@@ -1349,12 +1349,24 @@ static inline spinlock_t *huge_pte_lock(
- 	return ptl;
- }
- 
-+struct range;
-+
- #if defined(CONFIG_HUGETLB_PAGE) && defined(CONFIG_CMA)
- extern void __init hugetlb_cma_reserve(void);
-+unsigned long long __init
-+hugetlb_cma_add_crashkernel_ranges(unsigned long long size, struct range *ranges,
-+				   int *nr_ranges, int max_ranges);
- #else
- static inline __init void hugetlb_cma_reserve(void)
- {
- }
-+
-+static inline unsigned long long
-+hugetlb_cma_add_crashkernel_ranges(unsigned long long size, struct range *ranges,
-+				   int *nr_ranges, int max_ranges)
-+{
 +	return 0;
 +}
- #endif
- 
- #ifdef CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING
---- a/kernel/crash_reserve.c~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/kernel/crash_reserve.c
-@@ -16,6 +16,7 @@
- #include <linux/kmemleak.h>
- #include <linux/cma.h>
- #include <linux/crash_reserve.h>
-+#include <linux/hugetlb.h>
- 
- #include <asm/page.h>
- #include <asm/sections.h>
-@@ -340,9 +341,9 @@ int __init parse_crashkernel(char *cmdli
- 	 * optional CMA reservation
- 	 * cma_base is ignored
- 	 */
--	if (cma_size)
--		__parse_crashkernel(cmdline, 0, cma_size,
--			&cma_base, suffix_tbl[SUFFIX_CMA]);
-+	if (cma_size && __parse_crashkernel(cmdline, 0, cma_size,
-+					    &cma_base, suffix_tbl[SUFFIX_CMA]))
-+		*cma_size = 0;
- #endif
- 	if (!*crash_size)
- 		ret = -EINVAL;
-@@ -470,21 +471,41 @@ retry:
- }
- 
- struct range crashk_cma_ranges[CRASHKERNEL_CMA_RANGES_MAX];
-+static unsigned long long crashkernel_cma_size __initdata;
 +
-+void __init crashkernel_cma_set_size(unsigned long long cma_size)
++static int debugfs_ratelimit_interval_get(void *data, u64 *val)
 +{
-+	crashkernel_cma_size = cma_size;
++	*val = jiffies_to_msecs(*(int *)data);
++	return 0;
 +}
 +
- #ifdef CRASHKERNEL_CMA
- int crashk_cma_cnt;
--void __init reserve_crashkernel_cma(unsigned long long cma_size)
-+void __init reserve_crashkernel_cma(void)
- {
--	unsigned long long request_size = roundup(cma_size, PAGE_SIZE);
--	unsigned long long reserved_size = 0;
-+	unsigned long long cma_size = crashkernel_cma_size;
-+	unsigned long long request_size, reserved_size, reused_size;
- 
--	if (!cma_size)
-+	if (!cma_size || crashk_res.start >= crashk_res.end)
- 		return;
- 
-+	if (cma_size > ULLONG_MAX - (PAGE_SIZE - 1)) {
-+		pr_warn("crashkernel CMA size is too large\n");
-+		return;
-+	}
-+	cma_size = roundup(cma_size, PAGE_SIZE);
-+	reused_size = hugetlb_cma_add_crashkernel_ranges(cma_size,
-+							 crashk_cma_ranges,
-+							 &crashk_cma_cnt,
-+							 CRASHKERNEL_CMA_RANGES_MAX);
-+	reserved_size = reused_size;
-+	request_size = cma_size - reused_size;
++DEFINE_SIMPLE_ATTRIBUTE(fops_ratelimit_interval, debugfs_ratelimit_interval_get,
++			debugfs_ratelimit_interval_set, "%llu\n");
 +
- 	while (cma_size > reserved_size &&
- 	       crashk_cma_cnt < CRASHKERNEL_CMA_RANGES_MAX) {
- 
- 		struct cma *res;
- 
-+		request_size = min(request_size, cma_size - reserved_size);
- 		if (cma_declare_contiguous(0, request_size, 0, 0, 0, false,
- 				       "crashkernel", &res)) {
- 			/* reservation failed, try half-sized blocks */
-@@ -500,21 +521,23 @@ void __init reserve_crashkernel_cma(unsi
- 			crashk_cma_ranges[crashk_cma_cnt].start +
- 			cma_get_size(res) - 1;
- 		++crashk_cma_cnt;
--		reserved_size += request_size;
-+		reserved_size += cma_get_size(res);
- 	}
- 
- 	if (cma_size > reserved_size)
--		pr_warn("crashkernel CMA reservation failed: %lld MB requested, %lld MB reserved in %d ranges\n",
--			cma_size >> 20, reserved_size >> 20, crashk_cma_cnt);
-+		pr_warn("crashkernel CMA reservation failed: %llu MB requested, %llu MB reused, %llu MB newly reserved in %d ranges\n",
-+			cma_size >> 20, reused_size >> 20,
-+			(reserved_size - reused_size) >> 20, crashk_cma_cnt);
- 	else
--		pr_info("crashkernel CMA reserved: %lld MB in %d ranges\n",
--			reserved_size >> 20, crashk_cma_cnt);
-+		pr_info("crashkernel CMA: %llu MB reused, %llu MB newly reserved in %d ranges\n",
-+			reused_size >> 20, (reserved_size - reused_size) >> 20,
-+			crashk_cma_cnt);
- }
- 
- #else /* CRASHKERNEL_CMA */
--void __init reserve_crashkernel_cma(unsigned long long cma_size)
-+void __init reserve_crashkernel_cma(void)
- {
--	if (cma_size)
-+	if (crashkernel_cma_size)
- 		pr_warn("crashkernel CMA reservation not supported\n");
- }
- #endif
---- a/mm/hugetlb_cma.c~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/mm/hugetlb_cma.c
-@@ -11,6 +11,8 @@
- #include <linux/memblock.h>
- #include <linux/math.h>
- #include <linux/math64.h>
-+#include <linux/range.h>
-+#include "cma.h"
- #include "internal.h"
- #include "hugetlb_cma.h"
- 
-@@ -387,6 +389,54 @@ void __init hugetlb_cma_reserve(void)
- 		hugetlb_cma_size = 0;
- }
- 
-+/**
-+ * hugetlb_cma_add_crashkernel_ranges - share HugeTLB CMA with the crash kernel
-+ * @size: maximum number of bytes to share, aligned to PAGE_SIZE
-+ * @ranges: crash kernel memory ranges
-+ * @nr_ranges: number of entries already in @ranges, updated on return
-+ * @max_ranges: capacity of @ranges
-+ *
-+ * The shared memory remains available to the HugeTLB allocator until a crash.
-+ * Only physical ranges belonging to successfully reserved CMA areas are added.
-+ *
-+ * Return: number of bytes shared.
-+ */
-+unsigned long long __init
-+hugetlb_cma_add_crashkernel_ranges(unsigned long long size, struct range *ranges,
-+				   int *nr_ranges, int max_ranges)
++static void debugfs_create_ratelimit_interval(const char *name, umode_t mode,
++					      struct dentry *parent, int *value)
 +{
-+	unsigned long long shared_size = 0;
-+	int nid, i;
-+
-+	for_each_node_mask(nid, hugetlb_bootmem_nodes) {
-+		struct cma *cma = hugetlb_cma[nid];
-+
-+		if (!cma)
-+			continue;
-+
-+		for (i = 0; i < cma->nranges; i++) {
-+			struct cma_memrange *cmr = &cma->ranges[i];
-+			unsigned long long range_size;
-+			struct range *range;
-+
-+			if (shared_size == size || *nr_ranges == max_ranges)
-+				return shared_size;
-+
-+			range_size = min_t(unsigned long long,
-+					   PFN_PHYS(cmr->count), size - shared_size);
-+			range = &ranges[(*nr_ranges)++];
-+			range->start = PFN_PHYS(cmr->base_pfn);
-+			range->end = range->start + range_size - 1;
-+			shared_size += range_size;
-+
-+			/* Keep shared pages reserved if CMA activation fails. */
-+			cma_reserve_pages_on_error(cma);
-+		}
-+	}
-+
-+	return shared_size;
++	debugfs_create_file(name, mode, parent, value, &fops_ratelimit_interval);
 +}
 +
- bool hugetlb_cma_exclusive_alloc(void)
- {
- 	return hugetlb_cma_only;
---- a/mm/mm_init.c~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/mm/mm_init.c
-@@ -28,6 +28,7 @@
- #include <linux/swap.h>
- #include <linux/cma.h>
- #include <linux/crash_dump.h>
-+#include <linux/crash_reserve.h>
- #include <linux/execmem.h>
- #include <linux/sizes.h>
- #include <linux/vmstat.h>
-@@ -2686,6 +2687,7 @@ void __init mm_core_init_early(void)
- 	free_area_init();
+ #ifdef CONFIG_FAULT_INJECTION_STACKTRACE_FILTER
  
- 	hugetlb_cma_reserve();
-+	reserve_crashkernel_cma();
- 	hugetlb_bootmem_alloc();
+ static int debugfs_stacktrace_depth_set(void *data, u64 val)
+@@ -260,8 +285,8 @@ struct dentry *fault_create_debugfs_attr
+ 	debugfs_create_atomic_t("times", mode, dir, &attr->times);
+ 	debugfs_create_atomic_t("space", mode, dir, &attr->space);
+ 	debugfs_create_ul("verbose", mode, dir, &attr->verbose);
+-	debugfs_create_u32("verbose_ratelimit_interval_ms", mode, dir,
+-			   &attr->ratelimit_state.interval);
++	debugfs_create_ratelimit_interval("verbose_ratelimit_interval_ms", mode,
++					  dir, &attr->ratelimit_state.interval);
+ 	debugfs_create_u32("verbose_ratelimit_burst", mode, dir,
+ 			   &attr->ratelimit_state.burst);
+ 	debugfs_create_bool("task-filter", mode, dir, &attr->task_filter);
+@@ -394,12 +419,37 @@ FAULT_CONFIGFS_ATTR(interval, ulong);
+ FAULT_CONFIGFS_ATTR(times, atomic_t);
+ FAULT_CONFIGFS_ATTR(space, atomic_t);
+ FAULT_CONFIGFS_ATTR(verbose, ulong);
+-FAULT_CONFIGFS_ATTR_NAMED(ratelimit_interval, "verbose_ratelimit_interval_ms",
+-		ratelimit_state.interval, uint);
+ FAULT_CONFIGFS_ATTR_NAMED(ratelimit_burst, "verbose_ratelimit_burst",
+ 		ratelimit_state.burst, uint);
+ FAULT_CONFIGFS_ATTR_NAMED(task_filter, "task-filter", task_filter, bool);
  
- 	sparse_init();
++static ssize_t fault_ratelimit_interval_show(struct config_item *item, char *page)
++{
++	struct fault_config *config = to_fault_config(item);
++	unsigned int msecs = jiffies_to_msecs(config->attr.ratelimit_state.interval);
++
++	return fault_uint_attr_show(msecs, page);
++}
++
++static ssize_t fault_ratelimit_interval_store(struct config_item *item, const char *page,
++		size_t count)
++{
++	struct fault_config *config = to_fault_config(item);
++	unsigned int msecs;
++	int result;
++
++	result = kstrtouint(page, 0, &msecs);
++	if (result < 0)
++		return result;
++
++	msecs = min_t(unsigned int, msecs, FAULT_RATELIMIT_INTERVAL_MAX_MS);
++	config->attr.ratelimit_state.interval = msecs_to_jiffies(msecs);
++
++	return count;
++}
++
++CONFIGFS_ATTR_NAMED(fault_, ratelimit_interval, "verbose_ratelimit_interval_ms");
++
+ #ifdef CONFIG_FAULT_INJECTION_STACKTRACE_FILTER
+ 
+ static ssize_t fault_stacktrace_depth_show(struct config_item *item, char *page)
 _
 
-Patches currently in -mm which might be from usama.arif@linux.dev are
+Patches currently in -mm which might be from ekffu200098@gmail.com are
 
-mm-zswap-use-separate-compression-and-decompression-requests.patch
-mm-zswap-use-stack-requests-for-synchronous-decompression.patch
+mm-memory-remove-unused-vmf_insert_mixed_mkwrite.patch
+mm-memory-remove-the-mkwrite-argument-from-__vm_insert_mixed.patch
+mm-memory-merge-__vm_insert_mixed-into-vmf_insert_mixed.patch
+fault-inject-fix-boot-failure-with-fault-injection-boot-parameters.patch
+fault-inject-use-a-shared-initialization-helper-for-the-random-state.patch
+fault-inject-fix-wrong-unit-of-verbose_ratelimit_interval_ms.patch
 
