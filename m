@@ -1,55 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794808677;
-	b=gN9nhetgOjaLgtP67E7g2XdhSqsc5ovmfZ44p9DHIOGVKJi6EXbZjeduq2c5lY/QAaME
-	 /rzZ3FWg6oRyjOCe2LkSAy1sHkMU4COwqytTRKB0E1YGusOKkrW8m8A7DDEg12Qi3Nhyz
-	 zF6COzuudg+4qXX2VizYeCPIrjkrlctd6NoVjT1D0quJEOMrYAbDY26ktWEhhcFhr300h
-	 JvNdKaPIps8IEu43CY2bdw4csG7qtW8+CcjuzVuS0vzxcXO6oleq357cJZaPeQJB93tCB
-	 Xg2gryCzyHVxOEMX72gWmeydqpnmcn0cIEgu4nKt++ZeooWfbaiDOiLbc8Zn2Qro+3w==
+	t=1794808698;
+	b=XsHEvpDyk0NZc2C6n1OXojv/EcQcs2NbcoKSxAVW5Dsw3qqmNcCePeOkyIHmxXdZy2Uu
+	 jSLwA8AWxJ0rlu2in7+dUQu8+sb5neEZIitMycL7YG6nv4NnNSAvPb4fetvzHS3njFi1m
+	 ffixtGviq/dFJbM1lh/ARz1GT1ajzKWjJXclQeQiXWE6ZAnSNCon+cLgzF+5ZhJPOKoxv
+	 CCOmIwpoAIOo8m77xIF0/Xj67WqRpX7Ov9aEbI4uMesfYyp2qYZXleoT59cZDpbv62bh5
+	 RTIaEFkpLx9Ll4MZhWt6DeJgaIPlQYnxcopdUymCX63N7Cc0N96/TOOvUE/PgDkgErQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794808677;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-Id:
-	 In-Reply-To:References:X-Mailer:Mime-Version:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=bxSArsxaCkviuzkJwRXAaqradlVMZJysA2PPJZZMFoU=;
-	b=OjdAlbOeDoskQbZXktPXYbyHPOz8kF8z56PTbWMl7EYKUZBZyuwKaL2zpQVFCXCPYmyi
-	 IauNgxnpGAH3yC1xlyH5SOLxV779zUPZzX9nK+A2INGpL/6Twe9NTrnAwGNv2+8ijRlv3
-	 05wpgMJ/4D38/7BpKxRbrxmkVxshOPrV9T2AlmeCeURHuySDV4SUfvVZxt6ysPCsiujsY
-	 95wOQunAghSMn92QU3Sbq7F1ey3nnpvcQT/k+6KpqPsKBLtZKQxAkAHBQoW+Ojnv1oseK
-	 HFV8hsLgDMnXxLfjs+FlSicvTPYk9Y9URgpM/CwhBSfeuU5x8j4EwgXSHiSGPqvygOw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794808698;
+	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
+	bh=cXv66eldltu4DcwoxfgbbKCa3pnjx7bR3G5hCEdCFag=;
+	b=2/Eu/cNq9tkjv9pai4iYpsGQ2DTogxfcdmvFjjimGMdWZ7Timm6R9GYdZSbJUuxBnE0O
+	 mKdZk5D37EG/ysq+zZmODVpWe2E8L6446W/GbYfKR2cDQAT29viZ/am8P50ptLfL7Sh62
+	 XESZFqSGTpwLGM6SXJ9+D/aWnDg8tJYDRb3ENg9aStvqKC5npid266AOPmm71bFfDWNws
+	 xtJ6up/O06aU0iz8iZJUffVSbI5v84jS1mH7wZQjKc2Ro106g5R7Um3TTG2MZbXc1DYhh
+	 QPVLF74onZDVW4sdAHIIKXsCB+usJjvxXepSqBL3Lja17/tkHqJ6iGZdCMg+H9BCl0g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=c78odPp8;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=icaxRM5p;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71048606A32A;
-	Mon, 16 Nov 2026 05:57:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E680A606A31C
+	for <mm-commits@vger.kernel.org>; Mon, 16 Nov 2026 05:58:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=c78odPp8
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4D531F000C4;
-	Mon, 16 Nov 2026 05:57:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=icaxRM5p
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B2511F000C4;
+	Mon, 16 Nov 2026 05:58:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794808677;
-	bh=bxSArsxaCkviuzkJwRXAaqradlVMZJysA2PPJZZMFoU=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=c78odPp8OJft1v91gLdhRaAMxTlGLixH+0rokNUgBdtZ2JsYkZdgy6zWS84DUY4Lt
-	 zV3T5byWolVfUj8r/gfr4x4hvaY+ABQlY0Z9I3znscYfDE72a6DSXRQE2ylHk4jnlR
-	 NL6GBkm63tQ//yo+x+/TrniHsmhYwWdkNg0BC8cw=
-Date: Sun, 15 Nov 2026 21:57:56 -0800
+	d=linux-foundation.org; s=korg; t=1794808697;
+	bh=cXv66eldltu4DcwoxfgbbKCa3pnjx7bR3G5hCEdCFag=;
+	h=Date:To:From:Subject;
+	b=icaxRM5pVybJqs6LQph97Vwawb/4mYGAtCjgkmQWpbTajzv7RRHwYpiwQtuOxLI1t
+	 ojAtekXEyCuWqtmD0+3zgQzCu8YbKzHyDnirPbSKeyPfHQRUWHlfv9XXkHU9V03lfw
+	 q7bEMsC9dcm7VQf6+QA4ICk++OeMtcAHbu6PBqWY=
+Date: Sun, 15 Nov 2026 21:58:17 -0800
+To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,
+	phillip.lougher@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Dan Carpenter <error27@gmail.com>
-Cc: oe-kbuild@lists.linux.dev, Phillip Lougher <phillip@squashfs.org.uk>,
- lkp@intel.com, oe-kbuild-all@lists.linux.dev, David Hildenbrand
- <david@kernel.org>, Linux Memory Management List <linux-mm@kvack.org>,
- mm-commits@vger.kernel.org
-Subject: Re: [akpm-mm:mm-nonmm-unstable 139/151] fs/squashfs/namei.c:283
- squashfs_lookup() warn: passing zero to 'ERR_PTR'
-Message-Id: <20261115215756.839150412f8e2ce4bab5105c@linux-foundation.org>
-In-Reply-To: <202611131955.0Gd7ipSP-lkp@intel.com>
-References: <202611131955.0Gd7ipSP-lkp@intel.com>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + squashfs-fix-variables-in-directory-code-and-add-more-sanity-checks-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20261116055817.9B2511F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -58,37 +49,42 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
-On Mon, 16 Nov 2026 08:26:18 +0300 Dan Carpenter <error27@gmail.com> wrote:
 
-> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-nonmm-unstable
-> head:   152f0559e66c079f717de375f133ff127afb1f58
-> commit: 5213b0a08263b2191b86b046c3a63f11e8abc399 [139/151] Squashfs: fix variables in directory code and add more sanity checks
-> config: um-randconfig-2200-20261113 (https://download.01.org/0day-ci/archive/20261113/202611131955.0Gd7ipSP-lkp@intel.com/config)
-> compiler: clang version 24.0.0git (https://github.com/llvm/llvm-project 8621950157210c1fa68f20f0614cb51310ec9dff)
-> smatch: v0.5.0-9187-g5189e3fb
-> 
-> If you fix the issue in a separate patch/commit (i.e. not just a new version of
-> the same patch/commit), kindly add following tags
-> | Reported-by: kernel test robot <lkp@intel.com>
-> | Reported-by: Dan Carpenter <error27@gmail.com>
-> | Closes: https://lore.kernel.org/r/202611131955.0Gd7ipSP-lkp@intel.com/
-> 
-> New smatch warnings:
-> fs/squashfs/namei.c:283 squashfs_lookup() warn: passing zero to 'ERR_PTR'
+The patch titled
+     Subject: squashfs-fix-variables-in-directory-code-and-add-more-sanity-checks-fix
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     squashfs-fix-variables-in-directory-code-and-add-more-sanity-checks-fix.patch
 
-OK.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-fix-variables-in-directory-code-and-add-more-sanity-checks-fix.patch
 
-> 5213b0a08263b21 Phillip Lougher 2026-11-11  224  			if (!squashfs_dir_space(dir, length, sizeof(*dire)))
-> 5213b0a08263b21 Phillip Lougher 2026-11-11  225  				goto read_failure;
-> 
-> We need an error code on this path.
-> 
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-How's this?
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: squashfs-fix-variables-in-directory-code-and-add-more-sanity-checks-fix
+Date: Sun Nov 15 09:54:43 PM PST 2026
+
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Phillip Lougher <phillip.lougher@gmail.com>
+Cc: Phillip Lougher <phillip@squashfs.org.uk>
+
+ fs/squashfs/namei.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 --- a/fs/squashfs/namei.c~squashfs-fix-variables-in-directory-code-and-add-more-sanity-checks-fix
 +++ a/fs/squashfs/namei.c
@@ -105,4 +101,23 @@ How's this?
  			err = squashfs_read_metadata(dir->i_sb, dire, &block,
  					&offset, sizeof(*dire));
 _
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+mm-list_lru-dont-use-a-new-memcgs-lists-for-an-offline-memcg-fix.patch
+shmem-consume-the-reserved-xattr-space-despite-remount.patch
+selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
+alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
+alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
+selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
+selftests-mm-allocate-nr_pages-based-on-pmd-size-for-uffd-pmd_move-tests-fix.patch
+selftests-mm-retain-move-pmd-coverage-and-verify-huge-pmds.patch
+lib-test_xarray-check-unused-spare-node-after-range-creation.patch
+profile-account-for-partial-proc-profile-reads.patch
+profile-simplify-proc-profile-read-layout.patch
+ipc-msg-clamp-negative-msg_info-usage-counts.patch
+squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix.patch
+squashfs-fix-variables-in-directory-code-and-add-more-sanity-checks-fix.patch
+ocfs2-skip-network-flush-when-no-domain-handlers-are-registered.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
