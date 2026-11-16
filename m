@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794859843;
-	b=fLlYzjdMcyRoqTdkjFXysIdWX/8nMuIe0IInYmhIiCQpX37LU4Ymu2NvSGkEsVOJMamH
-	 zXuq/DGtw6RlOHmO0El0TvbPAwyzWJUa85lrMU/lOIBPI4NlG+2ElJe+3hXSwrjpaf++z
-	 y9Bqh57G4gMf+H/iaPEDEGbOHci4UPsdomdTkRIaB0srq+AaLK3L+yS4cheZwiFo0fP2F
-	 3PzRmBNz0w+QguGHK3GiQENGJweDyEK3Ot9+e9Srjq0oh+jI4h0oA30/DzLtGKa2bpp4f
-	 P6wB20GBZrwCzb7knhzZbiLPIMmAb7Bvb6tu8jeZ7Js60hEgplnmAcNf5avFPnJvzZw==
+	t=1794862093;
+	b=SNiYzyY1cHG5LFZB2GA90YngIuBolJsdlZVLjiZ1BfIH0F2AUAco+MULK2d1+8pYfJes
+	 Pgc/pSaKktjQIroXK+kd3kaLEWPF16SAd2qMQjmjh5Uw/Oaj614MUXbwnMI4pNZuk+psT
+	 WDkgmHNfmi8LQkcMUZt4JLbPe9hTPghtMda9b+gbg5qyf/qeypHC0E/bqvqfY7AJzbyus
+	 8EOBx+f3JanQQbRZZkTMO61Ia2FlMwbCM8BrvXInj50FJ3UhzwkqPtxfqKOOnbgWm1o4V
+	 HvmKzb2wSZ9PIBgTEo82dja9TOwYCQ6ULaaHXclL+AAlMVwHL41wq/6X31xGQt3sTBA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794859843;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794862093;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=wibrfQAWcGMVaStgkco3gg46MlfqUZuqrEZbt0ZB9Zg=;
-	b=PUjEekefRp3GoxgCEVMM5yZ3ZHy8ZT3PYY8znGOQEpqocjTZWVJbzW7rEdCNhBYI86A1
-	 Y8h+mGev2IjTqyEmLIa4rW9otgBFylu3Xjwwc2TKdIg0Zp8wKcjomf4Wv5sGgPkCEIcqo
-	 Z+nV/wbTWQM+elm/Nd/abGAPqPhA3UvQNh4utzj2Hms4sPbkmvmfDioBuQqAa+IQ6fQ+I
-	 qlXKR0LDnB1MTNhG8CmCiagQ9EkLrOeGArLy9Bw+WVFuxipJliKZDGkIJmlmBz/N4jYds
-	 O4GqWSoYFmLFZ6R2bROiAdi+9xBy8SqSINVPV6lbPmzaIc5sU5B3MggooZVgTnZuuMA==
+	bh=LyRNw/Ji1Obfof47RaS/xxnFB7y+xpF9m4mizFmB+BA=;
+	b=ljooZFOhAVXsvQGgDhzFKi88aSGx1grmLO5rQYmS33leFiIcGpHYkkirks1pWCWh1p1W
+	 PQEqhxvmSyL1n62dZ5K82T/nPuPE43Ag+ai5ptj7XP7C6zmy4oZhsTqQBKA3Z3gmv02pQ
+	 P3R4IpFm+5kYfLaHH21Gcor4TJLPSdJXAMNjRiCJS51wbghLZTGFd4ORUoOVK8dvcw2uq
+	 04vdqj8faaDakfYJ4cbT8vcLJAT9OKobM6CwAiNmvaWCxKRpGU3pZh62ImXwHwgk3DCSL
+	 gMQiieKjAEevZ3IDalrhUl7ZQrQQuR/OUTrS63IhzH6Y6uW2PQF5V9X5iaGwGY66uSA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=JL7biYT5;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WtgPJ6Sj;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3ABD606A32F
-	for <mm-commits@vger.kernel.org>; Mon, 16 Nov 2026 20:10:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC5AD606A322
+	for <mm-commits@vger.kernel.org>; Mon, 16 Nov 2026 20:48:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=JL7biYT5
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61D201F000C5;
-	Mon, 16 Nov 2026 20:10:42 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WtgPJ6Sj
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86A5E1F000C4;
+	Mon, 16 Nov 2026 20:48:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794859842;
-	bh=wibrfQAWcGMVaStgkco3gg46MlfqUZuqrEZbt0ZB9Zg=;
+	d=linux-foundation.org; s=korg; t=1794862092;
+	bh=LyRNw/Ji1Obfof47RaS/xxnFB7y+xpF9m4mizFmB+BA=;
 	h=Date:To:From:Subject;
-	b=JL7biYT5FE8MkdVV8aQjv083Dil7/cURnruF+IMH5iLI2A1TARoJCEIUK7v2AcksK
-	 lV6dgT6SmEN/OTCPUoMTCC08nHaagegTY+H6s/FAcGJMSxE3669VoC9z6Z4/8speo2
-	 7f9pbWxSdqPvdd4w3/SkXj///aYPCjl3/yqPZ+UM=
-Date: Mon, 16 Nov 2026 12:10:41 -0800
-To: mm-commits@vger.kernel.org,dmonakhov@openvz.org,axboe@kernel.dk,
-	akinobu.mita@gmail.com,ekffu200098@gmail.com,akpm@linux-foundation.org
+	b=WtgPJ6Sj3ZoRpznyx94cfAQognByK0WdgmXTzAK80hNoR0LIQvZJZHmNJUooW/wY0
+	 JBIlpz6VYDlM9skINd04W3pm4GCfwe17ewLHkJ9CrIet/poaorhyat8eYgYDIbU2Cf
+	 T9zGpg8LcitOOX9aK+/cXJV1uxC2eBUKrp+eVIqI=
+Date: Mon, 16 Nov 2026 12:48:12 -0800
+To: mm-commits@vger.kernel.org,sj@kernel.org,rdunlap@infradead.org,
+	lienze@kylinos.cn,jm5905938@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fault-inject-fix-wrong-unit-of-verbose_ratelimit_interval_ms.patch added to mm-nonmm-unstable branch
-Message-Id: <20261116201042.61D201F000C5@smtp.kernel.org>
+Subject: + mm-damon-paddr-add-kunit-tests-for-addr_unit-conversion.patch added to mm-new branch
+Message-Id: <20261116204812.86A5E1F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,15 +52,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: fault-inject: fix wrong unit of verbose_ratelimit_interval_ms
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fault-inject-fix-wrong-unit-of-verbose_ratelimit_interval_ms.patch
+     Subject: mm/damon/paddr: add KUnit tests for addr_unit conversion
+has been added to the -mm mm-new branch.  Its filename is
+     mm-damon-paddr-add-kunit-tests-for-addr_unit-conversion.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fault-inject-fix-wrong-unit-of-verbose_ratelimit_interval_ms.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-add-kunit-tests-for-addr_unit-conversion.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,131 +86,162 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sang-Heon Jeon <ekffu200098@gmail.com>
-Subject: fault-inject: fix wrong unit of verbose_ratelimit_interval_ms
-Date: Tue, 17 Nov 2026 01:16:12 +0900
+From: Aveline Noir <jm5905938@gmail.com>
+Subject: mm/damon/paddr: add KUnit tests for addr_unit conversion
+Date: Mon, 16 Nov 2026 07:10:51 -0800
 
-The interval of ratelimit_state is in jiffies.  But
-verbose_ratelimit_interval_ms is read and written without converting the
-interval, so the value is in milliseconds only if HZ is 1000.
+Patch series "mm/damon: add paddr kunit and replace weird "same to" uses in
+design doc".
 
-If HZ is 250, writing 1000 sets the interval to 4 seconds.
+Add kunit tests for physical address space DAMON operation set, via
+patch 1 from Avelin Noir.  Use idiomatic "same as" instead of weird
+"same to" in design doc, via patch 2 from Enze Li.
 
-So use jiffies_to_msecs() and msecs_to_jiffies() when reading and writing.
-Also clamp values which are too large for the interval.
+This is a batched reposting of DAMON patches for mm.git merge request.
+Refer to changelog in each patch for their real changelog.
 
-Link: https://lore.kernel.org/20261116161613.3663822-1-ekffu200098@gmail.com
-Fixes: 6adc4a22f20b ("fault-inject: add ratelimit option")
-Fixes: 4668c7a2940d ("fault-inject: allow configuration via configfs")
-Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
+
+This patch (of 2):
+
+damon_pa_phys_addr() and damon_pa_core_addr() convert between DAMON core
+addresses and physical addresses using addr_unit.  addr_unit lets 32-bit
+kernels with a 64-bit phys_addr_t monitor physical memory above 4 GiB,
+but no test covers the conversions.
+
+Add a KUnit suite for both helpers, including a case for addresses above
+4 GiB that is skipped when phys_addr_t is 32-bit.
+
+Link: https://lore.kernel.org/20261116151057.81692-1-sj@kernel.org
+Link: https://lore.kernel.org/20261116151057.81692-2-sj@kernel.org
+Signed-off-by: Aveline Noir <jm5905938@gmail.com>
+Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Dmitry Monakhov <dmonakhov@openvz.org>
-Cc: Jens Axboe <axboe@kernel.dk>
+Reviewed-by: SJ Park <sj@kernel.org>
+Cc: Enze Li <lienze@kylinos.cn>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 
- lib/fault-inject.c |   58 ++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 54 insertions(+), 4 deletions(-)
+ mm/damon/Kconfig             |   12 +++++++
+ mm/damon/paddr.c             |    2 +
+ mm/damon/tests/.kunitconfig  |    4 ++
+ mm/damon/tests/paddr-kunit.h |   55 +++++++++++++++++++++++++++++++++
+ 4 files changed, 73 insertions(+)
 
---- a/lib/fault-inject.c~fault-inject-fix-wrong-unit-of-verbose_ratelimit_interval_ms
-+++ a/lib/fault-inject.c
-@@ -199,6 +199,8 @@ bool should_fail(struct fault_attr *attr
+--- a/mm/damon/Kconfig~mm-damon-paddr-add-kunit-tests-for-addr_unit-conversion
++++ a/mm/damon/Kconfig
+@@ -65,6 +65,18 @@ config DAMON_VADDR_KUNIT_TEST
+ 
+ 	  If unsure, say N.
+ 
++config DAMON_PADDR_KUNIT_TEST
++	bool "Tets for DAMON physical address operations" if !KUNIT_ALL_TESTS
++	depends on DAMON_PADDR && KUNIT=y
++	default KUNIT_ALL_TESTS
++	help
++	  This builds the DAMON physical address operations Kunit test suite.
++
++	  For more information on KUnit and unit tests in general, please refer
++	  to the KUnit documentation.
++
++	  If unsure, say N.
++
+ config DAMON_SYSFS
+ 	bool "DAMON sysfs interface"
+ 	depends on DAMON && SYSFS
+--- a/mm/damon/paddr.c~mm-damon-paddr-add-kunit-tests-for-addr_unit-conversion
++++ a/mm/damon/paddr.c
+@@ -479,3 +479,5 @@ static int __init damon_pa_initcall(void
  }
- EXPORT_SYMBOL_GPL(should_fail);
  
-+#define FAULT_RATELIMIT_INTERVAL_MAX_MS	(INT_MAX / DIV_ROUND_UP(HZ, MSEC_PER_SEC))
+ subsys_initcall(damon_pa_initcall);
 +
- #ifdef CONFIG_FAULT_INJECTION_DEBUG_FS
++#include "tests/paddr-kunit.h"
+--- a/mm/damon/tests/.kunitconfig~mm-damon-paddr-add-kunit-tests-for-addr_unit-conversion
++++ a/mm/damon/tests/.kunitconfig
+@@ -9,6 +9,10 @@ CONFIG_PAGE_IDLE_FLAG=y
+ CONFIG_DAMON_VADDR=y
+ CONFIG_DAMON_VADDR_KUNIT_TEST=y
  
- static int debugfs_ul_set(void *data, u64 val)
-@@ -221,6 +223,29 @@ static void debugfs_create_ul(const char
- 	debugfs_create_file(name, mode, parent, value, &fops_ul);
- }
- 
-+static int debugfs_ratelimit_interval_set(void *data, u64 val)
++# for DAMON paddr ops
++CONFIG_DAMON_PADDR=y
++CONFIG_DAMON_PADDR_KUNIT_TEST=y
++
+ # for DAMON sysfs interface
+ CONFIG_SYSFS=y
+ CONFIG_DAMON_SYSFS=y
+diff --git a/mm/damon/tests/paddr-kunit.h a/mm/damon/tests/paddr-kunit.h
+new file mode 100644
+--- /dev/null
++++ a/mm/damon/tests/paddr-kunit.h
+@@ -0,0 +1,55 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * Data Access Monitor Unit Tests
++ */
++
++#ifdef CONFIG_DAMON_PADDR_KUNIT_TEST
++
++#ifndef _DAMON_PADDR_TEST_H
++#define _DAMON_PADDR_TEST_H
++
++#include <kunit/test.h>
++
++static void damon_test_pa_phys_addr(struct kunit *test)
 +{
-+	val = min_t(u64, val, FAULT_RATELIMIT_INTERVAL_MAX_MS);
-+	*(int *)data = msecs_to_jiffies(val);
-+
-+	return 0;
++	KUNIT_EXPECT_EQ(test, damon_pa_phys_addr(0x1000, 1), 0x1000);
++	KUNIT_EXPECT_EQ(test, damon_pa_phys_addr(0x40000, 0x1000), 0x40000000);
 +}
 +
-+static int debugfs_ratelimit_interval_get(void *data, u64 *val)
++static void damon_test_pa_core_addr(struct kunit *test)
 +{
-+	*val = jiffies_to_msecs(*(int *)data);
-+	return 0;
++	KUNIT_EXPECT_EQ(test, damon_pa_core_addr(0x1000000, 0x1000), 0x1000);
++	/* The conversion rounds down. */
++	KUNIT_EXPECT_EQ(test, damon_pa_core_addr(0x1fff, 0x1000), 1);
++	KUNIT_EXPECT_EQ(test, damon_pa_core_addr(0xfff, 0x1000), 0);
 +}
 +
-+DEFINE_SIMPLE_ATTRIBUTE(fops_ratelimit_interval, debugfs_ratelimit_interval_get,
-+			debugfs_ratelimit_interval_set, "%llu\n");
-+
-+static void debugfs_create_ratelimit_interval(const char *name, umode_t mode,
-+					      struct dentry *parent, int *value)
++static void damon_test_pa_addr_over_4g(struct kunit *test)
 +{
-+	debugfs_create_file(name, mode, parent, value, &fops_ratelimit_interval);
++	unsigned long addr = 0xffffffffUL;
++	unsigned long addr_unit = 0x1000;
++	u64 pa = 0xffffffff000ULL;
++
++	if (!IS_ENABLED(CONFIG_PHYS_ADDR_T_64BIT))
++		kunit_skip(test, "phys_addr_t is 32-bit");
++
++	KUNIT_EXPECT_EQ(test, damon_pa_phys_addr(addr, addr_unit), pa);
++	KUNIT_EXPECT_EQ(test, damon_pa_core_addr(pa, addr_unit), addr);
 +}
 +
- #ifdef CONFIG_FAULT_INJECTION_STACKTRACE_FILTER
- 
- static int debugfs_stacktrace_depth_set(void *data, u64 val)
-@@ -260,8 +285,8 @@ struct dentry *fault_create_debugfs_attr
- 	debugfs_create_atomic_t("times", mode, dir, &attr->times);
- 	debugfs_create_atomic_t("space", mode, dir, &attr->space);
- 	debugfs_create_ul("verbose", mode, dir, &attr->verbose);
--	debugfs_create_u32("verbose_ratelimit_interval_ms", mode, dir,
--			   &attr->ratelimit_state.interval);
-+	debugfs_create_ratelimit_interval("verbose_ratelimit_interval_ms", mode,
-+					  dir, &attr->ratelimit_state.interval);
- 	debugfs_create_u32("verbose_ratelimit_burst", mode, dir,
- 			   &attr->ratelimit_state.burst);
- 	debugfs_create_bool("task-filter", mode, dir, &attr->task_filter);
-@@ -394,12 +419,37 @@ FAULT_CONFIGFS_ATTR(interval, ulong);
- FAULT_CONFIGFS_ATTR(times, atomic_t);
- FAULT_CONFIGFS_ATTR(space, atomic_t);
- FAULT_CONFIGFS_ATTR(verbose, ulong);
--FAULT_CONFIGFS_ATTR_NAMED(ratelimit_interval, "verbose_ratelimit_interval_ms",
--		ratelimit_state.interval, uint);
- FAULT_CONFIGFS_ATTR_NAMED(ratelimit_burst, "verbose_ratelimit_burst",
- 		ratelimit_state.burst, uint);
- FAULT_CONFIGFS_ATTR_NAMED(task_filter, "task-filter", task_filter, bool);
- 
-+static ssize_t fault_ratelimit_interval_show(struct config_item *item, char *page)
-+{
-+	struct fault_config *config = to_fault_config(item);
-+	unsigned int msecs = jiffies_to_msecs(config->attr.ratelimit_state.interval);
++static struct kunit_case damon_paddr_test_cases[] = {
++	KUNIT_CASE(damon_test_pa_phys_addr),
++	KUNIT_CASE(damon_test_pa_core_addr),
++	KUNIT_CASE(damon_test_pa_addr_over_4g),
++	{},
++};
 +
-+	return fault_uint_attr_show(msecs, page);
-+}
++static struct kunit_suite damon_paddr_test_suite = {
++	.name = "damon-paddr",
++	.test_cases = damon_paddr_test_cases,
++};
++kunit_test_suite(damon_paddr_test_suite);
 +
-+static ssize_t fault_ratelimit_interval_store(struct config_item *item, const char *page,
-+		size_t count)
-+{
-+	struct fault_config *config = to_fault_config(item);
-+	unsigned int msecs;
-+	int result;
++#endif /* _DAMON_PADDR_TEST_H */
 +
-+	result = kstrtouint(page, 0, &msecs);
-+	if (result < 0)
-+		return result;
-+
-+	msecs = min_t(unsigned int, msecs, FAULT_RATELIMIT_INTERVAL_MAX_MS);
-+	config->attr.ratelimit_state.interval = msecs_to_jiffies(msecs);
-+
-+	return count;
-+}
-+
-+CONFIGFS_ATTR_NAMED(fault_, ratelimit_interval, "verbose_ratelimit_interval_ms");
-+
- #ifdef CONFIG_FAULT_INJECTION_STACKTRACE_FILTER
- 
- static ssize_t fault_stacktrace_depth_show(struct config_item *item, char *page)
++#endif	/* CONFIG_DAMON_PADDR_KUNIT_TEST */
 _
 
-Patches currently in -mm which might be from ekffu200098@gmail.com are
+Patches currently in -mm which might be from jm5905938@gmail.com are
 
-mm-memory-remove-unused-vmf_insert_mixed_mkwrite.patch
-mm-memory-remove-the-mkwrite-argument-from-__vm_insert_mixed.patch
-mm-memory-merge-__vm_insert_mixed-into-vmf_insert_mixed.patch
-fault-inject-fix-boot-failure-with-fault-injection-boot-parameters.patch
-fault-inject-use-a-shared-initialization-helper-for-the-random-state.patch
-fault-inject-fix-wrong-unit-of-verbose_ratelimit_interval_ms.patch
+mm-damon-ops-common-align-mmu-notifier-range-when-clearing-pmd-young-bit.patch
+mm-damon-stat-avoid-32-bit-overflow-in-idle-percentiles.patch
+mm-damon-pvaddr-skip-folios-already-on-the-migration-target-node.patch
+docs-admin-guide-mm-damon-start-fix-grammar.patch
+docs-admin-guide-mm-damon-stat-fix-pronoun-agreement.patch
+docs-admin-guide-mm-damon-usage-fix-grammar.patch
+docs-admin-guide-mm-damon-lru_sort-fix-remaining-grammar.patch
+docs-mm-damon-design-fix-grammar-and-typos.patch
+docs-mm-damon-api-fix-verb-form.patch
+docs-mm-damon-maintainer-profile-fix-subject-verb-agreement.patch
+docs-mm-damon-monitoring_intervals_tuning_example-fix-grammar-and-typos.patch
+mm-damon-paddr-add-kunit-tests-for-addr_unit-conversion.patch
 
