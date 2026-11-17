@@ -1,46 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794935340;
-	b=C3/alJAAhTzDJ9S2QUB5snlXXcWF2itCTyAlnuMCzkzOV4BA8t2ypqq86qtYzFk5SEH1
-	 z1F+V5u1/dWxw8Dk2x6TV7naib0kDR7bXBzVtwWlgBpBMMtKZuXecDgICA6MahWikYFt5
-	 g1u9RvZmSGDgO/7/yNPL5ip9v+ODoEWsu9ULgr9UDF3qs9MSAfMDQPKsR6iXzvcIZg8BZ
-	 YbvCTF1qCYwhg16tS0058RmUY6AMKDsqwmRNde1S2ta0m3q2pmoensYUYjxPvNaXnzCx0
-	 0trNcZKPqszNGmQQkzJufgFsYTgZM/VXj+koU8KO8LSLr64mVILR723ZRaVS7+YRy6A==
+	t=1794935750;
+	b=Lmh3R4Yx0ZZ9A2nTEkpIqhZanohgTz2J1cdUF4c4A4zR4KtXKQLCjj4rWUfKiyf/eUqI
+	 FgZ6GkzUs30oyUdGXSKoNZxUaZUbYJPOug5uh/wb3Td0nN7PKC3YLdTA+kB1SMoY9QD3y
+	 XkexFEKbjS78QnHjU2quAyiKXLRS3hMSvnyuUPcxgEbqslSJJS1VDrG1ap9wo8sZp7/5e
+	 bIfxvRAi8qdKJy3js8PmOnIWK89RNjfC4do9Z/mX0AXLqxEOKOMw/Sp0UXzWay1hCABg/
+	 F7djc2iE2DWXy67LrsEOF2LM5vdXZllHqPePdZx/vccU9Pd7Hl8oJevs9SbZZFiYOhw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794935340;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794935750;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=afGrLrqpvqcHIfPxb7hm22iis3Is5z3cR1ebLNeG1lw=;
-	b=SxvIW/kAn+29UMkGp+/z4IPOLiFSDIJ7HOtMCAJDdiV/Koy57ibEZVEv5wL8CFwlUBt5
-	 A3Zhzy8n0HUPbM5F4yGKiAdVAXrAnJRS6ba6OVsxwlqUmjflvjPLGPjtSJgzjon6Qjz5P
-	 zpsm9S2TuiHXs7pj7A8QsBBWJqQMiPSfAJoRYWI9Ry0jOdhPw5+2osS3vefsNRYoXFMcW
-	 Vx2kWrspuGiFEboVhQA5DIVN6Nmm8JTEY7JGjCJItaKSWPpS25zp0A2x2qXndKEGPvteu
-	 fKjchKwvf8Tb6Qg4sh2/XeYFODTNI3YrKNgdhprvhbJ/JeK8WpxfaBCKl3SarFSV0xQ==
+	bh=Ic19Eu1F2uZnUPtaJWJ+CWNacBPi+I9y53FGrVZxZX0=;
+	b=FYgUi93KsWQzKoGexyUOS5Te4Th2gXk/2nnHEjvrLt2ytu+kbXy1KqYNK1XWvbYntJT8
+	 kr4nkoYHikCBMyRXRq1VQyw0Yz6Aiw43owSIcGqtcxU497OevK9ObDUIn2TCqXO/dhUwv
+	 Obg1gxx2S6vpWr8miVe97imO6GxaJd/n1qgSpCP4f8H2/1vFbC1dLWa1mr5qlN+k0wY2i
+	 gkySO9HJyBiwbyFQZMB/20LEDFcfjyfU9BadbQPmTfHG9chmugR3Y+3qfgQimlT/qq3+1
+	 1MhVy7CdvPrQWg2jS3eqGE4v9nHL0Ig95pcwvIJnjO4jOkysM4Yash32GxbYPK3R2jw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=K6s79tHa;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mCJxSm8h;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C8B4606A31C
-	for <mm-commits@vger.kernel.org>; Tue, 17 Nov 2026 17:09:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 400EB606A337
+	for <mm-commits@vger.kernel.org>; Tue, 17 Nov 2026 17:15:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=K6s79tHa
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E4DC1F000C5;
-	Tue, 17 Nov 2026 17:09:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mCJxSm8h
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1A3C1F000C6;
+	Tue, 17 Nov 2026 17:15:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794935340;
-	bh=afGrLrqpvqcHIfPxb7hm22iis3Is5z3cR1ebLNeG1lw=;
+	d=linux-foundation.org; s=korg; t=1794935750;
+	bh=Ic19Eu1F2uZnUPtaJWJ+CWNacBPi+I9y53FGrVZxZX0=;
 	h=Date:To:From:Subject;
-	b=K6s79tHaoqUBoEYOS7h8u69PFh5rwdQZT7opdCLDxm9My3llwZRrFkRxAbdp5wceX
-	 t3xw+GrTgUJnurjYDTQ4jcrC+RnCt335eeZMGCD3XznnzB9eLsM5ma7BllgdcU3nKT
-	 e+CA+xJCRX3iYKGLWAAqVenDXg0D6jxt4Y5RUrAs=
-Date: Tue, 17 Nov 2026 09:08:59 -0800
-To: mm-commits@vger.kernel.org,jeff.johnson@oss.qualcomm.com,
-	aluvala.sai.teja@intel.com,akpm@linux-foundation.org
+	b=mCJxSm8h30sN7JztMSdKwdD3TUZayMwWfYJM5xH6F9uHDkY8it7A+00/lYALoxGKu
+	 vOKnlqbNg9L/EN4tD9xUzq2Ab3sQ4u/ZhejiGOmQXtHngDz56bNG4sNajOXQkGMlwh
+	 47lYZc7y2CXySjo7QOuLAWcJJrullFsLUjplSKqA=
+Date: Tue, 17 Nov 2026 09:15:49 -0800
+To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,
+	rdunlap@infradead.org,osandov@osandov.com,kees@kernel.org,corbet@lwn.net,
+	chris@chrisdown.name,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mailmap-update-email-address-for-sai-teja-aluvala.patch added to mm-nonmm-unstable branch
-Message-Id: <20261117170900.4E4DC1F000C5@smtp.kernel.org>
+Subject: [to-be-updated] proc-kcore-allow-disabling-proc-kcore-at-boot.patch removed from -mm tree
+Message-Id: <20261117171549.E1A3C1F000C6@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,57 +52,104 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
-     Subject: mailmap: update email address for Sai Teja Aluvala
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mailmap-update-email-address-for-sai-teja-aluvala.patch
+The quilt patch titled
+     Subject: proc/kcore: allow disabling /proc/kcore at boot
+has been removed from the -mm tree.  Its filename was
+     proc-kcore-allow-disabling-proc-kcore-at-boot.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-update-email-address-for-sai-teja-aluvala.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Sai Teja Aluvala <aluvala.sai.teja@intel.com>
-Subject: mailmap: update email address for Sai Teja Aluvala
-Date: Tue, 17 Nov 2026 19:00:08 +0530
+From: Chris Down <chris@chrisdown.name>
+Subject: proc/kcore: allow disabling /proc/kcore at boot
+Date: Sun, 15 Nov 2026 19:57:48 -0800
 
-Map my former Qualcomm email address to my current Intel email address.
+/proc/kcore lets any process with CAP_SYS_RAWIO read all of kernel memory.
+That's a pretty large read primitive for anyone who obtains CAP_SYS_RAWIO
+(and it also gives away the KASLR layout).
 
-Link: https://lore.kernel.org/20261117133008.2560155-1-aluvala.sai.teja@intel.com
-Signed-off-by: Sai Teja Aluvala <aluvala.sai.teja@intel.com>
+For this reason on some hosts we want to turn /proc/kcore off.  In terms
+of what it can read, /proc/kcore isn't any more concerning than other ways
+to read kernel memory, like BPF with CAP_BPF and CAP_PERFMON.  The
+distinction is that a process with CAP_SYS_RAWIO doesn't necessarily have
+CAP_BPF and CAP_PERFMON, because CAP_SYS_RAWIO may be needed for hardware
+access without necessarily wanting to grant general RAM access. 
+CONFIG_STRICT_DEVMEM already makes that possible for /dev/mem, but
+/proc/kcore gives the same capability to do general purpose RAM reading
+anyway.
+
+However, on a kernel built with CONFIG_PROC_KCORE=y the only ways to block
+it today are lockdown=confidentiality (which also disables many other
+things we perhaps don't want to disable, like kprobes and
+bpf_probe_read_kernel()), or an LSM.  That's annoying, because on the
+majority of hosts we do want it on for things like drgn/crash, so today we
+build two separate kernels.
+
+Let's add a "kcore=" boot parameter so that this can be disabled at boot,
+which lets us preserve those choices while using the same kernel image.
+
+Link: https://lore.kernel.org/a8474f0e2d0ef5ea9d53aa6649c7e9c9ea6f15c2.1794800574.git.chris@chrisdown.name
+Signed-off-by: Chris Down <chris@chrisdown.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jeff Johnson <jeff.johnson@oss.qualcomm.com>
+Cc: Omar Sandoval <osandov@osandov.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Kees Cook <kees@kernel.org>
 
- .mailmap |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/admin-guide/kernel-parameters.txt |    6 ++++++
+ fs/proc/kcore.c                                 |   12 ++++++++++++
+ 2 files changed, 18 insertions(+)
 
---- a/.mailmap~mailmap-update-email-address-for-sai-teja-aluvala
-+++ a/.mailmap
-@@ -838,6 +838,7 @@ Rui Saraiva <rmps@joel.ist.utl.pt>
- Sachin Mokashi <sachin.mokashi@intel.com> <sachinx.mokashi@intel.com>
- Sachin P Sant <ssant@in.ibm.com>
- Sai Prakash Ranjan <quic_saipraka@quicinc.com> <saiprakash.ranjan@codeaurora.org>
-+Sai Teja Aluvala <aluvala.sai.teja@intel.com> <quic_saluvala@quicinc.com>
- Sakari Ailus <sakari.ailus@linux.intel.com> <sakari.ailus@iki.fi>
- Sam Protsenko <semen.protsenko@linaro.org>
- Sam Protsenko <semen.protsenko@linaro.org> <semen.protsenko@globallogic.com>
+--- a/Documentation/admin-guide/kernel-parameters.txt~proc-kcore-allow-disabling-proc-kcore-at-boot
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -2902,6 +2902,12 @@ Kernel parameters
+ 			parameter KASAN will print report only for the first
+ 			invalid access.
+ 
++	kcore=		[KNL,EARLY]
++			Enable or disable /proc/kcore on kernels built with
++			CONFIG_PROC_KCORE=y.
++			Format: <bool>
++			Default: on
++
+ 	keep_bootcon	[KNL,EARLY]
+ 			Do not unregister boot console at start. This is only
+ 			useful for debugging when something happens in the window
+--- a/fs/proc/kcore.c~proc-kcore-allow-disabling-proc-kcore-at-boot
++++ a/fs/proc/kcore.c
+@@ -69,6 +69,7 @@ static size_t kcore_notes_len;
+ static size_t kcore_data_offset;
+ DEFINE_STATIC_PERCPU_RWSEM(kclist_lock);
+ static int kcore_need_update = 1;
++static bool kcore_enabled __initdata = true;
+ 
+ /*
+  * Returns > 0 for RAM pages, 0 for non-RAM pages, < 0 on error
+@@ -722,8 +723,19 @@ static void __init add_modules_range(voi
+ }
+ #endif
+ 
++static int __init parse_kcore(char *str)
++{
++	return kstrtobool(str, &kcore_enabled);
++}
++early_param("kcore", parse_kcore);
++
+ static int __init proc_kcore_init(void)
+ {
++	if (!kcore_enabled) {
++		pr_info("/proc/kcore disabled on command line\n");
++		return 0;
++	}
++
+ 	proc_root_kcore = proc_create("kcore", S_IRUSR, NULL, &kcore_proc_ops);
+ 	if (!proc_root_kcore) {
+ 		pr_err("couldn't create /proc/kcore\n");
 _
 
-Patches currently in -mm which might be from aluvala.sai.teja@intel.com are
+Patches currently in -mm which might be from chris@chrisdown.name are
 
-mailmap-update-email-address-for-sai-teja-aluvala.patch
+mm-memcontrol-dont-lose-track-of-exiting-oom-victims.patch
+selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test.patch
 
