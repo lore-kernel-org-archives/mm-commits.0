@@ -1,48 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794894522;
-	b=BW8aVFi6HgnlARwYRVlHY9JJFEc6b5devNKPfTPNGJFrKJDkBZNQHo+9IgayN7Pcu7i7
-	 ohGHxizYrnHQCkuNOlIKf4dOP6tgw17MQ9oxX1CBsEFYXTchodJnR5o1AG3m1G6DirCs5
-	 VjI3cZcG9BtnkAcyI4+bOYMI+j9hDvuNhbO6VLpncmpkktV+ZgB1/s2BXQ6/YydqE6Uy6
-	 lTonPRCKyQYA5BnOSK0d8Lza0JvCKby6n3KveIPLVCfLNLrm8yYwJYYtoUYDDFQQm08nk
-	 ufApm94YTpA4dJhAaVRoEODhGjTW+6oqt/4xdNIL16b/y+sl+VITrxF0u6/EX4uKMQg==
+	t=1794895001;
+	b=VBCpY4PKJhi3295HknasJxEcB+ESVKNLZiQ9UBPKGU8vn7XCSVlVwU4V2yJNQD2pRXum
+	 jUTR44pc481XGD/tL2obedXC6z1xC7j/e3omtHltNuzxitl3ym10f2fVNy8LtYgGswIIO
+	 zEqIC+C4fj1yfHHps+fjr+C0FusBGPwFwEpZGNtnquMfWE7jgEgf2hmstJgiHk9HT4wCx
+	 4XiH1SRQWOoXrJeDqFbPKzKZgCKG5ISypsURbdX0B/ytfe61Qr7YMabByAREfU334OLUk
+	 1bPeVyhBpsSlnLrjt/W3Iu4ruUb+TwrY/EVvvYCd4zJc5XOhu6FiXjp8ckvGKdgXERA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794894522;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794895001;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=QZ1n+kaA1qJyWEqvvkpOqA3dWfJbaeOsST8X0NjFVsw=;
-	b=ULkl/lH48xYc6XUzMG4fGhRxfeKQo+Sykx+HW5mRKSIyPe/JapmshYltyB4bNrG87cbV
-	 905iAzmJtjgTVErpCHB2wu4Z0sbheNC1YkC4aLbzrXNWkTt00eNzH+Yg7WSYoVqbmHwSO
-	 7/aM0/cfspz4QG4UItknRGzaZsNGcdaXyyrXcEcwkpOkrpDZG+ylqDbginpZ0icFzy8Tz
-	 gQmavUduhFv5/fkacMBWRbNYXmeWYicD4mL5D6H/uqUF/F2mqxGdOWgqI8cAgGycqO5V3
-	 WKv2FvfKQRB/5YmIo1LVwGhdH9kvV95qZwT/s79KG4/ynpWTME42qGIxZAQAz25ebtA==
+	bh=DPA4TXi1wQDuPAufchqJyWKXJ3AKV7XudpHkXWh4xwc=;
+	b=1sq+5/RBI1cXR00FmxQ2Ru2eTwVqgPkd0ebOMPdALgAFVZPlfrtqN2jSndLtKSTUoRoc
+	 /XGR6mZms3+VzXHFIm33abTGF9HtYJcWW8I66klvp2mj6uBC7UjBV2eVxgVHu5P14zjJQ
+	 41rSMVaTWHEzVUVA98YrluAYXytxKXGvho6FPgVxRzwgf+HsYpOz06onvwRnKS+hoF5pF
+	 EVGo/wO2SKToKGuC+87rgQpplqkebymByvzF4RRt99UN5AIu5g/S9YDEk5iplYsZwdSqN
+	 +3vtvIfbKqEF6ToZxZpC2Vlk4wSSytjJtOIMEvn+fRfLoywlcngEddwA9aY75V2G1AQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="PdKc52/Z";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=gwMB0uC3;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5BB7606A31C
-	for <mm-commits@vger.kernel.org>; Tue, 17 Nov 2026 05:48:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BB60606A31C
+	for <mm-commits@vger.kernel.org>; Tue, 17 Nov 2026 05:56:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PdKc52/Z
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F2CB1F000C5;
-	Tue, 17 Nov 2026 05:48:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=gwMB0uC3
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 224C71F000C4;
+	Tue, 17 Nov 2026 05:56:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794894522;
-	bh=QZ1n+kaA1qJyWEqvvkpOqA3dWfJbaeOsST8X0NjFVsw=;
+	d=linux-foundation.org; s=korg; t=1794895001;
+	bh=DPA4TXi1wQDuPAufchqJyWKXJ3AKV7XudpHkXWh4xwc=;
 	h=Date:To:From:Subject;
-	b=PdKc52/ZBp3cVNS42m6knK8KmKLpR95lExRLgdvXM3MHhcShbzaVmT/YpU5c/VoPm
-	 CB0tgI+2V4CC+q8Qb3ANZl4cMZAJWYNRyRwiuXAi1jE6gNlh6Z36UjVsFKxaVvD3HA
-	 dedVj+4NueahMyC8gjAe7ORK+DUI7B+qwH1HiXbg=
-Date: Mon, 16 Nov 2026 21:48:41 -0800
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
-	shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,
-	liam@infradead.org,david@kernel.org,lihongfu@kylinos.cn,
-	akpm@linux-foundation.org
+	b=gwMB0uC3UqawRi6Kj4nfl27u1LWVm+gdEEucIPBwaEZeUnUzB+XylD/BB+VcXmWS2
+	 uHNHtcD9zY/yefEXzn39O5fdnH9IdN4Mnmea75a/EftafFif0YQ3NouSIBkgZwrXFb
+	 bvBuFK2g8F/7qRBm8tH6b2hToW8qaOlmsfxXxv4c=
+Date: Mon, 16 Nov 2026 21:56:40 -0800
+To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,
+	shakeel.butt@linux.dev,qi.zheng@linux.dev,mhocko@kernel.org,ljs@kernel.org,
+	kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baoquan.he@linux.dev,
+	baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,
+	zhuhui@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-protection_keys-use-_exit-in-aarch64-ptrace-tracee.patch added to mm-new branch
-Message-Id: <20261117054842.5F2CB1F000C5@smtp.kernel.org>
+Subject: + mm-mglru-use-a-smaller-batch-in-fill-drain_evictable.patch added to mm-new branch
+Message-Id: <20261117055641.224C71F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: selftests/mm: protection_keys: use _exit() in aarch64 ptrace tracee
+     Subject: mm/mglru: use a smaller batch in fill/drain_evictable()
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-protection_keys-use-_exit-in-aarch64-ptrace-tracee.patch
+     mm-mglru-use-a-smaller-batch-in-fill-drain_evictable.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-protection_keys-use-_exit-in-aarch64-ptrace-tracee.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-use-a-smaller-batch-in-fill-drain_evictable.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -88,69 +89,72 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Hongfu Li <lihongfu@kylinos.cn>
-Subject: selftests/mm: protection_keys: use _exit() in aarch64 ptrace tracee
-Date: Mon, 16 Nov 2026 16:56:11 +0800
+From: Hui Zhu <zhuhui@kylinos.cn>
+Subject: mm/mglru: use a smaller batch in fill/drain_evictable()
+Date: Mon, 16 Nov 2026 14:11:58 +0800
 
-Commit 25356081894d ("selftests/mm: protection_keys: use library code
-for HugeTLB setup") replaced the exit() calls in the x86 version of
-test_ptrace_modifies_pkru() with _exit(), but missed the aarch64
-version, which still calls exit() from the tracee.
+lru_gen_change_state() migrates folios in batches of up to MAX_LRU_BATCH
+(4096) folios under lruvec_lock_irq().  A full batch keeps local
+interrupts off for up to about a millisecond, and CPUs contending for the
+same lru_lock spin with interrupts disabled for that long.
 
-When the test runs as root, hugepage_save_settings() registers
-hugepage_restore_settings_atexit() with atexit(). The tracee inherits
-the atexit list across fork(), so its exit() runs
-hugepage_restore_settings_atexit() in the child. That handler calls
-hugetlb_restore_settings(), which writes nr_hugepages back to the saved
-original value while the test is still running. If the saved original
-value is 0 (or otherwise leaves fewer than the two free huge pages
-needed by the next allocation), subsequent iterations fail in
-malloc_pkey_hugetlb() when mmap(MAP_HUGETLB) returns MAP_FAILED.
+The caller already drops the lock and reschedules between batches, and the
+restart protocol does not depend on the batch size: both functions make
+monotone progress, so a smaller batch only shortens the irq-off section. 
+Use MIN_LRU_BATCH (64) instead, bounding it to about 15us.  This is a cold
+path that runs once per kill-switch toggle; the extra
+unlock/resched/relock round trips cost a few percent of wall time on an
+otherwise idle machine.
 
-Use _exit() in the aarch64 tracee as well, matching x86.
+Same change as commit 6e9be217a3ce ("mm/mglru: use a smaller batch for
+reclaim") made for try_to_shrink_lruvec().
 
-This was found by code inspection with AI assistance. No POE-capable
-arm64 hardware was available, so test_ptrace_modifies_pkru() was not
-runtime-tested; the change has only been compile-tested with an arm64
-cross-compiler.
-
-Link: https://lore.kernel.org/20261116-for-pkey-exit-v1-1-ca4c76b32ff7@kylinos.cn
-Fixes: 25356081894d ("selftests/mm: protection_keys: use library code for HugeTLB setup")
-Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
+Link: https://lore.kernel.org/20261116061158.333826-1-hui.zhu@linux.dev
+Signed-off-by: Hui Zhu <zhuhui@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: David Hildenbrand <david@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
 
- tools/testing/selftests/mm/protection_keys.c |    4 ++--
+ mm/vmscan.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/protection_keys.c~selftests-mm-protection_keys-use-_exit-in-aarch64-ptrace-tracee
-+++ a/tools/testing/selftests/mm/protection_keys.c
-@@ -1530,11 +1530,11 @@ static void test_ptrace_modifies_pkru(in
- 		 * checking
- 		 */
- 		if (__read_pkey_reg() != new_pkey)
--			exit(1);
-+			_exit(1);
+--- a/mm/vmscan.c~mm-mglru-use-a-smaller-batch-in-fill-drain_evictable
++++ a/mm/vmscan.c
+@@ -5503,7 +5503,7 @@ static bool __maybe_unused state_is_vali
+ static bool fill_evictable(struct lruvec *lruvec)
+ {
+ 	enum lru_list lru;
+-	int remaining = MAX_LRU_BATCH;
++	int remaining = MIN_LRU_BATCH;
  
- 		raise(SIGSTOP);
+ 	for_each_evictable_lru(lru) {
+ 		int type = is_file_lru(lru);
+@@ -5548,7 +5548,7 @@ static bool fill_evictable(struct lruvec
+ static bool drain_evictable(struct lruvec *lruvec)
+ {
+ 	int gen, type, zone;
+-	int remaining = MAX_LRU_BATCH;
++	int remaining = MIN_LRU_BATCH;
  
--		exit(0);
-+		_exit(0);
- 	}
- 
- 	pkey_assert(child == waitpid(child, &status, 0));
+ 	for_each_gen_type_zone(gen, type, zone) {
+ 		struct list_head *head = &lruvec->lrugen.folios[gen][type][zone];
 _
 
-Patches currently in -mm which might be from lihongfu@kylinos.cn are
+Patches currently in -mm which might be from zhuhui@kylinos.cn are
 
-mm-hugetlb-charge-hugetlb-cgroup-and-memcg-in-alloc_hugetlb_folio_reserve.patch
-selftests-mm-mlock2-tests-fix-fclosenull-in-is_vmflag_set.patch
-selftests-mm-protection_keys-use-_exit-in-aarch64-ptrace-tracee.patch
+mm-mglru-fix-a-no-op-lru_gen_clear_refs-call-in-lru_lazyfree.patch
+mm-vmstat-annotate-data-race-in-zone_page_state_snapshot.patch
+mm-compaction-annotate-data-race-for-zone-free_areanr_free.patch
+mm-mglru-use-a-smaller-batch-in-fill-drain_evictable.patch
 
