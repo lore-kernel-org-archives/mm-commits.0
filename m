@@ -1,47 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794881252;
-	b=Lrc0B/wrem87QOFemwkl3qMeulcMolrANDPF+t7Cik1iDDvYXo21PoMgMaZuIFFvvJZZ
-	 oNIumturMSPDMPmaPjPrDpzRI98DpEaTE1qkY3gzkIdfqsvzWSsKz1Tm/Z6dC3WCZqbzI
-	 bGh2e/o6mqQYWWdgCF7lrAGHbxiVeWNo1WIerHdwQeeOq5lzytc1jKPBE8gqX9gubSvi+
-	 NI8wJKV4PGa7m7ixNXUL22xB2TVv17P0TOKDCsYjG4LLGIl4PNG4VcUtp8WiFCN26hHLD
-	 DayeCvx28PHzuW16UOPI1btFE4hTJLc91C+Ccwt99mzK1NuusacoUifNcw4FIY9azAQ==
+	t=1794883763;
+	b=GxRFwlhErgW8hANZF+O/XjUBUcDP7uDffTOHnlMB33s76w84nr67b9A1MdbLdRIYdbl7
+	 hH8fCY7kwm6rcbM7O0txQsNbeR4ZnNh0lt+zlZx4uwArC4cUN1dMIYgRcvBnBPcjFxwiC
+	 KjXsCqyenSENN5xvfsF/NJ9gZdZR3aQm6t80ErXTTlt4TqjtjMrtVO3+02qcoUOJ9gbkb
+	 4Rxo0BU9mODoJBRkVen9iRh50XFMOAXd6QFg9BfJY71C4uU53Tk0jnpyYtoIaN04I4SK0
+	 sM8ga4we0ROLUglPHJuACZwbj8PY6ebUYayBZBnZABhAH0HRVRbUPdfwhxEdq5hwhSw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794881252;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794883763;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=j2WgYjYQaHKJE6pdmAuwAmDek7bHPUe9xdF01dUoO80=;
-	b=sm0J04JxWDC6EqfUXdrPmriTjDA/NucqlqT1CBm2LvXuayZcBFBvZTSSxWBuSyIKi/p0
-	 m1+giHa4BKXZyWYiagSA4gyCrJwsY2SG5tZEGe/mapSk0Y7+NyA2ImUkH7jG/TPUGCknv
-	 Qxw2qH9BGp8GVp0je7YO60hbZ7bD1Wo5HfMna8tYKiSQiicUWEt5GOXiABoXyon8GhKkx
-	 4sMNZvsJJuzWJGSY00A+hIY3WuAmNpk6tkbsBZLyu03g33fb7FL3UirzNNxAWNvUEXhTS
-	 vMzaKwqsPDesVsihv1C+DLPXouHy/HmPjd55l3DPYpavneDMTBGptB6KQtC46h4k+DA==
+	bh=sPIXzNGJW1yjxRREZXD3C+0RQaEf1d0X/ZaG9IAYYF4=;
+	b=A9k3HjoL69HYU7iFgFtZiGis3dxX5piIGyGlv4JRu8H23y2FtjrgXFHqpmDsnZ1Q3yBx
+	 2EXXxhWb9xp0CnEsPLfaEXiT8wc9RgvVBeR9LwXEZrCJlDd3iP08SSsgVsfYaoGEsSLOC
+	 R5LcJt6S5rOQI3zVtFtbWVpmggUODUR1r9MRm5kt7mjFYSr+ywuYC4rd5DAIpgPhakxKY
+	 /7Yu+9ptlrM3nO8nXtR+iCaH0tQ24Wu8H2+FAKk4/fLwhEh8DFcCfehT4NhuH1x8Ip61T
+	 GA4ULev6yzpN1a7CeHmfs5TKEgyCgjHgzgescrAJgxNLnmC7tX3SVFPspuWnpN0b5gA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mgKJLIMT;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GJR3HUk2;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E22A606A334
-	for <mm-commits@vger.kernel.org>; Tue, 17 Nov 2026 02:07:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28EBD606A329
+	for <mm-commits@vger.kernel.org>; Tue, 17 Nov 2026 02:49:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mgKJLIMT
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C8FD1F000C6;
-	Tue, 17 Nov 2026 02:07:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GJR3HUk2
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF4F81F000C4;
+	Tue, 17 Nov 2026 02:49:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794881251;
-	bh=j2WgYjYQaHKJE6pdmAuwAmDek7bHPUe9xdF01dUoO80=;
+	d=linux-foundation.org; s=korg; t=1794883762;
+	bh=sPIXzNGJW1yjxRREZXD3C+0RQaEf1d0X/ZaG9IAYYF4=;
 	h=Date:To:From:Subject;
-	b=mgKJLIMT+AV1oiLkD+XqtNUSM7cwkNlho5HO1z+quBDa4xgCel1NAh+bLrDB0r4WX
-	 byC+UM0N/O/+nfTUSC7MEMiIhc2gVFlf115PqTNLLU6fq9HILYxTTFqexIkryBmoyK
-	 7ia1gF9MlzDaeJryc3ZUVPKJPl/kRW8vs7UkKkJg=
-Date: Mon, 16 Nov 2026 18:07:30 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,osalvador@suse.de,
-	muchun.song@linux.dev,david@kernel.org,jthoughton@google.com,
-	akpm@linux-foundation.org
+	b=GJR3HUk27FbItT1Z2KPrYbccNhKMdKJJb63uEYKKaYG3wVyyQyppo3c3XfNt9dAjp
+	 XVBOYKPsoocH0Gq0Y+CItvBgLN/W0SVK6Ou+CAndN0BxI8AhnZ6JOMMXfJyULFbmjy
+	 QO9ef4j+J1eZzK40ap/1jzFtpkcwap1T1+ftQPcc=
+Date: Mon, 16 Nov 2026 18:49:22 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
+	shivankg@amd.com,shao.mingyin@zte.com.cn,rppt@kernel.org,mhocko@suse.com,
+	luizcap@redhat.com,luiz.capitulino@linux.dev,ljs@kernel.org,
+	liam@infradead.org,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-dont-restore-vmemmap-of-non-hvoed-folios-on-bulk-restore-error.patch added to mm-new branch
-Message-Id: <20261117020731.6C8FD1F000C6@smtp.kernel.org>
+Subject: + mm-util-fix-retry-detection-and-handling-in-snapshot_page.patch added to mm-new branch
+Message-Id: <20261117024922.BF4F81F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +54,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: hugetlb: don't restore vmemmap of non-HVOed folios on bulk restore error
+     Subject: mm/util: fix retry detection and handling in snapshot_page()
 has been added to the -mm mm-new branch.  Its filename is
-     hugetlb-dont-restore-vmemmap-of-non-hvoed-folios-on-bulk-restore-error.patch
+     mm-util-fix-retry-detection-and-handling-in-snapshot_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-dont-restore-vmemmap-of-non-hvoed-folios-on-bulk-restore-error.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-util-fix-retry-detection-and-handling-in-snapshot_page.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,94 +88,97 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: James Houghton <jthoughton@google.com>
-Subject: hugetlb: don't restore vmemmap of non-HVOed folios on bulk restore error
-Date: Mon, 16 Nov 2026 22:15:57 +0000
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Subject: mm/util: fix retry detection and handling in snapshot_page()
+Date: Mon, 16 Nov 2026 15:12:13 +0100
 
-When hugetlb_vmemmap_restore_folios() fails, it stops processing the list,
-so folio_list may still contain folios that were never vmemmap optimized,
-e.g.  because HVO failed when they were allocated.  Their hugetlb flag has
-already been cleared by remove_hugetlb_folio().
+snapshot_page() detects races with concurrent folio split+construction by
+checking whether the given page still falls into the folio. Unfortunately,
+we have an off-by-one error in there, and we should be checking for
+"ps->idx >= nr_pages", because idx 0 is valid.
 
-If no folios could be restored, bulk_vmemmap_restore_error() then calls
-hugetlb_vmemmap_restore_folio() on every folio left on folio_list,
-including those, which trips the !folio_test_hugetlb() check in
-__hugetlb_vmemmap_restore_folio():
+For example, we might currently report a tail page at idx 1 as faithful,
+although the snapshotted folio is now a small folio.
 
-  page dumped because: VM_WARN_ON_ONCE_FOLIO(!folio_test_hugetlb(folio))
-  WARNING: mm/hugetlb_vmemmap.c:503 at __hugetlb_vmemmap_restore_folio+0x270/0x300
-  ...
-   __hugetlb_vmemmap_restore_folio+0x270/0x300 (P)
-   hugetlb_vmemmap_restore_folio+0x1c/0x30
-   update_and_free_pages_bulk+0x2c0/0x368
-   __nr_hugepages_store_common+0x2e8/0x3f0
+However, there is one complication: As we don't hold a folio reference,
+folio_nr_pages() can return 0 on races (or when called from page freeing
+code). Handle that by just setting it to 1 in that case, so we don't
+wrongly report a head page as "page does not match folio".
 
-Otherwise this is benign: the restore is a no-op returning success for
-non-optimized folios, which are then freed as intended.
+In addition, we should reset ps->flags when retrying, by just resetting
+it to PAGE_SNAPSHOT_FAITHFUL. Otherwise, PAGE_SNAPSHOT_PG_BUDDY and
+PAGE_SNAPSHOT_PG_IDLE from a failed attempt could stick around.
 
-Skip the restore for folios that are not vmemmap optimized; they can be
-freed right away.
+These races are fairly rare, so this is not really critical, we simply
+report something slightly wrong. No need to CC stable.
 
-This is very unlikely to happen without fault injection, as it requires
-both HVO and a subsequent vmemmap restore to fail.
-
-Link: https://lore.kernel.org/20261116221557.3128331-1-jthoughton@google.com
-Fixes: cfb8c75099db ("hugetlb: perform vmemmap restoration on a list of pages")
-Signed-off-by: James Houghton <jthoughton@google.com>
+Link: https://lore.kernel.org/20261116-snapshot_page_fix-v1-1-8e425984e8d1@kernel.org
+Fixes: d863a12108f2 ("mm/util: introduce snapshot_page()")
+Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Muchun Song (ByteDance) <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: David Hildenbrand <david@kernel.org>
+Reported-by: Shao Mingyin <shao.mingyin@zte.com.cn>
+Closes: https://lore.kernel.org/r/20261115004657890Pz8ERDf5nCtE-B6M7KFzu@zte.com.cn
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: Luiz Capitulino (Red Hat) <luiz.capitulino@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Luiz Capitulino <luizcap@redhat.com>
+Cc: Shivank Garg <shivankg@amd.com>
 
- mm/hugetlb.c |   29 ++++++++++++++++++-----------
- 1 file changed, 18 insertions(+), 11 deletions(-)
+ mm/util.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-dont-restore-vmemmap-of-non-hvoed-folios-on-bulk-restore-error
-+++ a/mm/hugetlb.c
-@@ -1655,21 +1655,28 @@ static void bulk_vmemmap_restore_error(s
- 		 * If are able to restore vmemmap and free one hugetlb page, we
- 		 * quit processing the list to retry the bulk operation.
- 		 */
--		list_for_each_entry_safe(folio, t_folio, folio_list, lru)
--			if (hugetlb_vmemmap_restore_folio(h, folio)) {
--				list_del(&folio->lru);
--				spin_lock_irq(&hugetlb_lock);
--				add_hugetlb_folio(h, folio, true);
--				spin_unlock_irq(&hugetlb_lock);
--			} else {
--				list_del(&folio->lru);
-+		list_for_each_entry_safe(folio, t_folio, folio_list, lru) {
-+			list_del(&folio->lru);
-+			/*
-+			 * remove_hugetlb_folio() already cleared the hugetlb flag
-+			 * for folios whose vmemmap was not optimized, so they can
-+			 * be freed without restoring vmemmap.
-+			 */
-+			if (folio_test_hugetlb(folio)) {
-+				if (hugetlb_vmemmap_restore_folio(h, folio)) {
-+					spin_lock_irq(&hugetlb_lock);
-+					add_hugetlb_folio(h, folio, true);
-+					spin_unlock_irq(&hugetlb_lock);
-+					continue;
-+				}
- 				spin_lock_irq(&hugetlb_lock);
- 				__folio_clear_hugetlb(folio);
- 				spin_unlock_irq(&hugetlb_lock);
--				update_and_free_hugetlb_folio(h, folio, false);
--				cond_resched();
--				break;
- 			}
-+			update_and_free_hugetlb_folio(h, folio, false);
-+			cond_resched();
-+			break;
-+		}
- 	}
- }
+--- a/mm/util.c~mm-util-fix-retry-detection-and-handling-in-snapshot_page
++++ a/mm/util.c
+@@ -1406,9 +1406,9 @@ void snapshot_page(struct page_snapshot
+ 	int loops = 5;
  
+ 	ps->pfn = page_to_pfn(page);
+-	ps->flags = PAGE_SNAPSHOT_FAITHFUL;
+ 
+ again:
++	ps->flags = PAGE_SNAPSHOT_FAITHFUL;
+ 	memset(&ps->folio_snapshot, 0, sizeof(struct folio));
+ 	memcpy(&ps->page_snapshot, page, sizeof(*page));
+ 	info = ps->page_snapshot.compound_info;
+@@ -1437,14 +1437,15 @@ again:
+ 
+ 	if (ps->idx < MAX_FOLIO_NR_PAGES) {
+ 		memcpy(&ps->folio_snapshot, foliop, 2 * sizeof(struct page));
+-		nr_pages = folio_nr_pages(&ps->folio_snapshot);
++		/* On races, or when freeing pages, we can read 0. */
++		nr_pages = folio_nr_pages(&ps->folio_snapshot) ?: 1;
+ 		if (nr_pages > 2)
+ 			memcpy(&ps->folio_snapshot.__page_2, &foliop->__page_2,
+ 			       sizeof(struct page));
+ 		set_ps_flags(ps, foliop, page);
+ 	}
+ 
+-	if (ps->idx > nr_pages) {
++	if (ps->idx >= nr_pages) {
+ 		if (loops-- > 0)
+ 			goto again;
+ 		clear_compound_head(&ps->page_snapshot);
 _
 
-Patches currently in -mm which might be from jthoughton@google.com are
+Patches currently in -mm which might be from david@kernel.org are
 
-hugetlb-dont-restore-vmemmap-of-non-hvoed-folios-on-bulk-restore-error.patch
+maintainers-memory-management-mglru-multi-gen-lru-update.patch
+maintainers-remove-myself-from-memory-management-reclaim.patch
+mm-mprotect-dont-skip-uffd-marker-install-when-racing-with-pte-table-reclaim.patch
+mm-khugepaged-free-unused-page-table-when-setting-a-huge-pmd-fails.patch
+mm-util-fix-retry-detection-and-handling-in-snapshot_page.patch
+hugetlbfs-fix-integer-overflow-in-fallocate.patch
+mm-hugetlb-compare-against-persistent-count-when-freeing-lowmem-folios.patch
+mm-hugetlb-preserve-reservations-when-shrinking-on-highmem.patch
+mm-hugetlb-account-temporary-folios-separately.patch
+mm-hugetlb-fix-mremap-racing-with-page-migration.patch
+mm-hugetlb-serialize-page-cache-allocations-with-truncation.patch
+mm-memfd-recheck-the-page-cache-before-allocating-a-hugetlb-folio.patch
+mm-hugetlb-count-again-if-the-reserve-map-shrank.patch
+mm-hugetlb-account-restored-reservations-before-freeing-folios.patch
+mm-hugetlb-delay-anon-folio-rmap-removal-until-after-the-tlb-flush.patch
 
