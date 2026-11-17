@@ -1,47 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794938125;
-	b=XnJ5SnGyL0KXs6Hx7Vng+E+UK/qMOM6A9CbNCgFre028QOKGEI1qGwXkztPTgpZp2MBR
-	 afIZZkK0NsY5iIqAXt0EoaMZQXIIBry9m8A/eWuFDDatgbrnadBdPhiJAvFFZLbvQs2QG
-	 37YQaq02jqWsuIb2wSHnb9xB/RPx94JTgDn3KG5mPwVxiWPg4e1ZHATWUEgI+aZdoTiLX
-	 jx3cVjZtBnmF7yyO8WsbSu/dQmz+fgRPVxx7kh0WKw8OLQEv7w4zEq/ovRqe4TrLU3YcO
-	 Y4QXfAggDz2awtMK5udjQx0SZOEeD2eBuCpXqRkb354o6bVNNSKl16O3RRSimkqPw7g==
+	t=1794942829;
+	b=QQqZirXprRY3UE7HQb4xtn30pF4U3QgLiyTwVlbQQT9+YgxFTrvq9XPr7uU8mvHeulHk
+	 JaJJ1womoT4kC/dQ0JrfjdCdfUtZac695NsTvG5zi8/A4rphp5NV3CgNFN3dVWzCcJcls
+	 UYes5kjsWLd90HnuFTOTrKx7HFB2xN/yYdr3pixJVYEKhm2Xsx0RIgOdcbUbbUdGyXxEf
+	 Es5xP2gjDDjug3W/gg0VzJu9qyNVfsecEa0TYSrZQYotY/lPza//Yuw/ieUR9WkVYXf1G
+	 lVw7YiKuzUQguIPGhBAftNVcCUzFP62bXENwyz0vJh0n9t//HghuU7otnysaZwPUXrA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794938125;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794942829;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=TTGTC9cNmr7BCuf/GNDrKLlhGp4KyLO16hKeIxdYkd0=;
-	b=YXdcCNdbLcppNwBp63x5BuV3MbSiLtMKDCmgGNK2fww59RyEEDvbw87xdHfHN+r9yWJd
-	 CJE5Lc3FEkbLikyOksuWnvz9Kd7DU+t8YVOUWc6YdHoOE+KxgaETo7XFs2EPJFLFoqdC5
-	 XLJ/r6ELE5M8+96HmJ6APPM7O2H2qNF4vb3ncpxa0nb7NvRouYUZsLzjyy2C2kMG1dZTJ
-	 JXEoF3c/EZYUMxQXL3h978Q95p+/QJMahXMGqGerZ6UvGsYZkdFl5oLv33iPY9Z7OgpWf
-	 SOx1UWsPeNko48iopW4tENU0eBTAdp6GCk3rR7Bb7Y9hb0wqo6n8xzh+/TX2oZTT7YA==
+	bh=pWe8pCpTiG+nh/e9o3pYMbte4l84UoD7Wq+omSkx+Z4=;
+	b=mR6fjF0CIroIDZQ870Btts1mD/uJJD89pD72JfSpVaToMA7L3ur/kEIbSVK4Mb4uMQrg
+	 g0g2GmadxSag+GVOOmf7xZNwwJNWcUUVXn4ydaKI2PL1K0EtB3NY5g3Q/Mu0G4X3kfxCV
+	 vIJAlYRixhkDuBCnUEgz0B7ULTJamAhwKqYMEMw/4JwxYzZ2GFf2BTmu9KDQSZGs38rRS
+	 aYJLCV1hG7plhRU637pYG4efIqa69tXO7UzR5Gm1GS4JUBGzIuNL8axsEMwjM0KY1Pzpu
+	 rLVvZqmp83qIrpJUQKpOIgrco0RQo74ulhj5QAgLYUMa1grqLcbjkVf8fi3HvkpmHrA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=OOmIY3B+;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ckWPz4HR;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47F12606A31C
-	for <mm-commits@vger.kernel.org>; Tue, 17 Nov 2026 17:55:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CC82606A31C
+	for <mm-commits@vger.kernel.org>; Tue, 17 Nov 2026 19:13:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=OOmIY3B+
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E00141F000C4;
-	Tue, 17 Nov 2026 17:55:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ckWPz4HR
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 484EF1F000C4;
+	Tue, 17 Nov 2026 19:13:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794938125;
-	bh=TTGTC9cNmr7BCuf/GNDrKLlhGp4KyLO16hKeIxdYkd0=;
+	d=linux-foundation.org; s=korg; t=1794942829;
+	bh=pWe8pCpTiG+nh/e9o3pYMbte4l84UoD7Wq+omSkx+Z4=;
 	h=Date:To:From:Subject;
-	b=OOmIY3B+B6HlO9d1LCQc1y+RfY6nA08XXjzRPHyAdPID6ujfS8FRQilGYF/luR8dr
-	 IxmROKTXxYENYJSoOpPycufsfN7fMOO1FTnOYewc+JLFNuQ0wV1MZK8CVRSYagqXPO
-	 8JQpC5Xox9ss3hr65di6kQFfViJiRlkBPTSBBgU8=
-Date: Tue, 17 Nov 2026 09:55:24 -0800
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
-	pfalcato@suse.de,ljs@kernel.org,liam@infradead.org,jannh@google.com,
-	ahuang12@lenovo.com,adrianhuang0701@gmail.com,akpm@linux-foundation.org
+	b=ckWPz4HR7BlUYELT+7KwjtnSih8imM/rAfpXuY3Ks7XJSHVID042ZLBxPDJGsSTY3
+	 j0pLljmZv0cSPbkqLKmDpjeMDWOvG3hlAiCYli617zehhBbel2eV3712D8evrTwJGb
+	 5YNPCOcv7Iy9ibJv5TRIElru4vcoPcxr+9cuDZWk=
+Date: Tue, 17 Nov 2026 11:13:48 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] fs-proc-task_mmu-advance-seq_file-position-on-interrupted-vma-lookup.patch removed from -mm tree
-Message-Id: <20261117175524.E00141F000C4@smtp.kernel.org>
+Subject: + maintainers-add-page_exth-to-memory-management-page-allocator.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261117191349.484EF1F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,77 +50,69 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The quilt patch titled
-     Subject: fs/proc/task_mmu: advance seq_file position on interrupted VMA lookup
-has been removed from the -mm tree.  Its filename was
-     fs-proc-task_mmu-advance-seq_file-position-on-interrupted-vma-lookup.patch
+The patch titled
+     Subject: MAINTAINERS: add page_ext.h to MEMORY MANAGEMENT - PAGE ALLOCATOR
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maintainers-add-page_exth-to-memory-management-page-allocator.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-page_exth-to-memory-management-page-allocator.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: "Adrian Huang (Lenovo)" <adrianhuang0701@gmail.com>
-Subject: fs/proc/task_mmu: advance seq_file position on interrupted VMA lookup
-Date: Thu, 12 Nov 2026 22:01:01 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: MAINTAINERS: add page_ext.h to MEMORY MANAGEMENT - PAGE ALLOCATOR
+Date: Tue Nov 17 11:05:44 AM PST 2026
 
-Commit 5631da56c9a8 ("fs/proc/task_mmu: read proc/pid/maps under per-vma
-lock") introduced the possibility of returning -EINTR from proc_get_vma()
-when the VMA lookup is interrupted.
-
-When this happens in m_next(), proc_get_vma() returns an error pointer
-without updating the position index.  Consequently, seq_read_iter()
-reports:
-
-  seq_file: buggy .next function m_next did not update position index
-
-The above buggy message is reproduced by the following command:
-
-  # stress-ng --vma 0 -t 60
-
-Update the position index when VMA lookup fails, as required by the
-seq_file interface.  Also save the original position in priv->last_pos so
-that subsequent iteration can restart from the correct address without
-skipping or repeating a VMA.
-
-Link: https://lore.kernel.org/20261112140101.647-1-adrianhuang0701@gmail.com
-Fixes: 5631da56c9a8 ("fs/proc/task_mmu: read proc/pid/maps under per-vma lock")
-Signed-off-by: Adrian Huang (Lenovo) <adrianhuang0701@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Adrian Huang <ahuang12@lenovo.com>
+Cc: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 
- fs/proc/task_mmu.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/fs/proc/task_mmu.c~fs-proc-task_mmu-advance-seq_file-position-on-interrupted-vma-lookup
-+++ a/fs/proc/task_mmu.c
-@@ -221,6 +221,16 @@ retry:
- 		if (PTR_ERR(vma) == -EAGAIN && fallback_to_mmap_lock(priv, *ppos))
- 			goto retry;
- 
-+		/*
-+		 * seq_file checks that the position advanced before it looks at
-+		 * the returned pointer, so an error return that leaves *ppos
-+		 * alone is reported as a buggy ->next. Advance it, and keep
-+		 * last_pos at the pending position so m_start() would resume
-+		 * the lookup from there.
-+		 */
-+		priv->last_pos = *ppos;
-+		(*ppos)++;
-+
- 		return vma;
- 	}
- 
+--- a/MAINTAINERS~maintainers-add-page_exth-to-memory-management-page-allocator
++++ a/MAINTAINERS
+@@ -17779,6 +17779,7 @@ F:	include/linux/compaction.h
+ F:	include/linux/gfp.h
+ F:	include/linux/page-isolation.h
+ F:	include/linux/pageblock-flags.h
++F:	include/linux/page_ext.h
+ F:	include/trace/events/compaction.h
+ F:	include/trace/events/page_isolation.h
+ F:	include/trace/events/page_ref.h
 _
 
-Patches currently in -mm which might be from adrianhuang0701@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-damon-core-remove-unnecessary-zero-initialization-in-damon_new_ctx.patch
-docs-admin-guide-mm-damon-fix-various-typos.patch
-docs-admin-guide-mm-damon-lru_sort-fix-copy-paste-mistakes.patch
-docs-admin-guide-mm-damon-usage-fix-incorrect-option-syntax-in-perf-example.patch
+mm-list_lru-dont-use-a-new-memcgs-lists-for-an-offline-memcg-fix.patch
+maintainers-add-page_exth-to-memory-management-page-allocator.patch
+shmem-consume-the-reserved-xattr-space-despite-remount.patch
+selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
+alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
+alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
+selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
+selftests-mm-allocate-nr_pages-based-on-pmd-size-for-uffd-pmd_move-tests-fix.patch
+selftests-mm-retain-move-pmd-coverage-and-verify-huge-pmds.patch
+lib-test_xarray-check-unused-spare-node-after-range-creation.patch
+ipc-msg-clamp-negative-msg_info-usage-counts.patch
+squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix.patch
+squashfs-sanity-check-directory-metadata-block-location-fix.patch
+squashfs-fix-variables-in-directory-code-and-add-more-sanity-checks-fix.patch
+ocfs2-skip-network-flush-when-no-domain-handlers-are-registered.patch
+selftests-ptrace-check-that-ptrace_set_syscall_info-rejects-invalid-error-values-fix.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
