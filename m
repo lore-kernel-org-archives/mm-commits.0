@@ -1,45 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794942829;
-	b=QQqZirXprRY3UE7HQb4xtn30pF4U3QgLiyTwVlbQQT9+YgxFTrvq9XPr7uU8mvHeulHk
-	 JaJJ1womoT4kC/dQ0JrfjdCdfUtZac695NsTvG5zi8/A4rphp5NV3CgNFN3dVWzCcJcls
-	 UYes5kjsWLd90HnuFTOTrKx7HFB2xN/yYdr3pixJVYEKhm2Xsx0RIgOdcbUbbUdGyXxEf
-	 Es5xP2gjDDjug3W/gg0VzJu9qyNVfsecEa0TYSrZQYotY/lPza//Yuw/ieUR9WkVYXf1G
-	 lVw7YiKuzUQguIPGhBAftNVcCUzFP62bXENwyz0vJh0n9t//HghuU7otnysaZwPUXrA==
+	t=1794947698;
+	b=vAKTJN2+EF/19xJIuucmq6CVe2FE9ydNsM8ct+673l5kOCduIboAnWACS9RHfpVsDoGw
+	 jRiR8+MFeT3CZ1te+cem8MaSuL+WuVS94bKmoGf6aAK74kJggWvVDpbXheY/mv0Ki/GdP
+	 eFt1IxVfRl6KKYdoeXFx0pbY5grnIsoFFAkoz9lkFL2oX76d1Ubi/C3ZwQovVOCsKnfpN
+	 zhQu8yDAi+cYGlco5SsCzyMsTft5oM5TQrK1fDxM4RfksH63IGP3TdBtX2TEtRKTa+vxe
+	 q6f+xudMjkigomMtUuJu3kSGeGg9Anodritdg0ZWX2BOCgOyNBeu/K45yGQjhI7hE8w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794942829;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794947698;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=pWe8pCpTiG+nh/e9o3pYMbte4l84UoD7Wq+omSkx+Z4=;
-	b=mR6fjF0CIroIDZQ870Btts1mD/uJJD89pD72JfSpVaToMA7L3ur/kEIbSVK4Mb4uMQrg
-	 g0g2GmadxSag+GVOOmf7xZNwwJNWcUUVXn4ydaKI2PL1K0EtB3NY5g3Q/Mu0G4X3kfxCV
-	 vIJAlYRixhkDuBCnUEgz0B7ULTJamAhwKqYMEMw/4JwxYzZ2GFf2BTmu9KDQSZGs38rRS
-	 aYJLCV1hG7plhRU637pYG4efIqa69tXO7UzR5Gm1GS4JUBGzIuNL8axsEMwjM0KY1Pzpu
-	 rLVvZqmp83qIrpJUQKpOIgrco0RQo74ulhj5QAgLYUMa1grqLcbjkVf8fi3HvkpmHrA==
+	bh=dBkiyJzzin5ZWmPqUthCYbSZ3+sUhtiaA9PqDsBA+rQ=;
+	b=Yc6UA8+A6TojoD7x0Otpz3H8Z7y2iV9nviD/AuZixk8QqBhbwZ8gpGMlyPHjbP7XjAQW
+	 PaGILh1toUPZXSS9/Qee1DYtDDDnxCOzWhP0z+SVzSZClWTQm3gwhiyOoxS68O0Zj+8dT
+	 ggxKOxseSxiL+CrMm6rIr+C7P47OFGl2P5pYeK69DjQ3UylLgSwXGdozsZxf4juLg+H+D
+	 C4l47tEE7chQBk/Yvcvmk1UubQ7EXrcF00OaJGN3ogMKtslQ7LYhhAPg/2AOBIeH9YE6n
+	 SB6/obzA1GgFAj1tQABYwU79Qzm/4uHoWiAiN/Oydet0SWq0d2dsZ3hlgRVOxNRAueg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ckWPz4HR;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="UaIY/vma";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CC82606A31C
-	for <mm-commits@vger.kernel.org>; Tue, 17 Nov 2026 19:13:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAF0D606A32F
+	for <mm-commits@vger.kernel.org>; Tue, 17 Nov 2026 20:34:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ckWPz4HR
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 484EF1F000C4;
-	Tue, 17 Nov 2026 19:13:49 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=UaIY/vma
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 436621F000C9;
+	Tue, 17 Nov 2026 20:34:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794942829;
-	bh=pWe8pCpTiG+nh/e9o3pYMbte4l84UoD7Wq+omSkx+Z4=;
+	d=linux-foundation.org; s=korg; t=1794947697;
+	bh=dBkiyJzzin5ZWmPqUthCYbSZ3+sUhtiaA9PqDsBA+rQ=;
 	h=Date:To:From:Subject;
-	b=ckWPz4HR7BlUYELT+7KwjtnSih8imM/rAfpXuY3Ks7XJSHVID042ZLBxPDJGsSTY3
-	 j0pLljmZv0cSPbkqLKmDpjeMDWOvG3hlAiCYli617zehhBbel2eV3712D8evrTwJGb
-	 5YNPCOcv7Iy9ibJv5TRIElru4vcoPcxr+9cuDZWk=
-Date: Tue, 17 Nov 2026 11:13:48 -0800
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,akpm@linux-foundation.org
+	b=UaIY/vmacz1Po2Q36mJjz91bNL3JIkzpD3U+fiADxjQedFt9dCaAcAgRXH32y8E7i
+	 tDIZWLMRNd1wsauNHLAC6JbrBUn9fKWyVrtZnxmix2+j96LieP8JrHPvfPknMsHK8J
+	 hLqxqVXxOSQFrX8bQ/33C0qDAsG1Y45mZ1eYFcvo=
+Date: Tue, 17 Nov 2026 12:34:56 -0800
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,
+	roman.gushchin@linux.dev,qi.zheng@linux.dev,muchun.song@linux.dev,
+	mhocko@kernel.org,mason@kernel.org,hannes@cmpxchg.org,david@kernel.org,
+	david@fromorbit.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-add-page_exth-to-memory-management-page-allocator.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261117191349.484EF1F000C4@smtp.kernel.org>
+Subject: [folded-merged] mm-list_lru-dont-use-a-new-memcgs-lists-for-an-offline-memcg-fix.patch removed from -mm tree
+Message-Id: <20261117203457.436621F000C9@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -50,55 +53,80 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
-     Subject: MAINTAINERS: add page_ext.h to MEMORY MANAGEMENT - PAGE ALLOCATOR
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-add-page_exth-to-memory-management-page-allocator.patch
+The quilt patch titled
+     Subject: mm/list_lru: verify memcg owner before skipping allocation
+has been removed from the -mm tree.  Its filename was
+     mm-list_lru-dont-use-a-new-memcgs-lists-for-an-offline-memcg-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-page_exth-to-memory-management-page-allocator.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it was folded into mm-list_lru-dont-use-a-new-memcgs-lists-for-an-offline-memcg.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: MAINTAINERS: add page_ext.h to MEMORY MANAGEMENT - PAGE ALLOCATOR
-Date: Tue Nov 17 11:05:44 AM PST 2026
+Subject: mm/list_lru: verify memcg owner before skipping allocation
+Date: Thu, 12 Nov 2026 16:08:59 -0800
 
+list_lru_from_memcg() rejects an entry at a reused kmemcg_id when it
+belongs to another memcg.  memcg_list_lru_allocated() still treats any
+entry at that index as a list for the requested memcg.  Its callers can
+therefore skip the allocation of that memcg's ancestor lists.
+
+With child C and parent P's lists both unallocated, a reader can retain C
+while it is offlined.  If an unrelated new memcg reuses C's ID and
+allocates its own list, the reader mistakes that entry for C's and skips
+allocation of P's list.  Once the folio's objcg points to P,
+deferred_split_folio() can add it to the root list.  If P later gets a
+list, unqueue locks P's list while unlinking the folio from root's list,
+which can corrupt that list under concurrent operations.
+
+Require the entry to belong to the requested memcg before returning true. 
+Hold RCU over the XArray load and owner comparison because this helper is
+also called outside the folio fast path's RCU section.
+
+Link: https://lore.kernel.org/20261112161502.18d9d72c0139b8f69bb88ff4@linux-foundation.org
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reported-by: <sashiko-bot@kernel.org>
+Closes: https://lore.kernel.org/sashiko-outbox-211977@kernel.org
+Cc: Chris Mason <mason@kernel.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ mm/list_lru.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
---- a/MAINTAINERS~maintainers-add-page_exth-to-memory-management-page-allocator
-+++ a/MAINTAINERS
-@@ -17779,6 +17779,7 @@ F:	include/linux/compaction.h
- F:	include/linux/gfp.h
- F:	include/linux/page-isolation.h
- F:	include/linux/pageblock-flags.h
-+F:	include/linux/page_ext.h
- F:	include/trace/events/compaction.h
- F:	include/trace/events/page_isolation.h
- F:	include/trace/events/page_ref.h
+--- a/mm/list_lru.c~mm-list_lru-dont-use-a-new-memcgs-lists-for-an-offline-memcg-fix
++++ a/mm/list_lru.c
+@@ -568,9 +568,19 @@ void memcg_reparent_list_lrus(struct mem
+ static inline bool memcg_list_lru_allocated(struct mem_cgroup *memcg,
+ 					    struct list_lru *lru)
+ {
++	struct list_lru_memcg *mlru;
++	bool allocated;
+ 	int idx = memcg->kmemcg_id;
+ 
+-	return idx < 0 || xa_load(&lru->xa, idx);
++	if (idx < 0)
++		return true;
++
++	rcu_read_lock();
++	mlru = xa_load(&lru->xa, idx);
++	allocated = mlru && mlru->memcg == memcg;
++	rcu_read_unlock();
++
++	return allocated;
+ }
+ 
+ static int __memcg_list_lru_alloc(struct mem_cgroup *memcg,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-list_lru-dont-use-a-new-memcgs-lists-for-an-offline-memcg-fix.patch
+mm-list_lru-dont-use-a-new-memcgs-lists-for-an-offline-memcg.patch
 maintainers-add-page_exth-to-memory-management-page-allocator.patch
 shmem-consume-the-reserved-xattr-space-despite-remount.patch
 selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
