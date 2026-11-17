@@ -1,80 +1,48 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.13
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794931785;
-	b=LhmFjX3iMNqTNacTZb5CFMIttV0LctIfoD5sR806FLgeueSJfKe1rkKnVD/++aAqe/TT
-	 8pRKKjFg+8VdQnoafLK3jr9225eoBfu+8ARW4jmDxH5/8zIN1oRrO4D/kA2f9Fs0+qo7C
-	 E5Mv/TRQY1zXnzn5T5KLWbTFTqixbmq4yqYPaCdBQTubgz6S0j5VevGcElgUxv5nqI6eA
-	 rx5k3IOo+ouFaB/efFnKAXos1ddyaDuMR9UswNq/nAQCc05rgcPlpTwVM4Asq1ItEvJBS
-	 xMmQPihoWKQJwf9snPyjfNhYkOVIRKVV5G4Fw9/ekZ4Ok/jeMzZ/LrJ0bsw49x4DZ8A==
+	t=1794931823;
+	b=B/Amt6BYbPS2YIx//pKUq2pUv0Hxmzkcgrbbtyb9px+OXs31og/hIst87SMnPtfD+fQS
+	 vXMOhI1EEsDerjo/0SDE1F8JsfUBERMnwQfoBBS2pGCWjU2bwyjx5BtFJjPLJ5g1d6diA
+	 AsHqjiO3+PIOeV8CLHusYvFpPP74cA3ROK6SUsPGWcV3Xod+04uVZo5rvB4tAuBHeNttT
+	 vyV22f6woZUELCW5qOXnJbxEJtZqUuCDYANszVl264/Bq6ObQodnBtikT4EFH3y7kQjI/
+	 PMa6v44DP7LfWd4S2xnJImZauXKi2c5Sa6VQf8ZwMQZBlxB49IJjhBHKLhUJLXG/K5Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794931785;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
-	 Cc:Subject:Message-ID:User-Agent;
-	bh=UvScUGHsM15lCFKb8FKHXeRBorNMwqwMVFB7TYVWqMM=;
-	b=Q1IzSK/u6tUYxQFONH8yR8jydulbIi4b+r43uibTSAMUsLaTh+0RUE+arcKKf+kfk9nO
-	 GuAH2RC4TEkuivsW34jBvqiEKMcEXOQ8ozj9o3bwXmuLP4BMzpCp19aQKvlAYluXknkz1
-	 xEWuOJK38lKg8a8NqgiY4dI/YSDTjBqCLpCpoKJkUEbm4o5b2IClMN5FNPPSlvFTJDQLg
-	 ZY00Pywuc8W+rcWm4WJu1TwxBeseYKWo78Zjf9vsQdSGSFMX3kXuWuxNXFiTzNfiQRxR6
-	 ICsTtHXwEJ1HYM6xh6orREUeJ/cXrWF0G1HZLypssf4f69xsbw5hIU16Dd7CBpUMUVQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794931823;
+	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
+	bh=MrCAAU6esyzUFUnBSJ1erHsgVIRqIRzFCSqJmVIc0/Q=;
+	b=ljz8OlrCbveTgTcrUyvPzCwU5OmdbedlyfwDOzSxpGZpZ0SnbYm5m/WRqQmDEoXLYlQY
+	 wi31+zaD08AInGp7b3IISWSFffUasecnr/bTU28n/xga/XIMm8hJlwvpY+vwFVbp05dMn
+	 IahTt5ImYmsLUNy2IpryCKTrIZCTIpBfG8osvZ/VhfdaCaL9MnNRZ+9h3z6/RkmPhp7VT
+	 imTzmvXBsYPbVnrVMpuD+tL6D34etqNbNcRLGMVJC2hdgSA3CLSpN4i6ujepg6UYELfvk
+	 6ZSX9D4ceK8DzTgQNQZVTN7W2tT3QlSOE9BS7VyR20c++NpLFpVl3AU793gP9mguC1A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=intel.com;
-	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=Yuy7TRI3;
-	arc=none smtp.remote-ip=192.198.163.13
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PGtU2tLR;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 599C6606A31C
-	for <mm-commits@vger.kernel.org>; Tue, 17 Nov 2026 16:09:45 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 599C6606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41F35606A31C;
+	Tue, 17 Nov 2026 16:10:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=Yuy7TRI3
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1794931785; x=1826467785;
-  h=date:from:to:cc:subject:message-id;
-  bh=vkshbKx18VBVh0xRXNCtSh4UARbaMCneq8MscDrz50w=;
-  b=Yuy7TRI3vhqhm/09uAwHNtpszTRsyi1+jvcQo9nS1n2lz7K8Iqn4jXFx
-   NwZ6SK7R7vbtl5QHYDuz1lz7q79NhuhwFbF7M/IfAu4SBwoQ739Wt/sX4
-   1BdfDtVCH+vlvzTQ4hw9QwevX1sVTeDQkTB+8AwY7XkLnD0A8CyBoLvU+
-   VcvOOHYRIuG87Bvk/XFwkeQoKX7vyOp6G7bK2ZUWPk8om9ntTvtKWuA/G
-   WxjYfa3fYDblBNXcJOauvSIsfRZvmSGoShQRuj4T6LDPDdrYO3/w6T+mS
-   fqBdEzf7sSSkjbXYgEVJjqqc5t9X/UOVY3YCLp2M546MN0JSuNnAZgz0C
-   A==;
-X-CSE-ConnectionGUID: HwCMxFPuQbKfqE5OIiyKoQ==
-X-CSE-MsgGUID: kB/h4nwRQsK+EZ314iZC/g==
-X-IronPort-AV: E=McAfee;i="6800,10657,11969"; a="3699029"
-X-IronPort-AV: E=Sophos;i="6.27,218,1787036400"; 
-   d="scan'208";a="3699029"
-Received: from fmviesa006.fm.intel.com ([10.60.135.146])
-  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Nov 2026 08:09:44 -0800
-X-CSE-ConnectionGUID: R48YbB6nSZujGKMjG4IOuw==
-X-CSE-MsgGUID: v/9V68TUQ2SSifJ3U8nRlw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,218,1787036400"; 
-   d="scan'208";a="10183685"
-Received: from igk-lkp-server01.igk.intel.com (HELO 1073a420ae3a) ([10.211.93.152])
-  by fmviesa006.fm.intel.com with ESMTP; 17 Nov 2026 08:09:43 -0800
-Received: from kbuild by 1073a420ae3a with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1xTLka-0000000039i-3G6D;
-	Tue, 17 Nov 2026 16:09:40 +0000
-Date: Tue, 17 Nov 2026 17:09:02 +0100
-From: kernel test robot <lkp@intel.com>
-To: Aveline Noir <jm5905938@gmail.com>
-Cc: oe-kbuild-all@lists.linux.dev, David Hildenbrand <david@kernel.org>,
- Andrew Morton <akpm@linux-foundation.org>,
- Linux Memory Management List <linux-mm@kvack.org>,
- mm-commits@vger.kernel.org, SJ Park <sj@kernel.org>
-Subject: [akpm-mm:mm-new 316/342] mm/damon/tests/paddr-kunit.h:37:9:
- sparse: sparse: cast truncates bits from constant value (ffffffff000 becomes
- fffff000)
-Message-ID: <20261117170155.fEdeuuhm-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PGtU2tLR
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D44191F000C5;
+	Tue, 17 Nov 2026 16:10:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1794931822;
+	bh=MrCAAU6esyzUFUnBSJ1erHsgVIRqIRzFCSqJmVIc0/Q=;
+	h=Date:To:From:Subject;
+	b=PGtU2tLR6iGSCcSZ21HqpVvALA9iuwushAhP3OmagACuN+q/QRJdfnsmCsvFeABXU
+	 3jWcAVy2iKl+Uw1qbIrKqMx5VHQK36j5VHXqQ+ImRPs+ktSPkjfaW1KHwIOEbDqx8f
+	 d2sVJePHc2thRkISnOgYZS2QG3ubJqJnG+KyQiTQ=
+Date: Tue, 17 Nov 2026 08:10:22 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,
+	riel@surriel.com,qi.zheng@linux.dev,ljs@kernel.org,liam@infradead.org,
+	lance.yang@linux.dev,jannh@google.com,harry@kernel.org,david@kernel.org,
+	baohua@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [merged] mm-synchronize-with-pte-table-reclaim-for-all-folio-sizes.patch removed from -mm tree
+Message-Id: <20261117161022.D44191F000C5@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -84,40 +52,121 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-head:   c37b2f8a996722ec8fbcfadb045f9f787df65510
-commit: 7a983cc1b57309a875a9e07a934c9944bf3d088d [316/342] mm/damon/paddr: add KUnit tests for addr_unit conversion
-config: i386-randconfig-2302-20261117 (https://download.01.org/0day-ci/archive/20261117/20261117170155.fEdeuuhm-lkp@intel.com/config)
-compiler: clang version 22.1.8 (https://github.com/llvm/llvm-project ca7933e47d3a3451d81e72ac174dcb5aa28b59d1)
-sparse: v0.6.5-rc1-21-g84ec0658
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20261117/20261117170155.fEdeuuhm-lkp@intel.com/reproduce)
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/20261117170155.fEdeuuhm-lkp@intel.com/
+The quilt patch titled
+     Subject: mm: synchronize with PTE table reclaim for all folio sizes
+has been removed from the -mm tree.  Its filename was
+     mm-synchronize-with-pte-table-reclaim-for-all-folio-sizes.patch
 
-sparse warnings: (new ones prefixed by >>)
-   mm/damon/paddr.c: note: in included file:
->> mm/damon/tests/paddr-kunit.h:37:9: sparse: sparse: cast truncates bits from constant value (ffffffff000 becomes fffff000)
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-vim +37 mm/damon/tests/paddr-kunit.h
+------------------------------------------------------
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: synchronize with PTE table reclaim for all folio sizes
+Date: Tue, 17 Nov 2026 11:40:22 +0800
 
-    26	
-    27	static void damon_test_pa_addr_over_4g(struct kunit *test)
-    28	{
-    29		unsigned long addr = 0xffffffffUL;
-    30		unsigned long addr_unit = 0x1000;
-    31		u64 pa = 0xffffffff000ULL;
-    32	
-    33		if (!IS_ENABLED(CONFIG_PHYS_ADDR_T_64BIT))
-    34			kunit_skip(test, "phys_addr_t is 32-bit");
-    35	
-    36		KUNIT_EXPECT_EQ(test, damon_pa_phys_addr(addr, addr_unit), pa);
-  > 37		KUNIT_EXPECT_EQ(test, damon_pa_core_addr(pa, addr_unit), addr);
-    38	}
-    39	
+Similar to commit 243cf1f67b36 ("mm: memory: fix truncation removing
+mapped folios"), the '!pmd_present()' check in page_vma_mapped_walk() can
+also race with concurrent page table reclamation via
+zap_empty_pte_table().
 
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+page_vma_mapped_walk() is used by many functions including try_to_unmap(),
+try_to_migrate(), folio_mkclean(), pfn_mkclean_range(),
+remove_migration_ptes(), page_mapped_in_vma(), and
+mapping_wrprotect_range().  Except for try_to_unmap() and
+try_to_migrate(), the other callers do not perform post-walk accounting
+checks, so the race has no observable impact on them.
+
+For migration, the race can cause unnecessary retries.  For reclaim via
+try_to_unmap(), the race can cause failure to reclaim a folio that is in
+fact already unmapped (as shown below), which may cause cold/hot inversion
+(e.g., in MGLRU) and increase refaults.  In extreme cases, failing to
+reclaim unmapped large folios could even cause OOM in theory.
+
+CPU 0 (reclaim)                      CPU 1 (MADV_DONTNEED)
+--------------------------------    --------------------------------
+folio_lock(F)
+try_to_unmap(F, TTU_SYNC)
+                                    zap_pte_range(full PMD range)
+                                      spin_lock(ptl)
+                                      clear PTEs
+                                      zap_empty_pte_table()
+                                        spin_trylock(pml)
+                                        pmd_clear()
+                                        spin_unlock(pml)
+
+  page_vma_mapped_walk()
+    observe !pmd_present(pmde)
+    nr_pages < HPAGE_PMD_NR
+    skip synchronization
+    return false
+
+try_to_unmap() returns
+folio_mapped(F) == true
+nr_unmap_fail += folio_nr_pages(F)
+                                    tlb_flush_mmu_tlbonly()
+                                    tlb_flush_rmaps()
+                                      remove F's rmaps
+                                    spin_unlock(ptl)
+
+Commit 243cf1f67b36 ("mm: memory: fix truncation removing mapped folios")
+has already moved the PMD clear operation (via zap_empty_pte_table()) to
+after tlb_flush_rmaps().  Similarly, page_vma_mapped_walk() also needs to
+use sync_with_folio_pmd_zap() to synchronize and avoid memory ordering
+issues on weakly ordered CPUs.
+
+Regarding performance, evaluated the impact on try_to_unmap().  Mapped a
+file to generate clean large folios, then used MADV_PAGEOUT to reclaim 1G
+of mapped clean large folios, repeated 5 times, with no measurable
+performance impact.  Before: 16.031 ms over 5 loops After: 16.303 ms over
+5 loops
+
+While the race scenario described in the patch may theoretically affect
+performance, the actual impact in real workloads is likely limited I
+think.  Anyway, will use memory barriers to sync for non PMD-sized folios
+in a follow-up.
+
+Lance also reported the possible racy check for small folios[1].  However,
+whether to set TTU_SYNC for small folios should be done in a separate
+patch (this is a pre-existing issue) with proper measurement (though it
+may be hard to measure the actual impact).
+
+Link: https://lore.kernel.org/71980310d9bf1bf9733ea0e4b772635e1b2bc5c5.1794886401.git.baolin.wang@linux.alibaba.com
+Link: https://lore.kernel.org/all/0ddaf336-7cb7-4e83-af2c-f60d23f7aafd@linux.dev/ [1]
+Fixes: 6375e95f381e ("mm: pgtable: reclaim empty PTE page in madvise(MADV_DONTNEED)")
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Qi Zheng <qi.zheng@linux.dev>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Harry Yoo <harry@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: <stable@vger.kernel.org>
+
+ mm/page_vma_mapped.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+--- a/mm/page_vma_mapped.c~mm-synchronize-with-pte-table-reclaim-for-all-folio-sizes
++++ a/mm/page_vma_mapped.c
+@@ -293,10 +293,7 @@ restart:
+ 			spin_unlock(pvmw->ptl);
+ 			pvmw->ptl = NULL;
+ 		} else if (!pmd_present(pmde)) {
+-			if ((pvmw->flags & PVMW_SYNC) &&
+-			    thp_vma_suitable_order(vma, pvmw->address,
+-						   PMD_ORDER) &&
+-			    (pvmw->nr_pages >= HPAGE_PMD_NR))
++			if (pvmw->flags & PVMW_SYNC)
+ 				sync_with_folio_pmd_zap(mm, pvmw->pmd);
+ 
+ 			goto next_pmd;
+_
+
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+
+
