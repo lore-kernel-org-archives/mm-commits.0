@@ -1,47 +1,89 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.227.201
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794935750;
-	b=Lmh3R4Yx0ZZ9A2nTEkpIqhZanohgTz2J1cdUF4c4A4zR4KtXKQLCjj4rWUfKiyf/eUqI
-	 FgZ6GkzUs30oyUdGXSKoNZxUaZUbYJPOug5uh/wb3Td0nN7PKC3YLdTA+kB1SMoY9QD3y
-	 XkexFEKbjS78QnHjU2quAyiKXLRS3hMSvnyuUPcxgEbqslSJJS1VDrG1ap9wo8sZp7/5e
-	 bIfxvRAi8qdKJy3js8PmOnIWK89RNjfC4do9Z/mX0AXLqxEOKOMw/Sp0UXzWay1hCABg/
-	 F7djc2iE2DWXy67LrsEOF2LM5vdXZllHqPePdZx/vccU9Pd7Hl8oJevs9SbZZFiYOhw==
+	t=1794935799;
+	b=x1ROLoyyfqchS8VzQcbsZeZduBzQLQKnf+x1o617UWaNIu/1Q7hY4+GV68hIh8V85K+P
+	 t+HKeIUSAxYnuRj6hiAvSP3TQ6zijq2Hz1AESUV7gN6I/ecg3durCYqtrjtUwwwaAHt2G
+	 2CbSpIZUss8KkuLBVk5g8DVAsRKvagSyrFQvAVGXW171xyiiRyuT+5q3UaFRLj9w5DQ12
+	 HnzKs8ePkM/x46vo2uK8tkrlc7soBWhRf72lsMRt05V6SU8xveeu18h0toKEtHDRp56fp
+	 RPUBYuKWk6AYDnkO21MiHUvh5yluOQhHwde4mCsZt9gHwLNDRPCPpWaEPYSnExlkFcQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794935750;
-	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=Ic19Eu1F2uZnUPtaJWJ+CWNacBPi+I9y53FGrVZxZX0=;
-	b=FYgUi93KsWQzKoGexyUOS5Te4Th2gXk/2nnHEjvrLt2ytu+kbXy1KqYNK1XWvbYntJT8
-	 kr4nkoYHikCBMyRXRq1VQyw0Yz6Aiw43owSIcGqtcxU497OevK9ObDUIn2TCqXO/dhUwv
-	 Obg1gxx2S6vpWr8miVe97imO6GxaJd/n1qgSpCP4f8H2/1vFbC1dLWa1mr5qlN+k0wY2i
-	 gkySO9HJyBiwbyFQZMB/20LEDFcfjyfU9BadbQPmTfHG9chmugR3Y+3qfgQimlT/qq3+1
-	 1MhVy7CdvPrQWg2jS3eqGE4v9nHL0Ig95pcwvIJnjO4jOkysM4Yash32GxbYPK3R2jw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794935799;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:Date:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 Message-Id:X-B4-Tracking:X-Change-ID:To:Cc:X-Mailer;
+	bh=ROucTsPnyYTVcMujmRdSC63nWVbZidpBxQo25fxVF2Q=;
+	b=ZtMv4YITbHgOt/jloM3SEBw+haG8osm1Oy24lrBSN97rCkHP3ZNZoCjRtQdIH79GXng/
+	 KpYVhN4LhTBQftdekuS21uWJRB6ErkxIm3iNyfFRfnVW4VJ2FLtn/fu3EdA3cotwT+zRo
+	 QVZdn+xdi3Zx6/3K5AFxvPwCy1fXLUzuRwICiJcEXNWdJXbwmfMwRPdCbDeqpJOtUCPPA
+	 kQUEh7ynYik7hewn4qBeIgoBaXPp6WoQWZ9+zGev2031IbXs0EVWdx5pQkqRY/mG+Ixf4
+	 yv2eRKi6vLlrxqsHC3Z8S6WlPcMQf6LwwqHircRE7iiuS+fvREj4RVXF/SonxtkKjrQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mCJxSm8h;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=sKYnmSCx;
+	arc=none smtp.remote-ip=74.125.227.201
+Received: from mail-pi2-f9.google.com (mail-pi2-f9.google.com [74.125.227.201])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 400EB606A337
-	for <mm-commits@vger.kernel.org>; Tue, 17 Nov 2026 17:15:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79AE7606A31C
+	for <mm-commits@vger.kernel.org>; Tue, 17 Nov 2026 17:16:38 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 79AE7606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mCJxSm8h
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1A3C1F000C6;
-	Tue, 17 Nov 2026 17:15:49 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=sKYnmSCx
+Received: by mail-pi2-f9.google.com with SMTP id 41be03b00d2f7-cdd8f943737so21514a12.1
+        for <mm-commits@vger.kernel.org>; Tue, 17 Nov 2026 09:16:38 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794935750;
-	bh=Ic19Eu1F2uZnUPtaJWJ+CWNacBPi+I9y53FGrVZxZX0=;
-	h=Date:To:From:Subject;
-	b=mCJxSm8h30sN7JztMSdKwdD3TUZayMwWfYJM5xH6F9uHDkY8it7A+00/lYALoxGKu
-	 vOKnlqbNg9L/EN4tD9xUzq2Ab3sQ4u/ZhejiGOmQXtHngDz56bNG4sNajOXQkGMlwh
-	 47lYZc7y2CXySjo7QOuLAWcJJrullFsLUjplSKqA=
-Date: Tue, 17 Nov 2026 09:15:49 -0800
-To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,
-	rdunlap@infradead.org,osandov@osandov.com,kees@kernel.org,corbet@lwn.net,
-	chris@chrisdown.name,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] proc-kcore-allow-disabling-proc-kcore-at-boot.patch removed from -mm tree
-Message-Id: <20261117171549.E1A3C1F000C6@smtp.kernel.org>
+        d=gmail.com; s=20260707; t=1794935798; x=1795540598; darn=vger.kernel.org;
+        h=cc:to:message-id:content-transfer-encoding:content-type
+         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=ROucTsPnyYTVcMujmRdSC63nWVbZidpBxQo25fxVF2Q=;
+        b=sKYnmSCxuvyXlPnhX+NgDfDEHb6kMZX+1jxvCLEL66zeTME5s+nDqB0/DpZPakleKF
+         4q3V10iHl+uX8ujRm9JJzgV62Hy8Fb9ux5rxydcrrxuCwHnpS7wJSuX07g0m40Envljn
+         10T6xSsG7vp5EgUkpzVGnHjiTP2k/CXhh8Dbd9Jtiw0O+2Y01Nckjj+msHuIEwFEyDjY
+         Sb8OnRxh6Qq2AREL52KDknUFMmXGxvwdqwOhmDoLK6zIKU3XPMLW1NIUWNK4V6acg68E
+         99IijfZPFHdvO22PL8Jj783Gg99xevvkBUKlISVEmyokXsbg0DN1ERpVPvCerDl+IytP
+         w+Cw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794935798; x=1795540598;
+        h=cc:to:message-id:content-transfer-encoding:content-type
+         :mime-version:subject:date:from:x-gm-gg:x-gm-message-state:from:to
+         :cc:subject:date:message-id:reply-to:content-type;
+        bh=ROucTsPnyYTVcMujmRdSC63nWVbZidpBxQo25fxVF2Q=;
+        b=lvMS6VSmCwCwpR1G6Ch8g3FDE1dktHd+8sKtB8R6lq63ZO/NOhGg54n+4Hxvgfbu1j
+         qSExSMV6bzu4Scx57P1+bt7X3AkPChTxBdzbrIkF7Dq+67V0YILTEBR+yQkuOHcE3j1s
+         y85XJ51O0KtQBc1PdoNpYTKXZFXMoWuYva+F/uu5XwWWdy/XH+X3aIAs3S0V2Yy9u6jr
+         6pPHTn6uG6uuhYtAyrFEJciIAQc18qBP1/2Xct9IqkrWYcpV2kKUwVrYLExcMf5a61dX
+         cT3JQUi413uqycKvQD7eYndahP/wsRazBNm2qDWzCwnSKxDntLIDH2+2Xfekq6+iHki1
+         03mQ==
+X-Forwarded-Encrypted: i=1; AL+hErEUlK4aiU80zZaOntDUks5OZtgLeSSoSlwkm7lXwjQxr46XH18vrvOfPF+zP4hLNbWtovX2Z14bQy/K@vger.kernel.org
+X-Gm-Message-State: APuU4Z9BQW+A7/XpHAcShZl5d4nitxXJQ6aV5Iim0p4WMtOuhXZMNnSp
+	ZzAp1dKAhaUgxunJCei5sNYb9MEwPqxkw5SaHJrkgSwMxAJ/xemTK89I
+X-Gm-Gg: AYBFou3E3lgUi3/wakzermZfAQW/ubNH+jSjqtZ1UOuWp/I8/KRDeEoAZO9/AF0VAzE
+	mId/psXIGBXED4/dd0V6lpAufJBXs+tjq6W2i4/5I+TYn0jurhyOeUdvCL8tP77MszwHOfIaBti
+	CF+mql1k/Jxw8mP8Bib2FUq7aWCVlIhn2Y7b8L5hGKAYeOS8lN3VbhmJoEp1ioYbjlNOqJClAF2
+	oP8iDmwHveb1h9oUCpA4V/xmKM8MNRmzqEEdXfXPmOY3nqz16RAlTyD/oTYWtZu9U1EsBQKOQza
+	gFAmHEYcrQdraDafP1aJVicXRQsowGzoD6Rj4M5EpjE87IyYka5GErGfekXDbfTAMOQlOlQmDaG
+	4NXR7ZJxkbcoLCeeoeyhvecfcE4EBtoGkJEE97C7v1ASzpDIcDAGekl1Zvggi7SNY8eesljboSd
+	lqyxRG1Ku3V8dLoWQgZVNBCFOkTbU/snkfPBYc+NJXD9e5XVc/K7gfuXn8vBlzEfo3fCPlMxNN4
+	OxojTivrqdXHpK6bjcrwXFOP8osCklsIBtiLWINFuwMfTXhONIOB/FLq4mpmbS8DZLbjznTPW2F
+	Hye1/5l235gUPqXAJl2KW208FmFFldLRYzQGaKC9JM3j5Rb/uJdT+yVgo63vFAzatAE6/eUlnOB
+	lh/pAs4r0ZrqhhSuNa+k6kJK6MkRpgM9colYcxLYDR1etMi4VRaQq/mOwp+DBk+gOMFohcDyoMs
+	DbU/nCvlg=
+X-Received: by 2002:a05:6a00:3008:b0:855:eb7b:5804 with SMTP id d2e1a72fcca58-8beb374dd2cmr12162924b3a.4.1794935797654;
+        Tue, 17 Nov 2026 09:16:37 -0800 (PST)
+Received: from localhost (n106-71-19-159.sun21.vic.optusnet.com.au. [106.71.19.159])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8c5b38f2c39sm99770b3a.34.2026.11.17.09.16.22
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 17 Nov 2026 09:16:36 -0800 (PST)
+From: Aveline Noir <jm5905938@gmail.com>
+Date: Wed, 18 Nov 2026 04:04:33 +1100
+Subject: [PATCH] mm/damon/paddr: avoid truncation warning in high-address
+ KUnit test
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -50,106 +92,83 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20261118-fix-damon-paddr-sparse-20261118-v1-1-3a0e943406d5@gmail.com>
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/32NOw7CMAyGr1J5xiLJ0AaughicxNAgkVZ2QUhV7
+ 04CAxvj9z9XUJbMCsduBeFn1jyVCnbXQRypXBlzqgzOuN5a6/GSX5joPhWcKSVBnUmU8ecH4w/
+ GDb1PA9SVWbhWPg+n85f1EW4clzbbEoFqPwiVODap4f7PA2zbG7eW2xe2AAAA
+X-Change-ID: 20261118-fix-damon-paddr-sparse-20261118-fb08902768d7
+To: SJ Park <sj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: damon@lists.linux.dev, David Hildenbrand <david@kernel.org>, 
+ Justin Stitt <justinstitt@google.com>, lienze@kylinos.cn, 
+ linux-kernel@vger.kernel.org, 
+ Linux Memory Management List <linux-mm@kvack.org>, 
+ kernel test robot <lkp@intel.com>, llvm@lists.linux.dev, 
+ mm-commits@vger.kernel.org, Bill Wendling <morbo@google.com>, 
+ Nathan Chancellor <nathan@kernel.org>, 
+ Nick Desaulniers <ndesaulniers@google.com>, oe-kbuild-all@lists.linux.dev, 
+ rdunlap@infradead.org, sashiko-bot@kernel.org, 
+ sashiko-reviews@lists.linux.dev
+X-Mailer: b4 0.16.0
 
+Hi SJ, Andrew,
 
-The quilt patch titled
-     Subject: proc/kcore: allow disabling /proc/kcore at boot
-has been removed from the -mm tree.  Its filename was
-     proc-kcore-allow-disabling-proc-kcore-at-boot.patch
+The kernel test robot caught this issue in my earlier addr_unit KUnit
+patch. Feel free to fold this fix into that patch.
 
-This patch was dropped because an updated version will be issued
+Thanks,
+Aveline Noir
 
-------------------------------------------------------
-From: Chris Down <chris@chrisdown.name>
-Subject: proc/kcore: allow disabling /proc/kcore at boot
-Date: Sun, 15 Nov 2026 19:57:48 -0800
+-- >8 --
+When phys_addr_t is 32-bit, Sparse warns about truncating the u64 address
+passed to damon_pa_core_addr() in damon_test_pa_addr_over_4g().  The
+runtime kunit_skip() does not prevent Sparse from checking that
+conversion.
 
-/proc/kcore lets any process with CAP_SYS_RAWIO read all of kernel memory.
-That's a pretty large read primitive for anyone who obtains CAP_SYS_RAWIO
-(and it also gives away the KASLR layout).
+Compile the high-address assertions only with CONFIG_PHYS_ADDR_T_64BIT,
+and keep the test skipped otherwise.
 
-For this reason on some hosts we want to turn /proc/kcore off.  In terms
-of what it can read, /proc/kcore isn't any more concerning than other ways
-to read kernel memory, like BPF with CAP_BPF and CAP_PERFMON.  The
-distinction is that a process with CAP_SYS_RAWIO doesn't necessarily have
-CAP_BPF and CAP_PERFMON, because CAP_SYS_RAWIO may be needed for hardware
-access without necessarily wanting to grant general RAM access. 
-CONFIG_STRICT_DEVMEM already makes that possible for /dev/mem, but
-/proc/kcore gives the same capability to do general purpose RAM reading
-anyway.
+Fixes: 7a983cc1b573 ("mm/damon/paddr: add KUnit tests for addr_unit conversion")
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/20261117170155.fEdeuuhm-lkp@intel.com/
+Signed-off-by: Aveline Noir <jm5905938@gmail.com>
+---
+The reported warning is gone with the original i386 config, Clang 22.1.8
+and Sparse v0.6.5-rc1-21-g84ec0658. All executed DAMON KUnit tests passed
+on x86_64 and i386 with and without PAE; the high-address case skips
+without PAE.
+---
+ mm/damon/tests/paddr-kunit.h | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-However, on a kernel built with CONFIG_PROC_KCORE=y the only ways to block
-it today are lockdown=confidentiality (which also disables many other
-things we perhaps don't want to disable, like kprobes and
-bpf_probe_read_kernel()), or an LSM.  That's annoying, because on the
-majority of hosts we do want it on for things like drgn/crash, so today we
-build two separate kernels.
-
-Let's add a "kcore=" boot parameter so that this can be disabled at boot,
-which lets us preserve those choices while using the same kernel image.
-
-Link: https://lore.kernel.org/a8474f0e2d0ef5ea9d53aa6649c7e9c9ea6f15c2.1794800574.git.chris@chrisdown.name
-Signed-off-by: Chris Down <chris@chrisdown.name>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Omar Sandoval <osandov@osandov.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Kees Cook <kees@kernel.org>
-
- Documentation/admin-guide/kernel-parameters.txt |    6 ++++++
- fs/proc/kcore.c                                 |   12 ++++++++++++
- 2 files changed, 18 insertions(+)
-
---- a/Documentation/admin-guide/kernel-parameters.txt~proc-kcore-allow-disabling-proc-kcore-at-boot
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -2902,6 +2902,12 @@ Kernel parameters
- 			parameter KASAN will print report only for the first
- 			invalid access.
+diff --git a/mm/damon/tests/paddr-kunit.h b/mm/damon/tests/paddr-kunit.h
+index 9839cc233071..2b11f0e67a12 100644
+--- a/mm/damon/tests/paddr-kunit.h
++++ b/mm/damon/tests/paddr-kunit.h
+@@ -26,15 +26,16 @@ static void damon_test_pa_core_addr(struct kunit *test)
  
-+	kcore=		[KNL,EARLY]
-+			Enable or disable /proc/kcore on kernels built with
-+			CONFIG_PROC_KCORE=y.
-+			Format: <bool>
-+			Default: on
-+
- 	keep_bootcon	[KNL,EARLY]
- 			Do not unregister boot console at start. This is only
- 			useful for debugging when something happens in the window
---- a/fs/proc/kcore.c~proc-kcore-allow-disabling-proc-kcore-at-boot
-+++ a/fs/proc/kcore.c
-@@ -69,6 +69,7 @@ static size_t kcore_notes_len;
- static size_t kcore_data_offset;
- DEFINE_STATIC_PERCPU_RWSEM(kclist_lock);
- static int kcore_need_update = 1;
-+static bool kcore_enabled __initdata = true;
- 
- /*
-  * Returns > 0 for RAM pages, 0 for non-RAM pages, < 0 on error
-@@ -722,8 +723,19 @@ static void __init add_modules_range(voi
- }
- #endif
- 
-+static int __init parse_kcore(char *str)
-+{
-+	return kstrtobool(str, &kcore_enabled);
-+}
-+early_param("kcore", parse_kcore);
-+
- static int __init proc_kcore_init(void)
+ static void damon_test_pa_addr_over_4g(struct kunit *test)
  {
-+	if (!kcore_enabled) {
-+		pr_info("/proc/kcore disabled on command line\n");
-+		return 0;
-+	}
-+
- 	proc_root_kcore = proc_create("kcore", S_IRUSR, NULL, &kcore_proc_ops);
- 	if (!proc_root_kcore) {
- 		pr_err("couldn't create /proc/kcore\n");
-_
++#ifdef CONFIG_PHYS_ADDR_T_64BIT
+ 	unsigned long addr = 0xffffffffUL;
+ 	unsigned long addr_unit = 0x1000;
+ 	u64 pa = 0xffffffff000ULL;
+ 
+-	if (!IS_ENABLED(CONFIG_PHYS_ADDR_T_64BIT))
+-		kunit_skip(test, "phys_addr_t is 32-bit");
+-
+ 	KUNIT_EXPECT_EQ(test, damon_pa_phys_addr(addr, addr_unit), pa);
+ 	KUNIT_EXPECT_EQ(test, damon_pa_core_addr(pa, addr_unit), addr);
++#else
++	kunit_skip(test, "phys_addr_t is 32-bit");
++#endif
+ }
+ 
+ static struct kunit_case damon_paddr_test_cases[] = {
 
-Patches currently in -mm which might be from chris@chrisdown.name are
-
-mm-memcontrol-dont-lose-track-of-exiting-oom-victims.patch
-selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test.patch
+---
+base-commit: 7a983cc1b57309a875a9e07a934c9944bf3d088d
+change-id: 20261118-fix-damon-paddr-sparse-20261118-fb08902768d7
 
