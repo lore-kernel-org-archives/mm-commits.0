@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794931823;
-	b=B/Amt6BYbPS2YIx//pKUq2pUv0Hxmzkcgrbbtyb9px+OXs31og/hIst87SMnPtfD+fQS
-	 vXMOhI1EEsDerjo/0SDE1F8JsfUBERMnwQfoBBS2pGCWjU2bwyjx5BtFJjPLJ5g1d6diA
-	 AsHqjiO3+PIOeV8CLHusYvFpPP74cA3ROK6SUsPGWcV3Xod+04uVZo5rvB4tAuBHeNttT
-	 vyV22f6woZUELCW5qOXnJbxEJtZqUuCDYANszVl264/Bq6ObQodnBtikT4EFH3y7kQjI/
-	 PMa6v44DP7LfWd4S2xnJImZauXKi2c5Sa6VQf8ZwMQZBlxB49IJjhBHKLhUJLXG/K5Q==
+	t=1794931862;
+	b=zOzJI1owh/XK0NUq8b4xfPwxg90ijM9+MtWqCDhqWrqmS6OFUHXMluqXGtOLxiyWaknu
+	 WplL9BbwSVz1VfDojHd9dbfcGZNQGSQCwy0mmOidVVjnVIZm9cYCmylKbxqZBoKIdlURg
+	 79o/nem4AoivqBo3cV+jpLcGJSk3quLd1OxJ0m6p3+8NBDB0KzFQB8LuC+Az8ro+hqZu9
+	 9PeYbK0fyP+hVglVxSJxSmx5vTJBBtMHb9yN6xmwCT+QTklVJL/sYNpdXy54l8WVe8a9t
+	 Bgd75FphPhsDUOFzBFvtMKnWaFTDwhYL8KcwuZkdYSfyclR/9mWzM3cHt7DesIHZsdg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794931823;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794931862;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=MrCAAU6esyzUFUnBSJ1erHsgVIRqIRzFCSqJmVIc0/Q=;
-	b=ljz8OlrCbveTgTcrUyvPzCwU5OmdbedlyfwDOzSxpGZpZ0SnbYm5m/WRqQmDEoXLYlQY
-	 wi31+zaD08AInGp7b3IISWSFffUasecnr/bTU28n/xga/XIMm8hJlwvpY+vwFVbp05dMn
-	 IahTt5ImYmsLUNy2IpryCKTrIZCTIpBfG8osvZ/VhfdaCaL9MnNRZ+9h3z6/RkmPhp7VT
-	 imTzmvXBsYPbVnrVMpuD+tL6D34etqNbNcRLGMVJC2hdgSA3CLSpN4i6ujepg6UYELfvk
-	 6ZSX9D4ceK8DzTgQNQZVTN7W2tT3QlSOE9BS7VyR20c++NpLFpVl3AU793gP9mguC1A==
+	bh=zKbAwM+PhA9G6M/l5LB1gvoQYRbpEBYsNuau9ojM/s8=;
+	b=dWslElkJ9kZV8GL/lM03sN1kjDIH6ZTADzQKUOcU61ZM5O5QSEmRBSCeAAdlMM8mCQzx
+	 R64Gt5Q7fwdVt1i84QytEB35dVsqK5Nlh3bLtW7OqXItfdIcokT9il+Qm0NmCvGTbRVLV
+	 mLkzzPfhrp5S6y9C8uQpZyX1jk+4BjSwheNk4GCpi30gpGArwMRv2gTzUtDyNZi9xqQ0g
+	 zi8zw8QuUmIS/BpmR9Wsi+zjH3R2svanEEoTNg83sFAUa3Sc4dIyNDg4zOxVRPiuDyToi
+	 lI9GjEsm+mn40kJrwHEqwwaFo34h79bWC0j2sR/v213yWOzeGizzOZugbDzFTtS3FMA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PGtU2tLR;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=hBANHqbD;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41F35606A31C;
-	Tue, 17 Nov 2026 16:10:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAB1D606A31C
+	for <mm-commits@vger.kernel.org>; Tue, 17 Nov 2026 16:11:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PGtU2tLR
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D44191F000C5;
-	Tue, 17 Nov 2026 16:10:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=hBANHqbD
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 578511F000C4;
+	Tue, 17 Nov 2026 16:11:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794931822;
-	bh=MrCAAU6esyzUFUnBSJ1erHsgVIRqIRzFCSqJmVIc0/Q=;
+	d=linux-foundation.org; s=korg; t=1794931862;
+	bh=zKbAwM+PhA9G6M/l5LB1gvoQYRbpEBYsNuau9ojM/s8=;
 	h=Date:To:From:Subject;
-	b=PGtU2tLR6iGSCcSZ21HqpVvALA9iuwushAhP3OmagACuN+q/QRJdfnsmCsvFeABXU
-	 3jWcAVy2iKl+Uw1qbIrKqMx5VHQK36j5VHXqQ+ImRPs+ktSPkjfaW1KHwIOEbDqx8f
-	 d2sVJePHc2thRkISnOgYZS2QG3ubJqJnG+KyQiTQ=
-Date: Tue, 17 Nov 2026 08:10:22 -0800
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,
-	riel@surriel.com,qi.zheng@linux.dev,ljs@kernel.org,liam@infradead.org,
-	lance.yang@linux.dev,jannh@google.com,harry@kernel.org,david@kernel.org,
-	baohua@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=hBANHqbDorLQ5RLazxjid4BTPIgQvIzDSUdmdcAcaMdzbPGsD9CwTtrUgQnv6jHg4
+	 Yp+QE+JtkZodsPmsWa1J7OjFyOUZKNxo9ry6wt9AsrRTArE8QRcIFovsGszHGBMjum
+	 opuXPcGQv1J5l8opm653FMypWHrKZ60e3cbbB+2M=
+Date: Tue, 17 Nov 2026 08:11:01 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
+	shivankg@amd.com,shao.mingyin@zte.com.cn,rppt@kernel.org,mhocko@suse.com,
+	luizcap@redhat.com,luiz.capitulino@linux.dev,ljs@kernel.org,
+	liam@infradead.org,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-synchronize-with-pte-table-reclaim-for-all-folio-sizes.patch removed from -mm tree
-Message-Id: <20261117161022.D44191F000C5@smtp.kernel.org>
+Subject: [merged] mm-util-fix-retry-detection-and-handling-in-snapshot_page.patch removed from -mm tree
+Message-Id: <20261117161102.578511F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,119 +54,103 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm: synchronize with PTE table reclaim for all folio sizes
+     Subject: mm/util: fix retry detection and handling in snapshot_page()
 has been removed from the -mm tree.  Its filename was
-     mm-synchronize-with-pte-table-reclaim-for-all-folio-sizes.patch
+     mm-util-fix-retry-detection-and-handling-in-snapshot_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: synchronize with PTE table reclaim for all folio sizes
-Date: Tue, 17 Nov 2026 11:40:22 +0800
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Subject: mm/util: fix retry detection and handling in snapshot_page()
+Date: Mon, 16 Nov 2026 15:12:13 +0100
 
-Similar to commit 243cf1f67b36 ("mm: memory: fix truncation removing
-mapped folios"), the '!pmd_present()' check in page_vma_mapped_walk() can
-also race with concurrent page table reclamation via
-zap_empty_pte_table().
+snapshot_page() detects races with concurrent folio split+construction by
+checking whether the given page still falls into the folio. Unfortunately,
+we have an off-by-one error in there, and we should be checking for
+"ps->idx >= nr_pages", because idx 0 is valid.
 
-page_vma_mapped_walk() is used by many functions including try_to_unmap(),
-try_to_migrate(), folio_mkclean(), pfn_mkclean_range(),
-remove_migration_ptes(), page_mapped_in_vma(), and
-mapping_wrprotect_range().  Except for try_to_unmap() and
-try_to_migrate(), the other callers do not perform post-walk accounting
-checks, so the race has no observable impact on them.
+For example, we might currently report a tail page at idx 1 as faithful,
+although the snapshotted folio is now a small folio.
 
-For migration, the race can cause unnecessary retries.  For reclaim via
-try_to_unmap(), the race can cause failure to reclaim a folio that is in
-fact already unmapped (as shown below), which may cause cold/hot inversion
-(e.g., in MGLRU) and increase refaults.  In extreme cases, failing to
-reclaim unmapped large folios could even cause OOM in theory.
+However, there is one complication: As we don't hold a folio reference,
+folio_nr_pages() can return 0 on races (or when called from page freeing
+code). Handle that by just setting it to 1 in that case, so we don't
+wrongly report a head page as "page does not match folio".
 
-CPU 0 (reclaim)                      CPU 1 (MADV_DONTNEED)
---------------------------------    --------------------------------
-folio_lock(F)
-try_to_unmap(F, TTU_SYNC)
-                                    zap_pte_range(full PMD range)
-                                      spin_lock(ptl)
-                                      clear PTEs
-                                      zap_empty_pte_table()
-                                        spin_trylock(pml)
-                                        pmd_clear()
-                                        spin_unlock(pml)
+In addition, we should reset ps->flags when retrying, by just resetting
+it to PAGE_SNAPSHOT_FAITHFUL. Otherwise, PAGE_SNAPSHOT_PG_BUDDY and
+PAGE_SNAPSHOT_PG_IDLE from a failed attempt could stick around.
 
-  page_vma_mapped_walk()
-    observe !pmd_present(pmde)
-    nr_pages < HPAGE_PMD_NR
-    skip synchronization
-    return false
+These races are fairly rare, so this is not really critical, we simply
+report something slightly wrong. No need to CC stable.
 
-try_to_unmap() returns
-folio_mapped(F) == true
-nr_unmap_fail += folio_nr_pages(F)
-                                    tlb_flush_mmu_tlbonly()
-                                    tlb_flush_rmaps()
-                                      remove F's rmaps
-                                    spin_unlock(ptl)
-
-Commit 243cf1f67b36 ("mm: memory: fix truncation removing mapped folios")
-has already moved the PMD clear operation (via zap_empty_pte_table()) to
-after tlb_flush_rmaps().  Similarly, page_vma_mapped_walk() also needs to
-use sync_with_folio_pmd_zap() to synchronize and avoid memory ordering
-issues on weakly ordered CPUs.
-
-Regarding performance, evaluated the impact on try_to_unmap().  Mapped a
-file to generate clean large folios, then used MADV_PAGEOUT to reclaim 1G
-of mapped clean large folios, repeated 5 times, with no measurable
-performance impact.  Before: 16.031 ms over 5 loops After: 16.303 ms over
-5 loops
-
-While the race scenario described in the patch may theoretically affect
-performance, the actual impact in real workloads is likely limited I
-think.  Anyway, will use memory barriers to sync for non PMD-sized folios
-in a follow-up.
-
-Lance also reported the possible racy check for small folios[1].  However,
-whether to set TTU_SYNC for small folios should be done in a separate
-patch (this is a pre-existing issue) with proper measurement (though it
-may be hard to measure the actual impact).
-
-Link: https://lore.kernel.org/71980310d9bf1bf9733ea0e4b772635e1b2bc5c5.1794886401.git.baolin.wang@linux.alibaba.com
-Link: https://lore.kernel.org/all/0ddaf336-7cb7-4e83-af2c-f60d23f7aafd@linux.dev/ [1]
-Fixes: 6375e95f381e ("mm: pgtable: reclaim empty PTE page in madvise(MADV_DONTNEED)")
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Link: https://lore.kernel.org/20261116-snapshot_page_fix-v1-1-8e425984e8d1@kernel.org
+Fixes: d863a12108f2 ("mm/util: introduce snapshot_page()")
+Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Qi Zheng <qi.zheng@linux.dev>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
+Reported-by: Shao Mingyin <shao.mingyin@zte.com.cn>
+Closes: https://lore.kernel.org/r/20261115004657890Pz8ERDf5nCtE-B6M7KFzu@zte.com.cn
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: Luiz Capitulino (Red Hat) <luiz.capitulino@linux.dev>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: <stable@vger.kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Luiz Capitulino <luizcap@redhat.com>
+Cc: Shivank Garg <shivankg@amd.com>
 
- mm/page_vma_mapped.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/util.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/page_vma_mapped.c~mm-synchronize-with-pte-table-reclaim-for-all-folio-sizes
-+++ a/mm/page_vma_mapped.c
-@@ -293,10 +293,7 @@ restart:
- 			spin_unlock(pvmw->ptl);
- 			pvmw->ptl = NULL;
- 		} else if (!pmd_present(pmde)) {
--			if ((pvmw->flags & PVMW_SYNC) &&
--			    thp_vma_suitable_order(vma, pvmw->address,
--						   PMD_ORDER) &&
--			    (pvmw->nr_pages >= HPAGE_PMD_NR))
-+			if (pvmw->flags & PVMW_SYNC)
- 				sync_with_folio_pmd_zap(mm, pvmw->pmd);
+--- a/mm/util.c~mm-util-fix-retry-detection-and-handling-in-snapshot_page
++++ a/mm/util.c
+@@ -1406,9 +1406,9 @@ void snapshot_page(struct page_snapshot
+ 	int loops = 5;
  
- 			goto next_pmd;
+ 	ps->pfn = page_to_pfn(page);
+-	ps->flags = PAGE_SNAPSHOT_FAITHFUL;
+ 
+ again:
++	ps->flags = PAGE_SNAPSHOT_FAITHFUL;
+ 	memset(&ps->folio_snapshot, 0, sizeof(struct folio));
+ 	memcpy(&ps->page_snapshot, page, sizeof(*page));
+ 	info = ps->page_snapshot.compound_info;
+@@ -1437,14 +1437,15 @@ again:
+ 
+ 	if (ps->idx < MAX_FOLIO_NR_PAGES) {
+ 		memcpy(&ps->folio_snapshot, foliop, 2 * sizeof(struct page));
+-		nr_pages = folio_nr_pages(&ps->folio_snapshot);
++		/* On races, or when freeing pages, we can read 0. */
++		nr_pages = folio_nr_pages(&ps->folio_snapshot) ?: 1;
+ 		if (nr_pages > 2)
+ 			memcpy(&ps->folio_snapshot.__page_2, &foliop->__page_2,
+ 			       sizeof(struct page));
+ 		set_ps_flags(ps, foliop, page);
+ 	}
+ 
+-	if (ps->idx > nr_pages) {
++	if (ps->idx >= nr_pages) {
+ 		if (loops-- > 0)
+ 			goto again;
+ 		clear_compound_head(&ps->page_snapshot);
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from david@kernel.org are
 
+maintainers-memory-management-mglru-multi-gen-lru-update.patch
+maintainers-remove-myself-from-memory-management-reclaim.patch
+mm-mprotect-dont-skip-uffd-marker-install-when-racing-with-pte-table-reclaim.patch
+mm-khugepaged-free-unused-page-table-when-setting-a-huge-pmd-fails.patch
+hugetlbfs-fix-integer-overflow-in-fallocate.patch
+mm-hugetlb-compare-against-persistent-count-when-freeing-lowmem-folios.patch
+mm-hugetlb-preserve-reservations-when-shrinking-on-highmem.patch
+mm-hugetlb-account-temporary-folios-separately.patch
+mm-hugetlb-fix-mremap-racing-with-page-migration.patch
+mm-hugetlb-serialize-page-cache-allocations-with-truncation.patch
+mm-memfd-recheck-the-page-cache-before-allocating-a-hugetlb-folio.patch
+mm-hugetlb-count-again-if-the-reserve-map-shrank.patch
+mm-hugetlb-account-restored-reservations-before-freeing-folios.patch
+mm-hugetlb-delay-anon-folio-rmap-removal-until-after-the-tlb-flush.patch
 
