@@ -1,48 +1,50 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794980511;
-	b=sLYy1eaUczizLm0B3JRJmORYwVw/Dgz18sk0P1dstayQp0EtDYb5yPlfubVV6gUr3vvW
-	 tOXTQFrHTt8sZIi0J4K3i2cQN4xWQEZnUjan7JedbarhakZ3nwpo38S+HmXHkZ30GAMAH
-	 +vU26Lw07NX+vrjaV8YbWeCgEq9m3bt2f56JMB/8fQn7+biABBBXY2vTUvMbyMTUBtl9w
-	 AaoGd/CC9sYRtRK4cGNdJsexf6gVKymoKSlpGvb4Ha8g0bisgZMSPWGeAHxi1O3+kfaw1
-	 SIByBL0igiaRdj5ulAaoC5HaRZ924sSBchU1kltI0anoHsLgtEDmP/HnpTsea0S0xmQ==
+	t=1794980512;
+	b=MkABizE6XQIfzxTESQfqiHkbSZ/xRT2zJnpvxBP9XTFYO5LAgSZ8R+/3xIeKrsNNH8w4
+	 yVib5kZfaU/nRvJfrhPLFK35UeZ69lXKNTAhG/aQkpYSV9aI5rdIGSwQZU49Dq5t9VUng
+	 LW+9aiEtObMhse3ISOgUxILT1tybnU6MK0RdmYftM7ChIUAkIaZkisiYLvOtQhaPhjC/m
+	 3DP7xjALHIWPWIad+y9s1WjgqW2DrUGMX4Z98i6C4i8r6ZNbOZs2r4SW9EWxceSkSBC+Z
+	 7DPqTulYRMPd1H6RUPxg+fIQyGHWtbdRePMuBf65Rgi7R5ErZRJpzxwdp6CgrT90dUw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794980511;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794980512;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=nrDBHQoQpQrBR93r6PQm/w5gK6g7OHyUc0BLaSuHLAA=;
-	b=qkrn3LrO9zV6iF+Hb7MaqauGjE1eud2Ju4AIBd51yEd5w/bTtdXMkgTRYgYyA2UboCMA
-	 RMOxNUW1Qlzzph797zUg1hFZ15bVSZJHNKBazY9E4FhaYktKEGiH0LadMUM2N2fZZhzRI
-	 1zEumYtvaTn1Z6Mj5fEyu4hrAxnwVQVsDWmtRfk55ACIDh3wJuWZVilxatPblZMnlUOLB
-	 xhRyf8t9DUgMNDZCpLjkK5sNmVoNFa/txlDGAKNoNA/tQjSpQrKx4J4hb73TuA4pNJ8a+
-	 YbynrmdBHonijOcrTOB8q8sfdrdm4yG8kVyc+KOHbY20NIlfeVTUh13LzrNnE127z5A==
+	bh=szxoprMt5QF8r/0lSiGaDD7BC+uQBRXb5XAgUZjrXj4=;
+	b=BAInhfD68Y2ovbAcv39/e9MwNSX9pSMsuB9ZbghGIeTbBaqTMkLDA8tf1CmkhrCbqz0o
+	 chKXsa7VoOt7oM6p2P1wky6hRLwjteXSPEAyFImqeS1jcmJOzoB0APxmr+g327XlRLhFG
+	 GSZs9HvXOytKa76Y46sge6jHUqZHRmfFVRhbtjKf+8O9g9QaWZmBMWjaaIASbS6EiIAcU
+	 zA/UJ5dQBEb5nMdDbVjefIwfZGbKS4XXvLOYo9yT+fNIFLT7oS4cNu5BFapTKzq/bXVsF
+	 mWBkhVgwMNG3RlkR0xEo0EsvbAi24QZVItKk0tX86Lg/l7NA59jD2mFibVWFwKj1btw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=FxE5MRDC;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=T3MWQX7l;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6A4E606A325;
-	Wed, 18 Nov 2026 05:41:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D38A2606A31C
+	for <mm-commits@vger.kernel.org>; Wed, 18 Nov 2026 05:41:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=FxE5MRDC
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7077F1F000C4;
-	Wed, 18 Nov 2026 05:41:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=T3MWQX7l
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A31E91F000C4;
+	Wed, 18 Nov 2026 05:41:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794980511;
-	bh=nrDBHQoQpQrBR93r6PQm/w5gK6g7OHyUc0BLaSuHLAA=;
+	d=linux-foundation.org; s=korg; t=1794980512;
+	bh=szxoprMt5QF8r/0lSiGaDD7BC+uQBRXb5XAgUZjrXj4=;
 	h=Date:To:From:Subject;
-	b=FxE5MRDCuMaSelfuWL0bGvG5jKn4AeZlDeyUem1rONUe169lVxOYBs6e9iJGcSID3
-	 ntJCVI6+TkYBsaWU/41VGKzNJPAiH6j1aV2IciwGzlOHIhLbGFEBvh6t+dPX6B3g0S
-	 l4+psMRgYiDWur1s7Yv4mFfUUkqUs1Tbck3SePmo=
-Date: Tue, 17 Nov 2026 21:41:51 -0800
-To: mm-commits@vger.kernel.org,vicky.yangwenfang@huawei.com,
-	syzbot+42984127d45ad96219de@syzkaller.appspotmail.com,stable@vger.kernel.org,
-	mark@fasheh.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,
-	heming.zhao@suse.com,zhiyuanzhang912@gmail.com,akpm@linux-foundation.org
+	b=T3MWQX7l3xTT9W1xhzcLnc2Hyi58F5ZWy6XUqyXfVcrbDl3W5H5DmOqTToRBvk3So
+	 1z3evxI6NGdZiV7tYUxvHKhM6MRWY0ufR3ef3EcbqHIDVt9pjQNTCeTZT3kP96VrQ9
+	 pg49e8FHiaOTX7cLwKwKRMJkbc4Ai0ukJ5Q+SgYY=
+Date: Tue, 17 Nov 2026 21:41:52 -0800
+To: mm-commits@vger.kernel.org,wy@wyuan.org,users@kernel.org,
+	skhan@linuxfoundation.org,si.yanteng@linux.dev,rdunlap@infradead.org,
+	petr.pavlu@suse.com,joe@perches.com,federico.vaga@vaga.pv.it,
+	dzm91@hust.edu.cn,corbet@lwn.net,chenyou910331@gmail.com,
+	carlos.bilbao@kernel.org,avadhut.naik@amd.com,alexs@kernel.org,
+	akiyks@gmail.com,konstantin@linuxfoundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-hotfixes-stable] ocfs2-fix-kernel-bug-in-ocfs2_page_mkwrite-when-write_end-fails.patch removed from -mm tree
-Message-Id: <20261118054151.7077F1F000C4@smtp.kernel.org>
+Subject: [merged mm-nonmm-hotfixes-stable] get_maintainer-only-use-the-rest-as-a-fallback.patch removed from -mm tree
+Message-Id: <20261118054152.A31E91F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,95 +56,155 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: ocfs2: fix kernel BUG in ocfs2_page_mkwrite() when write_end fails
+     Subject: get_maintainer: only use THE REST as a fallback
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-kernel-bug-in-ocfs2_page_mkwrite-when-write_end-fails.patch
+     get_maintainer-only-use-the-rest-as-a-fallback.patch
 
 This patch was dropped because it was merged into the mm-nonmm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zhiyuan Zhang <zhiyuanzhang912@gmail.com>
-Subject: ocfs2: fix kernel BUG in ocfs2_page_mkwrite() when write_end fails
-Date: Wed, 11 Nov 2026 02:34:44 +0000
+From: Konstantin Ryabitsev <konstantin@linuxfoundation.org>
+Subject: get_maintainer: only use THE REST as a fallback
+Date: Fri, 13 Nov 2026 18:02:45 -0500
 
-syzbot reported a kernel BUG in the ocfs2 write fault path:
+Patch series "get_maintainer: stop sending every patch to LKML", v3.
 
-  (syz.0.17,5578,0):ocfs2_write_end_nolock:1945 ERROR: status = -30
-  kernel BUG at fs/ocfs2/mmap.c:106!
-  Call Trace:
-   do_page_mkwrite+0x147/0x310 mm/memory.c:3879
-   do_shared_fault mm/memory.c:6145 [inline]
-   handle_mm_fault+0x1a53/0x3750 mm/memory.c:6943
+LKML has become mostly a firehose of patches that are already going to a
+subsystem list.  The reason is THE REST: it matches every file in the
+tree, so get_maintainer.pl adds linux-kernel@vger.kernel.org to every
+single patch.  During the week of Oct 1-7, 2026:
 
-__ocfs2_page_mkwrite() calls ocfs2_write_begin_nolock() and then
-ocfs2_write_end_nolock(), and uses BUG_ON() to assert that the latter
-returns the full length.  But ocfs2_write_end_nolock() can fail: since
-commit 7f27ec978b0e ("ocfs2: call ocfs2_journal_access_di() before
-ocfs2_journal_dirty() in ocfs2_write_end_nolock()") it gets journal
-access to the inode buffer again, because the handle may have been
-restarted since ocfs2_write_begin_nolock().  That fails with -EROFS or
--EIO once the journal has been aborted or jbd2 has seen write errors
-on the device.  The syzbot reproducer gets there by shrinking the
-backing loop device to zero with LOOP_SET_STATUS while writing to a
-shared file mapping.
+  - LKML carried 13,641 messages (~1,950/day), 90% of which were also
+    sent to at least one other list;
+  - with ~2,100 subscribers, that is about 29 million deliveries per
+    week for LKML alone.
 
-Handle the failure instead of crashing.  ocfs2_write_end_nolock()
-leaves the mmap folio locked, because ocfs2_unlock_folios() skips it
-when w_target_locked is set so that it can be returned with
-VM_FAULT_LOCKED, and do_page_mkwrite() does not unlock it either when
-->page_mkwrite() returns an error.  So unlock it and fail the fault;
-the faulting task gets SIGBUS, like for the other errors in this
-function.
+This problem is becoming urgent and untenable.  The increased volume of
+patches sent using AI tooling has resulted in dramatically higher delivery
+queues and if this change is not implemented, we will have to start
+force-unsubscribing addresses that do not show any developer activity or
+use similar drastic measures.
 
-For an mmap write ocfs2_write_end_nolock() returns either len or a
-negative errno: inline data has already been converted to extents by
-ocfs2_write_begin_nolock(), and copied is equal to len.
+This issue came up during the 2026 Maintainer Summit and the consensus was
+that "always include linux-kernel for every patch" was never the intent.
 
-The BUG matters for local mounts, where the filesystem is expected to
-go read-only and keep running after a journal abort.  On clustered
-mounts ocfs2_abort() panics the node anyway as soon as it notices the
-aborted journal.
+This series makes THE REST a fallback as initially intended: it is only
+added for a file when no other matching MAINTAINERS section provides a
+mailing list that get_maintainer.pl would actually output for it.  Patch 2
+updates submitting-patches.rst, which currently tells submitters to send
+every patch to LKML.
 
-Link: https://lore.kernel.org/20261111023444.22688-1-zhiyuanzhang912@gmail.com
-Fixes: 7f27ec978b0e ("ocfs2: call ocfs2_journal_access_di() before ocfs2_journal_dirty() in ocfs2_write_end_nolock()")
-Signed-off-by: Zhiyuan Zhang <zhiyuanzhang912@gmail.com>
+Several v1 reviewers asked for a catch-all list that would keep carrying
+every patch for those who want to follow all kernel development.  That is
+a worthwhile discussion, but it is separate from this series, which only
+restores THE REST to its original role.
+
+Translation maintainers are Cc'd because the it_IT, ja_JP, sp_SP, zh_CN
+and zh_TW versions of submitting-patches.rst carry the same "send every
+patch to LKML" advice and will need a follow-up update once the English
+text is settled.
+
+
+This patch (of 2):
+
+THE REST matches every file in the tree via "F: *" and "F: */", so
+get_maintainer.pl currently adds linux-kernel@vger.kernel.org to every
+patch, regardless of whether the touched files already belong to a
+subsystem with its own mailing list.
+
+Only add THE REST for a file when no other matching section provides a
+mailing list that get_maintainer.pl would actually output. Lists marked
+"subscribers-only" are omitted unless --s is given, and lists marked
+"moderated" are omitted with --no-moderated, so such lists don't count
+as a destination in those cases. Files that match no section, or only
+sections without such a list, still fall back to THE REST, so every
+patch keeps reaching at least one known-public mailing list.
+
+Link: https://lore.kernel.org/20261113-get-maintainer-the-rest-fallback-v3-0-36ee5a3e8d13@linuxfoundation.org
+Link: https://lore.kernel.org/20261113-get-maintainer-the-rest-fallback-v3-1-36ee5a3e8d13@linuxfoundation.org
+Signed-off-by: Konstantin Ryabitsev <konstantin@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: <syzbot+42984127d45ad96219de@syzkaller.appspotmail.com>
-Closes: https://syzkaller.appspot.com/bug?extid=42984127d45ad96219de
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Reviewed-by: Heming Zhao <heming.zhao@suse.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: yangwenfang <vicky.yangwenfang@huawei.com>
-Cc: <stable@vger.kernel.org>
+Acked-by: Joe Perches <joe@perches.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Federico Vaga <federico.vaga@vaga.pv.it>
+Cc: Akira Yokosawa <akiyks@gmail.com>
+Cc: Carlos Bilbao <carlos.bilbao@kernel.org>
+Cc: Avadhut Naik <avadhut.naik@amd.com>
+Cc: Alex Shi <alexs@kernel.org>
+Cc: Yanteng Si <si.yanteng@linux.dev>
+Cc: Dongliang Mu <dzm91@hust.edu.cn>
+Cc: Chen-Yu Yeh <chenyou910331@gmail.com>
+Cc: Weijie Yuan <wy@wyuan.org>
+Cc: <users@kernel.org>
+Cc: Petr Pavlu <petr.pavlu@suse.com>
 
- fs/ocfs2/mmap.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ scripts/get_maintainer.pl |   43 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
 
---- a/fs/ocfs2/mmap.c~ocfs2-fix-kernel-bug-in-ocfs2_page_mkwrite-when-write_end-fails
-+++ a/fs/ocfs2/mmap.c
-@@ -103,7 +103,17 @@ static vm_fault_t __ocfs2_page_mkwrite(s
- 		goto out;
+--- a/scripts/get_maintainer.pl~get_maintainer-only-use-the-rest-as-a-fallback
++++ a/scripts/get_maintainer.pl
+@@ -959,6 +959,15 @@ sub get_maintainers {
+ 	    $tvi = $end + 1;
  	}
- 	err = ocfs2_write_end_nolock(mapping, pos, len, len, fsdata);
--	BUG_ON(err != len);
-+	if (err != len) {
-+		/*
-+		 * ocfs2_write_end_nolock() keeps the mmap folio locked so
-+		 * that it can be returned to the VM with VM_FAULT_LOCKED.
-+		 * On failure nobody else will unlock it, so do it here.
-+		 */
-+		folio_unlock(locked_folio);
-+		mlog_errno(err);
-+		ret = vmf_error(err);
-+		goto out;
+ 
++	# THE REST matches every file, so only fall back to it when no
++	# other matching section provides a mailing list for this file
++	# that we would actually output with the current options.
++	my ($the_rest) = grep { get_section_name($_) eq "THE REST" } keys %hash;
++	if (defined($the_rest) &&
++	    grep { $_ != $the_rest && section_has_list($_) } keys %hash) {
++	    delete $hash{$the_rest};
 +	}
- 	ret = VM_FAULT_LOCKED;
- out:
- 	return ret;
++
+ 	foreach my $line (sort {$hash{$b} <=> $hash{$a}} keys %hash) {
+ 	    add_categories($line, "");
+ 	    if ($sections) {
+@@ -1295,6 +1304,40 @@ sub find_ending_index {
+     return $index;
+ }
+ 
++sub get_section_name {
++    my ($index) = @_;
++
++    return $typevalue[find_starting_index($index)];
++}
++
++sub section_has_list {
++    my ($index) = @_;
++
++    my $start = find_starting_index($index);
++    my $end = find_ending_index($index);
++    for (my $i = $start; $i < $end; $i++) {
++	next if ($typevalue[$i] !~ m/^L:\s*(.*)/);
++	my $list_additional = "";
++	if ($1 =~ m/[^\s]+\s+(.*)$/) {
++	    $list_additional = $1;
++	}
++	return 1 if (list_is_selected($list_additional));
++    }
++    return 0;
++}
++
++# Must match the list selection in add_categories()
++sub list_is_selected {
++    my ($list_additional) = @_;
++
++    if ($list_additional =~ m/subscribers-only/) {
++	return $email_subscriber_list;
++    } elsif ($list_additional =~ m/moderated/) {
++	return $email_list && $email_moderated_list;
++    }
++    return $email_list;
++}
++
+ sub get_subsystem_name {
+     my ($index) = @_;
+ 
 _
 
-Patches currently in -mm which might be from zhiyuanzhang912@gmail.com are
+Patches currently in -mm which might be from konstantin@linuxfoundation.org are
 
 
