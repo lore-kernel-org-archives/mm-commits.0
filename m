@@ -1,41 +1,41 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794980512;
-	b=MkABizE6XQIfzxTESQfqiHkbSZ/xRT2zJnpvxBP9XTFYO5LAgSZ8R+/3xIeKrsNNH8w4
-	 yVib5kZfaU/nRvJfrhPLFK35UeZ69lXKNTAhG/aQkpYSV9aI5rdIGSwQZU49Dq5t9VUng
-	 LW+9aiEtObMhse3ISOgUxILT1tybnU6MK0RdmYftM7ChIUAkIaZkisiYLvOtQhaPhjC/m
-	 3DP7xjALHIWPWIad+y9s1WjgqW2DrUGMX4Z98i6C4i8r6ZNbOZs2r4SW9EWxceSkSBC+Z
-	 7DPqTulYRMPd1H6RUPxg+fIQyGHWtbdRePMuBf65Rgi7R5ErZRJpzxwdp6CgrT90dUw==
+	t=1794980514;
+	b=O/qZhdzo8EZQbbhayb2EW9UjoDUdt48r/0vYp2N3UC7YLki5bTl3HW7e1Uyh3NQQBnRT
+	 iVNJaMfQpuRnoxDgMhtbIQLzgGhrbFwpjyXypH9CWrHWCQkBXEs+zUEKqBP/GOujYpVgS
+	 c7UExTBCsZ/jTcTd+FIUZtDCZU89s8ziexBJZuBmO3mEovN5AAcLemP8zQmNY1NS38RPr
+	 oFdZuN4ZxVaFI1Z1s7eBs2tih3mHhuKyEulYYVdRJp3VZ9cU9grn1wTiVGO9ZDcQKt9xw
+	 6viq1AWuiJ5wuRJXGIqyqU5XXhtB/t+s9JsTZxFKh/GpKP7lvO9Wpa1TRWEh/KeuXhw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794980512;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794980514;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=szxoprMt5QF8r/0lSiGaDD7BC+uQBRXb5XAgUZjrXj4=;
-	b=BAInhfD68Y2ovbAcv39/e9MwNSX9pSMsuB9ZbghGIeTbBaqTMkLDA8tf1CmkhrCbqz0o
-	 chKXsa7VoOt7oM6p2P1wky6hRLwjteXSPEAyFImqeS1jcmJOzoB0APxmr+g327XlRLhFG
-	 GSZs9HvXOytKa76Y46sge6jHUqZHRmfFVRhbtjKf+8O9g9QaWZmBMWjaaIASbS6EiIAcU
-	 zA/UJ5dQBEb5nMdDbVjefIwfZGbKS4XXvLOYo9yT+fNIFLT7oS4cNu5BFapTKzq/bXVsF
-	 mWBkhVgwMNG3RlkR0xEo0EsvbAi24QZVItKk0tX86Lg/l7NA59jD2mFibVWFwKj1btw==
+	bh=lgswRhiX+xDAvxdcru1EACWtt/7qPzaFmmHtEt5/VFc=;
+	b=FwbYca0eIfWZHrDrate0oqpsc1WRHCAtzOggFEkSWGIH4TQUefwRUHjn7ri97tRYUDJu
+	 zfZxufHyoERpanKOafTSjXizDwgLh1j52gNIi8HozPfr45//r3iZT0q4UCKTbdy0UIRB6
+	 XNvr32A49aOg8fOZfuuOkdPprPn+0WnYnKNH2BsB5q/qaEl25mW62ySxphvD0IjKDrh8A
+	 VzyVqnf1Yr3bAPhtUGai3zZTYQdI+eOCgnCffR2fQGBdojP9r7eddtEqpjQzKiE5BZCnf
+	 yugY28/6VdbZUpEDOk8JJMk3wb5tvRU82yvJmU+vsl5RGOxNVed6hESvXVenAJHCWYQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=T3MWQX7l;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=w99cm8Gr;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D38A2606A31C
-	for <mm-commits@vger.kernel.org>; Wed, 18 Nov 2026 05:41:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42A2E606A331
+	for <mm-commits@vger.kernel.org>; Wed, 18 Nov 2026 05:41:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=T3MWQX7l
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A31E91F000C4;
-	Wed, 18 Nov 2026 05:41:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=w99cm8Gr
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCDE91F000D0;
+	Wed, 18 Nov 2026 05:41:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794980512;
-	bh=szxoprMt5QF8r/0lSiGaDD7BC+uQBRXb5XAgUZjrXj4=;
+	d=linux-foundation.org; s=korg; t=1794980513;
+	bh=lgswRhiX+xDAvxdcru1EACWtt/7qPzaFmmHtEt5/VFc=;
 	h=Date:To:From:Subject;
-	b=T3MWQX7l3xTT9W1xhzcLnc2Hyi58F5ZWy6XUqyXfVcrbDl3W5H5DmOqTToRBvk3So
-	 1z3evxI6NGdZiV7tYUxvHKhM6MRWY0ufR3ef3EcbqHIDVt9pjQNTCeTZT3kP96VrQ9
-	 pg49e8FHiaOTX7cLwKwKRMJkbc4Ai0ukJ5Q+SgYY=
-Date: Tue, 17 Nov 2026 21:41:52 -0800
+	b=w99cm8GraJujkyx07fyL8O+4JTJXnIzp/rWTXKHAhO+oCRgoGZbHinTwT7zHTVzox
+	 RB/XLLL0VXsWTnhYqfe2/suiUID+RTLuO+Olnk4UxKS+PabH5Ga8HplUi31sOmvoDN
+	 P6EwUM7TvaraJM3Djm1/6LIqIndcyyyRNL0i1Y0Y=
+Date: Tue, 17 Nov 2026 21:41:53 -0800
 To: mm-commits@vger.kernel.org,wy@wyuan.org,users@kernel.org,
 	skhan@linuxfoundation.org,si.yanteng@linux.dev,rdunlap@infradead.org,
 	petr.pavlu@suse.com,joe@perches.com,federico.vaga@vaga.pv.it,
@@ -43,8 +43,8 @@ To: mm-commits@vger.kernel.org,wy@wyuan.org,users@kernel.org,
 	carlos.bilbao@kernel.org,avadhut.naik@amd.com,alexs@kernel.org,
 	akiyks@gmail.com,konstantin@linuxfoundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-hotfixes-stable] get_maintainer-only-use-the-rest-as-a-fallback.patch removed from -mm tree
-Message-Id: <20261118054152.A31E91F000C4@smtp.kernel.org>
+Subject: [merged mm-nonmm-hotfixes-stable] docs-submitting-patches-make-lkml-a-list-of-last-resort-again.patch removed from -mm tree
+Message-Id: <20261118054153.CCDE91F000D0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,79 +56,35 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: get_maintainer: only use THE REST as a fallback
+     Subject: docs: submitting-patches: make LKML a list of last resort again
 has been removed from the -mm tree.  Its filename was
-     get_maintainer-only-use-the-rest-as-a-fallback.patch
+     docs-submitting-patches-make-lkml-a-list-of-last-resort-again.patch
 
 This patch was dropped because it was merged into the mm-nonmm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Konstantin Ryabitsev <konstantin@linuxfoundation.org>
-Subject: get_maintainer: only use THE REST as a fallback
-Date: Fri, 13 Nov 2026 18:02:45 -0500
+Subject: docs: submitting-patches: make LKML a list of last resort again
+Date: Fri, 13 Nov 2026 18:02:46 -0500
 
-Patch series "get_maintainer: stop sending every patch to LKML", v3.
+Commit 77167b966b7e ("docs: submitting-patches: clarify the role of LKML")
+changed the documentation to say that all patches should be sent to LKML
+by default, because get_maintainer.pl always suggested it.
 
-LKML has become mostly a firehose of patches that are already going to a
-subsystem list.  The reason is THE REST: it matches every file in the
-tree, so get_maintainer.pl adds linux-kernel@vger.kernel.org to every
-single patch.  During the week of Oct 1-7, 2026:
+Now that get_maintainer.pl only falls back to THE REST when no other
+matching section provides a mailing list, update the documentation to
+match: send patches to the subsystem-specific list, and use LKML only when
+there isn't one.
 
-  - LKML carried 13,641 messages (~1,950/day), 90% of which were also
-    sent to at least one other list;
-  - with ~2,100 subscribers, that is about 29 million deliveries per
-    week for LKML alone.
-
-This problem is becoming urgent and untenable.  The increased volume of
-patches sent using AI tooling has resulted in dramatically higher delivery
-queues and if this change is not implemented, we will have to start
-force-unsubscribing addresses that do not show any developer activity or
-use similar drastic measures.
-
-This issue came up during the 2026 Maintainer Summit and the consensus was
-that "always include linux-kernel for every patch" was never the intent.
-
-This series makes THE REST a fallback as initially intended: it is only
-added for a file when no other matching MAINTAINERS section provides a
-mailing list that get_maintainer.pl would actually output for it.  Patch 2
-updates submitting-patches.rst, which currently tells submitters to send
-every patch to LKML.
-
-Several v1 reviewers asked for a catch-all list that would keep carrying
-every patch for those who want to follow all kernel development.  That is
-a worthwhile discussion, but it is separate from this series, which only
-restores THE REST to its original role.
-
-Translation maintainers are Cc'd because the it_IT, ja_JP, sp_SP, zh_CN
-and zh_TW versions of submitting-patches.rst carry the same "send every
-patch to LKML" advice and will need a follow-up update once the English
-text is settled.
-
-
-This patch (of 2):
-
-THE REST matches every file in the tree via "F: *" and "F: */", so
-get_maintainer.pl currently adds linux-kernel@vger.kernel.org to every
-patch, regardless of whether the touched files already belong to a
-subsystem with its own mailing list.
-
-Only add THE REST for a file when no other matching section provides a
-mailing list that get_maintainer.pl would actually output. Lists marked
-"subscribers-only" are omitted unless --s is given, and lists marked
-"moderated" are omitted with --no-moderated, so such lists don't count
-as a destination in those cases. Files that match no section, or only
-sections without such a list, still fall back to THE REST, so every
-patch keeps reaching at least one known-public mailing list.
-
-Link: https://lore.kernel.org/20261113-get-maintainer-the-rest-fallback-v3-0-36ee5a3e8d13@linuxfoundation.org
-Link: https://lore.kernel.org/20261113-get-maintainer-the-rest-fallback-v3-1-36ee5a3e8d13@linuxfoundation.org
+Link: https://lore.kernel.org/20261113-get-maintainer-the-rest-fallback-v3-2-36ee5a3e8d13@linuxfoundation.org
 Signed-off-by: Konstantin Ryabitsev <konstantin@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Suggested-by: Petr Pavlu <petr.pavlu@suse.com>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
 Acked-by: Joe Perches <joe@perches.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Federico Vaga <federico.vaga@vaga.pv.it>
 Cc: Akira Yokosawa <akiyks@gmail.com>
 Cc: Carlos Bilbao <carlos.bilbao@kernel.org>
@@ -139,70 +95,28 @@ Cc: Dongliang Mu <dzm91@hust.edu.cn>
 Cc: Chen-Yu Yeh <chenyou910331@gmail.com>
 Cc: Weijie Yuan <wy@wyuan.org>
 Cc: <users@kernel.org>
-Cc: Petr Pavlu <petr.pavlu@suse.com>
 
- scripts/get_maintainer.pl |   43 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 43 insertions(+)
+ Documentation/process/submitting-patches.rst |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/scripts/get_maintainer.pl~get_maintainer-only-use-the-rest-as-a-fallback
-+++ a/scripts/get_maintainer.pl
-@@ -959,6 +959,15 @@ sub get_maintainers {
- 	    $tvi = $end + 1;
- 	}
+--- a/Documentation/process/submitting-patches.rst~docs-submitting-patches-make-lkml-a-list-of-last-resort-again
++++ a/Documentation/process/submitting-patches.rst
+@@ -239,9 +239,12 @@ patches as arguments to scripts/get_main
+ maintainer for the subsystem you are working on, Andrew Morton
+ (akpm@linux-foundation.org) serves as a maintainer of last resort.
  
-+	# THE REST matches every file, so only fall back to it when no
-+	# other matching section provides a mailing list for this file
-+	# that we would actually output with the current options.
-+	my ($the_rest) = grep { get_section_name($_) eq "THE REST" } keys %hash;
-+	if (defined($the_rest) &&
-+	    grep { $_ != $the_rest && section_has_list($_) } keys %hash) {
-+	    delete $hash{$the_rest};
-+	}
-+
- 	foreach my $line (sort {$hash{$b} <=> $hash{$a}} keys %hash) {
- 	    add_categories($line, "");
- 	    if ($sections) {
-@@ -1295,6 +1304,40 @@ sub find_ending_index {
-     return $index;
- }
+-linux-kernel@vger.kernel.org should be used by default for all patches, but the
+-volume on that list has caused a number of developers to tune it out.  Please
+-do not spam unrelated lists and unrelated people, though.
++You should also normally choose at least one mailing list to receive a copy of
++your patch set.  Look in the MAINTAINERS file for a subsystem-specific list;
++your patch will probably get more attention there.
++linux-kernel@vger.kernel.org functions as a list of last resort for patches
++that do not have a subsystem-specific list.  Please do not spam unrelated lists
++and unrelated people, though.
  
-+sub get_section_name {
-+    my ($index) = @_;
-+
-+    return $typevalue[find_starting_index($index)];
-+}
-+
-+sub section_has_list {
-+    my ($index) = @_;
-+
-+    my $start = find_starting_index($index);
-+    my $end = find_ending_index($index);
-+    for (my $i = $start; $i < $end; $i++) {
-+	next if ($typevalue[$i] !~ m/^L:\s*(.*)/);
-+	my $list_additional = "";
-+	if ($1 =~ m/[^\s]+\s+(.*)$/) {
-+	    $list_additional = $1;
-+	}
-+	return 1 if (list_is_selected($list_additional));
-+    }
-+    return 0;
-+}
-+
-+# Must match the list selection in add_categories()
-+sub list_is_selected {
-+    my ($list_additional) = @_;
-+
-+    if ($list_additional =~ m/subscribers-only/) {
-+	return $email_subscriber_list;
-+    } elsif ($list_additional =~ m/moderated/) {
-+	return $email_list && $email_moderated_list;
-+    }
-+    return $email_list;
-+}
-+
- sub get_subsystem_name {
-     my ($index) = @_;
- 
+ Many kernel-related lists are hosted at kernel.org; you can find a list
+ of them at https://subspace.kernel.org.  There are kernel-related lists
 _
 
 Patches currently in -mm which might be from konstantin@linuxfoundation.org are
