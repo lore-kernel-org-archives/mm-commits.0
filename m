@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794972665;
-	b=09legZGFn5zxZCX4yjzIe7EH6TrF8ErYSdLpyzsE8Whlq+Kb2vNEzI1ykI6rqkfezAZR
-	 RUDr9J6AVtd5+dO8QdOkd7TKg3I0muXofvV/PAEEVRwbJfcq+v/wUSjUS2P3giJfYEMFp
-	 7e0u8sJtuqVS4hffzB4NFx4qJhNsw9sxqSzbCJGJzraHJjz2Dg6brogymOP/UPhsB5m2L
-	 2aXW1Ox0o0sOm2gpcivaHriTfn35hYu5KrPXYBvLyOnMVwHMtN8IdEiXLs7IeEfZwF1IP
-	 ZKgEx1/mQLs2fUGh/HGcn36J2RlJej5q/MBStS2eThFmAg59ct1kVbBEKhdlkz1iqow==
+	t=1794972667;
+	b=cdUnBh3y9rWLkuBixpr053zyHUA3ZCJ+odhRGG9SOVwRv8C2AHOtFf+0q8Ki/39zHpvQ
+	 jg2mfap4mgfOq+FaKWLIc7GNRq0QWoGQ7m3BGPsk5I0rTvmmvpS30zCCE9zSUQ/y67eFs
+	 XlIvu8WtNrqaKhe+qJXDm0rnyK9/Wl6ik4s4DIXs8icXY+PLc096XEYT3Q6YfixiAU0xv
+	 loohF1CMkUSzQ0JDIveiY4rpr6SPYN1wSfUHmsCfHM2wCA7kAuYHrhPu0x5F8iBBysj2n
+	 OaNR0g+sj65NvhjO2cI74KMwKXoCgAU0S8RHbqMI+h+LkVvaza5G77juJpPoFLKqx9g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794972665;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794972667;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=kwBqJMF0ql2tuxijfyoL6SO9dx2MUcAULKpZ+Tguzng=;
-	b=xifIoZHEMyuCQhmV3jxNs1K2HJ5y9Z15OsWcTXf/zcOdOfJRu+jqAHxxJPQ2CxzlQe00
-	 IFxH2EspvuGkppj2eMOsPB7vU2fOBx2l6ukx3fOZ9dBue/24bgrlXnJkyosQhujGGsx2A
-	 8PXF2F2ifRok5gN1XOSqG2RL2TfGnAOOLp1kd2jgHJNS6AVNt+pHqwxYq1nLOFHODtJoB
-	 zGgm/iavdUpvW9SkTRmjrL9EBZfzSla9t1JYBrLFvBFx/sa/YlDwy7RDCW+6Zg7tP7VWJ
-	 O0dnriFH2bVbwacj6saxhZZYSGeoXPy4kSnzDZGLeMyE/rzq2dh8oyTqMrDhRZVF6Qg==
+	bh=Viu5cEbPA4xJ1Z653E4ZTjWn5epVjLtqpAyYtUCe4qw=;
+	b=HjfAjs6NpSzN4y2LshrgdyOM0OAf/F6B2uGJq7kQDdvynVQR3MCa9L4gWEWn3irxYbSw
+	 NG9kQJuvKFf3HT1D05P7NZkT8MZ7c+DBGQkR+J+5FMpjNhkRzVaillod8EKb6bgZhrglk
+	 KwW+kbeNoc/K8J8so7twGvQl/gI8OVloobwuSehCAmTTlENBJWU/x6EPNkLZyb/M/sBSR
+	 +anQtidVLslIL/MVxNX33M7W0fIldOyeUC4rlLhP/RHV8KQtthZVq7Q643bkKvz0N4Hxa
+	 huN3WdB2UnHEE3Xvu7sieHeK0i9rRoR+sGSdyV4SX8d4eH9aGTd2eqejBN1fjkxxp/Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="CeM/LD/u";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="Ks/JTL4y";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B209B606A32F;
-	Wed, 18 Nov 2026 03:31:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53C60606A333;
+	Wed, 18 Nov 2026 03:31:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=CeM/LD/u
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A53B21F000C4;
-	Wed, 18 Nov 2026 03:31:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ks/JTL4y
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDD451F000D2;
+	Wed, 18 Nov 2026 03:31:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794972664;
-	bh=kwBqJMF0ql2tuxijfyoL6SO9dx2MUcAULKpZ+Tguzng=;
+	d=linux-foundation.org; s=korg; t=1794972666;
+	bh=Viu5cEbPA4xJ1Z653E4ZTjWn5epVjLtqpAyYtUCe4qw=;
 	h=Date:To:From:Subject;
-	b=CeM/LD/ugvOUGxloTPC0OKxhKhy9SYOSKcNjtp23+N+AUsBRla4mIkpUYojDa5aXi
-	 /LiRMjYbqb+rFxClyqxVTEYz87o9K8c9jwVC40Q67PH5aMaqXJ7Y78PBFc9yRQD7ev
-	 VgdYnMOpJPCag5eF/lCmnykJZecVdR54Rmx9TtJc=
-Date: Tue, 17 Nov 2026 19:31:04 -0800
+	b=Ks/JTL4y0VtMVDGouT1jZ5AKYP8Aj7hiz3qhb3Ja9NaHjrBtvYPt7P5HdTZuzJ56e
+	 +E73r1JFEq3hLPIbP46wAqKYj0cm3ykI/iL3qFbHc+rvSjZEkqGRruMZnBc8MVFsFF
+	 bk6e6kJ2OiIiYTmWmSJG2rurX9L5u1AXrMKhThOo=
+Date: Tue, 17 Nov 2026 19:31:06 -0800
 To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,
 	stable@vger.kernel.org,osalvador@suse.de,osalvador@kernel.org,
 	muchun.song@linux.dev,lance.yang@linux.dev,fvdl@google.com,david@kernel.org,
 	azpijr@gmail.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-hugetlb-disable-default-cma-reservations-on-32-bit-kernel.patch added to mm-new branch
-Message-Id: <20261118033104.A53B21F000C4@smtp.kernel.org>
+Subject: + mm-gup-allow-long-term-pins-of-cma-allocated-hugetlb-folios.patch added to mm-new branch
+Message-Id: <20261118033106.CDD451F000D2@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +54,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: x86: hugetlb: disable default CMA reservations on 32-bit kernel
+     Subject: mm: gup: allow long-term pins of CMA-allocated HugeTLB folios
 has been added to the -mm mm-new branch.  Its filename is
-     x86-hugetlb-disable-default-cma-reservations-on-32-bit-kernel.patch
+     mm-gup-allow-long-term-pins-of-cma-allocated-hugetlb-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-hugetlb-disable-default-cma-reservations-on-32-bit-kernel.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-allow-long-term-pins-of-cma-allocated-hugetlb-folios.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -89,66 +89,118 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: x86: hugetlb: disable default CMA reservations on 32-bit kernel
-Date: Tue, 17 Nov 2026 17:33:57 +0800
+Subject: mm: gup: allow long-term pins of CMA-allocated HugeTLB folios
+Date: Tue, 17 Nov 2026 17:33:58 +0800
 
-Patch series "mm: hugetlb: fix CMA-related issues", v5.
+Long-term pinning rejects HugeTLB folios explicitly allocated from CMA,
+causing unnecessary migration or pinning failures.  These folios already
+own their CMA memory and do not need to be migrated out for future CMA
+allocations.
 
-This series fixes three CMA-related issues in HugeTLB reservation,
-long-term pinning and allocation:
+Add cma_folio_is_longterm_pinnable() to recognize these allocations
+through HPG_cma.  Allow them to be pinned even in ZONE_MOVABLE, since
+memory blocks overlapping boot-time CMA areas cannot be offlined. 
+Ordinary movable allocations that borrow CMA memory remain unpinnable.
 
- - Avoid ineffective CMA reservations on 32-bit x86 kernels running on
-   CPUs that advertise 1 GiB page support.
- - Allow long-term pins of explicitly CMA-allocated HugeTLB folios,
-   which already own the CMA memory.
- - Preserve the caller's GFP mask when allocating from CMA.
-
-
-This patch (of 3):
-
-A 32-bit x86 kernel can run on a 64-bit-capable CPU advertising GBPAGES.
-arch_hugetlb_cma_order() checks only this feature and returns a nonzero
-order, although gigantic HugeTLB support on x86 requires CONFIG_X86_64.
-Specifying hugetlb_cma= can therefore reserve a CMA area that cannot
-serve the intended gigantic HugeTLB allocations.
-
-On non-PAE kernels, the folded PUD_SHIFT yields a 4 MiB order, which is
-equal to MAX_PAGE_ORDER. With CONFIG_DEBUG_VM enabled, this triggers the
-VM_WARN_ON(order <= MAX_PAGE_ORDER) check in hugetlb_cma_reserve(),
-warning that hugetlb_cma is attempting to reserve a non-gigantic order.
-
-Require CONFIG_X86_64 as well as GBPAGES when selecting the default CMA
-order to avoid these ineffective reservations.
-
-Link: https://lore.kernel.org/cover.1794907279.git.zhengqi.arch@bytedance.com
-Link: https://lore.kernel.org/6866920502a4eaafd99a9e272df572e3a7d3da4e.1794907279.git.zhengqi.arch@bytedance.com
+Link: https://lore.kernel.org/295af6601ce79f2c2b3dc4352a3279f0e6ac513e.1794907279.git.zhengqi.arch@bytedance.com
 Fixes: cf11e85fc08c ("mm: hugetlb: optionally allocate gigantic hugepages using cma")
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Suggested-by: Muchun Song <muchun.song@linux.dev>
+Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
 Acked-by: Muchun Song <muchun.song@linux.dev>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Reviewed-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Cc: David Hildenbrand <david@kernel.org>
+Reviewed-by: Frank van der Linden <fvdl@google.com>
+Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Frank van der Linden <fvdl@google.com>
 Cc: "Oscar Salvador (SUSE)" <osalvador@kernel.org>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: <stable@vger.kernel.org>
 
- arch/x86/mm/hugetlbpage.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/cma.h |    3 +++
+ include/linux/mm.h  |    9 ++++++---
+ mm/cma.c            |   11 +++++++++++
+ 3 files changed, 20 insertions(+), 3 deletions(-)
 
---- a/arch/x86/mm/hugetlbpage.c~x86-hugetlb-disable-default-cma-reservations-on-32-bit-kernel
-+++ a/arch/x86/mm/hugetlbpage.c
-@@ -45,7 +45,7 @@ arch_initcall(gigantic_pages_init);
+--- a/include/linux/cma.h~mm-gup-allow-long-term-pins-of-cma-allocated-hugetlb-folios
++++ a/include/linux/cma.h
+@@ -21,6 +21,9 @@
+ #define CMA_MIN_ALIGNMENT_BYTES (PAGE_SIZE * CMA_MIN_ALIGNMENT_PAGES)
  
- unsigned int __init arch_hugetlb_cma_order(void)
+ struct cma;
++struct folio;
++
++bool cma_folio_is_longterm_pinnable(struct folio *folio);
+ 
+ extern unsigned long totalcma_pages;
+ extern phys_addr_t cma_get_base(const struct cma *cma);
+--- a/include/linux/mm.h~mm-gup-allow-long-term-pins-of-cma-allocated-hugetlb-folios
++++ a/include/linux/mm.h
+@@ -38,6 +38,7 @@
+ #include <linux/bitops.h>
+ #include <linux/iommu-debug-pagealloc.h>
+ #include <linux/kcsan-checks.h>
++#include <linux/cma.h>
+ 
+ struct mempolicy;
+ struct anon_vma;
+@@ -2984,15 +2985,18 @@ static inline bool is_zero_folio(const s
+ 	return is_zero_page(&folio->page);
+ }
+ 
+-/* MIGRATE_CMA and ZONE_MOVABLE do not allow pin folios */
+ #ifdef CONFIG_MIGRATION
++/*
++ * MIGRATE_CMA and ZONE_MOVABLE folios cannot normally be long-term pinned.
++ * CMA may allow pinning folios explicitly allocated from its areas.
++ */
+ static inline bool folio_is_longterm_pinnable(struct folio *folio)
  {
--	if (boot_cpu_has(X86_FEATURE_GBPAGES))
-+	if (IS_ENABLED(CONFIG_X86_64) && boot_cpu_has(X86_FEATURE_GBPAGES))
- 		return PUD_SHIFT - PAGE_SHIFT;
+ #ifdef CONFIG_CMA
+ 	int mt = folio_migratetype(folio);
  
- 	return 0;
+ 	if (mt == MIGRATE_CMA || mt == MIGRATE_ISOLATE)
+-		return false;
++		return cma_folio_is_longterm_pinnable(folio);
+ #endif
+ 	/* The zero page can be "pinned" but gets special handling. */
+ 	if (is_zero_folio(folio))
+@@ -3011,7 +3015,6 @@ static inline bool folio_is_longterm_pin
+ 
+ 	/* Otherwise, non-movable zone folios can be pinned. */
+ 	return !folio_is_zone_movable(folio);
+-
+ }
+ #else
+ static inline bool folio_is_longterm_pinnable(struct folio *folio)
+--- a/mm/cma.c~mm-gup-allow-long-term-pins-of-cma-allocated-hugetlb-folios
++++ a/mm/cma.c
+@@ -29,6 +29,7 @@
+ #include <linux/highmem.h>
+ #include <linux/io.h>
+ #include <linux/kmemleak.h>
++#include <linux/hugetlb.h>
+ #include <trace/events/cma.h>
+ 
+ #include "internal.h"
+@@ -38,6 +39,16 @@
+ struct cma cma_areas[MAX_CMA_AREAS];
+ unsigned int cma_area_count;
+ 
++bool cma_folio_is_longterm_pinnable(struct folio *folio)
++{
++	/*
++	 * Explicitly allocated CMA folios own their CMA memory and can be
++	 * pinned even in ZONE_MOVABLE, as CMA memory cannot be offlined.
++	 * For now, only HugeTLB tracks these allocations with a folio flag.
++	 */
++	return folio_test_hugetlb(folio) && folio_test_hugetlb_cma(folio);
++}
++
+ phys_addr_t cma_get_base(const struct cma *cma)
+ {
+ 	WARN_ON_ONCE(cma->nranges != 1);
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
