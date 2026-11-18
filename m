@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794980525;
-	b=MA6WEgv7XW/iz1gbp564Ae/6rLiqQt5bIY44H8xyuP6oc74mYWuE0l+t7jhNLkCGK3ZC
-	 Ub3Aex57cT0rQ/ODsgAnderr+yWPOg3D1y6c+quc/Sdu/fSx98BhVStl3L09Mj+MGp9y9
-	 yxRlHjdOSVmm8Xt9pERR28FtZ0SNyfcFpoP7Ctboa20t4e8zDKFI6lbbuSWrctuG6XhHn
-	 FtFPO/ia9xoq0ReXY7ENi04wcxi1VFEh6Ol/8wwBs/5CdCi4VB7+1QyzWTMBSPEPb5ouc
-	 RlvR4bPUTok8V4Qm578PFQ60hhsN8sMMUPuZAbE7jVBMQhuN/KHJFeg3PVFHG6QRAHQ==
+	t=1794980526;
+	b=kMbx3nL/QtMuQu/H0JrungXJL2zztg2FAEZMTR02ha8HjHeMlc4fWwyBvdJq4u9/8kIc
+	 3457P+knOWmUDXcx7SwQmREul+w0nUILZkL0WJGoFsvM9L2YprzKcORVSh38llHlftcYf
+	 otiDUMj3fis8KRfapa/yZ9yRtrIe5DHqZQ2LfAIWsLmp5mYUhewDcgE3kjAN/io8gS99r
+	 T1xYf6bBDpu5zUXY2hpicN7b6ddNS0cMWDxS2+nrMbiCnskm+b5Rlo42BuiL1roWifbAS
+	 uiPe7N+NMOQAlzfGTEkgPjSlig5t7LxGkSobOraaDZ+0fOkjTT0+t05JP9sJ+4zabiw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794980525;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794980526;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=TOG3nR/5bzvgAZGxu51ysm6B7WwLMiGZAMtDES/stzo=;
-	b=GKzPa90iqeZL3uDiBt+wT9p5cOJaMJAxIX/dUQ4KpcFuEh5IuPu3G7BDSLb0EEtXokh6
-	 EUTbzOP7fWWsKQzlRwnS5jQQ6KeUtvRCp9t1aV/qT7JrwBsyaDxBd+sRpxstiDuU5cYE/
-	 pJmz26ewMJ2CDtE+VCqOA2fhAzSGhg/OCstnz419QeprjNDf0HwxVH5Z1e5FPu0rRH9Tl
-	 6DecS9pR4OR1VCLUyoEu2yYKhEUAht/CaOSPDzzXb+94CTnaSC6RDeAq9/37/glzC0ZGJ
-	 R9P/LOuaw8U7nSL4qsJMn5jMm/Ot+0pWsD7AeBNSvjKtNF2bOTW2in5h9Zdj6yPI8jQ==
+	bh=YN3qhr/pWjvm3PoR4UtE+nHZVFAeh/3SgM1+Le1Jn6I=;
+	b=y6mmeljYkqifzqB53YT8zeE5p+Ek8lpP5At3gPyJKCmF6NekmeDZsvZBz0iNGmccnZS3
+	 /p64K4Dr8+lRL1COx7/FKqdT49uwK5mq3ctq6GwPiMIKxi1oEw+K5ueQZYehvONzzSfwe
+	 LzQs+FyjFHrSoR5bzuyq5JQezMD4zbyLu/vDoEVqbzbZ72j71+oAjtF0it3nYxZJNvK0M
+	 j0PjDXX0TYVMuzoE+HsqNx2VYzl5Y4ymahcto6Tz1tH89Ob/J4r17t3C5aKAPgaX+4hZ4
+	 3ggW+N9lcu+BSOgaQHVI9mGG5HeddCYncu2qVLpRZM4XY9/SMT1ywHEMH92pVZWmvow==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=JlHP9Qj9;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TFWLn4w4;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E9BE606A31C
-	for <mm-commits@vger.kernel.org>; Wed, 18 Nov 2026 05:42:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A256E606A31C
+	for <mm-commits@vger.kernel.org>; Wed, 18 Nov 2026 05:42:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=JlHP9Qj9
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 462FE1F00932;
-	Wed, 18 Nov 2026 05:42:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TFWLn4w4
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68EB51F0028F;
+	Wed, 18 Nov 2026 05:42:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794980525;
-	bh=TOG3nR/5bzvgAZGxu51ysm6B7WwLMiGZAMtDES/stzo=;
+	d=linux-foundation.org; s=korg; t=1794980526;
+	bh=YN3qhr/pWjvm3PoR4UtE+nHZVFAeh/3SgM1+Le1Jn6I=;
 	h=Date:To:From:Subject;
-	b=JlHP9Qj9pGOPKNmKPpMPu06OPZGSGXxyc2GInAP7icIqhblE0JCDJCXfA6wIOPs49
-	 yekkYPPzWl9yWRgBJpyoc2CDEl/+VuViLlR1vRNkJk0RHKcU/wXiL0yfGwCCOYSPgr
-	 gV7hFVBo64vAphTMGf8aXYWNwXVHe3WZmxInl96o=
-Date: Tue, 17 Nov 2026 21:42:04 -0800
-To: mm-commits@vger.kernel.org,chenridong@xiaomi.com,akpm@linux-foundation.org
+	b=TFWLn4w49oKwBxgeOjCBmOZpcZyFsWC8nWUL18rUXd0AEFeM6mndWL26AU3q7rjY3
+	 mURHQt2LR+lB9Y7UgWyf3WeiCtGpwSXAsbUlyz1VLHMBXJWtSP+a/O/VSvPkeRX8zK
+	 pR/mHr2tTNArIjHjpyP8tmKQvGvvOsBRP9mxnQ8s=
+Date: Tue, 17 Nov 2026 21:42:05 -0800
+To: mm-commits@vger.kernel.org,guodong.xu@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-hotfixes-stable] mailmap-add-entries-for-ridong-chen.patch removed from -mm tree
-Message-Id: <20261118054205.462FE1F00932@smtp.kernel.org>
+Subject: [merged mm-nonmm-hotfixes-stable] mailmap-update-entry-for-guodong-xu.patch removed from -mm tree
+Message-Id: <20261118054206.68EB51F0028F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,49 +51,46 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mailmap: add entries for Ridong Chen
+     Subject: mailmap: update entry for Guodong Xu
 has been removed from the -mm tree.  Its filename was
-     mailmap-add-entries-for-ridong-chen.patch
+     mailmap-update-entry-for-guodong-xu.patch
 
 This patch was dropped because it was merged into the mm-nonmm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ridong Chen <chenridong@xiaomi.com>
-Subject: mailmap: add entries for Ridong Chen
-Date: Sun,  8 Nov 2026 20:35:09 +0800
+From: Guodong Xu <guodong.xu@linux.dev>
+Subject: mailmap: update entry for Guodong Xu
+Date: Fri, 6 Nov 2026 16:30:48 -0500
 
-Map my former Huawei address and my current Xiaomi address to my
-personal address, so that all my contributions are attributed to a
-single identity.
+Use my linux.dev address for kernel correspondence, including for
+contributions made with my other email addresses. It is not tied to
+a personal or employer mailbox.
 
-Link: https://lore.kernel.org/20261108123509.214127-1-ridong.chen@linux.dev
-Signed-off-by: Ridong Chen <chenridong@xiaomi.com>
+Link: https://lore.kernel.org/7e9369cf1473539bafe9cb90207ba6fe98b534ca.1794001419.git.guodong.xu@linux.dev
+Signed-off-by: Guodong Xu <guodong.xu@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
- .mailmap |    2 ++
- 1 file changed, 2 insertions(+)
+ .mailmap |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/.mailmap~mailmap-add-entries-for-ridong-chen
+--- a/.mailmap~mailmap-update-entry-for-guodong-xu
 +++ a/.mailmap
-@@ -815,6 +815,8 @@ Richard Genoud <richard.genoud@bootlin.c
- Richard Leitner <richard.leitner@linux.dev> <dev@g0hl1n.net>
- Richard Leitner <richard.leitner@linux.dev> <me@g0hl1n.net>
- Richard Leitner <richard.leitner@linux.dev> <richard.leitner@skidata.com>
-+Ridong Chen <ridong.chen@linux.dev> <chenridong@huawei.com>
-+Ridong Chen <ridong.chen@linux.dev> <chenridong@xiaomi.com>
- Rob Clark <robin.clark@oss.qualcomm.com> <robdclark@chromium.org>
- Rob Clark <robin.clark@oss.qualcomm.com> <robdclark@gmail.com>
- Robert Foss <rfoss@kernel.org> <robert.foss@linaro.org>
+@@ -358,8 +358,10 @@ Gokul Sriram Palanisamy <quic_gokulsri@q
+ Govindaraj Saminathan <quic_gsamin@quicinc.com> <gsamin@codeaurora.org>
+ Guo Ren <guoren@kernel.org> <guoren@linux.alibaba.com>
+ Guo Ren <guoren@kernel.org> <ren_guo@c-sky.com>
+-Guodong Xu <docular.xu@gmail.com> <guodong.xu@linaro.org>
+-Guodong Xu <docular.xu@gmail.com> <guodong@riscstar.com>
++Guodong Xu <guodong.xu@linux.dev> <docular.xu@gmail.com>
++Guodong Xu <guodong.xu@linux.dev> <guodong.xu@linaro.org>
++Guodong Xu <guodong.xu@linux.dev> <guodong.xu@oss.qualcomm.com>
++Guodong Xu <guodong.xu@linux.dev> <guodong@riscstar.com>
+ Guru Das Srinagesh <linux@gurudas.dev>
+ Guru Das Srinagesh <linux@gurudas.dev> <quic_gurus@quicinc.com>
+ Guru Das Srinagesh <linux@gurudas.dev> <gurus@codeaurora.org>
 _
 
-Patches currently in -mm which might be from chenridong@xiaomi.com are
+Patches currently in -mm which might be from guodong.xu@linux.dev are
 
-mm-memcontrol-drop-unused-vmscan-tracepoint-include.patch
-mm-vmscan-move-vmscan-tracepoints-to-a-local-header.patch
-mm-vmscan-move-struct-scan_control-to-a-dedicated-header.patch
-mm-vmscan-pass-scan_control-to-the-vmscan-tracepoints.patch
-mm-mglru-add-tracepoint-for-scan_folios.patch
-mm-mglru-add-lruvec_gen_size-helper.patch
-mm-mglru-add-tracepoint-for-aging.patch
 
