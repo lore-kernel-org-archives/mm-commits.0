@@ -1,64 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795024572;
-	b=PdQ456Y600AJAOIA1QRPt021yVrZhxwu131Z3HF76O1n5z/o0poXqE9y/hNzLjkfynjr
-	 mq/cm9HIf3/z8RapzgszdGZJl9ruRJzqJapeqvES2BHv89ti1L/5nRiIy+AxB8GH+hkIG
-	 5RmtneabUpIZK4dha62lORFOAxD5bv6qEiu3S4UOT5s10/HyKKfeSvyF2F9gigAp0EDHh
-	 ypk8LZT6pogIY/w0S+StC6CvwCNpwPOt58im9d1zFQOEytMvpKCp/yDIUZL/rNqryhUwf
-	 8GUPWxvKZePJRGnzwWRepVJc6x3c45XjLn4RL2AY/dtmLVFE2NVnNsWzD5aZIhgVlQw==
+	t=1795025241;
+	b=HSqwrn0FwuR/I+SjO20IrqHofndOk9WTz1KLP6ypOSDfAJL4exwOVM2u5fW/GY32pxJ3
+	 pE9T7YQqAsWMYHjh6dra4DMnNPILf65PXpYREEAVuUhEeHS/DmuRe3rY8ElcVNcyBNy2c
+	 57TsTZ2moPe1nRLeBCqmlUoK9AyTamnsxF7tZ0HU9lheAUwujsJaB9sNwtEdGtYesRbqu
+	 C8RlbAJ7gvB/RgVrJZcB5JFuaWQwQxADkzDxEVYhFnTaUXdtMCVCQz9KraRw0mVOUAq6U
+	 0JbuQBasMFNc5c1YqO/Io6T1BxWdixSrUub7/Q14okkuiZ1pxgv37p+jia8sdPfbk9A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795024572;
-	h=Received:DKIM-Signature:Received:Subject:From:In-Reply-To:References:
-	 X-PR-Tracked-List-Id:X-PR-Tracked-Message-Id:X-PR-Tracked-Remote:
-	 X-PR-Tracked-Commit-Id:X-PR-Merge-Tree:X-PR-Merge-Refname:
-	 X-PR-Merge-Commit-Id:Message-Id:Date:To:Cc;
-	bh=13046BEyk3OL0XiJDfnqzRxyQM4EIUQxyIC+qg+uPx4=;
-	b=OEFBqIC1h6/W8sDfqiSWlRD6Du/i9ZNVieyOEzBQNncJX7q39ja+giBg/IfpfjYQ4KjO
-	 L532wiZxnwQ9y64yICT2Mey+yLVwD4V71ci4wAGXagek3yJ2n3zJUur8cWWQSGy/uBojA
-	 tQ/GwmwIFCKwNw431ee0+mgKa5rx7xrjzdnUiBHYcYKhwUaPT5K8uNpCLs6Tp2zt3JObu
-	 5vx1eZqYPMnzF2DuVR91TqHrsanxuI9sWKYVJvsbPI1oI7sPAHXgWptUHH1OWzrilY9tW
-	 vBG5e8MqexxFM/gBRgYupNaFu6o5gw6hfUEjxAzzIzCvbrUzRLu7AZea/cgNRNLPcgQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795025241;
+	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
+	bh=rdP4j48GuYSkO8qcbBXJ0PPkPdIKR3XKwi2O9Q5hJw8=;
+	b=5ZTwB4b8FpgZ9Fym4s+UE6pN83b33Mc75gFwCSx+mQbgSELncECntrYDwf81KVRNXVvh
+	 OLG+c2A88QkTv254gBQDBU8bjaaU17TPF2g+WptCJ28xahcHMJE2Q+0w80Xi8lJELB3mW
+	 8uQACFKqPf4SH7qt+h8A4lKcGEdIDmmaugXp2w59I1DVYCmnrCscBhHQEGozcLBpS88Qj
+	 6enfttsXmHS4A5vXyejbYaPYWupsImYTKYvfo30I7HyCAYo+LmE6nXxmp7L9wJQd05JHf
+	 z1LKlP9/S5XMoDTnPT14exsJ1dHV/5nIbmEBpbqRYBvPCJh9F88drQZ4xzlqYXUZzkw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="Gj57/5xQ";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jHP7W8wG;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA0E5606A332;
-	Wed, 18 Nov 2026 17:56:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28259606A330;
+	Wed, 18 Nov 2026 18:07:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Gj57/5xQ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F0771F000C6;
-	Wed, 18 Nov 2026 17:56:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795024572;
-	bh=13046BEyk3OL0XiJDfnqzRxyQM4EIUQxyIC+qg+uPx4=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc;
-	b=Gj57/5xQvx96AFQb5qSmSIAvCs/NDEgpjKn9AwD+XaaF6SCgRpFyvf2Px4UGCV/fU
-	 uGHtFLLfhF7abcL36OCI0/GAHN3DrhR1QiNN5PGDKAwLtkOq6mCqn5GfBVZLmnJkrw
-	 flW1AnyzCUNsiM7ds9ZqdLrybqaCBaJ+BQAQszenljMg446FHHqRx8v/dyiuYGExgR
-	 UC2ogdwIW9DxiygNAlFOUNuGZx5jLHVBFV9M10er/v2KJWHUFscqCwlYjDL9MV5CGy
-	 19X2Fq7si5Nu1kzGF3JNtJq2WjEGrdogLOIRpicBDaLFc48qdSJBm5Rt7/4IZCnJWk
-	 dUwMnT8eubnNg==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 772B43808210;
-	Wed, 18 Nov 2026 17:56:12 +0000 (UTC)
-Subject: Re: [GIT PULL] Non-mm hotfixes for 7.4.rc4
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <20261118000947.a86e7241c67d295c40eb8b71@linux-foundation.org>
-References: <20261118000947.a86e7241c67d295c40eb8b71@linux-foundation.org>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <20261118000947.a86e7241c67d295c40eb8b71@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-nonmm-hotfixes-stable-2026-11-18-00-06
-X-PR-Tracked-Commit-Id: a001666afbf9d2a6096fea95686549b9b1c9d968
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 4405c18c95d2d0f99f6c581ef0ee8591a1aa6ccd
-Message-Id: <179502457112.1929586.16741761767129300180.pr-tracker-bot@kernel.org>
-Date: Wed, 18 Nov 2026 17:56:11 +0000
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, mm-commits@vger.kernel.org
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jHP7W8wG
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B591D1F000C6;
+	Wed, 18 Nov 2026 18:07:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1795025240;
+	bh=rdP4j48GuYSkO8qcbBXJ0PPkPdIKR3XKwi2O9Q5hJw8=;
+	h=Date:To:From:Subject;
+	b=jHP7W8wGETKB2F7IBnFAWJDErCJAb5sANISNmuoyUMxHl7d1f7OcK2a+mgD27oyxW
+	 tfo0xYKTRiw47vQNf49VugM3kQmccuGoORafriXbEd3f7cX97aDT7Z2UHeF00vTM/J
+	 QVIz6UU//6qcyK6rT7cuBig5KtBq7EhxXAsC4vQo=
+Date: Wed, 18 Nov 2026 10:07:20 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,neil@brown.name,
+	maarseveent@gmail.com,jlayton@kernel.org,jack@suse.cz,brauner@kernel.org,
+	jain.sm@gmail.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [merged] errseq-dont-let-errseq_check_and_advance-hide-later-errors.patch removed from -mm tree
+Message-Id: <20261118180720.B591D1F000C6@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -68,15 +51,189 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
-The pull request you sent on Wed, 18 Nov 2026 00:09:47 -0800:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-nonmm-hotfixes-stable-2026-11-18-00-06
+The quilt patch titled
+     Subject: errseq: don't let errseq_check_and_advance() hide later errors
+has been removed from the -mm tree.  Its filename was
+     errseq-dont-let-errseq_check_and_advance-hide-later-errors.patch
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/4405c18c95d2d0f99f6c581ef0ee8591a1aa6ccd
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-Thank you!
+------------------------------------------------------
+From: Shashank Mohan Jain <jain.sm@gmail.com>
+Subject: errseq: don't let errseq_check_and_advance() hide later errors
+Date: Sun, 27 Sep 2026 10:47:25 +0530
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+Patch series "errseq: fix lost writeback errors in
+errseq_check_and_advance()".
+
+errseq_check_and_advance() advances the caller's cursor to the value it
+tried to store even when its cmpxchg() failed.  If errseq_set() stored a
+different errno in the meantime, the cursor holds a value that was never
+in the errseq_t.  errseq_set() does not bump the counter while the current
+error is unseen, so recording the first errno again recreates exactly that
+value, and once another subscriber has marked it seen, the cursor's next
+check returns 0.  For fsync() (file->f_wb_err) and syncfs() (sb->s_wb_err)
+this means that a writeback error recorded after the previous call
+returned is not reported.  The race is rare: it needs two different
+errnos, an error recorded while the check runs, and a second subscriber
+consuming the value.  There is no user report; it was found with a model
+checker.
+
+Patch 1 retries with the value found when the cmpxchg() fails, so the
+cursor is only ever advanced to a value that was stored with ERRSEQ_SEEN
+set.  Patch 2 adds a KUnit case that races errseq_set() against
+errseq_check_and_advance() on two CPUs.
+
+Two behaviour changes are visible to callers, both intended.  When a
+writer wins the race, the call now returns the newer errno (still "the
+latest error", as documented).  And when two threads race on the same
+unserialised cursor (syncfs() does not lock f_sb_err), the loser may now
+return 0 where both used to return the error, so each open file
+description gets one report.
+
+Dependencies: patch 1 applies to mainline (fd179f8a05be) on its own and
+carries Cc: stable.  Patch 2 extends the errseq KUnit suite from commit
+b52f5c1605f2 ("lib/tests: add KUnit tests for errseq"), which is only in
+mm-nonmm-unstable, so the series is based on mm-nonmm-unstable
+(e8d6475e77a7).  Patch 1 could go through mm-hotfixes and patch 2 through
+mm-nonmm-unstable.
+
+The bug was found with a TLA+ model of lib/errseq.c checked with TLC.
+The patches were prepared with Claude Code (Anthropic), model Claude
+Opus 5.5 (claude-opus-5-5).  Testing is described at the Link:.
+
+
+This patch (of 2):
+
+errseq_check_and_advance() reads the errseq_t, sets ERRSEQ_SEEN with a
+cmpxchg() and then advances *since to the value it computed, ignoring
+whether the cmpxchg() succeeded. When it fails because errseq_set()
+recorded a different error in the meantime, *since ends up holding a
+value that was never stored in the errseq_t.
+
+errseq_set() only bumps the counter when ERRSEQ_SEEN is set. So as long
+as nobody has seen the new error, recording the original errno again
+recreates exactly the old value, and once another subscriber marks it
+seen, it is equal to the stale *since. The next check through that
+cursor then reports nothing, although -ENOSPC was recorded after the
+value that check reported, and -EIO was recorded again after it
+returned:
+
+  cursor f                writeback              cursor g
+  --------                ---------              --------
+                          set(-EIO)
+  check_and_advance(&f)
+    old = [c, EIO]
+                          set(-ENOSPC)
+                          -> [c, ENOSPC]
+    cmpxchg() fails
+    f = [c, EIO, SEEN]
+    returns -EIO
+                          set(-EIO)
+                          -> [c, EIO]
+                          (no bump: unseen)
+                                                 check_and_advance(&g)
+                                                 -> [c, EIO, SEEN]
+                                                 returns -EIO
+  check_and_advance(&f)
+    [c, EIO, SEEN] == f
+    returns 0             <- -ENOSPC and the second -EIO are lost
+
+For file->f_wb_err this means that fsync() on one descriptor can return 0
+although writeback failed after the previous fsync() on that descriptor
+returned, when writeback errors race with fsync() on another descriptor of
+the same file.  The same applies to syncfs() through sb->s_wb_err, which
+every file on the filesystem shares, and to the ext4 and jbd2 cursors on
+the block device mapping.  The kernel-doc promises "Negative errno if one
+has been stored, or 0 if no new error has occurred".
+
+Retry with the value found when the cmpxchg() fails, so that *since is
+only ever advanced to a value that was actually stored with ERRSEQ_SEEN
+set.  Every later errseq_set() then has to bump the counter, and the error
+is reported.  The retry loop terminates because each iteration needs a
+concurrent update, like the loop in errseq_set().
+
+A TLA+ model of errseq_set() and errseq_check_and_advance(), checked with
+the TLC model checker, finds the lost error with the current code; with
+this change TLC checks that an error recorded after a check returned is
+always reported by the next check (exhaustively for two subscribers with
+three checks each, and one writer recording four errors or two writers
+recording two each).  The KUnit race test added in the next patch misses
+the error in 1-6% of 2 million rounds on 4-CPU UML before this change
+(depending on host load), and in none after it.
+
+Link: https://lore.kernel.org/20260927051726.71337-1-jain.sm@gmail.com
+Link: https://lore.kernel.org/20260927051726.71337-2-jain.sm@gmail.com
+Fixes: 84cbadadc6ea ("lib: add errseq_t type and infrastructure for handling it")
+Signed-off-by: Shashank Mohan Jain <jain.sm@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Jeff Layton <jlayton@kernel.org>
+Cc: NeilBrown <neil@brown.name>
+Cc: Thomas Maarseveen <maarseveent@gmail.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: <stable@vger.kernel.org>
+
+ lib/errseq.c |   29 ++++++++++++++++++-----------
+ 1 file changed, 18 insertions(+), 11 deletions(-)
+
+--- a/lib/errseq.c~errseq-dont-let-errseq_check_and_advance-hide-later-errors
++++ a/lib/errseq.c
+@@ -162,7 +162,8 @@ EXPORT_SYMBOL(errseq_check);
+  * points to. If it does, then just return 0.
+  *
+  * If it doesn't, then the value has changed. Set the "seen" flag, and try to
+- * swap it into place as the new eseq value. Then, set that value as the new
++ * swap it into place as the new eseq value. If the swap fails because the
++ * value changed, retry with the new value. Then, set that value as the new
+  * "since" value, and return whatever the error portion is set to.
+  *
+  * Note that no locking is provided here for concurrent updates to the "since"
+@@ -184,24 +185,30 @@ int errseq_check_and_advance(errseq_t *e
+ 	 * to take the lock that protects the "since" value.
+ 	 */
+ 	old = READ_ONCE(*eseq);
+-	if (old != *since) {
++	while (old != *since) {
+ 		/*
+ 		 * Set the flag and try to swap it into place if it has
+ 		 * changed.
+ 		 *
+-		 * We don't care about the outcome of the swap here. If the
+-		 * swap doesn't occur, then it has either been updated by a
+-		 * writer who is altering the value in some way (updating
+-		 * counter or resetting the error), or another reader who is
+-		 * just setting the "seen" flag. Either outcome is OK, and we
+-		 * can advance "since" and return an error based on what we
+-		 * have.
++		 * If the swap fails, a writer or another reader changed the
++		 * value under us, so retry with the new value.  "since" must
++		 * only ever be set to a value that was stored with the SEEN
++		 * flag: errseq_set() does not bump the counter while the
++		 * flag is clear, so an unstored value could come back later
++		 * and hide the errors that were recorded in the meantime.
+ 		 */
+ 		new = old | ERRSEQ_SEEN;
+-		if (new != old)
+-			cmpxchg(eseq, old, new);
++		if (new != old) {
++			errseq_t cur = cmpxchg(eseq, old, new);
++
++			if (cur != old) {
++				old = cur;
++				continue;
++			}
++		}
+ 		*since = new;
+ 		err = -(new & ERRNO_MASK);
++		break;
+ 	}
+ 	return err;
+ }
+_
+
+Patches currently in -mm which might be from jain.sm@gmail.com are
+
+lib-tests-errseq-add-a-concurrent-check_and_advance-test.patch
+
