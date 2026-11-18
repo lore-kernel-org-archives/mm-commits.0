@@ -1,46 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795038268;
-	b=JeXU9whPKG3pJAuZ4/91dSFu0LbQkjQu79r663NgAY970hVHsxJqATPd8u8yXPJKNgm5
-	 1/gpxpmMNWUqT+KRpf4sFIQF9F0xMYgzoFh/9dVyb3mnMQtwIXq4UoIlLR70PzwNXH4Ki
-	 qnMYryqa/YGCKUMIYqMVb0gFh5Qa3FgLAkT55t6PZsAUaO6g3wgeeh+ezuBxIkMmk/yDa
-	 0FAT7BOM9YDiRWRoEcTVbrHOXvJG+QuGHoJk0iJKgIMSdZd08eLHg8QhSk8wvkP+s6feL
-	 6O0/UVqiWmUohndh+Mh80unYl62qDkkAH7puReqnKO3avmaeX1vozTrbPiANBffCpzA==
+	t=1795038509;
+	b=zJCvUQE1JyLW8w8QLH+5zrsQWOwW2Wqi7Zg68J5BdJt0GgyyWSguM+TKRW4EMoB60psw
+	 1OsuQ/SYmO838DgjzsRMltqbmxGS4hTaoJJi1ivN3Y3NHifmhdqVP8uAwiCptd8cy8cPC
+	 HitocN6LkrDUKu7mK3Rbf+5T9QnuCs9WXL65FPTjPUp8fBN/fV9+e6XlLDLaMPrvIfLMG
+	 0vkAejyTA2mUaFOzINlA4anwDb7q5bKm7VFNo2nOqd60hylTKIIm0pAFr/tL3mwiZ+xqT
+	 a7M5dvsdi7V3PqtraakaaGmcO22xiPG4kdWwfonXaUAUvac/4LoJtdcvIJnhRIfYRYg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795038268;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795038509;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=Gx0JTl7snLd1RDWvEqXR0hHBtnxOIzYkzt4aQhW68mc=;
-	b=Z3iJcyU+jEVhUbcnMbWGGuVXXZSQAG/pUOCXdeJd7V6TlaOSyob97NZhqZkoWk6wKt4d
-	 4CfyJaPcesqLkOX4XqSYi6qMqpK0qAw0SV89TID0gwCHy3Yp6YPs9tEq0L21dUNJ6nVBr
-	 9OGrUMNP7tVr9saWn80nFAYSsCCzJn4NpI92oI9sW6MyPr0zn1B5L0iLuMOBrin9wkAEm
-	 eg8S/3iV5YG/v//RjscMMdG0poA4nKZkP+a3HXWV79peAW0Yv7z5Ts7o7SEfPWKOd2j9t
-	 7DZFmKexEK+9ijZsNjRDwFydLcunOxU+EbQvAAZNfvv2vFvQSSxdf/ye1yjBsZwI/aw==
+	bh=Hu4eabpEarZy5KdormXmkyULV0C3qWVe8T2guI6y3Y4=;
+	b=2at6uHo0UydCKOn5hYVpDHS8l0EsEcfqcDVlMBLHXhP5bJeFsmCOIh6WhBm/yaMnHMg3
+	 /gIC1LnLYKEnq/YDW6+DjVhjJgaLUUi67EOTAE/cKo2xfdscDY5X+ss/3QSLobm5jFIuw
+	 7O8ymDDLL404Mk7NNY/Hil6tzcv+068yoR2phbVDh6llXLTf9860Znm5eds+vHKAeD7gF
+	 e062tvrQ7MZgNqBmGq/TAzH/8UvdKLcaCIB2/Lf6CWDfC0rbNb3QaRgIt23p21IpozJz7
+	 dbZ8qOsJghlwpxgV9QZoFb7suedtlXFKac8QWRAO7JcjiG9ogSYgKYctLAnz3IeJ9Pg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TqHqsj2e;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ghNYhmko;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33D40606A31C
-	for <mm-commits@vger.kernel.org>; Wed, 18 Nov 2026 21:44:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2BA7606A337;
+	Wed, 18 Nov 2026 21:48:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TqHqsj2e
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7FE41F000C4;
-	Wed, 18 Nov 2026 21:44:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ghNYhmko
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F5261F000CD;
+	Wed, 18 Nov 2026 21:48:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795038268;
-	bh=Gx0JTl7snLd1RDWvEqXR0hHBtnxOIzYkzt4aQhW68mc=;
+	d=linux-foundation.org; s=korg; t=1795038509;
+	bh=Hu4eabpEarZy5KdormXmkyULV0C3qWVe8T2guI6y3Y4=;
 	h=Date:To:From:Subject;
-	b=TqHqsj2eI81CvK0geu7CpDkKRoJhtVDSMtYCYi7aQErPk5VckgVpbfY7+M3RiBoe+
-	 dfbtYJ6y189Kq9CGRNPXyqffXw/QHdbE22kBV/QxfKTtC2BW6YUBM7iyVK0fWjUALj
-	 AL1kmb8kvOi1AEn+/KvmcB/AxDC3kSx47So23dJU=
-Date: Wed, 18 Nov 2026 13:44:27 -0800
-To: mm-commits@vger.kernel.org,akinobu.mita@gmail.com,ekffu200098@gmail.com,
-	akpm@linux-foundation.org
+	b=ghNYhmkohuG7Woc0uifb/Zqjrc/gSKymEqbNEbCPn82siOLU3gOGgJD+gbJBRFGHk
+	 b57rjGI40ASYMgA3vMavjSjxOZlLSMxDnPEN6Q/4EouY0+Am2oXTuGUL4OXm2T4a3a
+	 XGCn1VSnNJkX0XK7ZWE+u6uBmQaX+hS07mbiexps=
+Date: Wed, 18 Nov 2026 13:48:28 -0800
+To: mm-commits@vger.kernel.org,youngjun.park@lge.com,stable@vger.kernel.org,
+	shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,
+	chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,aquini@redhat.com,
+	oleksandr@natalenko.name,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fault-injection-fix-typo-in-failcmdsh.patch added to mm-nonmm-unstable branch
-Message-Id: <20261118214427.E7FE41F000C4@smtp.kernel.org>
+Subject: + mm-swapfile-really-fix-integer-overflow-in-swap_show-and-swapon.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261118214829.5F5261F000CD@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,14 +54,14 @@ Precedence: list
 
 
 The patch titled
-     Subject: fault-injection: fix typo in failcmd.sh
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fault-injection-fix-typo-in-failcmdsh.patch
+     Subject: mm/swapfile: really fix integer overflow in swap_show() and swapon()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-swapfile-really-fix-integer-overflow-in-swap_show-and-swapon.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fault-injection-fix-typo-in-failcmdsh.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapfile-really-fix-integer-overflow-in-swap_show-and-swapon.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -75,40 +77,60 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sang-Heon Jeon <ekffu200098@gmail.com>
-Subject: fault-injection: fix typo in failcmd.sh
-Date: Thu, 19 Nov 2026 01:43:02 +0900
+From: Oleksandr Natalenko <oleksandr@natalenko.name>
+Subject: mm/swapfile: really fix integer overflow in swap_show() and swapon()
+Date: Wed, 18 Nov 2026 12:26:10 +0100
 
-The failslab debugfs file is cache-filter, not cache_filter.
+One of the enterprise customers uses 6 TiB of swap, and the values
+reported in /proc/swaps as well as in dmesg are still not correct.
 
-Link: https://lore.kernel.org/20261118164303.97840-1-ekffu200098@gmail.com
-Fixes: c24aa64d169b ("fault-injection: add tool to run command with failslab or fail_page_alloc")
-Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
+Cast si->pages to long explicitly so that the bitshift in K() doesn't
+truncate the value to 32 bits.
+
+Also do the same in swapon() for the same reason.
+
+Link: https://lore.kernel.org/20261118112610.122799-1-oleksandr@natalenko.name
+Fixes: 642929a2ded0 ("mm/swapfile: fix an integer overflow in swap_show()")
+Signed-off-by: Oleksandr Natalenko <oleksandr@natalenko.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Reviewed-by: Youngjun Park <youngjun.park@lge.com>
+Cc: Rafael Aquini <aquini@redhat.com>
+Cc: Christopher Li <chrisl@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Barry Song <baohua@kernel.org>
+Cc: <stable@vger.kernel.org>
 
- tools/testing/fault-injection/failcmd.sh |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swapfile.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/tools/testing/fault-injection/failcmd.sh~fault-injection-fix-typo-in-failcmdsh
-+++ a/tools/testing/fault-injection/failcmd.sh
-@@ -196,7 +196,7 @@ while true; do
- 		shift 2
- 		;;
- 	--cache-filter)
--		echo $2 > $FAULTATTR/cache_filter
-+		echo $2 > $FAULTATTR/cache-filter
- 		shift 2
- 		;;
- 	--ignore-gfp-highmem)
+--- a/mm/swapfile.c~mm-swapfile-really-fix-integer-overflow-in-swap_show-and-swapon
++++ a/mm/swapfile.c
+@@ -3452,7 +3452,7 @@ static int swap_show(struct seq_file *sw
+ 		return 0;
+ 	}
+ 
+-	bytes = K(si->pages);
++	bytes = K((unsigned long)si->pages);
+ 	inuse = K(swap_usage_in_pages(si));
+ 
+ 	file = si->swap_file;
+@@ -3968,8 +3968,8 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	/* Sets SWP_WRITEOK, resurrect the percpu ref, expose the swap device */
+ 	enable_swap_info(si);
+ 
+-	pr_info("Adding %uk swap on %s.  Priority:%d extents:%d across:%lluk %s%s%s%s\n",
+-		K(si->pages), name->name, si->prio, nr_extents,
++	pr_info("Adding %luk swap on %s.  Priority:%d extents:%d across:%lluk %s%s%s%s\n",
++		K((unsigned long)si->pages), name->name, si->prio, nr_extents,
+ 		K((unsigned long long)span),
+ 		(si->flags & SWP_SOLIDSTATE) ? "SS" : "",
+ 		(si->flags & SWP_DISCARDABLE) ? "D" : "",
 _
 
-Patches currently in -mm which might be from ekffu200098@gmail.com are
+Patches currently in -mm which might be from oleksandr@natalenko.name are
 
-mm-memory-remove-unused-vmf_insert_mixed_mkwrite.patch
-mm-memory-remove-the-mkwrite-argument-from-__vm_insert_mixed.patch
-mm-memory-merge-__vm_insert_mixed-into-vmf_insert_mixed.patch
-fault-inject-use-a-shared-initialization-helper-for-the-random-state.patch
-fault-inject-fix-wrong-unit-of-verbose_ratelimit_interval_ms.patch
-fault-injection-fix-typo-in-failcmdsh.patch
+mm-swapfile-really-fix-integer-overflow-in-swap_show-and-swapon.patch
 
