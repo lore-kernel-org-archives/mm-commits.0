@@ -1,53 +1,62 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=124.126.103.232
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795003789;
-	b=bCFuJ81U9/BJCaXMWA8JJ4ZZlRBByTmIRcrXdWMbZKHGOZVYnm/uRus96xhx76teh6fR
-	 1d7zHC20nfA3+56Uwmgm7ezIf9tYdsm3l2SPIoIqkRx+flYWQl14pHwDCuK7D4jOt6D82
-	 oRZuhB7PEbIE6uMZmz2vCzY3IcrFhhqPHTRyOmME+1pLDAJVtw0tJR/Qrfz1mq9jk7i6v
-	 0e68Ny13gegUGy+C6UaQa02q/V10plNxQtVVKagkJi9RWNMh92kZgvRLFEZ7J9K39L7Fp
-	 Vsq+/Y/CnJ9N4FRSy3GQd13FRjVNyVx6lpHAMJwtPAnA9YpV48kF2OY+BZAfkgSkslA==
+	t=1795007919;
+	b=4IoW1iH4hKUxdl9odaqO6hilrDYzEPDs54nIGeZ7T/NjqicLeeIiNbepOO/1E1Ul3KDw
+	 gu3IqCD1NnNOBHmsrIFnIxWLGhbRxsxJTeijkBcopOuwyW0vu4LO4vmI4KL+Javp0wLC5
+	 Qj+I3Xmd7UM8RVQSC/bXGTnpdOACTNf0soBB7n6K1GX7Az2ZGQdlHgAFCTaly4n68Zrmj
+	 FZMSmLP5GwvUS9NFjeXADbcGdkBvnM2aTeqnq9FGlfKLz+4o9Di5PqiRmy9Bv4aF6KsW4
+	 F+M6GMQRFfsxeaY3EeA7Vvgslvf6AUnOoKALGUrFF20U/AZzfyV3qdOM9wfD+7VGwDQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795003789;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=SliBFCiuXH8Pgow6ev+m+UUcW7KKoAdntnZ69kSC5B4=;
-	b=4jnCNPH7BevYWFwc192m31R2gr1TMoQymEnFcqlIswAhaZY91NINs5x9d9eT+DTxs9rP
-	 am8on52HW6t8syNz3Hqak/hyyVUAf9ms+6xwYN3hjSx0ETlLK3Qw246CgX99bRVF0n7/J
-	 zktHvyHW61TGCHzoH3q3aOAzjnU21QA5P952yeLGpmodBLavRZ1pjV/Va2VJEsHThqngN
-	 souXY5c5ZK/ZeuisYXoUY2YuEeMaLUtQTgShHovtVjgXRDIrGr9mUsW6o0LnJevnmNVMT
-	 T/2eOTszP50dk0Mi7eg7enU4ZDFydjYAPbUrX5MSqe95hFJnKcjbrS/RETrCwIZHWMg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795007919;
+	h=DMARC-Filter:X-UUID:X-CID-P-RULE:X-CID-O-INFO:X-CID-INFO:X-CID-META:
+	 X-CID-BVR:X-CID-BAS:X-CID-FACTOR:X-CID-RHF:X-UUID:X-User:Received:
+	 Message-ID:Date:MIME-Version:User-Agent:Subject:To:Cc:References:
+	 Content-Language:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=upd0IxCj2792Sd+Vd6lDIAbHvUW1f3kpvaia8Zd/3Ck=;
+	b=NDDcvhOHT4l+kDPJxkcl/W57TB+0EibBqXAs7hR8TnBTWpzaQgSHTg/vFuMmfB6jB2nJ
+	 EvspgaZLnoMfqCbCxkvD61XcHua4rsyzxKiqYV5WKZ1X1pOKb8xQOvChb4+XPdH+02XiS
+	 PMyKo3dNZqzigGKFPAXuTy2ASCU8OKZ6Km1UAfizWaizYIdfYa35Ld3pQ0Eo5pSn7bYuz
+	 g8f6snlf6WJh1UV8LquGti+8u81DK6wCEGCUU+9bE6YsdYtVgw08W0fDaQII6XKZZu2F8
+	 RU41mrQ4wdk0sQstNI7jvAzI7I+iZug+mKbTnL0BQ22y3lS2Ciw2tjbnuv6QzQBtWPw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hwcttIRx;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=none header.from=kylinos.cn;
+	spf=pass smtp.mailfrom=kylinos.cn;
+	arc=none smtp.remote-ip=124.126.103.232
+Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FDF2606A31C
-	for <mm-commits@vger.kernel.org>; Wed, 18 Nov 2026 12:09:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hwcttIRx
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41E211F000C4;
-	Wed, 18 Nov 2026 12:09:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795003789;
-	bh=SliBFCiuXH8Pgow6ev+m+UUcW7KKoAdntnZ69kSC5B4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=hwcttIRxEQ1d1U3aHdQFf28Y+Uv3ujPjGBD0ZSyiDaBYZwWSqybmPkExviI/gmtzS
-	 2LUq+hcBLdDzdAfi9g23PAnLNhT+XIii/UxXrWSAy+8yO6EosQghwxAs1GF9aUiylq
-	 OE8cb4hVk3SSC64YKsrhu9W4m6ggDvwcL5XKQf4AnISxcpWa9yiwW1ag6BHJSV1WEI
-	 GCL36KN5QwPMbrjr0ei8RuvPjdmBavysaHvFl949vtdU4I0MS09W7Qw9wmVcEV3PHU
-	 vkw9q5O3gl1fURldMP0lwI3TDBq8df/xB4eVm2i5+0B6xNRfVjGMWwCpKXhPSc9cum
-	 nVV2++OnkoMHA==
-Date: Wed, 18 Nov 2026 12:09:44 +0000
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-To: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, 
-	"David Hildenbrand (Arm)" <david@kernel.org>, Mike Rapoport <rppt@kernel.org>, 
-	"linux-mm@kvack.org" <linux-mm@kvack.org>, mm-commits@vger.kernel.org
-Subject: Re: Using In-reply-to: <patch posting> in mm-commits mails?
-Message-ID: <av2UtIIP202zN2jJ@gremlin>
-References: <9ba54069-3dc4-422f-8cf6-f81cb806e999@kernel.org>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EDAE606A31C;
+	Wed, 18 Nov 2026 13:18:36 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3EDAE606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
+X-UUID: 8c311e00e35211f19a56ed5b684f684d-20261118
+X-CID-P-RULE: Release_Ham
+X-CID-O-INFO: VERSION:1.3.19,REQID:8e9c81ca-96b8-4040-b02f-cb5bf20b073f,IP:10,
+	URL:0,TC:0,Content:0,EDM:0,RT:0,SF:0,FILE:0,BULK:0,RULE:Release_Ham,ACTION
+	:release,TS:10
+X-CID-INFO: VERSION:1.3.19,REQID:8e9c81ca-96b8-4040-b02f-cb5bf20b073f,IP:10,UR
+	L:0,TC:0,Content:0,EDM:0,RT:0,SF:0,FILE:0,BULK:0,RULE:Release_Ham,ACTION:r
+	elease,TS:10
+X-CID-META: VersionHash:7db8b62,CLOUDID:590b889ced8d4f83e2e07ffedd64af85,BulkI
+	D:261118093247FQF070YS,BulkQuantity:2,SF:17|19|38|64|66|78|80|81|82|83|102
+	|127|136|153|841|865|898,TC:nil,Content:0|15|16|50|99,EDM:-3|-100,IP:-2,UR
+	L:99|1,File:nil,RT:nil,Bulk:40,QS:nil,BEC:nil,COL:0,OSI:0,OSA:0,AV:0,LES:1
+	,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0,ARC:0
+X-CID-BVR: 2,SSN|SDN
+X-CID-BAS: 2,SSN|SDN,0,_
+X-CID-FACTOR: TF_CID_SPAM_SNR,TF_CID_SPAM_FAS,TF_CID_SPAM_FSD,TF_CID_SPAM_ULS
+X-CID-RHF: D41D8CD98F00B204E9800998ECF8427E
+X-UUID: 8c311e00e35211f19a56ed5b684f684d-20261118
+X-User: lienze@kylinos.cn
+Received: from [192.168.3.106] [(111.193.136.161)] by mailgw.kylinos.cn
+	(envelope-from <lienze@kylinos.cn>)
+	(Generic MTA with TLSv1.3 TLS_AES_128_GCM_SHA256 128/128)
+	with ESMTP id 603697062; Wed, 18 Nov 2026 21:18:30 +0800
+Message-ID: <06e16d01-328b-4267-902b-1b4821139029@kylinos.cn>
+Date: Wed, 18 Nov 2026 21:18:26 +0800
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -57,44 +66,92 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <9ba54069-3dc4-422f-8cf6-f81cb806e999@kernel.org>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] mm/damon/paddr: avoid truncation warning in high-address
+ KUnit test
+To: Aveline Noir <jm5905938@gmail.com>, SJ Park <sj@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>
+Cc: damon@lists.linux.dev, David Hildenbrand <david@kernel.org>,
+ Justin Stitt <justinstitt@google.com>, linux-kernel@vger.kernel.org,
+ Linux Memory Management List <linux-mm@kvack.org>,
+ kernel test robot <lkp@intel.com>, llvm@lists.linux.dev,
+ mm-commits@vger.kernel.org, Bill Wendling <morbo@google.com>,
+ Nathan Chancellor <nathan@kernel.org>,
+ Nick Desaulniers <ndesaulniers@google.com>, oe-kbuild-all@lists.linux.dev,
+ rdunlap@infradead.org, sashiko-bot@kernel.org,
+ sashiko-reviews@lists.linux.dev
+References: <20261118-fix-damon-paddr-sparse-20261118-v1-1-3a0e943406d5@gmail.com>
+Content-Language: en-US
+From: Enze Li <lienze@kylinos.cn>
+In-Reply-To: <20261118-fix-damon-paddr-sparse-20261118-v1-1-3a0e943406d5@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Wed, Nov 18, 2026 at 11:21:47AM +0100, Vlastimil Babka (SUSE) wrote:
-> Hi Andrew,
->
-> during some chat with Lorenzo, it occured me that it could be useful if your
-> mm-commit mails (addition, merging to mm-stable, drop etc.) were replies to
-> the respective patch postings, which would put them next to the patches in
-> everyone's inboxes. I think Lorenzo started to doing that on his receive
-> side with postprocessing.
 
-Ack to confirm I had claude schlopp me something to do that and it's already
-extremely useful - let's me see at glance if a patch/series has been taken, etc.
 
-Especially useful in neomutt set up to show emails hierarchically.
-
->
-> While I haven't checked your scripts, I naively imagine it shouldn't be hard
-> to add that In-reply-to: <msgid> header. You already have the msgid for the
->
-> Link: https://lore.kernel.org/<msgid>
->
-> part. Maybe it's tricky when there are more Link:'s than the patch posting
-> itself. But actually after Linus initially hated these automatic Link:
-> additions, he later settled on the Link: https://patch.msgid.link/ template
-> as acceptable to him. It's sort of documented in
-> Documentation/process/maintainer-tip.rst too. So changing to use that
-> template should allow to easily grab the right msgid to reply to even for
-> later actions on the patch, than the initial addition.
-
-Should be straightforward I think?
-
->
-> Thoughs?
+On 2026/11/18 01:04, Aveline Noir wrote:
+> Hi SJ, Andrew,
+> 
+> The kernel test robot caught this issue in my earlier addr_unit KUnit
+> patch. Feel free to fold this fix into that patch.
+> 
 > Thanks,
-> Vlastimil
+> Aveline Noir
+> 
+> -- >8 --
+> When phys_addr_t is 32-bit, Sparse warns about truncating the u64 address
+> passed to damon_pa_core_addr() in damon_test_pa_addr_over_4g().  The
+> runtime kunit_skip() does not prevent Sparse from checking that
+> conversion.
+> 
+> Compile the high-address assertions only with CONFIG_PHYS_ADDR_T_64BIT,
+> and keep the test skipped otherwise.
+> 
+> Fixes: 7a983cc1b573 ("mm/damon/paddr: add KUnit tests for addr_unit conversion")
+> Reported-by: kernel test robot <lkp@intel.com>
+> Closes: https://lore.kernel.org/oe-kbuild-all/20261117170155.fEdeuuhm-lkp@intel.com/
+> Signed-off-by: Aveline Noir <jm5905938@gmail.com>
 
---
-Cheers, Lorenzo
+Reviewed-by: Enze Li <lienze@kylinos.cn>
+
+Thanks,
+Enze
+
+> ---
+> The reported warning is gone with the original i386 config, Clang 22.1.8
+> and Sparse v0.6.5-rc1-21-g84ec0658. All executed DAMON KUnit tests passed
+> on x86_64 and i386 with and without PAE; the high-address case skips
+> without PAE.
+> ---
+>  mm/damon/tests/paddr-kunit.h | 7 ++++---
+>  1 file changed, 4 insertions(+), 3 deletions(-)
+> 
+> diff --git a/mm/damon/tests/paddr-kunit.h b/mm/damon/tests/paddr-kunit.h
+> index 9839cc233071..2b11f0e67a12 100644
+> --- a/mm/damon/tests/paddr-kunit.h
+> +++ b/mm/damon/tests/paddr-kunit.h
+> @@ -26,15 +26,16 @@ static void damon_test_pa_core_addr(struct kunit *test)
+>  
+>  static void damon_test_pa_addr_over_4g(struct kunit *test)
+>  {
+> +#ifdef CONFIG_PHYS_ADDR_T_64BIT
+>  	unsigned long addr = 0xffffffffUL;
+>  	unsigned long addr_unit = 0x1000;
+>  	u64 pa = 0xffffffff000ULL;
+>  
+> -	if (!IS_ENABLED(CONFIG_PHYS_ADDR_T_64BIT))
+> -		kunit_skip(test, "phys_addr_t is 32-bit");
+> -
+>  	KUNIT_EXPECT_EQ(test, damon_pa_phys_addr(addr, addr_unit), pa);
+>  	KUNIT_EXPECT_EQ(test, damon_pa_core_addr(pa, addr_unit), addr);
+> +#else
+> +	kunit_skip(test, "phys_addr_t is 32-bit");
+> +#endif
+>  }
+>  
+>  static struct kunit_case damon_paddr_test_cases[] = {
+> 
+> ---
+> base-commit: 7a983cc1b57309a875a9e07a934c9944bf3d088d
+> change-id: 20261118-fix-damon-paddr-sparse-20261118-fb08902768d7
+
