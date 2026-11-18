@@ -1,46 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794972832;
-	b=t5LZmsbRqZgpU/P97Wi/X5TnW08zjdPtUAa2JnrKhU+DTwbsFOMC2sj2nGVIm7gu9e08
-	 ZDWt2sWpsYg8nT4XqYTZAbnxzwVDTZtl4d91tGoF3zaKs4pK4K+Y2T7FYSTC+cV0RuuA2
-	 YGq5RTvsielVldOkEm1EEkgpNNPQcEHjuRGvbYu1q/ghUEWfWdo7sCn2TJbRimQ+K5q/R
-	 5J8OYU1N+t5w6TIPz1xCRlPrqjx+8MOOp+7LrNdg5USk4znVCemsR/Oqgz5OqObJXCUus
-	 KaFxRq2h9WU0mLZrQmAe+3eb/iCjHyookm3HOa33TgnbrA/SDneXdvYPwGQ49iPGHbQ==
+	t=1794973171;
+	b=RQhVbLn0rWuBN0rK4MO9VJ138V7iGTSxfmTRX40UvppJvNkajPTVWo7e2qB2Xz+BOOnV
+	 kHhoTjGt6ydRhsjA1/cOUs1y1R8IyPvzVT+jwl7X7+Ms5MoECgVfCd13aMRrNVt5liTFl
+	 v0h460jZCTmoeUQvEDyY9MGS6ZfoXhIT50auCAAWr6ZU0XXfqa93DJOhlhyIBv5t19LU7
+	 FI5OFUQnHe57p+3mgFkPufjPt4SVobbhvdt7/Mefpa5CtUYZDV54VrpNpg+1lIpXMyide
+	 txFrp8YO4VrXLIurr0TIARCbRBQdXHsWIis7HxfBYgPouSTqi/9g10s90M/dFwAmiNw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794972832;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794973171;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=jxjBhwxjDXFTwaRPm10C4WI0Tmf8n9e9Q+6ZV//oK0I=;
-	b=24g0DOqVILyUYsYv5FBW7Q5xkDHH0nBn2+/caObjtyTMAXHqcN5x0kwhQqdq17NNB5TB
-	 UR6CsXreETGxGWrXx9EG10X2oBu8H/FXqd9Edu77JmEj3rdOs/fMzYuwj0LfVh4AeNGXa
-	 E+0UqClQt3OTLNbidGolsvo1bXVc74nY7Q5+wSfettVF0iNUqaIiklp7JsfVXlcmJA28X
-	 5aO6sE0ukVhoaXjzsvEdqRiQj1+x06EYg5a7A7mOSVl1znXAu85x7Y/HIiCogA3Vkjp3T
-	 Ky3KmCKS6kxPEtWPkITkKD58UqVIaEq/dHPShIZp8Vlv32+4kaeLci9XQ11FOZJmseg==
+	bh=4yXPS4KozUo7UaEim5Qn33mv4xka6Uh1cNLvPB64jpA=;
+	b=UFz94AtfqSBsA+H8CBFZGYFlXp2BC3Vz5w/UeqXottRJdpwYujIWK2f6WA1mJgApnjQR
+	 k2MDZ1wOIbrhnCUNh8gyNLzEUqiJ5Wa294TNDK/sagrkRrCElmVO/l8wt8v5wzMam2uyf
+	 H3GKLQElfWr+s5KvMPA1QcPGaEBPbPs4iKKenOEN5vXpEQr0Iir3U/XJuHgJ2YbVfZQkW
+	 IuO5trS0yKAQC0TX0PdUUMbTphp8uFA5lWyFwkH+8pR0uy90kHJ0VT+lbD1skrmKbgyZn
+	 m4fbs9EGtC3F+TmXkWoA706V92g9q38uDqMvk7CZ8GIEPyUYFDiSqXolAMRn0ttusAg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=uUKwNiT5;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=wRGKBKp7;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F019606A31C
-	for <mm-commits@vger.kernel.org>; Wed, 18 Nov 2026 03:33:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28AC4606A332
+	for <mm-commits@vger.kernel.org>; Wed, 18 Nov 2026 03:39:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=uUKwNiT5
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D2AD1F000C4;
-	Wed, 18 Nov 2026 03:33:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=wRGKBKp7
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFB7D1F000C6;
+	Wed, 18 Nov 2026 03:39:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794972832;
-	bh=jxjBhwxjDXFTwaRPm10C4WI0Tmf8n9e9Q+6ZV//oK0I=;
+	d=linux-foundation.org; s=korg; t=1794973170;
+	bh=4yXPS4KozUo7UaEim5Qn33mv4xka6Uh1cNLvPB64jpA=;
 	h=Date:To:From:Subject;
-	b=uUKwNiT5OTy39dguYZDbatk9naH1xbKvzi2jrEwUYNb2bSFiBs+OVsxB4c/dNTNHT
-	 RHE5A3Uez6rkz4e8ptZfWo9LcvExNFWM3DJH/QtAHf98pw2u78RR6iThcvN6R8MK9Q
-	 NsNf4bohYZhFGN76vmjJbuOihC39Kw4xqt1xcb5I=
-Date: Tue, 17 Nov 2026 19:33:51 -0800
-To: mm-commits@vger.kernel.org,shuah@kernel.org,ljs@kernel.org,
-	david@kernel.org,chenxionggui@lanxincomputing.com,akpm@linux-foundation.org
+	b=wRGKBKp7TZHmXmZCD3wuXPe9bYSp69kIElUA9gySP5UyqiXQrOotocwfIeimkvd+o
+	 dKh7T7I56cENu9lUf2BNKkiGEJbTvmLryYXXW43PQJ2bSZPZIsa03ttTfL/Clum4do
+	 74god5iTOL3rCsV7Brq9G1W3oCptPAxXWzITGZOk=
+Date: Tue, 17 Nov 2026 19:39:30 -0800
+To: mm-commits@vger.kernel.org,kuba@kernel.org,jeff.johnson@oss.qualcomm.com,
+	hawk@kernel.org,dianders@chromium.org,cel@kernel.org,
+	bastien.curutchet@bootlin.com,alex@sverdlin.org,namjain@linux.microsoft.com,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-handle-implicit-read-permissions-in-madv_populate.patch added to mm-new branch
-Message-Id: <20261118033352.0D2AD1F000C4@smtp.kernel.org>
+Subject: + mailmap-update-email-address-for-naman-jain.patch added to mm-nonmm-hotfixes-unstable branch
+Message-Id: <20261118033930.CFB7D1F000C6@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,26 +54,15 @@ Precedence: list
 
 
 The patch titled
-     Subject: selftests/mm: handle implicit read permissions in madv_populate
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-handle-implicit-read-permissions-in-madv_populate.patch
+     Subject: mailmap: update email address for Naman Jain
+has been added to the -mm mm-nonmm-hotfixes-unstable branch.  Its filename is
+     mailmap-update-email-address-for-naman-jain.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-handle-implicit-read-permissions-in-madv_populate.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-update-email-address-for-naman-jain.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -86,56 +77,40 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Xionggui Chen <chenxionggui@lanxincomputing.com>
-Subject: selftests/mm: handle implicit read permissions in madv_populate
-Date: Tue, 17 Nov 2026 07:06:06 +0000
+From: Naman Jain <namjain@linux.microsoft.com>
+Subject: mailmap: update email address for Naman Jain
+Date: Tue, 17 Nov 2026 08:45:42 +0000
 
-The madv_populate selftest assumes that mmap(PROT_WRITE) creates a VMA
-without VM_READ and expects MADV_POPULATE_READ to fail with EINVAL.
+My Qualcomm email address is no longer accessible. Map it to my current
+Microsoft email address.
 
-On RISC-V, commit 6c7559f22b6f ("riscv/mm: ensure PROT_WRITE leads to
-VM_READ | VM_WRITE") makes the kernel set VM_READ for mappings requested
-with PROT_WRITE.  MADV_POPULATE_READ checks this VMA permission, so it
-succeeds and the test fails incorrectly.
-
-Adjust the expected result for RISC-V using an architecture-specific
-conditional, while preserving the existing behavior on other
-architectures.
-
-On RISC-V with Linux 7.2.0, the original test fails 1 out of 16 tests,
-while the updated test passes all 16 tests.
-
-Link: https://lore.kernel.org/20261117070606.3752-1-evers_chen@163.com
-Link: https://lore.kernel.org/20261112031811.56500-1-evers_chen@163.com
-Fixes: e5bfac53e310 ("selftests/vm: add test for MADV_POPULATE_(READ|WRITE)")
-Signed-off-by: Xionggui Chen <chenxionggui@lanxincomputing.com>
+Link: https://lore.kernel.org/20261117084542.2076622-1-namjain@linux.microsoft.com
+Signed-off-by: Naman Jain <namjain@linux.microsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Bastien Curutchet (Schneider Electric) <bastien.curutchet@bootlin.com>
+Cc: Douglas Anderson <dianders@chromium.org>
+Cc: Jesper Dangaard Brouer <hawk@kernel.org>
+Cc: Alexander Sverdlin <alex@sverdlin.org>
+Cc: Chuck Lever <cel@kernel.org>
+Cc: Jeff Johnson <jeff.johnson@oss.qualcomm.com>
 
- tools/testing/selftests/mm/madv_populate.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ .mailmap |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/tools/testing/selftests/mm/madv_populate.c~selftests-mm-handle-implicit-read-permissions-in-madv_populate
-+++ a/tools/testing/selftests/mm/madv_populate.c
-@@ -81,8 +81,13 @@ static void test_prot_write(void)
- 		ksft_exit_fail_msg("mmap failed\n");
- 
- 	ret = madvise(addr, SIZE, MADV_POPULATE_READ);
-+#ifdef __riscv
-+	ksft_test_result(ret == 0,
-+			 "MADV_POPULATE_READ with PROT_WRITE\n");
-+#else
- 	ksft_test_result(ret == -1 && errno == EINVAL,
- 			 "MADV_POPULATE_READ with PROT_WRITE\n");
-+#endif
- 
- 	ret = madvise(addr, SIZE, MADV_POPULATE_WRITE);
- 	ksft_test_result(!ret, "MADV_POPULATE_WRITE with PROT_WRITE\n");
+--- a/.mailmap~mailmap-update-email-address-for-naman-jain
++++ a/.mailmap
+@@ -695,6 +695,7 @@ Mythri P K <mythripk@ti.com>
+ Nadav Amit <nadav.amit@gmail.com> <namit@vmware.com>
+ Nadav Amit <nadav.amit@gmail.com> <namit@cs.technion.ac.il>
+ Nadia Yvette Chambers <nyc@holomorphy.com> William Lee Irwin III <wli@holomorphy.com>
++Naman Jain <namjain@linux.microsoft.com> <quic_namajain@quicinc.com>
+ Naoya Horiguchi <nao.horiguchi@gmail.com> <n-horiguchi@ah.jp.nec.com>
+ Naoya Horiguchi <nao.horiguchi@gmail.com> <naoya.horiguchi@nec.com>
+ Natalie Vock <nat@pixelcluster.dev> <friedrich.vock@gmx.de>
 _
 
-Patches currently in -mm which might be from chenxionggui@lanxincomputing.com are
+Patches currently in -mm which might be from namjain@linux.microsoft.com are
 
-selftests-mm-handle-implicit-read-permissions-in-madv_populate.patch
+mailmap-update-email-address-for-naman-jain.patch
 
