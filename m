@@ -1,49 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794974377;
-	b=fEpCwSr4ujpZ2vdwylb8zoYLTPr9Vaes23XvMHtrz2IB/gwBwBjzH3zw0cHer0fMuMms
-	 LHUzPBRtWJ/obJnVLvfkVKZ1AHToNIb8QB31vMYcNbq9rWRXq2AkJLKdHAoGNt0Ix2g0G
-	 GNP1Pa1dJsv2T3HUyDEQpQss5B6RNM9EnAEA1oXCeUq0VqO+fTJscaOlSak7tUVw6hzC+
-	 RwG0p1NNvItbaipjoImZ7kIWHBGFg1DLEEiG58/dHEtmoC/QDe/403te80LUahvghTZLK
-	 MxzC8ReoVQjerH9/LfusvjDO5b3kLbuaXkOJXIs3r/ThkBq3xHQk2fdzbG+26BA9ogg==
+	t=1794980507;
+	b=J8aHvYLLsAfWhJvTYPC/al4QQxZDDt9xaX4MwRXh6c+Tf73PBtHn/F7tMsQTwf6AElwk
+	 7nMdKSTRDP78nq4OLYDP6b2qgCwPtYW8h91VuR+UFJEnSouJCV+XLc7vFZqy8HVt41Vbc
+	 eDgLXP24c5Nc+CAv+31JRnO5e9qRgx96C2XDZsM471Z8TG6FO5fMght2aO+Uqi/igVyMd
+	 XZq4oc3YPBpuZ5WqsFErplSvOxBnkcma69YdIY9yIzCZTDQBbdC+FRaCfedzGNTIExAU1
+	 n8lhGrXP4/NlCi/044tCZ5Yp3BLNACaOYHT1UcWHcBYw6nI5yf4vKYJg1YFuJjcQsOA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794974377;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-Id:X-Mailer:
-	 Mime-Version:Content-Type:Content-Transfer-Encoding;
-	bh=XyHm8E6N2BxawANh+DTFxuHa3dV/Ky8ta/U+foCe5G0=;
-	b=TajaARElO38uiCp8CucSOgFCJAsFTq6GSZkNOaXaSlApU5sEnX7/Nu8iRGpQhlSTWOMt
-	 w+E/vrO74gLF/Hd/oAbT8JbIGJq5c0okXv2h3U77q98B77TGHpCbeduck9FcBVbMP8ZCA
-	 FheoyyLi4aYsPxpXO4526G1b/FW1aMOugDdVxSZK7Kca5GldcrGzVArkx00jdGZwyVZzz
-	 0+K7tdxm3xPB3KfK9bKyGQOA3LUPXnx9zSWoLjBFDjtUF1vsbUXJ04R0G+Hz9mM9oXdc7
-	 8N3XIZUrbeGRr91RsSTEUu50hm9MIASxwRQtco7d0kUHM0XO+39sTlbVFkhp/t9+wRA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794980507;
+	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
+	bh=Eob/ZppwEWhzG1bMzQynTL52CHkf/58QaMAuhdFsZwk=;
+	b=C3RZAJyDvSQOzAHO4Vjw0/VnYZuMmcJgOIh+vtMJG3VdqfjWZxB1sH8ZgqUZyz2qVjOV
+	 N6aJT1n0a/bq7qzz2hGuJsDvPmT9clyXZA7C6mb4hZY1qEfMEWn5A7bMXUHf8fp9z24Dj
+	 afPJf9Ou3maeXZ3J6EbRWPSlRyaMDkUVMKhprkIlVI3pWbPQYKcvCvk1veyvBBLOLpyvf
+	 r1sJBhT0cgcmCA0QlThInjUaFpeywTxtBR+iWPNUzmPCvYV3GiS5RNAAIGvbG6zyUqxv6
+	 tiU/aJT/OFinZALNmVmxAaE07sd7Y1LrUkzN+TIwQ1mQVB2aM21/2EQR0sfUBWVxHGQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=FGGzPP+S;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=DZeuZNmD;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D9E4606A325;
-	Wed, 18 Nov 2026 03:59:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54CF8606A31C;
+	Wed, 18 Nov 2026 05:41:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=FGGzPP+S
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BD361F000C9;
-	Wed, 18 Nov 2026 03:59:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=DZeuZNmD
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF0381F000C4;
+	Wed, 18 Nov 2026 05:41:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794974376;
-	bh=XyHm8E6N2BxawANh+DTFxuHa3dV/Ky8ta/U+foCe5G0=;
-	h=Date:From:To:Cc:Subject;
-	b=FGGzPP+SEtRVhRTpBqGTZyW/9L7mrJiWNJ7j1osbATyqNtc/Z3sMU7PGu47jqM4NB
-	 lA8uYRC31QY9Skm9aV4rS0caF32Q2NgVnHwij9RHIAWFM2GzHG+Nk78snqHZYfM6Dt
-	 8UjvKLlWVrEK4Da8ZqaT5jjgIjb429jIwpaj3+qY=
-Date: Tue, 17 Nov 2026 19:59:35 -0800
+	d=linux-foundation.org; s=korg; t=1794980506;
+	bh=Eob/ZppwEWhzG1bMzQynTL52CHkf/58QaMAuhdFsZwk=;
+	h=Date:To:From:Subject;
+	b=DZeuZNmDfam9A0m0Hgp0DIVuz7fUlWfSGu251QL+dVFO97IRCkLl93fz6SPQm8TV/
+	 yYUu07Cpcl10+xItwbLcXiz/CH/VaWWMzhfjffcjYPQJxUHtRdMLQVKJ1obfzZOOhJ
+	 mHuFosUS6LMCwFSJUj2TnlyjyzwJ1QPCI6F1gZJc=
+Date: Tue, 17 Nov 2026 21:41:46 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mark@fasheh.com,
+	joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jjzuming@gmail.com,
+	heming.zhao@suse.com,baijiaju1990@gmail.com,zzzccc427@gmail.com,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
- linux-kernel@vger.kernel.org, David Hildenbrand <david@kernel.org>
-Subject: [GIT PULL] MM hotfixes for 7.4-rc4
-Message-Id: <20261117195935.25bd098c3a99c1331c6ffc01@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: [merged mm-nonmm-hotfixes-stable] ocfs2-serialize-inode-journal-access-with-shutdown.patch removed from -mm tree
+Message-Id: <20261118054146.AF0381F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,192 +51,322 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
 
-Linus, please merge this batch of MM hotfixes, thanks.
+The quilt patch titled
+     Subject: ocfs2: serialize inode journal access with shutdown
+has been removed from the -mm tree.  Its filename was
+     ocfs2-serialize-inode-journal-access-with-shutdown.patch
 
+This patch was dropped because it was merged into the mm-nonmm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-The following changes since commit fa4ad798f6f681031775266044ba1b0cf3c670bd:
+------------------------------------------------------
+From: Cen Zhang <zzzccc427@gmail.com>
+Subject: ocfs2: serialize inode journal access with shutdown
+Date: Fri, 30 Oct 2026 12:48:56 +0800
 
-  Merge tag 'for-7.4-rc1-tag' of git://git.kernel.org/pub/scm/linux/kernel/git/kdave/linux (2026-11-07 13:52:02 -0800)
+The downconvert thread can run inode cleanup until ocfs2_dlm_shutdown()
+stops it, but unmount shuts down the journal earlier. A final dentry
+post-unlock put can therefore enter ocfs2_clear_inode() while the journal
+is being destroyed.
 
-are available in the Git repository at:
+ocfs2_ci_fully_checkpointed() loads osb->journal before taking
+trans_inc_lock. Journal shutdown neither takes that lock for removal
+nor waits for the downconvert thread before freeing the journal:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2026-11-17-19-55
+  Downconvert thread                    Unmount
+  ------------------                    -------
+  dentry post-unlock; final iput()
+    ocfs2_checkpoint_inode()
+      load osb->journal
+                                        ocfs2_journal_shutdown()
+                                          free journal; clear pointer
+      read the transaction ID
 
-for you to fetch changes up to a4e667346a8d91e629a2ca9affc70dc28978f4a1:
+The checkpoint wait queue is embedded in that journal, and the final
+jbd2_journal_release_jbd_inode() also needs its JBD2 journal to remain
+alive for the whole call. Protecting only the pointer load would leave
+those longer uses unprotected.
 
-  xarray: fix index jumping backwards in xas_find() (2026-11-09 22:44:31 -0800)
+Read and clear osb->journal under trans_inc_lock when checking checkpoint
+progress. Treat a removed journal as checkpointed. Move checkpoint
+waiters to the existing mount-owned checkpoint_event and wake it after
+checkpoint progress and journal removal, so the queue outlives the
+journal. The commit thread also waits there and rechecks its condition
+when woken.
 
-----------------------------------------------------------------
-mm.git review status for linus..mm-hotfixes-stable
+Serialize the final JBD2 inode release against JBD2 destruction and the
+journal free with a mount-owned rw_semaphore. Take the write side only
+after stopping the commit thread, and drop it before the journal inode's
+final iput(), whose cleanup can take the read side. Inode cleanup holds
+the read side only around the JBD2 release, outside checkpoint waits and
+DLM lock teardown.
 
-Everything:
+KASAN report as below:
 
-Total patches:       27
-Fixes: tags:         26
-cc:stable patches:   23
-Reviews/patch:       1.63
-Reviewed rate:       81%
+    Oops: general protection fault, probably for non-canonical address 0xdffffc000000000e: 0000 [#1] SMP KASAN NOPTI
+    KASAN: null-ptr-deref in range [0x0000000000000070-0x0000000000000077]
+    CPU: 0 UID: 0 PID: 587 Comm: ocfs2dc-33CAF04 Not tainted 7.3.0-rc4-next-20260921-pmb-ocfs2-functional-v1+ #1 PREEMPT(lazy) 
+    Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+    RIP: 0010:ocfs2_clear_inode+0x8ae/0x1630
+    Code: fc ff df 48 c1 ea 03 80 3c 02 00 0f 85 27 0c 00 00 49 8d 7d 70 48 8b 43 c8 48 ba 00 00 00 00 00 fc ff df 48 89 f9 48 c1 e9 03 <80> 3c 11 00 0f 85 f0 0b 00 00 49 3b 45 70 0f 88 62 03 00 00 e8 49
+    RSP: 0018:ffff888118d3f878 EFLAGS: 00010212
+    RAX: 0000000000000001 RBX: ffff88811a5edc60 RCX: 000000000000000e
+    RDX: dffffc0000000000 RSI: 0000000000000001 RDI: 0000000000000070
+    RBP: ffff888116134000 R08: 0000000000000001 R09: 0000000000000001
+    R10: ffffffff8965765f R11: 0000000000000001 R12: ffff88811a5ed400
+    R13: 0000000000000000 R14: ffff88811a5edbf8 R15: ffff88811a5ed408
+    FS:  0000000000000000(0000) GS:ffff8881fd4dc000(0000) knlGS:0000000000000000
+    CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+    CR2: 00007ff35b66f2c0 CR3: 00000001092ae005 CR4: 0000000000770ef0
+    PKRU: 55555554
+    Call Trace:
+     <TASK>
+     ? __pfx_ocfs2_clear_inode+0x10/0x10
+     ? __pfx_ocfs2_inode_is_valid_to_delete+0x10/0x10
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __lock_acquire+0x5a3/0x2140
+     ocfs2_evict_inode+0x1ed/0x11e0
+     ? inode_wait_for_writeback+0x14c/0x330
+     ? __pfx_ocfs2_evict_inode+0x10/0x10
+     ? lock_acquire+0x190/0x300
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? find_held_lock+0x2b/0x80
+     ? evict+0x347/0x9f0
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? lock_release+0xc8/0x290
+     ? _raw_spin_unlock+0x23/0x40
+     ? __pfx_ocfs2_evict_inode+0x10/0x10
+     evict+0x38b/0x9f0
+     ? __pfx_evict+0x10/0x10
+     ? lock_acquire+0x190/0x300
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? lock_release+0xc8/0x290
+     ? __pfx_inode_just_drop+0x10/0x10
+     iput+0x680/0xb80
+     ocfs2_dentry_lock_put+0xc2/0x110
+     ? __pfx_ocfs2_dentry_post_unlock+0x10/0x10
+     ocfs2_process_blocked_lock+0x1fb/0x420
+     ? __pfx_ocfs2_process_blocked_lock+0x10/0x10
+     ? __pfx_pmbd_probe_hit_cookie+0x10/0x10
+     ? lock_release+0xc8/0x290
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? lockdep_hardirqs_on_prepare+0xeb/0x1a0
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ocfs2_downconvert_thread+0x32b/0x780
+     ? do_raw_spin_lock+0x130/0x270
+     ? __pfx_ocfs2_downconvert_thread+0x10/0x10
+     ? __kthread_parkme+0xc1/0x220
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? lock_release+0xc8/0x290
+     ? __pfx_autoremove_wake_function+0x10/0x10
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __kthread_parkme+0x177/0x220
+     ? __pfx_ocfs2_downconvert_thread+0x10/0x10
+     kthread+0x351/0x460
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __pfx_kthread+0x10/0x10
+     ret_from_fork+0x659/0x940
+     ? __pfx_ret_from_fork+0x10/0x10
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __switch_to+0x74f/0xf70
+     ? __pfx_kthread+0x10/0x10
+     ret_from_fork_asm+0x1a/0x30
+     </TASK>
+    Modules linked in:
+    ---[ end trace 0000000000000000 ]---
 
-Summary of patch series in this merge:
+Link: https://lore.kernel.org/pm-ocfs2-objects-candidate-0004-v8-dbcb8f80b8df476084d6@gmail.com
+Fixes: da5e7c87827e ("ocfs2: cleanup journal init and shutdown")
+Signed-off-by: Cen Zhang <zzzccc427@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com> 
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Heming Zhao <heming.zhao@suse.com>
+Cc: Jia-Ju Bai <baijiaju1990@gmail.com>
+Cc: <jjzuming@gmail.com>
+Cc: <stable@vger.kernel.org>
 
-- "maple_tree fixes for 7.3" (Liam R. Howlett):
+ fs/ocfs2/inode.c   |   17 +++++++++--------
+ fs/ocfs2/journal.c |   30 ++++++++++++++++++++++--------
+ fs/ocfs2/journal.h |   17 +++++++++--------
+ fs/ocfs2/ocfs2.h   |    1 +
+ fs/ocfs2/super.c   |    1 +
+ 5 files changed, 42 insertions(+), 24 deletions(-)
 
-  Fix an RCU reader NULL dereference when the tree is emptied during
-  a walk, including /proc/PID/maps racing with munmap(). Add tests
-  and make debug WARN and BUG checks report failures properly.
+--- a/fs/ocfs2/inode.c~ocfs2-serialize-inode-journal-access-with-shutdown
++++ a/fs/ocfs2/inode.c
+@@ -1318,15 +1318,16 @@ static void ocfs2_clear_inode(struct ino
+ 	oi->ip_blkno = 0ULL;
+ 
+ 	/*
+-	 * ip_jinode is used to track txns against this inode. We ensure that
+-	 * the journal is flushed before journal shutdown. Thus it is safe to
+-	 * have inodes get cleaned up after journal shutdown.
++	 * ip_jinode is used to track txns against this inode. The journal is
++	 * flushed before it is shut down, so an inode cleaned up after that
++	 * has nothing left to release. Hold the shutdown lock so a journal
++	 * found here stays allocated until the release has finished.
+ 	 */
+-	if (!osb->journal)
+-		return;
+-
+-	jbd2_journal_release_jbd_inode(osb->journal->j_journal,
+-				       &oi->ip_jinode);
++	down_read(&osb->journal_shutdown_sem);
++	if (osb->journal)
++		jbd2_journal_release_jbd_inode(osb->journal->j_journal,
++					       &oi->ip_jinode);
++	up_read(&osb->journal_shutdown_sem);
+ }
+ 
+ void ocfs2_evict_inode(struct inode *inode)
+--- a/fs/ocfs2/journal.c~ocfs2-serialize-inode-journal-access-with-shutdown
++++ a/fs/ocfs2/journal.c
+@@ -352,7 +352,7 @@ static int ocfs2_commit_cache(struct ocf
+ 	trace_ocfs2_commit_cache_end(journal->j_trans_id, flushed);
+ 
+ 	ocfs2_wake_downconvert_thread(osb);
+-	wake_up(&journal->j_checkpointed);
++	wake_up(&osb->checkpoint_event);
+ finally:
+ 	return status;
+ }
+@@ -901,7 +901,6 @@ int ocfs2_journal_alloc(struct ocfs2_sup
+ 
+ 	atomic_set(&journal->j_num_trans, 0);
+ 	init_rwsem(&journal->j_trans_barrier);
+-	init_waitqueue_head(&journal->j_checkpointed);
+ 	spin_lock_init(&journal->j_lock);
+ 	journal->j_trans_id = 1UL;
+ 	INIT_LIST_HEAD(&journal->j_la_cleanups);
+@@ -1073,12 +1072,14 @@ void ocfs2_journal_shutdown(struct ocfs2
+ 
+ 	journal = osb->journal;
+ 	if (!journal)
+-		goto done;
++		return;
+ 
+ 	inode = journal->j_inode;
+ 
+-	if (journal->j_state != OCFS2_JOURNAL_LOADED)
+-		goto done;
++	if (journal->j_state != OCFS2_JOURNAL_LOADED) {
++		down_write(&osb->journal_shutdown_sem);
++		goto free;
++	}
+ 
+ 	/* need to inc inode use count - jbd2_journal_destroy will iput. */
+ 	if (!igrab(inode))
+@@ -1114,6 +1115,12 @@ void ocfs2_journal_shutdown(struct ocfs2
+ 			mlog_errno(status);
+ 	}
+ 
++	/*
++	 * Exclude the final JBD2 inode cleanup in ocfs2_clear_inode() while
++	 * the journal is destroyed and freed.
++	 */
++	down_write(&osb->journal_shutdown_sem);
++
+ 	/* Shutdown the kernel journal system */
+ 	if (!jbd2_journal_destroy(journal->j_journal) && !status) {
+ 		/*
+@@ -1136,10 +1143,17 @@ void ocfs2_journal_shutdown(struct ocfs2
+ 
+ 	journal->j_state = OCFS2_JOURNAL_FREE;
+ 
+-done:
+-	iput(inode);
+-	kfree(journal);
++free:
++	/* Serialize the removal with ocfs2_ci_fully_checkpointed(). */
++	spin_lock(&trans_inc_lock);
+ 	osb->journal = NULL;
++	spin_unlock(&trans_inc_lock);
++	wake_up(&osb->checkpoint_event);
++	kfree(journal);
++	up_write(&osb->journal_shutdown_sem);
++
++	/* The journal inode's own cleanup takes the read side. */
++	iput(inode);
+ }
+ 
+ static void ocfs2_clear_journal_error(struct super_block *sb,
+--- a/fs/ocfs2/journal.h~ocfs2-serialize-inode-journal-access-with-shutdown
++++ a/fs/ocfs2/journal.h
+@@ -54,7 +54,6 @@ struct ocfs2_journal {
+ 	spinlock_t                j_lock;
+ 	unsigned long             j_trans_id;
+ 	struct rw_semaphore       j_trans_barrier;
+-	wait_queue_head_t         j_checkpointed;
+ 
+ 	/* both fields protected by j_lock*/
+ 	struct list_head          j_la_cleanups;
+@@ -91,11 +90,15 @@ static inline void ocfs2_set_ci_lock_tra
+ static inline int ocfs2_ci_fully_checkpointed(struct ocfs2_caching_info *ci)
+ {
+ 	int ret;
+-	struct ocfs2_journal *journal =
+-		OCFS2_SB(ocfs2_metadata_cache_get_super(ci))->journal;
++	struct ocfs2_super *osb =
++		OCFS2_SB(ocfs2_metadata_cache_get_super(ci));
++	struct ocfs2_journal *journal;
+ 
+ 	spin_lock(&trans_inc_lock);
+-	ret = time_after(journal->j_trans_id, ci->ci_last_trans);
++	journal = osb->journal;
++	/* A NULL journal has already completed checkpointing. */
++	ret = !journal ||
++		time_after(journal->j_trans_id, ci->ci_last_trans);
+ 	spin_unlock(&trans_inc_lock);
+ 	return ret;
+ }
+@@ -196,9 +199,6 @@ static inline void ocfs2_checkpoint_inod
+ 	if (ocfs2_mount_local(osb))
+ 		return;
+ 
+-	if (!osb->journal)
+-		return;
+-
+ 	if (!ocfs2_ci_fully_checkpointed(INODE_CACHE(inode))) {
+ 		/* WARNING: This only kicks off a single
+ 		 * checkpoint. If someone races you and adds more
+@@ -208,7 +208,8 @@ static inline void ocfs2_checkpoint_inod
+ 		 * OK. */
+ 		ocfs2_start_checkpoint(osb);
+ 
+-		wait_event(osb->journal->j_checkpointed,
++		/* The wait queue must outlive journal shutdown. */
++		wait_event(osb->checkpoint_event,
+ 			   ocfs2_ci_fully_checkpointed(INODE_CACHE(inode)));
+ 	}
+ }
+--- a/fs/ocfs2/ocfs2.h~ocfs2-serialize-inode-journal-access-with-shutdown
++++ a/fs/ocfs2/ocfs2.h
+@@ -388,6 +388,7 @@ struct ocfs2_super
+ 	enum ocfs2_recovery_state recovery_state;
+ 	wait_queue_head_t checkpoint_event;
+ 	struct ocfs2_journal *journal;
++	struct rw_semaphore journal_shutdown_sem;
+ 	unsigned long osb_commit_interval;
+ 
+ 	/* Journal triggers for checksum */
+--- a/fs/ocfs2/super.c~ocfs2-serialize-inode-journal-access-with-shutdown
++++ a/fs/ocfs2/super.c
+@@ -2048,6 +2048,7 @@ static int ocfs2_initialize_super(struct
+ 	}
+ 
+ 	init_waitqueue_head(&osb->checkpoint_event);
++	init_rwsem(&osb->journal_shutdown_sem);
+ 
+ 	osb->s_atime_quantum = OCFS2_DEFAULT_ATIME_QUANTUM;
+ 
+_
 
-- "mm/kasan: Detect double-free involving kfree_rcu_sheaf()."
-  (Kuniyuki Iwashima):
+Patches currently in -mm which might be from zzzccc427@gmail.com are
 
-  Detect double-free when an object enters an RCU sheaf. KASAN could
-  previously miss it until the object was reused, leading to a later
-  free of a live object. Add KUnit tests for the different free orders.
-
-- "mm: Fix page-table teardown during memory hot-remove"
-  (Muchun Song):
-
-  Balance page-table constructors and destructors when hot-remove
-  frees tables on x86-64, RISC-V and arm64. This fixes NR_PAGETABLE
-  accounting for tables with and without constructors.
-
-- "mm/damon: fix watermark state, kunit pid leak and selftest fake pass"
-  (SJ Park):
-
-  Recompute watermark wait state when DAMON schemes are removed, so
-  kdamond resumes monitoring. Fix a pid reference leak in KUnit and
-  a selftest that reports a skipped run as a pass.
-
-Summary of the 15 singletons in this merge:
-
-An XArray iterator could step backwards when a large page-cache entry
-was split, sending filemap_map_pages() outside the PTE page it locked.
-The XArray correction and a filemap bound check prevent out-of-bounds
-accesses and use-after-free. Another XArray fix prevents lockless
-walkers from following a parent pointer into a freed node.
-
-Userfaultfd now validates the whole write-protection range before
-changing any VMA, avoiding partial unprotect without waking blocked
-faults. Failed unmaps now abort queued UFFD_EVENT_UNMAPs; previously
-they could report a nonexistent unmap, leak the userfaultfd context
-and leave later operations returning -EAGAIN. A fork fix clears stale
-uffd PTE bits if the new context is released before its event is read.
-
-Moving the hugetlbfs inode trace event before RCU freeing avoids a
-use-after-free of its superblock. Shmem swapin no longer retries
-forever on reused swap slots containing a mismatched large swap-cache
-folio. Swapoff also avoids a cluster-list loop that can soft-lock
-reclaim and leave swapoff hung.
-
-Weighted interleave recalculation now uses one node set throughout,
-avoiding a divide-by-zero during memory hotplug. Hwpoison holds the
-folio lock when inspecting its mapping and no longer leaks a folio
-reference; it also updates poison statistics before notifying
-rasdaemon through a trace event.
-
-Cross-node migration now moves NR_FILE_THPS and NR_KERNEL_FILE_PAGES
-with page-cache folios, preventing per-node and memcg-node accounting
-from retaining stale counts or underflowing after the folios are freed.
-
-----------------------------------------------------------------
-Andrew Morton (1):
-      mm/mempolicy: use one node set for interleave weights
-
-Aveline Noir (1):
-      mm/damon/core: reset watermark wait state on each iteration
-
-David Hildenbrand (Arm) (1):
-      mm/memory-failure: fix folio refcount leak and min_order_for_split() locking
-
-Joas Antonio dos Santos (1):
-      hugetlbfs: move hugetlbfs_free_inode tracepoint to ->destroy_inode()
-
-Jose Fernandez (Anthropic) (1):
-      mm/filemap: stop fault-around when the walk steps back
-
-Krystian Kaniewski (1):
-      xarray: fix index jumping backwards in xas_find()
-
-Kuniyuki Iwashima (2):
-      mm/kasan: detect double-free involving kfree_rcu_sheaf()
-      mm/kasan/kunit: add double-free tests involving kfree_rcu_sheaf()
-
-Liam R. Howlett (Google) (3):
-      maple_tree: fix rcu reader NULL dereference after the tree is emptied
-      maple_tree: test emptying tree while RCU reading
-      maple_tree: update internal warning and bug_on code
-
-Lorenzo Stoakes (ARM) (1):
-      mm/vma: read anon_vma carefully in validate_mm()
-
-Mani Tofigh (2):
-      mm, swap: stop cluster list scans once swapoff clears SWP_WRITEOK
-      mm/shmem: fix swapin livelock on a mismatched large swap cache folio
-
-Mauro Carvalho Chehab (1):
-      mm: memory-failure: update statistics before emitting the trace event
-
-Mike Rapoport (Microsoft) (2):
-      userfaultfd: clear uffd state in child PTEs if uffd is released during fork
-      mm/vma: undo userfaultfd unmap preparation when unmapping fails
-
-Muchun Song (4):
-      mm: fix missing page-table destructor in pagetable_free()
-      riscv/mm: fix hotplug page-table destructor handling
-      riscv/mm: fix missing destructor for hotplug PUD tables
-      arm64/mm: fix destructor for unconstructed hotplug page tables
-
-Nickolai Zeldovich (1):
-      xarray: clear the new head's parent before freeing the old head
-
-Ridong Chen (2):
-      mm/migrate: move NR_FILE_THPS on cross-node migration
-      mm/migrate: move NR_KERNEL_FILE_PAGES on cross-node migration
-
-SJ Park (1):
-      selftests/damon/sysfs_memcg_path_leak: define ksft_skip
-
-Umang Pokhriyal (1):
-      userfaultfd: validate the whole range before changing write protection
-
-Wang Xiaolei (1):
-      mm/damon/tests/sysfs-kunit: fix leaked pid reference in add_targets test
-
- arch/arm64/mm/mmu.c                                |   3 +-
- arch/riscv/mm/init.c                               |  32 ++--
- fs/hugetlbfs/inode.c                               |   2 +-
- include/linux/kasan.h                              |  15 +-
- include/linux/maple_tree.h                         |  48 +++---
- include/linux/mm.h                                 |  39 ++---
- include/linux/userfaultfd_k.h                      |   5 +
- include/trace/events/hugetlbfs.h                   |   2 +-
- lib/maple_tree.c                                   | 120 +++++++++++----
- lib/test_maple_tree.c                              | 165 +++++++++++++++++++++
- lib/test_xarray.c                                  |  70 +++++++++
- lib/xarray.c                                       |  11 +-
- mm/damon/core.c                                    |   5 +-
- mm/damon/tests/sysfs-kunit.h                       |   9 ++
- mm/filemap.c                                       |   7 +
- mm/huge_memory.c                                   |   4 +
- mm/kasan/common.c                                  |  13 +-
- mm/kasan/generic.c                                 |  17 ++-
- mm/kasan/kasan.h                                   |  34 ++++-
- mm/kasan/kasan_test_c.c                            | 139 +++++++++++++++++
- mm/memory-failure.c                                |  67 +++------
- mm/mempolicy.c                                     |  13 +-
- mm/migrate.c                                       |  10 ++
- mm/shmem.c                                         |  16 +-
- mm/slub.c                                          |  13 +-
- mm/swapfile.c                                      |   5 +
- mm/userfaultfd.c                                   |  87 +++++++----
- mm/vma.c                                           |  62 +++++---
- tools/testing/radix-tree/maple.c                   |  13 +-
- .../selftests/damon/sysfs_memcg_path_leak.sh       |   3 +
- tools/testing/shared/maple-shared.h                |  33 +++++
- tools/testing/vma/include/stubs.h                  |   4 +
- 32 files changed, 858 insertions(+), 208 deletions(-)
+ocfs2-drain-domain-handlers-before-destroying-the-dlm-worker.patch
 
