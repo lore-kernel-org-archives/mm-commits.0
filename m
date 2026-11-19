@@ -1,52 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795058669;
-	b=cMFO6mwL2d/jqE6UblNXdvfNU/5e/R0qA/JJVKZtNtWwZ0NMKJOTt1YaKSFMVuY92sJf
-	 sHALl9g6VPsDDtJFLycZvSQ1GFNC5AOnWUreSE57vY16jt+JrUh1Ev+RI0FoELLhEhAkU
-	 ej4NQzwQRMLhFgEJb6hzL6XIJfjEkBBHJ1q03rrF+6+wcrdoul5gsB99RO2Wnh7F2yM2p
-	 jumanhMIi8TXdhRvihPvJ4k9fH1u2/KQnUK7IB7ajeTqXXln1eIlKSszxZ/AficL/Y+Ux
-	 KRS3AmwIk29xOXn4Q/gVE0VibO1scCi//TBraoItM9l2uxas1WnrQau+ck1BKAa3ZRQ==
+	t=1795061304;
+	b=Q0y4h3LJE8xn+xpzXvuw56VtmQ4LUT7K80lsKuqDvpUUVz7iRLFPX8hVLKqFNY6y07p/
+	 d0pOUZJ7U3J4KW4PfrK35fJv/9p5OZtzmm72r3s4zGevn8fL0x0xCSSkdWr/gVxIwfMzi
+	 LvxrFCHwGvwO6NwUw0CPEYplZGvZKk2YsinZQcXUsqIZCHohW/BKYRbpH3czdAeRhx6sn
+	 aNINrdapdA2sPuF7xGKfOVLaki57YxkEitVPwvgNTb2TNBqXRD5fVIIGHMEhb+PAQ/t/n
+	 FkgN2O6lxFFjUfAB97lIFwyNXtH4ROLjJ+QOJZ5CgABqz8VgeSqirzpOYQtRe71HFLQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795058669;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795061304;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=aU+j9wPTudaMwBX886I+7mGSSI5JW+TPM1PvIU/CdU0=;
-	b=YCjFsRtQ45414ANAwBpGkxgBzYrEG2y3jaMJCOWJ9W0uowxDRytc4h1IZi4tzAkRGJuZ
-	 jIIljsBxHHYI+geS/88oWYuldMVVrwpbbVe56z2RDtVKPRP2Ni3N5Ivnn/4r3HssedyeC
-	 EshpWjh58zDQHs2z+9Map/hVfRkoPXfQzY/WMI261GqhXOfg4DHpxun98UUSgzBoaeZCz
-	 1sgrlaQYYYPzZiOU+opGxUfyf0AZILG5UHAvPcM+BahL63kYnEY2nPlUcpVvIIs0y6P+S
-	 eQh1uBxsE7Us2+tzrRhL4jjGuNC2cFoH7iCY2H6sCst1fLEPE+pe3/7ybz6RYUEk75Q==
+	bh=Dvr8oOKNWteOrQEVjSem6tl8d09TbWdHUa6R928ExYg=;
+	b=Wynm+9/tqp9mJPHhwzhThjUyRfJkOmUlcBJgRSAZEI/4t6qPlVxCkItZP3UKtqJDMKj6
+	 vBkCV6dwSgfjBLbwlx6fia63HK1DOdZ7yQHXqDoK8XLug/BXLHUTEHtmrrFeD2plV10IE
+	 NjqKp2y/xg3aYFHN8GB9MUzYg0sHq4ggT9MA1buWe5xJbDf8vrawY8BgCOdV3Upg17P7M
+	 iCkHBSm7iG4ZkS296RB4z9iagXVldWUgmMhPVJQESr3+LJMqbONwt3oKXfGz4b1de5lBM
+	 uVxRO9z8qV0Mt2a3CEqi5Vf7wW5KXVlVoOB6toaLkAF/W1spq1v+JnCaxPp6kAwVslA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Y04uxY+1;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ILeR171i;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C3DB606A32C
-	for <mm-commits@vger.kernel.org>; Thu, 19 Nov 2026 03:24:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CABB1606A32C
+	for <mm-commits@vger.kernel.org>; Thu, 19 Nov 2026 04:08:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Y04uxY+1
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27EEE1F000C4;
-	Thu, 19 Nov 2026 03:24:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ILeR171i
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 664551F000C4;
+	Thu, 19 Nov 2026 04:08:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795058669;
-	bh=aU+j9wPTudaMwBX886I+7mGSSI5JW+TPM1PvIU/CdU0=;
+	d=linux-foundation.org; s=korg; t=1795061304;
+	bh=Dvr8oOKNWteOrQEVjSem6tl8d09TbWdHUa6R928ExYg=;
 	h=Date:To:From:Subject;
-	b=Y04uxY+1dg0bIlSO1Q+SUo7EP4pGE9z1Ou/QXjD1gA6DGZMX7jKGTkrHAoAr6gMIB
-	 lwf+e5qtd3PM+KBwP9ZOiJBhhsjHxROBwb0+vgWYyNYgwI1hARi1IzRBW23cYFjZnC
-	 x1NrhKk5lDKRBxLvmxvF8lLenC12IdIgSRiDAHHM=
-Date: Wed, 18 Nov 2026 19:24:28 -0800
-To: mm-commits@vger.kernel.org,yuanchu@google.com,ycshark.kim@samsung.com,
-	weixugc@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,
-	qi.zheng@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,
-	ljs@kernel.org,kasong@tencent.com,jason.sim@samsung.com,
-	jaewon31.kim@samsung.com,hannes@cmpxchg.org,dskiba@google.com,
-	david@kernel.org,david@fromorbit.com,baoquan.he@linux.dev,
-	baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,
-	tjmercier@google.com,akpm@linux-foundation.org
+	b=ILeR171ib39pvPtfZw+7aeMDZQK89P/V1ZFO7eJUcNcAarZFqMoTlMqXHLuY1Gfb0
+	 ARqb8D4hSTHXoSM54d2MDJcClWDqUxwEoMtW1wy8yGuREw4xb4PAXsNJLhY5Uu4DAM
+	 K6XFJ8y2YZ2xLAsodGM0UGBBdr5EaI1mKBItZ9lI=
+Date: Wed, 18 Nov 2026 20:08:23 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
+	sj@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,
+	liam@infradead.org,david@kernel.org,azpijr@gmail.com,
+	anshuman.khandual@arm.com,ekffu200098@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-workingset-compare-shadow-nodes-node-wide-without-kmem-accounting.patch added to mm-new branch
-Message-Id: <20261119032429.27EEE1F000C4@smtp.kernel.org>
+Subject: [merged] mm-memory-remove-unused-vmf_insert_mixed_mkwrite.patch removed from -mm tree
+Message-Id: <20261119040824.664551F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -57,128 +53,115 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
-     Subject: mm: workingset: compare shadow nodes node-wide without kmem accounting
-has been added to the -mm mm-new branch.  Its filename is
-     mm-workingset-compare-shadow-nodes-node-wide-without-kmem-accounting.patch
+The quilt patch titled
+     Subject: mm/memory: remove unused vmf_insert_mixed_mkwrite()
+has been removed from the -mm tree.  Its filename was
+     mm-memory-remove-unused-vmf_insert_mixed_mkwrite.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-workingset-compare-shadow-nodes-node-wide-without-kmem-accounting.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "T.J. Mercier" <tjmercier@google.com>
-Subject: mm: workingset: compare shadow nodes node-wide without kmem accounting
-Date: Fri,  6 Nov 2026 15:59:04 -0800
+From: Sang-Heon Jeon <ekffu200098@gmail.com>
+Subject: mm/memory: remove unused vmf_insert_mixed_mkwrite()
+Date: Sat, 03 Oct 2026 01:05:32 +0900
 
-count_shadow_nodes() limits the number of xarray nodes holding shadow
-entries to 1/8th of the pages that could be using them.  For a memcg, it
-counts the LRU and slab pages local to that memcg.
+Patch series "mm/memory: remove unused vmf_insert_mixed_mkwrite()", v2.
 
-With kmem accounting disabled (cgroup.memory=nokmem), shadow nodes are not
-charged to any memcg and __list_lru_init() makes the shadow_nodes list_lru
-non-memcg-aware, so all shadow nodes of a NUMA node are on a single list. 
-shrinker_alloc() falls back to a non-memcg-aware shadow node shrinker,
-which shrink_slab() only invokes for the root memcg.  count_shadow_nodes()
-therefore compares every shadow node on the NUMA node against the pages
-local to the root memcg.
+Since commit 38607c62b34b ("fs/dax: properly refcount fs dax pages"),
+vmf_insert_mixed_mkwrite() has no callers. This series removes it and
+the mkwrite handling that only it used.
 
-When most tasks run in child memcgs, the root memcg only holds a small
-fraction of all pages, so the shadow node limit derived from the root
-memcg page count is far below the number of shadow nodes on the NUMA node.
-Since the shrinker has seeks == 0, every root shrink_slab() call trims
-about half of the "excess" shadow nodes.  Most refault information is
-thrown away, so refaults of recently evicted file folios are not detected.
-Refaulted folios lose PG_workingset and the workingset_refault and
-workingset_restore stats drop.
+Patch 1 removes the function.
 
-In testing on devices with kmem accounting disabled, moving tasks from the
-root memcg into per-application memcgs dropped workingset_nodes from
-~37,000 to ~900 and raised workingset_nodereclaim 4.6x while pgsteal_file
-rose by ~12%.
+Patch 2 removes the mkwrite argument, which is then always false. It
+also removes the unreachable code in insert_pfn().
 
-When kmem accounting is disabled, compare the shadow nodes against the
-whole NUMA node, as is done without memcg.  Behavior with kmem accounting
-enabled is unchanged.
+Patch 3 merges __vm_insert_mixed() into vmf_insert_mixed().
 
-Link: https://lore.kernel.org/20261106235904.1092712-1-tjmercier@google.com
-Signed-off-by: T.J. Mercier <tjmercier@google.com>
+No functional change.
+
+
+This patch (of 3):
+
+Since commit 38607c62b34b ("fs/dax: properly refcount fs dax pages"),
+vmf_insert_mixed_mkwrite() has no callers.
+
+So remove the function and its declaration.
+
+The comment above the function describes the -EBUSY handling in
+__vm_insert_mixed(). Move it above that check.
+
+No functional change.
+
+Link: https://lore.kernel.org/20261002160535.661399-1-ekffu200098@gmail.com
+Link: https://lore.kernel.org/20261002160535.661399-2-ekffu200098@gmail.com
+Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Tested-by: Jaeseon Sim <jason.sim@samsung.com> # Galaxy A18 LTE
-Tested-by: Youngchan Kim <ycshark.kim@samsung.com> # Galaxy S27
-Tested-by: Dmitry Skiba <dskiba@google.com> # Pixel 10
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jaewon Kim <jaewon31.kim@samsung.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Michal Koutný <mkoutny@suse.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: SJ Park <sj@kernel.org>
+Reviewed-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
 Cc: David Hildenbrand <david@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 
- mm/workingset.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ include/linux/mm.h |    2 --
+ mm/memory.c        |   16 +++++-----------
+ 2 files changed, 5 insertions(+), 13 deletions(-)
 
---- a/mm/workingset.c~mm-workingset-compare-shadow-nodes-node-wide-without-kmem-accounting
-+++ a/mm/workingset.c
-@@ -682,7 +682,16 @@ static unsigned long count_shadow_nodes(
- 	 * PAGE_SIZE / xa_nodes / node_entries * 8 / PAGE_SIZE
- 	 */
- #ifdef CONFIG_MEMCG
--	if (sc->memcg) {
-+	/*
-+	 * Without kmem accounting the shadow_nodes list_lru is not
-+	 * memcg-aware. So the count above covers the whole NUMA node, and the
-+	 * shrinker only runs for the root memcg, whose local pages can be a
-+	 * small fraction of the node's when most tasks run in child memcgs.
-+	 * Compare the shadow node count against the memcg page count only when
-+	 * the shadow_nodes list_lru is memcg-aware. Otherwise use the NUMA node
-+	 * page count as is done without memcg.
-+	 */
-+	if (sc->memcg && shadow_nodes.memcg_aware) {
- 		struct lruvec *lruvec;
- 		int i;
+--- a/include/linux/mm.h~mm-memory-remove-unused-vmf_insert_mixed_mkwrite
++++ a/include/linux/mm.h
+@@ -5045,8 +5045,6 @@ vm_fault_t vmf_insert_pfn_prot(struct vm
+ 			unsigned long pfn, pgprot_t pgprot);
+ vm_fault_t vmf_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
+ 			unsigned long pfn);
+-vm_fault_t vmf_insert_mixed_mkwrite(struct vm_area_struct *vma,
+-		unsigned long addr, unsigned long pfn);
+ int vm_iomap_memory(struct vm_area_struct *vma, phys_addr_t start, unsigned long len);
  
+ static inline vm_fault_t vmf_insert_page(struct vm_area_struct *vma,
+--- a/mm/memory.c~mm-memory-remove-unused-vmf_insert_mixed_mkwrite
++++ a/mm/memory.c
+@@ -3075,6 +3075,11 @@ static vm_fault_t __vm_insert_mixed(stru
+ 
+ 	if (err == -ENOMEM)
+ 		return VM_FAULT_OOM;
++	/*
++	 *  If the insertion of PTE failed because someone else already added a
++	 *  different entry in the mean time, we treat that as success as we assume
++	 *  the same entry was actually inserted.
++	 */
+ 	if (err < 0 && err != -EBUSY)
+ 		return VM_FAULT_SIGBUS;
+ 
+@@ -3109,17 +3114,6 @@ vm_fault_t vmf_insert_mixed(struct vm_ar
+ EXPORT_SYMBOL(vmf_insert_mixed);
+ 
+ /*
+- *  If the insertion of PTE failed because someone else already added a
+- *  different entry in the mean time, we treat that as success as we assume
+- *  the same entry was actually inserted.
+- */
+-vm_fault_t vmf_insert_mixed_mkwrite(struct vm_area_struct *vma,
+-		unsigned long addr, unsigned long pfn)
+-{
+-	return __vm_insert_mixed(vma, addr, pfn, true);
+-}
+-
+-/*
+  * maps a range of physical memory into the requested pages. the old
+  * mappings are removed. any references to nonexistent pages results
+  * in null mappings (currently treated as "copy-on-access")
 _
 
-Patches currently in -mm which might be from tjmercier@google.com are
+Patches currently in -mm which might be from ekffu200098@gmail.com are
 
-mm-vmscan-remove-redundant-mem_cgroup_online-checks.patch
-mm-mglru-stop-rotating-offlined-memcgs-to-the-old-generation.patch
-mm-workingset-compare-shadow-nodes-node-wide-without-kmem-accounting.patch
+mm-memory-remove-the-mkwrite-argument-from-__vm_insert_mixed.patch
+mm-memory-merge-__vm_insert_mixed-into-vmf_insert_mixed.patch
+fault-inject-use-a-shared-initialization-helper-for-the-random-state.patch
+fault-inject-fix-wrong-unit-of-verbose_ratelimit_interval_ms.patch
+fault-injection-fix-typo-in-failcmdsh.patch
 
