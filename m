@@ -1,48 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795061307;
-	b=zyPjZZwVex9yWnoFGsr+nW0YFhbJrp/uzuNRRIsFhwansnMzHFC/SiggFiNvvS7GtJE7
-	 Dhui/x2KVmfu1lmk25AVZm8kwroyDFU+nLQQShdWBKM6gs/7BRF8KQEi4lX5/gcNEdSbE
-	 g9G/ZTbgv2ShwvjmPVSu/qaEt2mosSmfHGy6VcM7WY4CBY0+yY4ZPUlsAbU/5lCmX2cFP
-	 1M0wVpFPiTGI2cCQF6job7kHGb9KgBHTQcVuEN9Fed/C1G9lT9VNOUkLp/2IhzTuk68+x
-	 o4Mki5kBbGobBL05sB3fpwUinPw7atrWjX+fOOJzhfUSIQQ3rcImfX3o7RC3Dqk6s3Q==
+	t=1795062138;
+	b=exiQam0dW/2MUu7KLm1T9lCnZ4U0nsbd7VC9TSwY12O9ZR+QJFmFI2IXU0KvQyUMuvD3
+	 GtD4SLFdmUdu+efsjrpqIxCJl6+0SvHEKSOUNd5H0jTdciv/x6EdmNwe174r4fhANV1pR
+	 8N4q7k8r0MiIu9qvlRoIOOu1lKdbMKg32z9kv4/RzpXnPPtAuMHc0rWIWmxvk3e9Ahx1H
+	 AFIeC03ZaHS/UtkEebN8oSFwJ6shxO7HeZDQEaWrX2Vuf9fF1QXZwF8QJo7KQDhvC/cw/
+	 P8neN3rE8BzioObdqyurWFLJ4Fkp1pA7oBvHwy0jQIqycyNht4ef0sog8ugHXFf9O0Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795061307;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795062138;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=j/W83122PSvZZkqxInSejnBvMkuLcCQ9G8rOkSOKmBs=;
-	b=ov5VTKtiRJazDZovlViRzKZNNSfwbxQ6RxUnDWSj+x2xNkDgXIEEWBOQXKdEW6bLBz/p
-	 sTItTbRxP5vhXknqvMkbs0WmK4KqrQ/QC0YG3IUTj5KSyy8rDIp6X05sBNFfg3UhOAuAJ
-	 h7gLWcFasQrYNYcWy13GY1PsNbghJ2J+0LKN5MbHZH2f3Mol489PpJAjvnOJF9B0QtfeP
-	 KSK67hj5Ye5NbtXekWQESd7O19k3XyopJ7bkBojeveT1Vx+yk8RCeftmJHV4nucXPwDZS
-	 xIewsspuPcBi3WpMtOYTKcoHjJuceGO0iHMfta9eD5cPmeJ7m+ERRS+T9YUn725eA8w==
+	bh=OEbopEnBfcACBcm5cXRW2OQ20IdSJWT+Utdj1k1zKy8=;
+	b=C95JxxDS0MavxG4RroqM8mAF0o/FlrTcxuHYSmWG1CCMXz3eYvB667ZJqRoLyVPh9UKI
+	 dHx8Z8LWgvaRrZQroe133N8LYyhH8T+8MgiOIwZkll1wt7GFF0caRaoC00DDcHeBoLK03
+	 XffQ6Fy/b3JGFnfifCrBJrnNPVopDhvBAeA6o3Ekfqj5xZ+uuZNunUw923GY9Ei1vwmGr
+	 bVbCuuM9kuNmWh5+b/kgxM81W0N+HAzwaELLjBHE9rg9740TAAv7oF+WXyaUyvIw+yT0M
+	 e4iu1VAKXpRlRJ8beJLKsDtVOqzzAcAcsJ8LRiFwrIYExwSurSMWur4YeMA/fdWK5ag==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="uGzmB/1x";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Rkkrd9Y5;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C400606A320
-	for <mm-commits@vger.kernel.org>; Thu, 19 Nov 2026 04:08:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18AB3606A325
+	for <mm-commits@vger.kernel.org>; Thu, 19 Nov 2026 04:22:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=uGzmB/1x
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0679F1F000C4;
-	Thu, 19 Nov 2026 04:08:26 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Rkkrd9Y5
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B431C1F000C4;
+	Thu, 19 Nov 2026 04:22:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795061307;
-	bh=j/W83122PSvZZkqxInSejnBvMkuLcCQ9G8rOkSOKmBs=;
+	d=linux-foundation.org; s=korg; t=1795062137;
+	bh=OEbopEnBfcACBcm5cXRW2OQ20IdSJWT+Utdj1k1zKy8=;
 	h=Date:To:From:Subject;
-	b=uGzmB/1xGqfHyNTqlbH/edd2WHAzvc42uWgpEpCp3nf6ShHEx8B1Ruc3XSByVZ3XR
-	 H7Vf40Q4BxqLM6OMJ4ZnMxxoIV8lmLHOEyD1PqPmaty9XXmdhBvhFvh/ppl4DsKZ9Q
-	 wP4ym8htNOURDuFpnZ0cCvDdItBtE83eRzLsL7QM=
-Date: Wed, 18 Nov 2026 20:08:26 -0800
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
-	sj@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,
-	liam@infradead.org,david@kernel.org,azpijr@gmail.com,
-	anshuman.khandual@arm.com,ekffu200098@gmail.com,akpm@linux-foundation.org
+	b=Rkkrd9Y5LKk3JkXYpQS8HTM2CXhZSx2OV9hiwyGJ0+8kIPvvUbRfWRjxe9sE73GoE
+	 eZP98ziGtj1e7iaT1MRX0sacG9F97HsszAKF4P/zhq7J1gymOVA4QzMdfR44ORXUo9
+	 q7jHzKuzmRx9jVkFuI56ybwvGu6mEFlHoFD9x6/I=
+Date: Wed, 18 Nov 2026 20:22:17 -0800
+To: mm-commits@vger.kernel.org,kuba@kernel.org,jeff.johnson@oss.qualcomm.com,
+	cel@kernel.org,alex@sverdlin.org,mukesh.savaliya@oss.qualcomm.com,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-memory-merge-__vm_insert_mixed-into-vmf_insert_mixed.patch removed from -mm tree
-Message-Id: <20261119040827.0679F1F000C4@smtp.kernel.org>
+Subject: + mailmap-update-email-address-for-mukesh-savaliya.patch added to mm-nonmm-hotfixes-unstable branch
+Message-Id: <20261119042217.B431C1F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,82 +52,61 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The quilt patch titled
-     Subject: mm/memory: merge __vm_insert_mixed() into vmf_insert_mixed()
-has been removed from the -mm tree.  Its filename was
-     mm-memory-merge-__vm_insert_mixed-into-vmf_insert_mixed.patch
+The patch titled
+     Subject: .mailmap: update email address for Mukesh Savaliya
+has been added to the -mm mm-nonmm-hotfixes-unstable branch.  Its filename is
+     mailmap-update-email-address-for-mukesh-savaliya.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-update-email-address-for-mukesh-savaliya.patch
+
+This patch will later appear in the mm-nonmm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Sang-Heon Jeon <ekffu200098@gmail.com>
-Subject: mm/memory: merge __vm_insert_mixed() into vmf_insert_mixed()
-Date: Sat, 03 Oct 2026 01:05:34 +0900
+From: Mukesh Kumar Savaliya <mukesh.savaliya@oss.qualcomm.com>
+Subject: .mailmap: update email address for Mukesh Savaliya
+Date: Wed, 18 Nov 2026 18:31:50 +0530
 
-vmf_insert_mixed() just calls __vm_insert_mixed() with the same
-arguments.
+Map my old Qualcomm email addresses to my current oss.qualcomm.com address.
 
-So merge __vm_insert_mixed() into vmf_insert_mixed().
-
-No functional change.
-
-Link: https://lore.kernel.org/20261002160535.661399-4-ekffu200098@gmail.com
-Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
+Link: https://lore.kernel.org/20261118130150.2877850-1-mukesh.savaliya@oss.qualcomm.com
+Signed-off-by: Mukesh Kumar Savaliya <mukesh.savaliya@oss.qualcomm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
-Reviewed-by: SJ Park <sj@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Jeff Johnson <jeff.johnson@oss.qualcomm.com>
+Cc: Alexander Sverdlin <alex@sverdlin.org>
+Cc: Chuck Lever <cel@kernel.org>
 
- mm/memory.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ .mailmap |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/memory.c~mm-memory-merge-__vm_insert_mixed-into-vmf_insert_mixed
-+++ a/mm/memory.c
-@@ -3014,8 +3014,8 @@ static bool vm_mixed_ok(struct vm_area_s
- 	return false;
- }
- 
--static vm_fault_t __vm_insert_mixed(struct vm_area_struct *vma,
--		unsigned long addr, unsigned long pfn)
-+vm_fault_t vmf_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
-+		unsigned long pfn)
- {
- 	pgprot_t pgprot = vma->vm_page_prot;
- 	int err;
-@@ -3064,6 +3064,7 @@ static vm_fault_t __vm_insert_mixed(stru
- 
- 	return VM_FAULT_NOPAGE;
- }
-+EXPORT_SYMBOL(vmf_insert_mixed);
- 
- vm_fault_t vmf_insert_page_mkwrite(struct vm_fault *vmf, struct page *page,
- 			bool write)
-@@ -3085,13 +3086,6 @@ vm_fault_t vmf_insert_page_mkwrite(struc
- }
- EXPORT_SYMBOL_GPL(vmf_insert_page_mkwrite);
- 
--vm_fault_t vmf_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
--		unsigned long pfn)
--{
--	return __vm_insert_mixed(vma, addr, pfn);
--}
--EXPORT_SYMBOL(vmf_insert_mixed);
--
- /*
-  * maps a range of physical memory into the requested pages. the old
-  * mappings are removed. any references to nonexistent pages results
+--- a/.mailmap~mailmap-update-email-address-for-mukesh-savaliya
++++ a/.mailmap
+@@ -697,6 +697,8 @@ Morten Welinder <welinder@darter.rentec.
+ Morten Welinder <welinder@troll.com>
+ Muhammad Usama Anjum <usama.anjum@arm.com> <usama.anjum@collabora.com>
+ Mukesh Ojha <quic_mojha@quicinc.com> <mojha@codeaurora.org>
++Mukesh Kumar Savaliya <mukesh.savaliya@oss.qualcomm.com> <msavaliy@codeaurora.org>
++Mukesh Kumar Savaliya <mukesh.savaliya@oss.qualcomm.com> <quic_msavaliy@quicinc.com>
+ Muna Sinada <quic_msinada@quicinc.com> <msinada@codeaurora.org>
+ Murali Nalajala <quic_mnalajal@quicinc.com> <mnalajal@codeaurora.org>
+ Mythri P K <mythripk@ti.com>
 _
 
-Patches currently in -mm which might be from ekffu200098@gmail.com are
+Patches currently in -mm which might be from mukesh.savaliya@oss.qualcomm.com are
 
-fault-inject-use-a-shared-initialization-helper-for-the-random-state.patch
-fault-inject-fix-wrong-unit-of-verbose_ratelimit_interval_ms.patch
-fault-injection-fix-typo-in-failcmdsh.patch
+mailmap-update-email-address-for-mukesh-savaliya.patch
 
