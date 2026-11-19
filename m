@@ -1,42 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795066533;
-	b=GXavrsk2+2vQXuS0OGLpOFeVOv2f3VvnTEYcREJWstm3kRpG1QkSVlkO2FDhxRxs1gj6
-	 Xb1S2ug5GcZf4NjsuVV4MWFPMt6XLYESLY+qLUwUL6fqn+miFO/NQUBwyyu8RJ9L7i3jf
-	 ETt7fgf+/wJpE+OHUcZOxXKjTFm71tjiKklv7jScqVMcwA1FoXPiNgspKUBx10b0lDeSL
-	 M9jUkRILuMc42dwWCzpWP/qmyjasnpHb4i/ia3nUkYc+wT2NBWpmO0GywQiMvEKXd6tcG
-	 qzwgM3PQdm2ZREO/0mLRdvnRHoOVvQwLyJPWccuB+jGCCheVSkgc8Er8emers/HN7nA==
+	t=1795066534;
+	b=jynEbu3LaJ+/57Jg2hITYMHGcmjD81E7lbvKXJXUdNF/omXHrpm3zt7IPssdMzud+7pB
+	 ybWB80uc/WbIEwj5QeZLMIB8yXp+9UT1j723FEtTIuA2FWzVUdmaQcb2jwaK62IDSDMHm
+	 fzPtJtVQCbk0O1nf0PtYtRs4da4bqZXAFyljA5iKyYhk5rCiq4dAv6EEn3Th6cbuWXtAb
+	 ELn1Zc6E/lCJEI72t/t8SSpDlccUo0SlDot1kyg9wQiIOZOVF2bg6nS2pNPJsSzK/x+kV
+	 NM329VpLGqBWTZR/CeyZYEY3yyRiXxmD44XPL0GUf14n/4wXTLrhDWYZi+i2ZtbXOhw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795066533;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795066534;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=bjWG2bMG1cmryud9Z6TSj/cJSp8GgtKHvNFmLevhlXI=;
-	b=3zLPKfGMbFcLPlozWSHfdz6RVsL33X++56PLpM2IjQigZdRIadXOn2WObOaK7cgJ36cY
-	 zd/ueXroy8m8MoNHMtCxx5yIfL/+Tne8EYcxX8Tp62Z01EeOU0e8gNdX0kGhXdb5410iR
-	 xCstQtkeAOio07lNuL1jfM7zV3xVI4NjqYpYoBbhNDjMf8LjgZPX3BChGgARaqh4b7hmu
-	 /0fe7B5ojUs+w80TwaR+s0hNGtwC8pOhcPOSBaCS/ZpKbmLl8p6tnnRNpSyeEtp4Mx/qe
-	 H0wZzYxIJfSSIxcS7apgmTFvqBo8vxccorYcXuXWy6P6QDOyUJ0Ucd1zGJD7LC+4qHA==
+	bh=ad6aPithCKwiqs2EsL8gF8eJSyGNsQyjUL0rvrqdSFA=;
+	b=rka4ZgoAJOBBJHflqPbUJQ3tjssRUtJIAAi3bBPk+IKjZSmsQ3+UGCH6JqPFCRu+5W5X
+	 ifaSFMNP56p8cNmVu2JQoyRfGjOzYhFomAtpZfPSvWdyEvUX9HZTB189oI7P3XhmFnkBA
+	 6GyQElXhE8gdJ5fc6QZ/kLIOWa+6kcJsKNsIXofhVB02SuVQRdiwtDqOPPkA8I9Occuv4
+	 o9WVgOMjjY/3BVnbGycKi7ug0EiO6ULZEqPdZCnoLYNufmEzbPzoWDqYOdyKA/MqcvcpA
+	 twiOuUdxETzzCYLHV1NQf4RP5qhxly+4dJf7zZbW8pk5UTAgfiPctrW6Frc2GhbXgAw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=o+13RTNl;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=EAqMKVEo;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04D5B606A334
-	for <mm-commits@vger.kernel.org>; Thu, 19 Nov 2026 05:35:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD235606BE2C
+	for <mm-commits@vger.kernel.org>; Thu, 19 Nov 2026 05:35:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=o+13RTNl
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 679801F000C6;
-	Thu, 19 Nov 2026 05:35:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=EAqMKVEo
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B3701F000C5;
+	Thu, 19 Nov 2026 05:35:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795066532;
-	bh=bjWG2bMG1cmryud9Z6TSj/cJSp8GgtKHvNFmLevhlXI=;
+	d=linux-foundation.org; s=korg; t=1795066534;
+	bh=ad6aPithCKwiqs2EsL8gF8eJSyGNsQyjUL0rvrqdSFA=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=o+13RTNlARmJ4jkKapKQTHe6XrYxiEHdm3NIW9l/0R65Jhokj1cvLOpStmvt7ScF5
-	 SIs+M249p4Nl2xbuMC9mbmUoqMypNhtcadNIDDbqtfMxuIBH0egUlNh0iequTycgmJ
-	 0v8JyE6Ii4YiTqo01JblSB16Iig5/EqNG1lLbuMQ=
-Date: Wed, 18 Nov 2026 21:35:31 -0800
+	b=EAqMKVEopWsaLa5kTABl5iRcs6Mn9Z+NiYbBnRlkeZFtQtZdkYjwzQw8hBUa6ZBHL
+	 A+q+FlPcqazrnhEff0CkIjTfTZLiRt4ikoTvfiVcU12YOmIXCw6a/ZefMIWOnc1jGQ
+	 udeWLaWImPfhKGeqPDydceO+0v63dYYV9LAFkQfw=
+Date: Wed, 18 Nov 2026 21:35:34 -0800
 To: mm-commits@vger.kernel.org,youngjun.park@lge.com,willy@infradead.org,
 	vbabka@kernel.org,shikemeng@huaweicloud.com,senozhatsky@chromium.org,
 	pfalcato@suse.de,nphamcs@gmail.com,minchan@kernel.org,ljs@kernel.org,
@@ -44,10 +44,10 @@ To: mm-commits@vger.kernel.org,youngjun.park@lge.com,willy@infradead.org,
 	dev.jain@arm.com,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,
 	shivankg@amd.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261117-unused-sym-mm-v2-1-2f845e94dd50@amd.com>
-References: <20261117-unused-sym-mm-v2-1-2f845e94dd50@amd.com>
-Subject: + mm-remove-unused-helpers-from-pagemaph.patch added to mm-nonmm-unstable branch
-Message-Id: <20261119053532.679801F000C6@smtp.kernel.org>
+In-Reply-To: <20261117-unused-sym-mm-v2-2-2f845e94dd50@amd.com>
+References: <20261117-unused-sym-mm-v2-2-2f845e94dd50@amd.com>
+Subject: + mm-swapops-remove-unused-make_guard_swp_entry.patch added to mm-nonmm-unstable branch
+Message-Id: <20261119053534.8B3701F000C5@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -59,12 +59,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm: remove unused helpers from pagemap.h
+     Subject: mm/swapops: remove unused make_guard_swp_entry()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mm-remove-unused-helpers-from-pagemaph.patch
+     mm-swapops-remove-unused-make_guard_swp_entry.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-unused-helpers-from-pagemaph.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapops-remove-unused-make_guard_swp_entry.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -83,27 +83,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Shivank Garg <shivankg@amd.com>
-Subject: mm: remove unused helpers from pagemap.h
-Date: Tue, 17 Nov 2026 07:16:48 +0000
+Subject: mm/swapops: remove unused make_guard_swp_entry()
+Date: Tue, 17 Nov 2026 07:16:49 +0000
 
-Patch series "mm: remove unused functions", v2.
+make_guard_swp_entry() was added in 7c53dfbdb024 ("mm: add
+PTE_MARKER_GUARD PTE marker"), has never had a caller, and none has
+been posted in 2 years.
 
-This series removes five functions and one variable in mm that have no
-users left anywhere in the tree. I found them with the kunused scripts
-[1], which I wrote with LLM's help. The v1 cover letter [2] has more
-details on the scripts and how LLM was used.
-
-
-This patch (of 5):
-
-invalidate_remote_inode() lost its last user in commit d73065e60dcc
-("afs: Use alternative invalidation to using launder_folio").
-mapping_clear_release_always() has no callers.
-
-Link: https://lore.kernel.org/20261117-unused-sym-mm-v2-0-2f845e94dd50@amd.com
-Link: https://patch.msgid.link/20261117-unused-sym-mm-v2-1-2f845e94dd50@amd.com
-Link: https://github.com/AMDESE/linux-mm/tree/shivank/kunused [1]
-Link: https://lore.kernel.org/r/20261026-unused-sym-v1-0-82ca2dceabe1@amd.com [2]
+Link: https://patch.msgid.link/20261117-unused-sym-mm-v2-2-2f845e94dd50@amd.com
 Signed-off-by: Shivank Garg <shivankg@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Barry Song <baohua@kernel.org>
@@ -124,36 +111,23 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: Pedro Falcato <pfalcato@suse.de>
 
- include/linux/pagemap.h |   11 -----------
- 1 file changed, 11 deletions(-)
+ include/linux/swapops.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
---- a/include/linux/pagemap.h~mm-remove-unused-helpers-from-pagemaph
-+++ a/include/linux/pagemap.h
-@@ -20,12 +20,6 @@ struct folio_batch;
- unsigned long invalidate_mapping_pages(struct address_space *mapping,
- 					pgoff_t start, pgoff_t end);
- 
--static inline void invalidate_remote_inode(struct inode *inode)
--{
--	if (S_ISREG(inode->i_mode) || S_ISDIR(inode->i_mode) ||
--	    S_ISLNK(inode->i_mode))
--		invalidate_mapping_pages(inode->i_mapping, 0, -1);
--}
- int invalidate_inode_pages2(struct address_space *mapping);
- int invalidate_inode_pages2_range(struct address_space *mapping,
- 		pgoff_t start, pgoff_t end);
-@@ -298,11 +292,6 @@ static inline void mapping_set_release_a
- 	set_bit(AS_RELEASE_ALWAYS, &mapping->flags);
+--- a/include/linux/swapops.h~mm-swapops-remove-unused-make_guard_swp_entry
++++ a/include/linux/swapops.h
+@@ -306,11 +306,6 @@ static inline swp_entry_t make_poisoned_
+ 	return make_pte_marker_entry(PTE_MARKER_POISONED);
  }
  
--static inline void mapping_clear_release_always(struct address_space *mapping)
+-static inline swp_entry_t make_guard_swp_entry(void)
 -{
--	clear_bit(AS_RELEASE_ALWAYS, &mapping->flags);
+-	return make_pte_marker_entry(PTE_MARKER_GUARD);
 -}
 -
- static inline bool mapping_stable_writes(const struct address_space *mapping)
- {
- 	return test_bit(AS_STABLE_WRITES, &mapping->flags);
+ struct page_vma_mapped_walk;
+ 
+ #ifdef CONFIG_ARCH_HAS_PMD_SOFTLEAVES
 _
 
 Patches currently in -mm which might be from shivankg@amd.com are
