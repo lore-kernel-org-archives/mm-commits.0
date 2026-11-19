@@ -1,48 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795038509;
-	b=zJCvUQE1JyLW8w8QLH+5zrsQWOwW2Wqi7Zg68J5BdJt0GgyyWSguM+TKRW4EMoB60psw
-	 1OsuQ/SYmO838DgjzsRMltqbmxGS4hTaoJJi1ivN3Y3NHifmhdqVP8uAwiCptd8cy8cPC
-	 HitocN6LkrDUKu7mK3Rbf+5T9QnuCs9WXL65FPTjPUp8fBN/fV9+e6XlLDLaMPrvIfLMG
-	 0vkAejyTA2mUaFOzINlA4anwDb7q5bKm7VFNo2nOqd60hylTKIIm0pAFr/tL3mwiZ+xqT
-	 a7M5dvsdi7V3PqtraakaaGmcO22xiPG4kdWwfonXaUAUvac/4LoJtdcvIJnhRIfYRYg==
+	t=1795058459;
+	b=k7t+thVTlrOmjRI4q0kRMp1gEV2atgTcDqyWA2Ijavj9FHI9/NiPV98u+OaLucSduqP8
+	 kQMxLjpCGgGnVnJz6BnjMlmZQ7moCuuOO1iSyMkwe10mMuVPqfU7HM3RxW2KgsdPkTDrv
+	 bPU/BnzBQl0wWfRGV36osveKtWP7ryjOEzyXcjp9wrmABfFpm+tVbUgJW96ZgwYpm6NQy
+	 5zilwLAT+PhltXAsSciVSRuigf8BnZ1MvkD0GxFJb9aNeOrqkyXDUjAb8INSjBJkqdmis
+	 nbLWzM6zougJFmbMbqN5Z2w9AVqNUdkeMsqs8exbctlbTs5/156AFKasmWkZ4TddNQw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795038509;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795058459;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=Hu4eabpEarZy5KdormXmkyULV0C3qWVe8T2guI6y3Y4=;
-	b=2at6uHo0UydCKOn5hYVpDHS8l0EsEcfqcDVlMBLHXhP5bJeFsmCOIh6WhBm/yaMnHMg3
-	 /gIC1LnLYKEnq/YDW6+DjVhjJgaLUUi67EOTAE/cKo2xfdscDY5X+ss/3QSLobm5jFIuw
-	 7O8ymDDLL404Mk7NNY/Hil6tzcv+068yoR2phbVDh6llXLTf9860Znm5eds+vHKAeD7gF
-	 e062tvrQ7MZgNqBmGq/TAzH/8UvdKLcaCIB2/Lf6CWDfC0rbNb3QaRgIt23p21IpozJz7
-	 dbZ8qOsJghlwpxgV9QZoFb7suedtlXFKac8QWRAO7JcjiG9ogSYgKYctLAnz3IeJ9Pg==
+	bh=rmDdWseqj5cKGJ0WA3TtYF8iR0TeKDpMLIjDI6xUm5s=;
+	b=HC33iIVa7wurTA5h4/z4AUZ8cnexTLV4Eo/IeObiJjJhS+5BjD7PgHUj1Mg+q6D/ZNOl
+	 xWUZtpVG9ljN1yguRj4iVmq9Q26+2YsU1m5zCSBSPqSLmb3LpMjHPE2xat3C+Qm/o7RMm
+	 9F23vyOUsbjLUQO0dyYZ+P1Ay7jxGyaEgGJOcDm+cAL8UpFYzUaAfiniIba0GXI3VZrLb
+	 W41cfKpmaXNjZ9ua4FjEwi7pJJ9uoYzaDrqZ4EpkWZ6/ccS2z18j1YszLtO20iibvyOI6
+	 57CZNkDY1GbCfiYtHusj9+TM7/IeSjeRU37sOB7UvKn5ZnDSsgGh++v6vsEyPQJfdMA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ghNYhmko;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="kX/W7/0J";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2BA7606A337;
-	Wed, 18 Nov 2026 21:48:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9149606A33E
+	for <mm-commits@vger.kernel.org>; Thu, 19 Nov 2026 03:20:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ghNYhmko
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F5261F000CD;
-	Wed, 18 Nov 2026 21:48:29 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=kX/W7/0J
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54EA11F000C5;
+	Thu, 19 Nov 2026 03:20:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795038509;
-	bh=Hu4eabpEarZy5KdormXmkyULV0C3qWVe8T2guI6y3Y4=;
+	d=linux-foundation.org; s=korg; t=1795058459;
+	bh=rmDdWseqj5cKGJ0WA3TtYF8iR0TeKDpMLIjDI6xUm5s=;
 	h=Date:To:From:Subject;
-	b=ghNYhmkohuG7Woc0uifb/Zqjrc/gSKymEqbNEbCPn82siOLU3gOGgJD+gbJBRFGHk
-	 b57rjGI40ASYMgA3vMavjSjxOZlLSMxDnPEN6Q/4EouY0+Am2oXTuGUL4OXm2T4a3a
-	 XGCn1VSnNJkX0XK7ZWE+u6uBmQaX+hS07mbiexps=
-Date: Wed, 18 Nov 2026 13:48:28 -0800
-To: mm-commits@vger.kernel.org,youngjun.park@lge.com,stable@vger.kernel.org,
-	shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,
-	chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,aquini@redhat.com,
-	oleksandr@natalenko.name,akpm@linux-foundation.org
+	b=kX/W7/0JaQrwD3I9/akqjTpFW4cYWMT6vr9HaWTnqQoryfw6p+V8I6yvoHg9JOLdM
+	 xroHsG6q9kf1bGlNkm7uAGmEPrLkIDN439TJet+LlGOmmlpI0xAV2alu9IWgNtuJZt
+	 aINxYAfOMgfkJaOBcS6Lk4U1hjDGvr5XC3l0c4nY=
+Date: Wed, 18 Nov 2026 19:20:58 -0800
+To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,
+	shakeel.butt@linux.dev,qi.zheng@linux.dev,mhocko@kernel.org,
+	kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baoquan.he@linux.dev,
+	baohua@kernel.org,axelrasmussen@google.com,baolin.wang@linux.alibaba.com,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swapfile-really-fix-integer-overflow-in-swap_show-and-swapon.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261118214829.5F5261F000CD@smtp.kernel.org>
+Subject: + mm-mglru-use-pte_table_clamped_end-helper-to-calculate-the-end.patch added to mm-new branch
+Message-Id: <20261119032059.54EA11F000C5@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,15 +55,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/swapfile: really fix integer overflow in swap_show() and swapon()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-swapfile-really-fix-integer-overflow-in-swap_show-and-swapon.patch
+     Subject: mm: mglru: use pte_table_clamped_end() helper to calculate the end
+has been added to the -mm mm-new branch.  Its filename is
+     mm-mglru-use-pte_table_clamped_end-helper-to-calculate-the-end.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapfile-really-fix-integer-overflow-in-swap_show-and-swapon.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-use-pte_table_clamped_end-helper-to-calculate-the-end.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,60 +89,47 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Oleksandr Natalenko <oleksandr@natalenko.name>
-Subject: mm/swapfile: really fix integer overflow in swap_show() and swapon()
-Date: Wed, 18 Nov 2026 12:26:10 +0100
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: mglru: use pte_table_clamped_end() helper to calculate the end
+Date: Thu, 12 Nov 2026 19:12:39 +0800
 
-One of the enterprise customers uses 6 TiB of swap, and the values
-reported in /proc/swaps as well as in dmesg are still not correct.
+Use pte_table_clamped_end() to clamp the range to the PTE table and VMA
+boundaries when batch-checking young flags, making the code more readable.
 
-Cast si->pages to long explicitly so that the bitshift in K() doesn't
-truncate the value to 32 bits.
+No functional changes intended.
 
-Also do the same in swapon() for the same reason.
-
-Link: https://lore.kernel.org/20261118112610.122799-1-oleksandr@natalenko.name
-Fixes: 642929a2ded0 ("mm/swapfile: fix an integer overflow in swap_show()")
-Signed-off-by: Oleksandr Natalenko <oleksandr@natalenko.name>
+Link: https://lore.kernel.org/b2386c5da61f9a15e60daa421b033bc1e0bcdd41.1794481498.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
-Reviewed-by: Youngjun Park <youngjun.park@lge.com>
-Cc: Rafael Aquini <aquini@redhat.com>
-Cc: Christopher Li <chrisl@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
 Cc: Barry Song <baohua@kernel.org>
-Cc: <stable@vger.kernel.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Michal Hocko <mhocko@kernel.org>
 
- mm/swapfile.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/swapfile.c~mm-swapfile-really-fix-integer-overflow-in-swap_show-and-swapon
-+++ a/mm/swapfile.c
-@@ -3452,7 +3452,7 @@ static int swap_show(struct seq_file *sw
- 		return 0;
- 	}
+--- a/mm/vmscan.c~mm-mglru-use-pte_table_clamped_end-helper-to-calculate-the-end
++++ a/mm/vmscan.c
+@@ -4343,7 +4343,7 @@ bool lru_gen_look_around(struct page_vma
+ 	walk = current->reclaim_state ? current->reclaim_state->mm_walk : NULL;
  
--	bytes = K(si->pages);
-+	bytes = K((unsigned long)si->pages);
- 	inuse = K(swap_usage_in_pages(si));
+ 	start = max(addr & PMD_MASK, vma->vm_start);
+-	end = min(addr | ~PMD_MASK, vma->vm_end - 1) + 1;
++	end = pte_table_clamped_end(addr, vma->vm_end);
  
- 	file = si->swap_file;
-@@ -3968,8 +3968,8 @@ SYSCALL_DEFINE2(swapon, const char __use
- 	/* Sets SWP_WRITEOK, resurrect the percpu ref, expose the swap device */
- 	enable_swap_info(si);
- 
--	pr_info("Adding %uk swap on %s.  Priority:%d extents:%d across:%lluk %s%s%s%s\n",
--		K(si->pages), name->name, si->prio, nr_extents,
-+	pr_info("Adding %luk swap on %s.  Priority:%d extents:%d across:%lluk %s%s%s%s\n",
-+		K((unsigned long)si->pages), name->name, si->prio, nr_extents,
- 		K((unsigned long long)span),
- 		(si->flags & SWP_SOLIDSTATE) ? "SS" : "",
- 		(si->flags & SWP_DISCARDABLE) ? "D" : "",
+ 	if (end - start == PAGE_SIZE)
+ 		return true;
 _
 
-Patches currently in -mm which might be from oleksandr@natalenko.name are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-swapfile-really-fix-integer-overflow-in-swap_show-and-swapon.patch
+mm-mglru-use-pte_table_clamped_end-helper-to-calculate-the-end.patch
 
