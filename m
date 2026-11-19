@@ -1,50 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795066114;
-	b=sGI/9wKK2aON5Ex3TyK+ripj27+wkginYUKR3aFQTIPQj5UdO4HXibv+EbZGRkiMaHCA
-	 cwIghFwwBIGeZfwrMSOPypojwObXXVviyP4Y6NMA2vHTf3a62cGyZ0nZkLOMEkou22spd
-	 cOJ/95z3k808HQUnPmvBxoJGlvYNbGbosXE0F1u/7kKaBW2PWn3qa//9FkGlYHpkyyG8O
-	 amrLtn26VnI8G0HKF3PlEOdqNd4lGqtcwBznbfdPk0oetrvile1NKuqI81h8epAyjxN+I
-	 h+FJ9KKhZO/bbHY/0mrB4QAllWjPkeYG3Gw22z3CLgrHLc+RWNZLZDF/r8XYDfhidqw==
+	t=1795066158;
+	b=aaSjySGL0GJDBQz8I00aFE/PJtSGhIcmfTujnDaFusDZQ68tK1kcitU58cIhr1Rm7KJS
+	 P2LPLsQ8LSnR9R9yrM6nSy7OgJVq0pcwg3m89F9aIscA3z54D/75xUI1naQ0xdAukWek8
+	 LytPWSgp2t4jIaStTOr+61Ha8YyDjssy5fMztpJQqc9M3uqQJFBjSsczFEikCM/xM5NT7
+	 gX1Qqp8Kinvq3HScwkQgQ88kjvrTrnWOYOheUgjfZRui8d0KBPGIKJ5mJsImGnNAe025S
+	 sGvtV5r7r9GjdHhiCGjvOu6swb9GszhXJDWrfZI00Q/D4ZUHMyzKkBovQLzgI9lf6+A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795066114;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795066158;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=tDQ1OjHKfX/ab8f53tCKoWZ8nLlln2af4EdAblFrEL4=;
-	b=pAEnku+jtUiqKhJMryDJV9Jv7XsDu3NSfRKG+5lLoLLAOvXrJjg+KRgIRKW8kA4NP6Xj
-	 p+KXqPsg6lMTQc5nvWK4NFn+9DA6c3s/69faWUsSSpSdxpfMWM0kg/AGTBuQjnVNhEn/3
-	 tmG2XUipRUGsU451bl2LL9Y4s06T6pyTX+JSa8NCK0MH9L6OhYP/+Sr7Trd0m9067AV/P
-	 pM6kzYCOev0kYBETtCIo8tMcZkv/V+6AsbvTQlFrtnyLca4mXtOWwLV3VaLc9ekmCqQar
-	 BQL954Zr1Gv2gSxaOHFhpPMYsWMC3QrB4cQJJiIunmbK1NTr1hdfAR7JxH2p2RoHNQw==
+	bh=87sREUPHkk4rL24N95k3RYh0XUs6qPXx52jmoqCU4a0=;
+	b=4P4ALg1dNtz4AKPh1RCVST4Y9Bapp0Y3Us4lg2U0VB16d9+wHj7eaqGD4eGyGN8X8Rzp
+	 X74UUlb7mHVXWZGkRpyEH1ogiBCmzlO2GHJxj2bUtWCRi6iVRLhi++21Eil+9U8CUfpP9
+	 QzJpweu1tomsPm98+qZMknUhArKO0GLfgERWuwJlHJxPmePXpFiOYDPU4pRtsjfxHj2ww
+	 68lZ3TZLLjAy6jlL7+fH/yZFCp0UgmKja626I0Ab1gHpSs0nnw7jZvXQNbj19v8FX55Ti
+	 jJKV4QQHf1TsuhhAwM2GBPEuLyFkzmjniYJBdcUPEhOMVIwnk4xVU5m6I9bF+U1Xqug==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="Rm/mTrFG";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=RgQhlWZA;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B028606A325;
-	Thu, 19 Nov 2026 05:28:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46918606A320
+	for <mm-commits@vger.kernel.org>; Thu, 19 Nov 2026 05:29:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Rm/mTrFG
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9C5B1F000C4;
-	Thu, 19 Nov 2026 05:28:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=RgQhlWZA
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 007BD1F000C4;
+	Thu, 19 Nov 2026 05:29:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795066114;
-	bh=tDQ1OjHKfX/ab8f53tCKoWZ8nLlln2af4EdAblFrEL4=;
+	d=linux-foundation.org; s=korg; t=1795066158;
+	bh=87sREUPHkk4rL24N95k3RYh0XUs6qPXx52jmoqCU4a0=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=Rm/mTrFGNT4TMB3JypZOD73ie2cmVkga08N8CQ5Rs83lk319hPgU2pDgQNXELUswT
-	 g02T20Yemu7J+AGDTZmGp1S2kI203qEp0c5kIU11zo8Yo9QOfalONh0eP8LgqGPj9J
-	 WO87dsGOvPkd38aolUNQ8B1mGzwk/4X8qLdjRAx4=
-Date: Wed, 18 Nov 2026 21:28:33 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shyckless@gmail.com,
-	mporter@kernel.crashing.org,kaixuan.li@ntu.edu.sg,alex.bou9@gmail.com,
-	stevewong@hust.edu.cn,akpm@linux-foundation.org
+	b=RgQhlWZAPrrHM22U99OapmzycRfRCFyOkvYKM1NUtxpIG+yGtKKxB/u5kB/ZhWD8O
+	 51aBkopmuYbDA/cbkP5FYC572YlTjotjpeBdpfHUCYLu29S4eZyFBRe3SVpEZKCxrf
+	 x74TZzLBjaW9NFKZ/5uvz2xyfQ2Pb/mkIsKyk4bc=
+Date: Wed, 18 Nov 2026 21:29:17 -0800
+To: mm-commits@vger.kernel.org,minchan@kernel.org,senozhatsky@chromium.org,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261119-rio-v1-1-3cf63c5198ff@gmail.com>
-References: <20261119-rio-v1-1-3cf63c5198ff@gmail.com>
-Subject: + rapidio-use-file_ns_capable-when-checking-config-space-read-access.patch added to mm-nonmm-unstable branch
-Message-Id: <20261119052833.E9C5B1F000C4@smtp.kernel.org>
+In-Reply-To: <39f6056e0c8834fc3eca2001fcb44f3b6048f74d.1795061575.git.senozhatsky@chromium.org>
+References: <39f6056e0c8834fc3eca2001fcb44f3b6048f74d.1795061575.git.senozhatsky@chromium.org>
+Subject: + zsmalloc-fix-spdx-license-identifier.patch added to mm-nonmm-unstable branch
+Message-Id: <20261119052918.007BD1F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: rapidio: use file_ns_capable() when checking config space read access
+     Subject: zsmalloc: fix SPDX license identifier
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     rapidio-use-file_ns_capable-when-checking-config-space-read-access.patch
+     zsmalloc-fix-spdx-license-identifier.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rapidio-use-file_ns_capable-when-checking-config-space-read-access.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-fix-spdx-license-identifier.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,58 +78,94 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Suyuan Wang <stevewong@hust.edu.cn>
-Subject: rapidio: use file_ns_capable() when checking config space read access
-Date: Thu, 19 Nov 2026 04:08:00 +0000
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zsmalloc: fix SPDX license identifier
+Date: Thu, 19 Nov 2026 13:13:51 +0900
 
-rio_read_config() limits reads to the first 256 bytes unless
-capable(CAP_SYS_ADMIN) succeeds.  That checks the credentials of the task
-doing the read, not those of the task that opened the file.
+zsmalloc is released under MODULE_LICENSE("Dual BSD/GPL") so the existing
+SPDX license identifier is incorrect.
 
-The config attribute is mode 0644, so any user can open it.  If such a
-descriptor is later read by a task that has CAP_SYS_ADMIN, the read covers
-the full maintenance space.  The allowed range follows whoever happens to
-read the descriptor instead of the credentials it was opened with.
+Use the matching identifier, (GPL-2.0-only OR BSD-3-Clause), and drop the
+license text that it replaces.  The copyright notices stay as they are.
 
-Use file_ns_capable() with init_user_ns so the check is made against the
-credentials saved in the file at open() time.  A descriptor opened without
-CAP_SYS_ADMIN then stays limited to 256 bytes whoever reads it, and a
-privileged opener can still hand the descriptor to another task.
-
-This matches pci_read_config() in PCI sysfs, and the PCI procfs change in
-commit f82f53e75eff ("PCI/proc: Use file_ns_capable() when checking config
-space read access").
-
-Found with a static analysis tool and checked by hand.
-
-Link: https://patch.msgid.link/20261119-rio-v1-1-3cf63c5198ff@gmail.com
-Fixes: 394b701ce4fb ("[PATCH] RapidIO support: core base")
-Signed-off-by: Kaixuan Li <kaixuan.li@ntu.edu.sg>
-Signed-off-by: Suyuan Wang <stevewong@hust.edu.cn>
+Link: https://patch.msgid.link/39f6056e0c8834fc3eca2001fcb44f3b6048f74d.1795061575.git.senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Co-developed-by: Kaixuan Li <kaixuan.li@ntu.edu.sg>
-Cc: Alexandre Bounine <alex.bou9@gmail.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: <shyckless@gmail.com>
-Cc: <stable@vger.kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
 
- drivers/rapidio/rio-sysfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/zsmalloc.h |    7 +------
+ mm/zsmalloc.c            |    8 +-------
+ 2 files changed, 2 insertions(+), 13 deletions(-)
 
---- a/drivers/rapidio/rio-sysfs.c~rapidio-use-file_ns_capable-when-checking-config-space-read-access
-+++ a/drivers/rapidio/rio-sysfs.c
-@@ -123,7 +123,7 @@ rio_read_config(struct file *filp, struc
- 	u8 *data = (u8 *) buf;
+--- a/include/linux/zsmalloc.h~zsmalloc-fix-spdx-license-identifier
++++ a/include/linux/zsmalloc.h
+@@ -1,14 +1,9 @@
++/* SPDX-License-Identifier: (GPL-2.0-only OR BSD-3-Clause) */
+ /*
+  * zsmalloc memory allocator
+  *
+  * Copyright (C) 2011  Nitin Gupta
+  * Copyright (C) 2012, 2013 Minchan Kim
+- *
+- * This code is released using a dual license strategy: BSD/GPL
+- * You can choose the license that better fits your requirements.
+- *
+- * Released under the terms of 3-clause BSD License
+- * Released under the terms of GNU General Public License Version 2.0
+  */
  
- 	/* Several chips lock up trying to read undefined config space */
--	if (capable(CAP_SYS_ADMIN))
-+	if (file_ns_capable(filp, &init_user_ns, CAP_SYS_ADMIN))
- 		size = RIO_MAINT_SPACE_SZ;
+ #ifndef _ZS_MALLOC_H_
+--- a/mm/zsmalloc.c~zsmalloc-fix-spdx-license-identifier
++++ a/mm/zsmalloc.c
+@@ -1,16 +1,10 @@
+-// SPDX-License-Identifier: GPL-2.0-or-later
++// SPDX-License-Identifier: (GPL-2.0-only OR BSD-3-Clause)
  
- 	if (off >= size)
+ /*
+  * zsmalloc memory allocator
+  *
+  * Copyright (C) 2011  Nitin Gupta
+  * Copyright (C) 2012, 2013 Minchan Kim
+- *
+- * This code is released using a dual license strategy: BSD/GPL
+- * You can choose the license that better fits your requirements.
+- *
+- * Released under the terms of 3-clause BSD License
+- * Released under the terms of GNU General Public License Version 2.0
+  */
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 _
 
-Patches currently in -mm which might be from stevewong@hust.edu.cn are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-rapidio-use-file_ns_capable-when-checking-config-space-read-access.patch
+zram-prefix-backends-printk-s.patch
+zram-remove-debugfs-entry-on-init-failure.patch
+zram-reset-writeback-state-in-zram_reset_device.patch
+zram-move-mark_slot_accessed-under-existing-slot-lock-sections.patch
+zram-remove-stale-warn_on-from-zram_read_page.patch
+zram-zstd-do-not-allocate-empty-c-d-dictionaries.patch
+zram-lz4hc-pre-initialize-dictionary-stream-in-setup_params.patch
+zram-lz4-use-lz4_decompress_safe_usingdict.patch
+zram-lz4hc-use-lz4_decompress_safe_usingdict.patch
+zram-zstd-do-not-use-kvzalloc-for-zstd-allocations.patch
+zram-split-zcomp-into-separate-r-w-streams.patch
+zram-introduce-shared-decompression-streams.patch
+zram-allocate-bounce-buffer-for-spanning-objects.patch
+zram-borrow-idle-decompression-streams-in-exclusive-mode.patch
+zram-use-a-singleton-compression-context-for-recompression.patch
+zram-drop-stale-comment-in-write_incompressible_page.patch
+zram-drop-get_slot_handle-and-set_slot_handle.patch
+zsmalloc-return-handle-from-obj_allocated.patch
+zsmalloc-switch-handle-type-to-struct-zs_handle.patch
+zram-check-mem_limit-before-allocating-zsmalloc-object.patch
+zram-allocate-zsmalloc-object-under-slot-lock.patch
+zswap-do-not-free-the-entry-if-its-pool-is-null.patch
+zsmalloc-encode-1-based-obj_idx-so-valid-obj-is-never-0.patch
+zsmalloc-embed-struct-zs_handle-into-zram-and-zswap-entries.patch
+zsmalloc-fold-zs_obj_write-into-zs_store.patch
+zsmalloc-populate-new-zspage-outside-class-lock-in-zs_store.patch
+zram-fix-quadratic-writeback-bitmap-search.patch
+zsmalloc-fix-spdx-license-identifier.patch
+zram-use-spdx-license-identifier.patch
 
