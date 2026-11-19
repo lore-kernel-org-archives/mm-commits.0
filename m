@@ -1,53 +1,50 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795065940;
-	b=gZZ8MGPsmaA4WHmWsPryC8IL4+e4FKuLSgSsJ1Pfln1yk++Vz8+SMdmQvWtnRnaOqk3I
-	 jtO4D4AcHUHe2OjENSgpliZUh58VKGCg6tB+cVM4/oN4r3hMIxK1xRGeGskx3G1tLu0uH
-	 /RwqPg3shXKFGwsgLBm4+qC8f1l40QipVD17BWLjlTEFp919N/FRremc+c7CI1turoZSr
-	 5FeNB+QQUNzJB1keXxWfhq8Hjic/k2v3KCShlnk4xItpSy0ZDJR8mxqQ8XYuDKVZKwyOM
-	 RdgyWwe195nZPuQDx5C1DMvjytVq89C4RUIY/MMbztcDOsaWF5S0OkVfHG7wjlr7yvQ==
+	t=1795066008;
+	b=k/we6Qp5WoV6U/9cApLNDmrKg2h6MJIUBpcnwl4ZelyCMDKroKYhdjKJWuYxrDyJ5NMe
+	 UUU3z9wShWtYsUadfY5RHJOVWDRAftznVX3l/YkFP2L1bI0vBjv6OuYHSvfqNpgSu+sqr
+	 p9CMhbkKg3CIlrCwnYutIZNg0HJDR/JWxYXLK+TtO+qz7ENqs+/ALvjDwtwdzExQcRrTd
+	 w8dathORI3wUdp9iMHFMcjhOWAc6KPTSpxleFj7uZqNr/z37jQegbfGetn9H8kawzHyyV
+	 kBUq8mb+oKwThBCHYKiqe8p+YAZPc9lLa0ytlsRIajy9/3etIiPVwOBU/4EkZzIHNbQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795065940;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-Id:
-	 In-Reply-To:References:X-Mailer:Mime-Version:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=LXiVx5mLfIEzf8hjDa0If8oOJDW92Rz35E1HYThx7/0=;
-	b=Q91jGYJX1DA94SGiGA3Z60vVcyKsk8r0V/EHrKEOsvJQEOq5FNgijEFr5FSMllmsKVNI
-	 ARCkbWHpQ4BUBLhNZV/DjoWcwvuTa4spm+OADviEnRfOdoZvAip80B+bwa+lVGNa+WCK9
-	 Xu0J0RKaNSGsg11/d1gyDwXTObo6vJhqlpeH/U0C7FHBka86/UXdt8sDyBuvBir4hIMdj
-	 mutCxCLzdOyw/0Vkgsz923sxIwvM7iQo7MYCLqa+pZLbK8qrXuseEKVP8ZCdQAZRiMIkE
-	 9IVeKxI+JHWBGoj9x+OlOyBca1A24wyBuS0qfKz1gqwAPQcvPSbvaLkTIurDONw1djw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795066008;
+	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
+	 Message-Id;
+	bh=3kn9/TBynRn3qe+AFE7PIgg1xUlEDBLrTCrqYk+73wk=;
+	b=kMHyVd2WMU1y/2DtAS/t2MDNPMaDe8Uym42f/pErk0WoQZkIwp6vOgpWx8ZAoF5SxZlI
+	 UAPgytGRTqjcwwZhcKaSkD05mwh16BRszisW/Zgu0WdEJlSkfCZ8gxY5AYrk/w71XoeaS
+	 E1JiAz1kiGPYrvrayj6p/meOIM21EYdbCTVLN+RDtuZ5vLG8GRdrlQny6NH55Q72hdKRf
+	 0jRaB4U77OEeoXAPohOojFbOv2wSy9IPPwaPbgN0eD1mXgdWaXUZxAdfytU62yUn18JU9
+	 pnF+ALgq94H1mrbfrmLGGg369j9EHnKLYB2MZvKPeimCaC3BpBbCTUr18RQBVqMNenw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=aJ6xIdcg;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=wmVknEhX;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6880E606A320
-	for <mm-commits@vger.kernel.org>; Thu, 19 Nov 2026 05:25:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B541606A320
+	for <mm-commits@vger.kernel.org>; Thu, 19 Nov 2026 05:26:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=aJ6xIdcg
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B38B71F000C7;
-	Thu, 19 Nov 2026 05:25:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=wmVknEhX
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 406311F000C4;
+	Thu, 19 Nov 2026 05:26:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795065939;
-	bh=LXiVx5mLfIEzf8hjDa0If8oOJDW92Rz35E1HYThx7/0=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=aJ6xIdcgedPDRCF/mKWnxOazcpJHvxbcUw5IdV6SzstqdpaM98o6c1KUQ1WY67bgP
-	 iNSaLrM2Iu1tiCFmFFGYeFWbuGiRsGtBFF7LN+SGB8ElAd+BGDRhVSXAxljcuht4dC
-	 knG/iBv++4lngncXhm4Tk2nRchNsXPG6BadUbrkk=
-Date: Wed, 18 Nov 2026 21:25:38 -0800
+	d=linux-foundation.org; s=korg; t=1795066008;
+	bh=3kn9/TBynRn3qe+AFE7PIgg1xUlEDBLrTCrqYk+73wk=;
+	h=Date:To:From:In-Reply-To:References:Subject;
+	b=wmVknEhX4CAGAnO0YBRwMQO40qkf6glzg7lxXhHFlrt+fvG490BaXVJ+plPUUfTR9
+	 B6gixqwFX1tzl4oR18CNYtlaX3SBlSfYWDXQXKx/SLRMmMEk6bqE5vhlBzKUJaZcB/
+	 7gnKalGC6ENG3LH5khJXz2dr4XGVoPi2qCH94BoM=
+Date: Wed, 18 Nov 2026 21:26:47 -0800
+To: mm-commits@vger.kernel.org,shuah@kernel.org,ljs@kernel.org,
+	cyphar@cyphar.com,cmllamas@google.com,aris@redhat.com,wakel@google.com,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
-Cc: "David Hildenbrand (Arm)" <david@kernel.org>, Lorenzo Stoakes
- <ljs@kernel.org>, Mike Rapoport <rppt@kernel.org>, "linux-mm@kvack.org"
- <linux-mm@kvack.org>, mm-commits@vger.kernel.org
-Subject: Re: Using In-reply-to: <patch posting> in mm-commits mails?
-Message-Id: <20261118212538.7e6f11f0553d548a03c9c456@linux-foundation.org>
-In-Reply-To: <9ba54069-3dc4-422f-8cf6-f81cb806e999@kernel.org>
-References: <9ba54069-3dc4-422f-8cf6-f81cb806e999@kernel.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+In-Reply-To: <20261105030843.3319056-1-wakel@google.com>
+References: <20261105030843.3319056-1-wakel@google.com>
+Subject: + selftests-memfd-rename-local-union-semun-to-avoid-bionic-clash.patch added to mm-new branch
+Message-Id: <20261119052648.406311F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,40 +53,100 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
-On Wed, 18 Nov 2026 11:21:47 +0100 "Vlastimil Babka (SUSE)" <vbabka@kernel.org> wrote:
 
-> Hi Andrew,
-> 
-> during some chat with Lorenzo, it occured me that it could be useful if your
-> mm-commit mails (addition, merging to mm-stable, drop etc.) were replies to
-> the respective patch postings, which would put them next to the patches in
-> everyone's inboxes. I think Lorenzo started to doing that on his receive
-> side with postprocessing.
-> 
-> While I haven't checked your scripts, I naively imagine it shouldn't be hard
-> to add that In-reply-to: <msgid> header. You already have the msgid for the
-> 
-> Link: https://lore.kernel.org/<msgid>
-> 
-> part. Maybe it's tricky when there are more Link:'s than the patch posting
-> itself. But actually after Linus initially hated these automatic Link:
-> additions, he later settled on the Link: https://patch.msgid.link/ template
-> as acceptable to him. It's sort of documented in
-> Documentation/process/maintainer-tip.rst too. So changing to use that
-> template should allow to easily grab the right msgid to reply to even for
-> later actions on the patch, than the initial addition.
+The patch titled
+     Subject: selftests/memfd: rename local union semun to avoid bionic clash
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-memfd-rename-local-union-semun-to-avoid-bionic-clash.patch
 
-np, that should be working now.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-memfd-rename-local-union-semun-to-avoid-bionic-clash.patch
 
-I switched it to patch.msgid.link for just the Link: to the original.
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-Konstantin's
-https://lore.kernel.org/all/20240619-docs-patch-msgid-link-v2-2-72dd272bfe37@linuxfoundation.org/
-was helpful.
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
-I hope patch.msgid.link is durable.  It's owned/operated by the LF so I
-guess it'll be there for a while!
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: Wake Liu <wakel@google.com>
+Subject: selftests/memfd: rename local union semun to avoid bionic clash
+Date: Thu,  5 Nov 2026 03:08:43 +0000
+
+Commit b24335521de9 ("selftests/memfd: use IPC semaphore instead of
+SIGSTOP/SIGCONT") added a local definition of union semun, since glibc and
+musl expect the caller to define it before calling semctl().  Bionic,
+however, already defines union semun in <sys/sem.h>, so memfd_test no
+longer builds against it:
+
+  memfd_test.c:45:7: error: redefinition of 'semun'
+
+Rename the local union to memfd_semun.  Its layout is unchanged, so it can
+still be passed as the variadic semctl() argument with any C library.
+
+Link: https://patch.msgid.link/20261105030843.3319056-1-wakel@google.com
+Fixes: b24335521de9 ("selftests/memfd: use IPC semaphore instead of SIGSTOP/SIGCONT")
+Signed-off-by: Wake Liu <wakel@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Aristeu Rozanski <aris@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Aleksa Sarai <cyphar@cyphar.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Carlos Llamas <cmllamas@google.com>
+
+ tools/testing/selftests/memfd/memfd_test.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+--- a/tools/testing/selftests/memfd/memfd_test.c~selftests-memfd-rename-local-union-semun-to-avoid-bionic-clash
++++ a/tools/testing/selftests/memfd/memfd_test.c
+@@ -42,7 +42,13 @@
+ 		    F_SEAL_EXEC)
+ 
+ #define MFD_NOEXEC_SEAL	0x0008U
+-union semun {
++
++/*
++ * glibc and musl leave union semun for the caller to define, but bionic
++ * already provides it in <sys/sem.h>. Use a private name so the test
++ * builds against all of them.
++ */
++union memfd_semun {
+ 	int val;
+ 	struct semid_ds *buf;
+ 	unsigned short int *array;
+@@ -1387,7 +1393,7 @@ static void test_sysctl_sysctl2_failset(
+ static int sysctl_nested_child(void *arg)
+ {
+ 	int pid, sem;
+-	union semun semun;
++	union memfd_semun semun;
+ 	struct sembuf sembuf;
+ 
+ 	printf("%s nested sysctl 0\n", memfd_str);
+_
+
+Patches currently in -mm which might be from wakel@google.com are
+
+selftests-memfd-rename-local-union-semun-to-avoid-bionic-clash.patch
+
