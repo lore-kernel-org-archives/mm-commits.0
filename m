@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795113181;
-	b=KUvFF5oNUnL7nAm3P2TG2dDR4+n78dVZ1Nq93Hmc8YWTFTRXRs7N3F/9f2k3P/NGple3
-	 9eCKontS45b0x/tbqIq0nxvGwRfQDj8DiyT7tBWbowXbMzWttRuV35KD0aMFVZqMHF7ON
-	 edbarEU/qDmzxLCnOjp87gcy0wG8d5xcoYZQAk/FgO/V5GQCPDBa86lrVuuLhy7YWBBbp
-	 6Ks5gpR92/GB1UF4Wmn0Iqn9ZwdQqFtNlbKseCeDFiCr6orE81ZBdZXa9bg8tm2rCWii3
-	 84GWRrnV0r43Vv4Vrhkfl1MEUkSIQv8WNZ4iQEHAVtSm52ZCtpjuRjsu0W1ATJpaKGQ==
+	t=1795113505;
+	b=fx1GcBJsnuM17u2jdPmpWuRo5ZDeV96IOZH3A392BKlnm2wglVcil4RJ7wE4y3IX1tVn
+	 QwiZF/QLNXPekyKqp9YmVRYdGzREHugHUrnhAOawLCB7Banv2I5sjYZASzaolwpRKLz9K
+	 nWLYbPSHQBfcz+eETursVTrB0k97FpnAei4LUZ6qb/WIYSv15tJpMVqfs9YsZB6LWbXFA
+	 NkDEf1fgwCbyF3JLH1KDg8OBrUU1hJPLnSLLJ2IpaxYpzMrpGa1iKsoHvuant1BXt+B4Z
+	 x3FWUfOI+oSCpSls+FcM5t7dR95dCcp9LBhyb2GqR70mGtsji2kj3Hnz1Kk+iiRQIRw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795113181;
-	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=El2Hi6dP8O9kLBB1BS8NJuPD7E07QFd/QF/7oHmjRog=;
-	b=oh1YaR/hQtzAN4cpEA/UTSB8pKJPMPvZoyuzYHa9UPG8aGJHxqKFGbuFIKwzQ/kQwRBy
-	 oNoL8ZBfdm1sw8vVPYoc2x4ULmh6yYCSBcQ+ByDONHlUVqjAWrQfQl6sYGDlN86NzGbBs
-	 Xv51jcO9ssKGS6oqrF5hna/oNm+f51qgVKcwYOkjX7jm3FdT/0CeafvcbAT81ZDgXWOAM
-	 v4I4Kkp6cuCwHDNRmRNvpFEubjF3ATTNTaERge03Fb5O8XDINt25CnY7mUu2rL1RSZv7A
-	 u7WXLqFUnFn1FyuugrN2Ke8xLn9gvsZQwKsNo+ZBSvfor188o9Z9se08P2IExBAXyog==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795113505;
+	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
+	 Message-Id;
+	bh=tYFas97y2rAXAV+ojut1DZS8F4xTaLUwyYcvley6SVM=;
+	b=c5DSoXMvDceP5zcYziwRqZ0OuOGbGD/Zpsg3zuYUr46b4w2Ijv5QD8vcinR4e72ej12u
+	 dFrbBcqJqUgcGnHkB+jG6u3PQ5LlIeMsCuVsOpfFMTsaUo6w36wYdK6AaR+YowrDjYas0
+	 XS4wnZRfifbYg5dpX3jhBJ9wQrZc4p6AqlX4rH073WkeX3kv7K4xnK3y9lg3fBcQrLWje
+	 Jz3buz053WMASPWlnWJAbouCrzE+iidbnlh7t7yc+8PnwwOh9oLMsqNrv99L0/XVOZkYa
+	 YxdtkoXRIARR1p1m7mRKsDza3hdpulQe3Ox2toe1GGomxJbsH1xC2/2xbTiEbx+ZQQA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ZcwtqPno;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LNqRK6nB;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D0F5606A320
-	for <mm-commits@vger.kernel.org>; Thu, 19 Nov 2026 18:33:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE836606A320
+	for <mm-commits@vger.kernel.org>; Thu, 19 Nov 2026 18:38:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ZcwtqPno
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C2751F000C5;
-	Thu, 19 Nov 2026 18:33:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LNqRK6nB
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 833FA1F000C6;
+	Thu, 19 Nov 2026 18:38:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795113181;
-	bh=El2Hi6dP8O9kLBB1BS8NJuPD7E07QFd/QF/7oHmjRog=;
-	h=Date:To:From:Subject;
-	b=ZcwtqPnoU/uo0PhzRF1EysQOOXYUFewWP8gJpXrii9/JfdCZ94dUFlMa1yj3ANTGu
-	 0KWcwMVn1oSazeCQoanDW9n0pCc1so+CTLUyTTkLuoct4yyX/wrYk8n2fBH55PD+BT
-	 s6qUT4LtorWQjpOTEx9h4aJdLfkKu4Et7QYCZ81Q=
-Date: Thu, 19 Nov 2026 10:33:00 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yeoreum.yun@arm.com,
-	vbabka@kernel.org,usama.arif@linux.dev,surenb@google.com,shuah@kernel.org,
-	sarthak.sharma@arm.com,ryan.roberts@arm.com,rppt@kernel.org,
-	peterx@redhat.com,nico.pache@linux.dev,mhocko@suse.com,ljs@kernel.org,
-	liam@infradead.org,leon@kernel.org,lance.yang@linux.dev,kas@kernel.org,
-	jgg@ziepe.ca,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,
-	baohua@kernel.org,akpm@linux-foundation.org
+	d=linux-foundation.org; s=korg; t=1795113504;
+	bh=tYFas97y2rAXAV+ojut1DZS8F4xTaLUwyYcvley6SVM=;
+	h=Date:To:From:In-Reply-To:References:Subject;
+	b=LNqRK6nB305cszezTrdulxoneO4QHJwiL7k5kx+Tu+hi8VCIyv4onoMifAbNB1FrI
+	 f5HYwHspfNTLiPxudszlPS8T5Kx4JB5GjPiuO27ZTO0rQG2a7yfnqiMfI7O0JsLGC5
+	 vPyXE+fXIpdBUAK0GNle2ZhyZzZLU2/UWRv8B284=
+Date: Thu, 19 Nov 2026 10:38:24 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
+	rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,
+	elkin@google.com,david@kernel.org,irogers@google.com,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize-fix.patch added to mm-unstable branch
-Message-Id: <20261119183301.0C2751F000C5@smtp.kernel.org>
+In-Reply-To: <20261119170517.1515872-1-irogers@google.com>
+References: <20261119170517.1515872-1-irogers@google.com>
+Subject: + mm-backing-dev-pass-%s-format-string-to-device_create-in-bdi_register_va.patch added to mm-new branch
+Message-Id: <20261119183824.833FA1F000C6@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -57,15 +57,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize-fix.patch
+     Subject: mm/backing-dev: pass "%s" format string to device_create() in bdi_register_va()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-backing-dev-pass-%s-format-string-to-device_create-in-bdi_register_va.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-backing-dev-pass-%s-format-string-to-device_create-in-bdi_register_va.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -80,69 +91,55 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize-fix
-Date: Thu Nov 19 10:09:01 AM PST 2026
+From: Ian Rogers <irogers@google.com>
+Subject: mm/backing-dev: pass "%s" format string to device_create() in bdi_register_va()
+Date: Thu, 19 Nov 2026 09:05:17 -0800
 
-add a temporary back-compat define for -next integration reasons
+bdi_register_va() formats (fmt, args) into bdi->dev_name via vsnprintf()
+and then passes bdi->dev_name directly as the format string argument to
+device_create(), causing vsnprintf() to run a second time on the already
+formatted device name with no variadic arguments.  If a caller formats an
+identifier containing '%', device_create() interprets it as format
+specifiers and reads arbitrary stack slots.
 
+Pass "%s", bdi->dev_name to device_create().
+
+Found via an x86_64 LLVM=1 (Clang 21.1.8) allyesconfig audit with
+-Wformat-security enabled; fix and changelog drafted with an AI coding
+assistant.  Build-tested under LLVM=1 W=1 and -Wformat-security; not
+runtime-tested with '%' in backing-device names.
+
+Link: https://patch.msgid.link/20261119170517.1515872-1-irogers@google.com
+Fixes: 6bd87eec23cb ("bdi: add a ->dev_name field to struct backing_dev_info")
+Signed-off-by: Ian Rogers <irogers@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Leon Romanovsky <leon@kernel.org>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Nico Pache <nico.pache@linux.dev>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Sarthak Sharma <sarthak.sharma@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Usama Arif <usama.arif@linux.dev>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Yeoreum Yun <yeoreum.yun@arm.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Elkin Cruz <elkin@google.com>
 
- tools/testing/selftests/mm/vm_util.h |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/backing-dev.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/vm_util.h~kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize-fix
-+++ a/tools/testing/selftests/mm/vm_util.h
-@@ -93,6 +93,8 @@ unsigned long pagemap_get_pfn(int fd, ch
- void clear_softdirty(void);
- bool check_for_pattern(FILE *fp, const char *pattern, char *buf, size_t len);
- uint64_t pmd_psize(void);
-+/* temporary cross-tree compatibility thing: */
-+#define read_pmd_pagesize() pmd_psize()
- unsigned long rss_anon(void);
- bool check_huge_anon(void *addr, size_t len, int nr_hpages, uint64_t hpage_size);
- bool check_huge_file(void *addr, size_t len, int nr_hpages, uint64_t hpage_size);
+--- a/mm/backing-dev.c~mm-backing-dev-pass-%s-format-string-to-device_create-in-bdi_register_va
++++ a/mm/backing-dev.c
+@@ -1097,7 +1097,8 @@ int bdi_register_va(struct backing_dev_i
+ 		return 0;
+ 
+ 	vsnprintf(bdi->dev_name, sizeof(bdi->dev_name), fmt, args);
+-	dev = device_create(&bdi_class, NULL, MKDEV(0, 0), bdi, bdi->dev_name);
++	dev = device_create(&bdi_class, NULL, MKDEV(0, 0), bdi, "%s",
++			    bdi->dev_name);
+ 	if (IS_ERR(dev))
+ 		return PTR_ERR(dev);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from irogers@google.com are
 
-maintainers-add-page_exth-to-memory-management-page-allocator.patch
-kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize-fix.patch
-selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
-selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
-selftests-mm-allocate-nr_pages-based-on-pmd-size-for-uffd-pmd_move-tests-fix.patch
-selftests-mm-retain-move-pmd-coverage-and-verify-huge-pmds.patch
-lib-test_xarray-check-unused-spare-node-after-range-creation.patch
-mm-memory-failure-dont-unpoison-a-leaked-raw_hwp_unreliable-folio-fix.patch
-ipc-msg-clamp-negative-msg_info-usage-counts.patch
-squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix.patch
-squashfs-sanity-check-directory-metadata-block-location-fix.patch
-squashfs-fix-variables-in-directory-code-and-add-more-sanity-checks-fix.patch
-ocfs2-skip-network-flush-when-no-domain-handlers-are-registered.patch
-selftests-ptrace-check-that-ptrace_set_syscall_info-rejects-invalid-error-values-fix.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+mm-backing-dev-pass-%s-format-string-to-device_create-in-bdi_register_va.patch
 
