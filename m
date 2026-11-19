@@ -1,51 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795113505;
-	b=fx1GcBJsnuM17u2jdPmpWuRo5ZDeV96IOZH3A392BKlnm2wglVcil4RJ7wE4y3IX1tVn
-	 QwiZF/QLNXPekyKqp9YmVRYdGzREHugHUrnhAOawLCB7Banv2I5sjYZASzaolwpRKLz9K
-	 nWLYbPSHQBfcz+eETursVTrB0k97FpnAei4LUZ6qb/WIYSv15tJpMVqfs9YsZB6LWbXFA
-	 NkDEf1fgwCbyF3JLH1KDg8OBrUU1hJPLnSLLJ2IpaxYpzMrpGa1iKsoHvuant1BXt+B4Z
-	 x3FWUfOI+oSCpSls+FcM5t7dR95dCcp9LBhyb2GqR70mGtsji2kj3Hnz1Kk+iiRQIRw==
+	t=1795132227;
+	b=y2SDrQeazeKM1Xkc3qMvevA8bigLk7xV7WFrSiYDNMWeJWJ/W+/hKS0408L+nhnhMC3v
+	 Enz0eyuefkOKvGg6hPUFjSN7qjSYS/32nCaqEL+8wkeP3y2H/17PE/aEy3gIZRyz1pU/t
+	 YvX2gSJZZntVuZQDRuES9yEcO7ud1XMeM9tgWQIGMii2hng+vW/WkB2EU4+mCKBMSstMy
+	 wb7E5wrrkowHb9Z1qi+EC2zTZDN9yFk7f2/cVQd2mX4/48qJU+PBf6g7q/92519efeTrp
+	 7pF8ldnQNoGy5veoV4Xf8lQcAzhV+R0S5u7m6cMpGEH3UUEv5N5aU8LlP7lkw0k6EnQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795113505;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795132227;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=tYFas97y2rAXAV+ojut1DZS8F4xTaLUwyYcvley6SVM=;
-	b=c5DSoXMvDceP5zcYziwRqZ0OuOGbGD/Zpsg3zuYUr46b4w2Ijv5QD8vcinR4e72ej12u
-	 dFrbBcqJqUgcGnHkB+jG6u3PQ5LlIeMsCuVsOpfFMTsaUo6w36wYdK6AaR+YowrDjYas0
-	 XS4wnZRfifbYg5dpX3jhBJ9wQrZc4p6AqlX4rH073WkeX3kv7K4xnK3y9lg3fBcQrLWje
-	 Jz3buz053WMASPWlnWJAbouCrzE+iidbnlh7t7yc+8PnwwOh9oLMsqNrv99L0/XVOZkYa
-	 YxdtkoXRIARR1p1m7mRKsDza3hdpulQe3Ox2toe1GGomxJbsH1xC2/2xbTiEbx+ZQQA==
+	bh=c4mo36QTs2DkYePAwoa0Y5BLda5ypL5O/EREbb+9MUU=;
+	b=FPjBem9Pm5WlpLP4iCibgRGb2H+Px/9S9mhj3kd3luKc3+meHGUFan4UvkP5jxpC1iKY
+	 hraMikyQkppD5MYfTpqU0Ler37pEVoGpis4hOsGKMMynk+z7ll/8fd1e/7j9fBl2alQ7l
+	 8JqvEwUdo/iUUpRfVDxGbzcpchFG6LEugecJMbFy7/vt73fCJwfgxDKulKQvQ9o23caOL
+	 QVkl4GeYH8VgRmpnXD4MxMsfOzz9ixogmE3ZO234Bjh+nypk+2TjCwsZMKhdgdvVE1UWc
+	 ivY5msoJ6y1xh7PJHSoVqGOcAGXK4iUZNz+Z06IuSk+5mPCIdKGRxcQDGLuhbJVm/wg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LNqRK6nB;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=qiRAuGDx;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE836606A320
-	for <mm-commits@vger.kernel.org>; Thu, 19 Nov 2026 18:38:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2EA7A606A320
+	for <mm-commits@vger.kernel.org>; Thu, 19 Nov 2026 23:50:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LNqRK6nB
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 833FA1F000C6;
-	Thu, 19 Nov 2026 18:38:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=qiRAuGDx
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B8FF1F000C4;
+	Thu, 19 Nov 2026 23:50:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795113504;
-	bh=tYFas97y2rAXAV+ojut1DZS8F4xTaLUwyYcvley6SVM=;
+	d=linux-foundation.org; s=korg; t=1795132226;
+	bh=c4mo36QTs2DkYePAwoa0Y5BLda5ypL5O/EREbb+9MUU=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=LNqRK6nB305cszezTrdulxoneO4QHJwiL7k5kx+Tu+hi8VCIyv4onoMifAbNB1FrI
-	 f5HYwHspfNTLiPxudszlPS8T5Kx4JB5GjPiuO27ZTO0rQG2a7yfnqiMfI7O0JsLGC5
-	 vPyXE+fXIpdBUAK0GNle2ZhyZzZLU2/UWRv8B284=
-Date: Thu, 19 Nov 2026 10:38:24 -0800
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
-	rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,
-	elkin@google.com,david@kernel.org,irogers@google.com,
+	b=qiRAuGDxCADy+oyeiQl3fxro3rzM+MsDEkOQzsCN9x1TZZH81Uohhud933JyeHPOi
+	 A+V0Fw7W0yyv9V/nfeRqirv0hWGBix5sRPJeIxU9EthbhO8tay1yS4iYSNFRMaGcxw
+	 HnV0Crflver5WmuKBiC47uuoPi/p0mU7v09sBet0=
+Date: Thu, 19 Nov 2026 15:50:26 -0800
+To: mm-commits@vger.kernel.org,zhuhui@kylinos.cn,zhangbo56@xiaomi.com,
+	yuanchu@google.com,weixugc@google.com,wangzicheng@honor.com,
+	surenb@google.com,sidchintamaneni@gmail.com,shakeel.butt@linux.dev,
+	ryncsn@gmail.com,rppt@kernel.org,ridong.chen@linux.dev,qi.zheng@linux.dev,
+	mhocko@kernel.org,lyugaofei@xiaomi.com,liuxiang.277@bytedance.com,
+	lianux.mm@gmail.com,liam@infradead.org,kunwu.chan@gmail.com,
+	hui.zhu@linux.dev,hannes@cmpxchg.org,baoquan.he@linux.dev,
+	baolin.wang@linux.alibaba.com,axelrasmussen@google.com,baohua@kernel.org,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261119170517.1515872-1-irogers@google.com>
-References: <20261119170517.1515872-1-irogers@google.com>
-Subject: + mm-backing-dev-pass-%s-format-string-to-device_create-in-bdi_register_va.patch added to mm-new branch
-Message-Id: <20261119183824.833FA1F000C6@smtp.kernel.org>
+In-Reply-To: <20261116042556.42111-1-baohua@kernel.org>
+References: <20261116042556.42111-1-baohua@kernel.org>
+Subject: [folded-merged] mm-mglru-run-aging-when-pages-are-rare-outside-the-youngest-gen-fix.patch removed from -mm tree
+Message-Id: <20261119235026.9B8FF1F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,90 +61,97 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
-     Subject: mm/backing-dev: pass "%s" format string to device_create() in bdi_register_va()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-backing-dev-pass-%s-format-string-to-device_create-in-bdi_register_va.patch
+The quilt patch titled
+     Subject: cleanup-mm-mglru-Run-aging-when-pages-are-rare-outside-the-youngest-gen
+has been removed from the -mm tree.  Its filename was
+     mm-mglru-run-aging-when-pages-are-rare-outside-the-youngest-gen-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-backing-dev-pass-%s-format-string-to-device_create-in-bdi_register_va.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it was folded into mm-mglru-run-aging-when-pages-are-rare-outside-the-youngest-gen.patch
 
 ------------------------------------------------------
-From: Ian Rogers <irogers@google.com>
-Subject: mm/backing-dev: pass "%s" format string to device_create() in bdi_register_va()
-Date: Thu, 19 Nov 2026 09:05:17 -0800
+From: "Barry Song (Xiaomi)" <baohua@kernel.org>
+Subject: cleanup-mm-mglru-Run-aging-when-pages-are-rare-outside-the-youngest-gen
+Date: Mon, 16 Nov 2026 11:48:44 +0800
 
-bdi_register_va() formats (fmt, args) into bdi->dev_name via vsnprintf()
-and then passes bdi->dev_name directly as the format string argument to
-device_create(), causing vsnprintf() to run a second time on the already
-formatted device name with no variadic arguments.  If a caller formats an
-identifier containing '%', device_create() interprets it as format
-specifiers and reads arbitrary stack slots.
+As suggested by Kairui[1], we don't need youngest and old as
+array. just an accumulative value should be enough.
 
-Pass "%s", bdi->dev_name to device_create().
+No functional change.
 
-Found via an x86_64 LLVM=1 (Clang 21.1.8) allyesconfig audit with
--Wformat-security enabled; fix and changelog drafted with an AI coding
-assistant.  Build-tested under LLVM=1 W=1 and -Wformat-security; not
-runtime-tested with '%' in backing-device names.
-
-Link: https://patch.msgid.link/20261119170517.1515872-1-irogers@google.com
-Fixes: 6bd87eec23cb ("bdi: add a ->dev_name field to struct backing_dev_info")
-Signed-off-by: Ian Rogers <irogers@google.com>
+Link: https://patch.msgid.link/20261116042556.42111-1-baohua@kernel.org
+Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
+Suggested-by: Kairui Song <ryncsn@gmail.com>
+Link: https://lore.kernel.org/linux-mm/CAMgjq7C_cH75JrYs8=P5LbxnDjDD6bqeqsCidOPa=r8Z+42sCQ@mail.gmail.com/ [1]
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: <hui.zhu@linux.dev>
+Cc: Kunwu Chan <kunwu.chan@gmail.com>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: wang lian <lianux.mm@gmail.com>
+Cc: <liuxiang.277@bytedance.com>
+Cc: <lyugaofei@xiaomi.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Ridong Chen <ridong.chen@linux.dev>
 Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Siddharth Chintamaneni <sidchintamaneni@gmail.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Elkin Cruz <elkin@google.com>
+Cc: wangzicheng <wangzicheng@honor.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Bo Zhang <zhangbo56@xiaomi.com>
+Cc: Hui Zhu <zhuhui@kylinos.cn>
 
- mm/backing-dev.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/vmscan.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
---- a/mm/backing-dev.c~mm-backing-dev-pass-%s-format-string-to-device_create-in-bdi_register_va
-+++ a/mm/backing-dev.c
-@@ -1097,7 +1097,8 @@ int bdi_register_va(struct backing_dev_i
- 		return 0;
+--- a/mm/vmscan.c~mm-mglru-run-aging-when-pages-are-rare-outside-the-youngest-gen-fix
++++ a/mm/vmscan.c
+@@ -5078,8 +5078,8 @@ retry:
+ static bool lru_gen_imbalanced(struct lruvec *lruvec, struct scan_control *sc,
+ 		int swappiness)
+ {
+-	unsigned long youngest[ANON_AND_FILE] = {0}, old[ANON_AND_FILE] = {0};
+ 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
++	unsigned long youngest = 0, old = 0;
+ 	DEFINE_MAX_SEQ(lruvec);
+ 	DEFINE_MIN_SEQ(lruvec);
+ 	int type;
+@@ -5099,14 +5099,13 @@ static bool lru_gen_imbalanced(struct lr
+ 	for_each_evictable_type(type, swappiness) {
+ 		unsigned long seq;
  
- 	vsnprintf(bdi->dev_name, sizeof(bdi->dev_name), fmt, args);
--	dev = device_create(&bdi_class, NULL, MKDEV(0, 0), bdi, bdi->dev_name);
-+	dev = device_create(&bdi_class, NULL, MKDEV(0, 0), bdi, "%s",
-+			    bdi->dev_name);
- 	if (IS_ERR(dev))
- 		return PTR_ERR(dev);
+-		youngest[type] = lruvec_gen_size(lrugen, type, max_seq);
++		youngest += lruvec_gen_size(lrugen, type, max_seq);
+ 		for (seq = min_seq[type]; seq < max_seq; seq++)
+-			old[type] += lruvec_gen_size(lrugen, type, seq);
++			old += lruvec_gen_size(lrugen, type, seq);
+ 	}
  
+ 	/* the vast majority of pages sit in the youngest gen */
+-	return youngest[LRU_GEN_ANON] + youngest[LRU_GEN_FILE] >
+-	       (old[LRU_GEN_ANON] + old[LRU_GEN_FILE]) * MAX_NR_GENS;
++	return youngest > old * MAX_NR_GENS;
+ }
+ 
+ static bool should_run_aging(struct lruvec *lruvec, unsigned long max_seq,
 _
 
-Patches currently in -mm which might be from irogers@google.com are
+Patches currently in -mm which might be from baohua@kernel.org are
 
-mm-backing-dev-pass-%s-format-string-to-device_create-in-bdi_register_va.patch
+arm64-vmalloc-allow-arch_vmap_pte_range_map_size-to-batch-multiple-cont_pte.patch
+mm-vmalloc-extend-page-table-walk-to-support-larger-page_shift-sizes-and-eliminate-page-table-rewalk.patch
+mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible.patch
+mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings.patch
+mm-mglru-avoid-placing-rejected-folios-below-populated-gen.patch
+mm-mglru-run-aging-when-pages-are-rare-outside-the-youngest-gen.patch
+mm-mglru-run-aging-when-one-type-is-drained.patch
+mm-mglru-run-aging-when-one-type-is-drained-fix.patch
+mm-mglru-restrict-eviction-accounting-to-eligible-zones.patch
+mm-mglru-reduce-lru-lock-contention-by-shrinking-folio-batches-in-inc_min_seq.patch
+mm-mglru-make-swappiness=1-file-reclaim-more-aggressive.patch
 
