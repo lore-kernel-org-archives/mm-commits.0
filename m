@@ -1,42 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795066539;
-	b=2hYL+U9yOqovSnuB+nPTtoJ668o1agriIYIXZcPsowGLw907jSM2cVsylUh5gFnhTGFL
-	 TlDkjfwGCYGQVE86aD4Omz6RRECfRrkr/xRXC/fITmtidfD1oONQdDSoKbo1qNVkx26Az
-	 WgeQAooKs3b9M27gKkHlG6bbiN0GHnDsGuLFkIXLobNvNQ0nqrkMNSMRwKKMB0JzW9OqJ
-	 Zknv9y/kTnoG7Iq9AbSvOMPYH7v3nUr3tp52Jejcpj78U70It8uaf9TbV4C/DUarp1rSE
-	 f2LCQs2V+fN0g9eAqpFQeoKMxxdSU47F03G/AMvLqPzKF0z+ZZfvmLsfNOETtlQ3QoQ==
+	t=1795066541;
+	b=R05hAV3xOJt04qWffhBvBtwvuRGBRZk5PdZr8Hc0/5jEBmJAxi0sm8IvmVjdsLCjb7uL
+	 6Ge+IN4pIJRb/vutkClWDlp7pxLRa6dYLPhHB2zeKzo+25IX2S306qU6HeVefTVkwBwWO
+	 pBcWbb3081F8muAI2j+J8yr9MwWSWJH2DW+NzX5rwEBVdsO1GTNdDAu0xNlo6CxvFJ5Zj
+	 gjm07F45urujpSigZC/NGO0Xrx16CwyeRjreaTl4OfYPoYhnR9CzNJ6hntvhoEjJYYclE
+	 /1lh5VlVvfnN7+z8zfjGt5VcHT3jXktn3lNkSvKhUDvpb8j7HSVMSCVqyxaLKgQ1fpA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795066539;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795066541;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=P7DSe+2rTVqVLxWldqAm0EiX0RWne4hLwAVexkYkS0Q=;
-	b=kZU5grI5ycHQmdX6V8Vt1JlX7rZq6bl5M8ov1L1UU+x0mqHwF4g6nK+rkuAheIXIZo5/
-	 5oCKlTBNdQ4EOikKxmfowytxojn806lWcNJZ2oAEYfbRDm05eGqDPShMymRAB7UZxLzM1
-	 CXNgGP28GtNcqKNhG/fX6JD0VMa0R4a1AlXZoGU27PL94I6OPJsMPo7lL/xS2xeWOQiLh
-	 IzhpcRTM9km4X6E9OqxOIL94PF0KIg4RbP0IxRk9R87LSwjlU0swxSecXHYmPSgvLgtAW
-	 A7zlATvMNmjOUwkCGFm0SxeQlUS1YVvXuVGi9mmPoE7YaeSDjaBaYnBcMVywe+dDhxQ==
+	bh=PfRO+5lGq9vC1lGMG9bKEcYzlfCnizJPaLUK7H8tGio=;
+	b=0lYnrQqASn4NudJziVolxfUi6uxvung9tCdFlEp0HhvLULmf8fTSTuERHEB9Inu4zrdD
+	 d532mdvOHOLL17skh09uKCSINZSkyPzFHJQdCJVCPkssA8bsa2cVt9mTPygQvskOd0njk
+	 yOx0VWgSVkkBw/bLnF71eTwPpL188R0DDJ5y/8cYTygIZ55arYIein0d7g80xFVdm/gue
+	 rDtn9fsLbTrNN2PTwtE86B9ZEhc3Ka4E/9EXIzOxDJ1ZFYhti6gu37kDTeFLzPcrh5RwX
+	 K1cxT68gsH3w5qyLkVCVJhtNLdYIl1glqAegdwXFSu8RWIr+hSCFg5s21qI/eVelDdw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=eXVA+sco;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=zBLdyxYP;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41BD4606CC5B
-	for <mm-commits@vger.kernel.org>; Thu, 19 Nov 2026 05:35:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7926A606D91D
+	for <mm-commits@vger.kernel.org>; Thu, 19 Nov 2026 05:35:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=eXVA+sco
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D81BD1F000C4;
-	Thu, 19 Nov 2026 05:35:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=zBLdyxYP
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03EC81F000C4;
+	Thu, 19 Nov 2026 05:35:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795066538;
-	bh=P7DSe+2rTVqVLxWldqAm0EiX0RWne4hLwAVexkYkS0Q=;
+	d=linux-foundation.org; s=korg; t=1795066541;
+	bh=PfRO+5lGq9vC1lGMG9bKEcYzlfCnizJPaLUK7H8tGio=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=eXVA+scolakcCOI+JfOGvZ4r0QqFetnR8C6oWt3k3cb5ASqbRzJpEweYbtNY2LmNx
-	 KzaZrEfAK6O4BzQhO0+deiM13mjZtB1KD7AUNNv2pU3RVpmOK5LPxEuOQciwdb9zyi
-	 k6yCPczCSawCenLm0cBMJVKGQbfDkw9BdzJxtUxY=
-Date: Wed, 18 Nov 2026 21:35:38 -0800
+	b=zBLdyxYPKyd+V9hNJDyUmVRPXaecZLnCTj/ez672jm15Yl8WPg4iwil/68R+zICkm
+	 eFM+ZU3t19JjE1xTrc1oIfObXonN/F1zRrtIxopP08a5CBweYE7wB+xdeb4XO27x3I
+	 b5msOv98sB3IrE4EcgYHm/F51rLDL9Yleoc97Gkk=
+Date: Wed, 18 Nov 2026 21:35:40 -0800
 To: mm-commits@vger.kernel.org,youngjun.park@lge.com,willy@infradead.org,
 	vbabka@kernel.org,shikemeng@huaweicloud.com,senozhatsky@chromium.org,
 	pfalcato@suse.de,nphamcs@gmail.com,minchan@kernel.org,ljs@kernel.org,
@@ -44,10 +44,10 @@ To: mm-commits@vger.kernel.org,youngjun.park@lge.com,willy@infradead.org,
 	dev.jain@arm.com,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,
 	shivankg@amd.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261117-unused-sym-mm-v2-4-2f845e94dd50@amd.com>
-References: <20261117-unused-sym-mm-v2-4-2f845e94dd50@amd.com>
-Subject: + mm-zsmalloc-remove-unused-zpdesc_lock.patch added to mm-nonmm-unstable branch
-Message-Id: <20261119053538.D81BD1F000C4@smtp.kernel.org>
+In-Reply-To: <20261117-unused-sym-mm-v2-5-2f845e94dd50@amd.com>
+References: <20261117-unused-sym-mm-v2-5-2f845e94dd50@amd.com>
+Subject: + mm-nommu-remove-unused-heap_stack_gap.patch added to mm-nonmm-unstable branch
+Message-Id: <20261119053541.03EC81F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -59,12 +59,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/zsmalloc: remove unused zpdesc_lock()
+     Subject: mm: nommu: remove unused heap_stack_gap
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mm-zsmalloc-remove-unused-zpdesc_lock.patch
+     mm-nommu-remove-unused-heap_stack_gap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zsmalloc-remove-unused-zpdesc_lock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-nommu-remove-unused-heap_stack_gap.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -83,18 +83,18 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Shivank Garg <shivankg@amd.com>
-Subject: mm/zsmalloc: remove unused zpdesc_lock()
-Date: Tue, 17 Nov 2026 07:16:51 +0000
+Subject: mm: nommu: remove unused heap_stack_gap
+Date: Tue, 17 Nov 2026 07:16:52 +0000
 
-It was added in commit c1b3bb73d55e ("mm/zsmalloc: use zpdesc in
-trylock_zspage()/lock_zspage()") but has never had a caller.
+heap_stack_gap has been unused since at least the start of git history,
+commit 1da177e4c3f4 ("Linux-2.6.12-rc2").
 
-Link: https://patch.msgid.link/20261117-unused-sym-mm-v2-4-2f845e94dd50@amd.com
+Link: https://patch.msgid.link/20261117-unused-sym-mm-v2-5-2f845e94dd50@amd.com
+Link: https://lore.kernel.org/linux-mm/20140430083620.GA4711@dhcp22.suse.cz/
 Signed-off-by: Shivank Garg <shivankg@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Dev Jain <dev.jain@arm.com>
 Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Christopher Li <chrisl@kernel.org>
@@ -104,29 +104,26 @@ Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
 Cc: Youngjun Park <youngjun.park@lge.com>
 Cc: Minchan Kim <minchan@kernel.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: Pedro Falcato <pfalcato@suse.de>
 
- mm/zpdesc.h |    5 -----
- 1 file changed, 5 deletions(-)
+ mm/nommu.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/zpdesc.h~mm-zsmalloc-remove-unused-zpdesc_lock
-+++ a/mm/zpdesc.h
-@@ -107,11 +107,6 @@ static_assert(sizeof(struct zpdesc) <= s
- 	const struct page *:		(const struct zpdesc *)(p),	\
- 	struct page *:			(struct zpdesc *)(p)))
+--- a/mm/nommu.c~mm-nommu-remove-unused-heap_stack_gap
++++ a/mm/nommu.c
+@@ -43,7 +43,6 @@
+ #include "internal.h"
  
--static inline void zpdesc_lock(struct zpdesc *zpdesc)
--{
--	folio_lock(zpdesc_folio(zpdesc));
--}
--
- static inline bool zpdesc_trylock(struct zpdesc *zpdesc)
- {
- 	return folio_trylock(zpdesc_folio(zpdesc));
+ unsigned long highest_memmap_pfn;
+-int heap_stack_gap = 0;
+ 
+ atomic_long_t mmap_pages_allocated;
+ 
 _
 
 Patches currently in -mm which might be from shivankg@amd.com are
