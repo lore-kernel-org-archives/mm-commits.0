@@ -1,50 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795148858;
-	b=OgJcnK7qXhBXeDRMOAxKh7h6G45ZC6vAGdBMALSTw6hJn5E+RUlPgukoCK9tXAER0olN
-	 EoBhjduJEOiOAtEj9bpgMgKacCXAyP+CG7DJAkRXYdTMwS6NUhOCGDXRMMTTLiUEbHREP
-	 6qoL66Ku6ouq1ON6FsAsHa2lBi8AuGmH93DxmHdu297ItZsLgRoMuGwlhvAJJ50VGDTt+
-	 izTOvhpi3s9ctvDIhVQzlISnbilz1eBIM4y30cKh3C9XtO0DAMDs7XvzG4fdY9yKishp3
-	 g2UK+EOWNMrZvVRoWMR/E19U9NBd3WO7qrm9CGCwgdezyPT1ihuAiJAn2i9P/k/1tyA==
+	t=1795158907;
+	b=pd/HD53SVY8xoQZnyLhLW92DpHOX8VZj/BFMAWzVobwnHrCBRQEg2xsyQjcQKMONvnqK
+	 FReNoy+C/iCuT9n+rUJzoHm4wlmoc43oQezPaLwLBVME8QdaPjhX0dwz+LAAR4hyqjPgl
+	 +nV6x4cZWAd5WHCw8lC2+b3pE9LsFL2w4iOpsab1+kb+1yI7Iyp96iOLNKom+sLm93UkR
+	 kDDlyDEvtLKfI4XxMs2F+Dsk6+7Fj0LS8Y9HZ3XYsDPOFozTFVkb28ESXq6XmejRfpxUN
+	 pmTcJTyv2EnZZgRd5s7jwvtNQiwRjaUowIsX091oX5pqgx9qulUGwLMk8FO9QdnbOHA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795148858;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795158907;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=ximWkdMPo3C0HINhB8g5hVC/MrWZQ2RkJfguOHs4lWw=;
-	b=LQ+sZPrgA8vUjBTNelhC3ZeHxiP/U+BJvYnI5tR58bGJhntPih6eAJWxPZms8PZN39jt
-	 5fURFbl0gznjUQQcH/tzlqGWyQVket9SqbTNgzdZh053KBwGfM4eiDJZL9GK3P+E9sd7/
-	 n1oaT6Tc3l9kpyt/a+seY0webKP+Qw6qt76vo/g5jUVO1DdWuPt6cbW8mmKA9SldvGVTF
-	 Zpsccn9lCIlUf7wBE8Y4KjSYFI32PPAFUmTGwpvDRvMT5U8Q9W1p1nfCreR6YDjj5PTyF
-	 /NoXoieSmz/kH5kXXzZMfj1kIPDS9ZpRzo4fEs3PIoyoPJhwoO1mdFOnffVSK2Q9xfw==
+	bh=PChoPG/4FcswYt7gDGaRw+7Au91kxzVsnrlCkS7cz8w=;
+	b=tH4BKgNepF0+1+egyoxaEXgDKv7gaDeDfdGVqDxpAwemCQNjKDn6UFcu9/dSAmZzQeHB
+	 1FoKqjWEblXjr4HB80+utQS6IzqtIyc7p7CM/32CkJu0m0u5XxG0v/P2q6xhJdxiqPkUi
+	 112jFu87eajmGCGqYSRoR898gHD3fTHAgPqlO8nUoqZdkVOjYkYrmjMfwC8slLCsNaYmZ
+	 H5C7aWKOhBAwRlhuGXpE5MuwZS97hoNVsFCvLIrdmntlxqlyndgoRzrEt3IrX63OjYRwe
+	 6mjpylXbXFC+ptcuvB4Vt3NGuCQe9I4/YLE767Al84o4uWqKKheGvORKD98wN/MddMw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="H4zGq/xT";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ySECzsRQ;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6748160A2608
-	for <mm-commits@vger.kernel.org>; Fri, 20 Nov 2026 04:27:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3ABF4606A320
+	for <mm-commits@vger.kernel.org>; Fri, 20 Nov 2026 07:15:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=H4zGq/xT
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C97621F000C6;
-	Fri, 20 Nov 2026 04:27:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ySECzsRQ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C51D1F000C4;
+	Fri, 20 Nov 2026 07:15:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795148857;
-	bh=ximWkdMPo3C0HINhB8g5hVC/MrWZQ2RkJfguOHs4lWw=;
+	d=linux-foundation.org; s=korg; t=1795158906;
+	bh=PChoPG/4FcswYt7gDGaRw+7Au91kxzVsnrlCkS7cz8w=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=H4zGq/xTRq5583csIVOUEkoNIS9EKFebW4bQu9k/UepzuvS/yCDSRCWUPXvYDu1r9
-	 6NXOu/xpJt9+v247p3kQJjymDRL5NpyP3V336X2VfRhCthzxZqfa80B0LS+o9APNNr
-	 zKSKsA4u3c0Nv4ij2rOSW35yUu63HGVIjkG5Tvhc=
-Date: Thu, 19 Nov 2026 20:27:37 -0800
-To: mm-commits@vger.kernel.org,yury.norov@gmail.com,tamird@kernel.org,
-	kees@kernel.org,david@davidgow.net,desobei@outlook.com,
-	akpm@linux-foundation.org
+	b=ySECzsRQQrMtm4FUnVH5W1/ZnpKMvSLlI7tV/1AQw4Tb7sR1dkXQHdF5yEbPObTNx
+	 aYvZfzq2/Ln/hyav3xGcjW7F320MU0Vz/z9sx0EA5xfTb4vKrh3U+AC6QOMiA4jVBw
+	 tT7B0p7WcoEP1sS3rCSXGMHH2c954oeQhtiEKzb0=
+Date: Thu, 19 Nov 2026 23:15:06 -0800
+To: mm-commits@vger.kernel.org,jeff.johnson@oss.qualcomm.com,
+	yuanfang.zhang@oss.qualcomm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <PH7PR19MB66581508E6F6733E0C36EF92AF792@PH7PR19MB6658.namprd19.prod.outlook.com>
-References: <PH7PR19MB66581508E6F6733E0C36EF92AF792@PH7PR19MB6658.namprd19.prod.outlook.com>
-Subject: + lib-prime_numbers-dont-sleep-under-rcu_read_lock-in-with_primes.patch added to mm-nonmm-unstable branch
-Message-Id: <20261120042737.C97621F000C6@smtp.kernel.org>
+In-Reply-To: <20261120070941.2814556-1-yuanfang.zhang@oss.qualcomm.com>
+References: <20261120070941.2814556-1-yuanfang.zhang@oss.qualcomm.com>
+Subject: + mailmap-add-entry-for-yuanfang-zhang.patch added to mm-nonmm-hotfixes-unstable branch
+Message-Id: <20261120071506.8C51D1F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,14 +55,14 @@ Precedence: list
 
 
 The patch titled
-     Subject: lib/prime_numbers: don't sleep under rcu_read_lock() in with_primes()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-prime_numbers-dont-sleep-under-rcu_read_lock-in-with_primes.patch
+     Subject: mailmap: add entry for Yuanfang Zhang
+has been added to the -mm mm-nonmm-hotfixes-unstable branch.  Its filename is
+     mailmap-add-entry-for-yuanfang-zhang.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-prime_numbers-dont-sleep-under-rcu_read_lock-in-with_primes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-add-entry-for-yuanfang-zhang.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-nonmm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -79,87 +78,33 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Ilyas N <desobei@outlook.com>
-Subject: lib/prime_numbers: don't sleep under rcu_read_lock() in with_primes()
-Date: Thu, 19 Nov 2026 17:42:36 -0500
+From: Yuanfang Zhang <yuanfang.zhang@oss.qualcomm.com>
+Subject: mailmap: add entry for Yuanfang Zhang
+Date: Thu, 19 Nov 2026 23:09:41 -0800
 
-The KUnit suite exit hook dumps the primes cache through with_primes(),
-which calls its callback inside an RCU read-side critical section.  The
-callback, dump_primes(), logs with kunit_info().  With
-CONFIG_KUNIT_DEBUGFS=y that also appends to the suite log, which allocates
-with GFP_KERNEL and may sleep.  With CONFIG_PREEMPT_RCU=y and
-CONFIG_DEBUG_ATOMIC_SLEEP=y, every run of the suite reports:
+Map past iterations of my e-mail addresses to the current one.
 
-  BUG: sleeping function called from invalid context at ./include/linux/sched/mm.h:322
-  in_atomic(): 0, irqs_disabled(): 0, non_block: 0, pid: 1, name: swapper/0
-  preempt_count: 0, expected: 0
-  RCU nest depth: 1, expected: 0
-  Call Trace:
-  __might_resched
-  __kmalloc_cache_noprof
-  string_stream_vadd
-  kunit_log_append
-  dump_primes
-  with_primes
-  kunit_run_tests
-
-All updates of the primes pointer are serialized by the mutex in
-prime_numbers.c.  Hold that mutex in with_primes() instead of the RCU read
-lock.  The pointer stays valid for the callback, and the callback is
-allowed to sleep.  with_primes() is only built for the KUnit test, and the
-suite exit hook is its only caller.
-
-Allocating with GFP_KERNEL under the mutex adds no new constraint on the
-callers of the library.  The only other place that takes the mutex outside
-of module exit is expand_to_next_prime(), which does a GFP_KERNEL
-allocation right before taking it.
-
-Found by running the KUnit suites on next-20261117 with KASAN, lockdep and
-CONFIG_DEBUG_ATOMIC_SLEEP enabled.  The problem was found and the patch
-was written with the help of an AI coding assistant (Claude Opus 5.5 and
-Claude Fable 5.2).  Tested in x86_64 QEMU/KVM guests with 1 and 8 vCPUs,
-running only this suite.  The splat shows up on every boot before the
-patch and is gone with it, lockdep stays quiet, and the dump is still
-printed and still lands in the debugfs log of the suite.
-
-Link: https://patch.msgid.link/PH7PR19MB66581508E6F6733E0C36EF92AF792@PH7PR19MB6658.namprd19.prod.outlook.com
-Fixes: 313b38a6ecb4 ("lib/prime_numbers: convert self-test to KUnit")
-Signed-off-by: Ilyas N <desobei@outlook.com>
+Link: https://patch.msgid.link/20261120070941.2814556-1-yuanfang.zhang@oss.qualcomm.com
+Signed-off-by: Yuanfang Zhang <yuanfang.zhang@oss.qualcomm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Tamir Duberstein <tamird@kernel.org>
-Cc: Yury Norov <yury.norov@gmail.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: David Gow <david@davidgow.net>
+Cc: Jeff Johnson <jeff.johnson@oss.qualcomm.com>
 
- lib/math/prime_numbers.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ .mailmap |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/lib/math/prime_numbers.c~lib-prime_numbers-dont-sleep-under-rcu_read_lock-in-with_primes
-+++ a/lib/math/prime_numbers.c
-@@ -59,14 +59,15 @@ static const struct primes __rcu *primes
- 
- #if IS_ENABLED(CONFIG_PRIME_NUMBERS_KUNIT_TEST)
- /*
-- * Calls the callback under RCU lock. The callback must not retain
-- * the primes pointer.
-+ * Calls the callback with the lock held, so that the primes cannot be
-+ * replaced under it and the callback is allowed to sleep. The callback
-+ * must not retain the primes pointer.
-  */
- void with_primes(void *ctx, primes_fn fn)
- {
--	rcu_read_lock();
--	fn(ctx, rcu_dereference(primes));
--	rcu_read_unlock();
-+	mutex_lock(&lock);
-+	fn(ctx, rcu_dereference_protected(primes, lockdep_is_held(&lock)));
-+	mutex_unlock(&lock);
- }
- EXPORT_SYMBOL(with_primes);
- 
+--- a/.mailmap~mailmap-add-entry-for-yuanfang-zhang
++++ a/.mailmap
+@@ -1045,6 +1045,7 @@ Yixun Lan <dlan@kernel.org> <dlan@gentoo
+ Yixun Lan <dlan@kernel.org> <yixun.lan@amlogic.com>
+ Yosry Ahmed <yosry@kernel.org> <yosryahmed@google.com>
+ Yosry Ahmed <yosry@kernel.org> <yosry.ahmed@linux.dev>
++Yuanfang Zhang <yuanfang.zhang@oss.qualcomm.com> <quic_yuanfang@quicinc.com>
+ Yu-Chun Lin <eleanor.lin@realtek.com> <eleanor15x@gmail.com>
+ Yusuke Goda <goda.yusuke@renesas.com>
+ Zack Rusin <zack.rusin@broadcom.com> <zackr@vmware.com>
 _
 
-Patches currently in -mm which might be from desobei@outlook.com are
+Patches currently in -mm which might be from yuanfang.zhang@oss.qualcomm.com are
 
-lib-prime_numbers-dont-sleep-under-rcu_read_lock-in-with_primes.patch
+mailmap-add-entry-for-yuanfang-zhang.patch
 
