@@ -1,56 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795132227;
-	b=y2SDrQeazeKM1Xkc3qMvevA8bigLk7xV7WFrSiYDNMWeJWJ/W+/hKS0408L+nhnhMC3v
-	 Enz0eyuefkOKvGg6hPUFjSN7qjSYS/32nCaqEL+8wkeP3y2H/17PE/aEy3gIZRyz1pU/t
-	 YvX2gSJZZntVuZQDRuES9yEcO7ud1XMeM9tgWQIGMii2hng+vW/WkB2EU4+mCKBMSstMy
-	 wb7E5wrrkowHb9Z1qi+EC2zTZDN9yFk7f2/cVQd2mX4/48qJU+PBf6g7q/92519efeTrp
-	 7pF8ldnQNoGy5veoV4Xf8lQcAzhV+R0S5u7m6cMpGEH3UUEv5N5aU8LlP7lkw0k6EnQ==
+	t=1795145059;
+	b=XqiSywx5EcRWbYxYtCvf1d9vlE6hsoDzPpm7SOHua/Q0pKz00nCNW1hBRY1mSGx3OBqS
+	 AyUowi2o4JQORdYW8UcyAcQmkp44vMmeBMdydC0FxzcbEK2Is9+z7y6J3SJ81HtlkgbXZ
+	 3UrK8dp+LQXYfzp7zEmZoE6mfBJspbqTg5s968G+Aez6Kui8d8AZy6VXuLoppTif5ubMM
+	 t8dI0PANPn4HIDJj6u/2CP8dpf0iqDatd/6crSLR119SvkOZlyfJAHNmgD/gUvzcHGllr
+	 yWeSNiieRS+Y+N68aF3jpdKKjpUFU6D40LRzzZHVLDJjbtAGVXUuDgPMA6zA3+Rza0g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795132227;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795145059;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=c4mo36QTs2DkYePAwoa0Y5BLda5ypL5O/EREbb+9MUU=;
-	b=FPjBem9Pm5WlpLP4iCibgRGb2H+Px/9S9mhj3kd3luKc3+meHGUFan4UvkP5jxpC1iKY
-	 hraMikyQkppD5MYfTpqU0Ler37pEVoGpis4hOsGKMMynk+z7ll/8fd1e/7j9fBl2alQ7l
-	 8JqvEwUdo/iUUpRfVDxGbzcpchFG6LEugecJMbFy7/vt73fCJwfgxDKulKQvQ9o23caOL
-	 QVkl4GeYH8VgRmpnXD4MxMsfOzz9ixogmE3ZO234Bjh+nypk+2TjCwsZMKhdgdvVE1UWc
-	 ivY5msoJ6y1xh7PJHSoVqGOcAGXK4iUZNz+Z06IuSk+5mPCIdKGRxcQDGLuhbJVm/wg==
+	bh=ZtiwsG/EC76o/IYpF5aShJaSP8yvb2LaGdXGm/XonY0=;
+	b=KmjKTy4T7lBgA1wsyjRhklGc2RZ/OqUeS/dTVlyki6VqzmX1xbP3+oKF99A8tGM8r8R5
+	 pCRWMCKwFmJp/LnjKwufP/5Bs6Xf7H4ecjkGIhbqriRBMo2NbeAsxONV36OPV5qWXZ+VU
+	 fvs/nTD6lBupXmMXPS07bZ/FlBSmJ/meFTmgMWULbnFXnyNJimP70cMY31Xk+WKDjL/5J
+	 xLV+S17BV4t38ZRbz/CzzowzA+j585FZF6BYWq37fMCtux9/3E1s5MCb0LBFkBK8iI2xQ
+	 YqZNxHuCyHNEFdDtBuU5uN+PBCBvhBzRc1QKl15AWnhRiKURQ3H09ZdnhJCOTIAmflQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=qiRAuGDx;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tYbPalVF;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2EA7A606A320
-	for <mm-commits@vger.kernel.org>; Thu, 19 Nov 2026 23:50:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26981606A331
+	for <mm-commits@vger.kernel.org>; Fri, 20 Nov 2026 03:24:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=qiRAuGDx
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B8FF1F000C4;
-	Thu, 19 Nov 2026 23:50:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tYbPalVF
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB6E01F000CA;
+	Fri, 20 Nov 2026 03:24:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795132226;
-	bh=c4mo36QTs2DkYePAwoa0Y5BLda5ypL5O/EREbb+9MUU=;
+	d=linux-foundation.org; s=korg; t=1795145058;
+	bh=ZtiwsG/EC76o/IYpF5aShJaSP8yvb2LaGdXGm/XonY0=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=qiRAuGDxCADy+oyeiQl3fxro3rzM+MsDEkOQzsCN9x1TZZH81Uohhud933JyeHPOi
-	 A+V0Fw7W0yyv9V/nfeRqirv0hWGBix5sRPJeIxU9EthbhO8tay1yS4iYSNFRMaGcxw
-	 HnV0Crflver5WmuKBiC47uuoPi/p0mU7v09sBet0=
-Date: Thu, 19 Nov 2026 15:50:26 -0800
-To: mm-commits@vger.kernel.org,zhuhui@kylinos.cn,zhangbo56@xiaomi.com,
-	yuanchu@google.com,weixugc@google.com,wangzicheng@honor.com,
-	surenb@google.com,sidchintamaneni@gmail.com,shakeel.butt@linux.dev,
-	ryncsn@gmail.com,rppt@kernel.org,ridong.chen@linux.dev,qi.zheng@linux.dev,
-	mhocko@kernel.org,lyugaofei@xiaomi.com,liuxiang.277@bytedance.com,
-	lianux.mm@gmail.com,liam@infradead.org,kunwu.chan@gmail.com,
-	hui.zhu@linux.dev,hannes@cmpxchg.org,baoquan.he@linux.dev,
-	baolin.wang@linux.alibaba.com,axelrasmussen@google.com,baohua@kernel.org,
+	b=tYbPalVFH5xeK6n//GZ9pvTTWrKRESij31hdi9Lrt1zAVSHJq7ccq/uiKHftVO1d0
+	 abU6NFNMrF8CMMmms+H0lriY0uH9Naf8bVyuyWwy7eDg9t38oT3PkejspOTUuSm2jo
+	 YKbxkL+F6p+qgordpxiqkBvSV6CcygbzzBn4/0+Q=
+Date: Thu, 19 Nov 2026 19:24:18 -0800
+To: mm-commits@vger.kernel.org,surenb@google.com,shuah@kernel.org,
+	reddybalavignesh9979@gmail.com,liam@infradead.org,kmehltretter@gmail.com,
+	joe@perches.com,apw@canonical.com,fuqingshuang@kylinos.cn,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261116042556.42111-1-baohua@kernel.org>
-References: <20261116042556.42111-1-baohua@kernel.org>
-Subject: [folded-merged] mm-mglru-run-aging-when-pages-are-rare-outside-the-youngest-gen-fix.patch removed from -mm tree
-Message-Id: <20261119235026.9B8FF1F000C4@smtp.kernel.org>
+In-Reply-To: <20261120022710.1585112-1-fuqingshuang@kylinos.cn>
+References: <20261120022710.1585112-1-fuqingshuang@kylinos.cn>
+Subject: + selftests-proc-include-linux-mmanh-for-mremap_dontunmap.patch added to mm-new branch
+Message-Id: <20261120032418.CB6E01F000CA@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -61,97 +56,85 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The quilt patch titled
-     Subject: cleanup-mm-mglru-Run-aging-when-pages-are-rare-outside-the-youngest-gen
-has been removed from the -mm tree.  Its filename was
-     mm-mglru-run-aging-when-pages-are-rare-outside-the-youngest-gen-fix.patch
+The patch titled
+     Subject: selftests/proc: include linux/mman.h for MREMAP_DONTUNMAP
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-proc-include-linux-mmanh-for-mremap_dontunmap.patch
 
-This patch was dropped because it was folded into mm-mglru-run-aging-when-pages-are-rare-outside-the-youngest-gen.patch
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-proc-include-linux-mmanh-for-mremap_dontunmap.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: "Barry Song (Xiaomi)" <baohua@kernel.org>
-Subject: cleanup-mm-mglru-Run-aging-when-pages-are-rare-outside-the-youngest-gen
-Date: Mon, 16 Nov 2026 11:48:44 +0800
+From: Qingshuang Fu <fuqingshuang@kylinos.cn>
+Subject: selftests/proc: include linux/mman.h for MREMAP_DONTUNMAP
+Date: Fri, 20 Nov 2026 10:27:10 +0800
 
-As suggested by Kairui[1], we don't need youngest and old as
-array. just an accumulative value should be enough.
+glibc versions before 2.32 do not define MREMAP_DONTUNMAP in <sys/mman.h>,
+so proc-maps-race fails to build against them (e.g.  glibc 2.31):
 
-No functional change.
+  $ make -C tools/testing/selftests TARGETS=proc
+  ...
+  proc-maps-race.c:691:58: error: 'MREMAP_DONTUNMAP' undeclared
+    (first use in this function)
 
-Link: https://patch.msgid.link/20261116042556.42111-1-baohua@kernel.org
-Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
+Include <linux/mman.h> to get the flag from the kernel UAPI headers
+instead of depending on the libc version.  The proc Makefile already adds
+those headers to the include path via $(TOOLS_INCLUDES).
+
+Link: https://patch.msgid.link/20261120022710.1585112-1-fuqingshuang@kylinos.cn
+Fixes: 6a45336b9b6f ("selftests/proc: extend /proc/pid/maps tearing test to include vma remapping")
+Signed-off-by: Qingshuang Fu <fuqingshuang@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Kairui Song <ryncsn@gmail.com>
-Link: https://lore.kernel.org/linux-mm/CAMgjq7C_cH75JrYs8=P5LbxnDjDD6bqeqsCidOPa=r8Z+42sCQ@mail.gmail.com/ [1]
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <hui.zhu@linux.dev>
-Cc: Kunwu Chan <kunwu.chan@gmail.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: wang lian <lianux.mm@gmail.com>
-Cc: <liuxiang.277@bytedance.com>
-Cc: <lyugaofei@xiaomi.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Ridong Chen <ridong.chen@linux.dev>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Siddharth Chintamaneni <sidchintamaneni@gmail.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: wangzicheng <wangzicheng@honor.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Bo Zhang <zhangbo56@xiaomi.com>
-Cc: Hui Zhu <zhuhui@kylinos.cn>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Karl Mehltretter <kmehltretter@gmail.com>
+Cc: Bala-Vignesh-Reddy <reddybalavignesh9979@gmail.com>
 
- mm/vmscan.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ tools/testing/selftests/proc/proc-maps-race.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/vmscan.c~mm-mglru-run-aging-when-pages-are-rare-outside-the-youngest-gen-fix
-+++ a/mm/vmscan.c
-@@ -5078,8 +5078,8 @@ retry:
- static bool lru_gen_imbalanced(struct lruvec *lruvec, struct scan_control *sc,
- 		int swappiness)
- {
--	unsigned long youngest[ANON_AND_FILE] = {0}, old[ANON_AND_FILE] = {0};
- 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
-+	unsigned long youngest = 0, old = 0;
- 	DEFINE_MAX_SEQ(lruvec);
- 	DEFINE_MIN_SEQ(lruvec);
- 	int type;
-@@ -5099,14 +5099,13 @@ static bool lru_gen_imbalanced(struct lr
- 	for_each_evictable_type(type, swappiness) {
- 		unsigned long seq;
- 
--		youngest[type] = lruvec_gen_size(lrugen, type, max_seq);
-+		youngest += lruvec_gen_size(lrugen, type, max_seq);
- 		for (seq = min_seq[type]; seq < max_seq; seq++)
--			old[type] += lruvec_gen_size(lrugen, type, seq);
-+			old += lruvec_gen_size(lrugen, type, seq);
- 	}
- 
- 	/* the vast majority of pages sit in the youngest gen */
--	return youngest[LRU_GEN_ANON] + youngest[LRU_GEN_FILE] >
--	       (old[LRU_GEN_ANON] + old[LRU_GEN_FILE]) * MAX_NR_GENS;
-+	return youngest > old * MAX_NR_GENS;
- }
- 
- static bool should_run_aging(struct lruvec *lruvec, unsigned long max_seq,
+--- a/tools/testing/selftests/proc/proc-maps-race.c~selftests-proc-include-linux-mmanh-for-mremap_dontunmap
++++ a/tools/testing/selftests/proc/proc-maps-race.c
+@@ -33,6 +33,7 @@
+ #include <string.h>
+ #include <unistd.h>
+ #include <linux/fs.h>
++#include <linux/mman.h>
+ #include <sys/ioctl.h>
+ #include <sys/mman.h>
+ #include <sys/stat.h>
 _
 
-Patches currently in -mm which might be from baohua@kernel.org are
+Patches currently in -mm which might be from fuqingshuang@kylinos.cn are
 
-arm64-vmalloc-allow-arch_vmap_pte_range_map_size-to-batch-multiple-cont_pte.patch
-mm-vmalloc-extend-page-table-walk-to-support-larger-page_shift-sizes-and-eliminate-page-table-rewalk.patch
-mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible.patch
-mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings.patch
-mm-mglru-avoid-placing-rejected-folios-below-populated-gen.patch
-mm-mglru-run-aging-when-pages-are-rare-outside-the-youngest-gen.patch
-mm-mglru-run-aging-when-one-type-is-drained.patch
-mm-mglru-run-aging-when-one-type-is-drained-fix.patch
-mm-mglru-restrict-eviction-accounting-to-eligible-zones.patch
-mm-mglru-reduce-lru-lock-contention-by-shrinking-folio-batches-in-inc_min_seq.patch
-mm-mglru-make-swappiness=1-file-reclaim-more-aggressive.patch
+selftests-proc-include-linux-mmanh-for-mremap_dontunmap.patch
 
