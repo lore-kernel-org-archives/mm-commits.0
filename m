@@ -1,78 +1,50 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.15
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795223116;
-	b=5lplQwHfDenI+Zt30riRxtzmuw5Tnv/YTk1rc5K8cmFxtVfC6PpO6QNc++m5pxilPMrb
-	 P1o+iPoqfZ22tCdNF0VCc96vsFpfaxuySwucDG+od1BBtPEfzM8xZ74N0cFS6B8xA9LnO
-	 8MYSjx7bnwy0pSPwu5J53d1AOPl9S97Gv+zCuboAh9J5BSQDRoPAsw4HSdBPYpQ75tVqy
-	 y4KLPNRKIUYg4eWDMXYzbA8oYiYkBjBqlT++3Z7+qL4tErFuSYRxVUbT/DJ6oxeagLLNQ
-	 EtPFtUDoeVwcCiMnb/zJCQ6MBnheKHJQEr8CCwMH6dBhYs9nXaSPWHon+5pD0qm0W2A==
+	t=1795231330;
+	b=gbK/y4AXTYxLW08gq19b8aSly3QVcR1Ze8Qjk4m4xUYRudyMje1s4SKEH7OvkS2MaOPE
+	 tHzHMRqTvwOoYhY/EHNu/iehJr9MjcSvxEQPF3rzkze3h2xclzWs/8nRFVqM78wkqS+4S
+	 fiUodxw1sKZWD34lrCsms0y667e/FsNYPdFNVP4Kze/RkSvEFo1qwJ2XguVlk4yjjCobe
+	 gt4ISuC5jEZVRk1cY36GlrfzTs3efgX6NubONqVJRdU7om4ZeL33AKccjpscHpiSebBae
+	 34HyCr7hwViWgmkCd7tsyvFWnHBalLztYvOFchbThsxEdZmPHeH6IJcWBSUz66mzRsg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795223116;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
-	 Cc:Subject:Message-ID:User-Agent;
-	bh=D6MUpByqUl21YvI4aTwA26R8B7fmmb3EiqJS1yLvH2A=;
-	b=pu4qPMPjBpC2ZGAL1tKIk4ZzDXlxdKo6O9R0tcVDbJRoVZercyVGYFR4y4NcAe9oNrQy
-	 w2dfNeoBDXu4L6+UbOfTjRMdoqlWbVSLjOdqGzbqi63qvXGsea5CCXjxp117xCGmnNZRZ
-	 e/0qthquy1jjKhcbkYpSsKCXQLM1H7TSeyGikUFjMcbLV40RU7Mtj619TOKuszxRAV7Rc
-	 Kgti72OIV9vpYWDJf52qZUg9rLnQIabA4/DpOxGZRsfknJL/W0OUArtiXZinTlWHJeNgL
-	 9RYdz9zmjfItRdcNUKZbDVPDSEjpShBD/cXCZrlM+9ByFprSqk9wTVwQy8tUz/FyKzQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795231330;
+	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
+	 Message-Id;
+	bh=wJxQz2m/K4F+lN/T8oNb0kDlh/Igk7L/ApJAeElpCcc=;
+	b=nJ3zWjMyoTKflCd9mPHB4gjgEmqyzO2MHD1g0XauGZzMzPLDRzwW0DqN2UpMfd1E3amS
+	 z2HapDGY6czo5DHzIkCtlPAbcGrtySEfkbqnbL5KzepKCR3TzD95qDvjsinZexwgCTGO3
+	 Q/1DJucSoPi3TfMTl6gz0tSbuLyTxfJ1pUv5UN7kVxpN4E36CQuHqiKz+lLKWxf56/sed
+	 6YN+hmkQ0JP3nOmbP5cDpbQHjpBPvPa18MiBBAupyl/eVv1IqQKFiCiTk5ciYj93xEe3N
+	 FaCMbZm15PaLDeEt+6vkWZo3I9aCcNbJfcgry+WRNKNZf+pQmS1JvZPfgKtBFnFwljw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=intel.com;
-	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=Ccer8QBC;
-	arc=none smtp.remote-ip=198.175.65.15
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Cf9eb8zl;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD9F1606A6B3
-	for <mm-commits@vger.kernel.org>; Sat, 21 Nov 2026 01:05:12 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DD9F1606A6B3
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 979EE606A6A8
+	for <mm-commits@vger.kernel.org>; Sat, 21 Nov 2026 03:22:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=Ccer8QBC
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1795223112; x=1826759112;
-  h=date:from:to:cc:subject:message-id;
-  bh=qkG1UrMDZs2x+TcV8lFs/sjiNEueuWccC0DFQWLou1U=;
-  b=Ccer8QBCOeGzYBIWaifX76zpp/U7T/uEoPkkCv1HMqIP4+yo3aLAvCPt
-   CIb7PQ8TDjkl/1Iu8AzuWV0IISroVyF+qZ2bAsf27FDlhgmRkHMQ1vf/B
-   4vYqsQau7lPNO3mDEoAy1pYZ9OcuXa0LihgjOFHynFbB6RdmBR4k8hdyB
-   I8CyrvmHWPaXnbxcyip5yLvy7n4D3BD0cF1IBnCIs7mv5YGe27XW5/Dbl
-   BZc+h1JERyQy0E4y1t8XhxvfcjlzRRdONu8TQ6Z1bMqS1LzTxzds42DCN
-   FnMx7D60CWrdW6G8IrHLrEGaMuqovIMMgECrIYOTC4NTNh3gOwxnsxT7o
-   A==;
-X-CSE-ConnectionGUID: 5snTVTPDSoGnBbMKzkyEnA==
-X-CSE-MsgGUID: PTtxMHpGRzStS5AmHbUhBw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11972"; a="4116066"
-X-IronPort-AV: E=Sophos;i="6.27,224,1787036400"; 
-   d="scan'208";a="4116066"
-Received: from fmviesa009.fm.intel.com ([10.60.135.149])
-  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2026 17:05:12 -0800
-X-CSE-ConnectionGUID: +qcKEWHxQXCdMEx1EZsaDg==
-X-CSE-MsgGUID: wXMdizheQVSLGIwPvmK++A==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,224,1787036400"; 
-   d="scan'208";a="11170173"
-Received: from lkp-server01.sh.intel.com (HELO 0caa9d2d175c) ([10.239.97.150])
-  by fmviesa009.fm.intel.com with ESMTP; 20 Nov 2026 17:05:10 -0800
-Received: from kbuild by 0caa9d2d175c with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1xUZXQ-00000001J6V-02Ze;
-	Sat, 21 Nov 2026 01:05:08 +0000
-Date: Sat, 21 Nov 2026 09:04:57 +0800
-From: kernel test robot <lkp@intel.com>
-To: David Hildenbrand <david@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
- Linux Memory Management List <linux-mm@kvack.org>,
- mm-commits@vger.kernel.org
-Subject: [akpm-mm:mm-new] BUILD SUCCESS
- 15f114dac9a7bde1796f0e54e22726fd31cfa8a5
-Message-ID: <20261121090457.sQENk6l3-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Cf9eb8zl
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F3E51F000C0;
+	Sat, 21 Nov 2026 03:22:09 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1795231329;
+	bh=wJxQz2m/K4F+lN/T8oNb0kDlh/Igk7L/ApJAeElpCcc=;
+	h=Date:To:From:In-Reply-To:References:Subject;
+	b=Cf9eb8zl083lbGitTnYIeEhFHaZQPlF3XBvO1d2fcVcdWhr4ytjZfmK/fv2jZ1OO7
+	 ergTqMPEJbw3rcSUwjEaHNTBXTmkC6APGwkTF4ypEPpQgvGxeG+g0K5o6CuliIOt2q
+	 SZIlWLweZtDXewhqCWOgNvgQg6tlcSLM6zzXOyyk=
+Date: Fri, 20 Nov 2026 19:22:08 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,sarthak.sharma@arm.com,
+	rientjes@google.com,mathieu.desnoyers@efficios.com,david@kernel.org,
+	cl@gentwo.org,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+In-Reply-To: <21183f5b-2697-cbe6-6370-dbd27c5e2b60@google.com>
+References: <21183f5b-2697-cbe6-6370-dbd27c5e2b60@google.com>
+Subject: + mm-vmstat_kunit-add-synthetic-benchmark-for-mm-stats.patch added to mm-unstable branch
+Message-Id: <20261121032209.6F3E51F000C0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -82,327 +54,288 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-branch HEAD: 15f114dac9a7bde1796f0e54e22726fd31cfa8a5  lib/test_hmm: fix alloc tag leak when splitting device-private folios
 
-elapsed time: 1091m
+The patch titled
+     Subject: mm: vmstat_kunit: add synthetic benchmark for mm stats
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-vmstat_kunit-add-synthetic-benchmark-for-mm-stats.patch
 
-configs tested: 308
-configs skipped: 5
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmstat_kunit-add-synthetic-benchmark-for-mm-stats.patch
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-tested configs:
-alpha                              allnoconfig    gcc-16.2.0
-alpha                             allyesconfig    gcc-16.2.0
-alpha                 randconfig-2000-20261120    gcc-13.5.0
-alpha                 randconfig-2001-20261120    gcc-15.3.0
-alpha                 randconfig-2200-20261120    gcc-15.3.0 smatch
-alpha                randconfig-r2302-20261120    gcc-15.3.0 sparse
-arc                               allmodconfig    clang-24
-arc                               allmodconfig    gcc-16.2.0
-arc                                allnoconfig    gcc-16.2.0
-arc                               allyesconfig    clang-24
-arc                               allyesconfig    gcc-16.2.0
-arc                       axs103_smp_defconfig    gcc-16.2.0
-arc                   randconfig-1000-20261120    clang-17
-arc                   randconfig-1000-20261121    clang-24
-arc                   randconfig-1001-20261120    clang-17
-arc                   randconfig-1001-20261121    clang-24
-arc                   randconfig-2200-20261120    gcc-15.3.0 smatch
-arm                                allnoconfig    gcc-16.2.0
-arm                               allyesconfig    clang-24
-arm                         clps711x_defconfig    gcc-16.2.0
-arm                        omap2plus_defconfig    gcc-16.2.0
-arm                           pxa168_defconfig    gcc-16.2.0
-arm                   randconfig-1000-20261120    clang-17
-arm                   randconfig-1000-20261121    clang-24
-arm                   randconfig-1001-20261120    clang-17
-arm                   randconfig-1001-20261121    clang-24
-arm                   randconfig-1002-20261120    clang-17
-arm                   randconfig-1002-20261121    clang-24
-arm                   randconfig-1003-20261120    clang-17
-arm                   randconfig-1003-20261121    clang-24
-arm                   randconfig-2000-20261120    gcc-11.5.0
-arm                   randconfig-2001-20261120    gcc-8.5.0
-arm                   randconfig-2002-20261120    clang-24
-arm                   randconfig-2200-20261120    clang-17   smatch
-arm                              rpc_defconfig    gcc-16.2.0
-arm                         shmobile_defconfig    gcc-16.2.0
-arm64                             allmodconfig    clang-24
-arm64                              allnoconfig    gcc-16.2.0
-arm64                 randconfig-1000-20261120    clang-18
-arm64                 randconfig-1000-20261120    clang-24
-arm64                 randconfig-1001-20261120    clang-18
-arm64                 randconfig-1001-20261120    gcc-8.5.0
-arm64                 randconfig-1002-20261120    clang-18
-arm64                 randconfig-1003-20261120    clang-18
-arm64                 randconfig-1003-20261120    clang-24
-arm64                 randconfig-2000-20261120    clang-24
-arm64                 randconfig-2001-20261120    gcc-8.5.0
-arm64                 randconfig-2002-20261120    gcc-14.4.0
-csky                              allmodconfig    gcc-16.2.0
-csky                               allnoconfig    gcc-16.2.0
-csky                  randconfig-1000-20261120    clang-18
-csky                  randconfig-1000-20261120    gcc-16.2.0
-csky                  randconfig-1001-20261120    clang-18
-csky                  randconfig-1001-20261120    gcc-12.5.0
-csky                  randconfig-2001-20261120    gcc-16.2.0
-csky                  randconfig-2200-20261120    gcc-15.3.0 smatch
-csky                 randconfig-r2300-20261120    gcc-16.2.0 sparse
-hexagon                           allmodconfig    gcc-16.2.0
-hexagon                            allnoconfig    gcc-16.2.0
-hexagon               randconfig-1000-20261120    gcc-10.5.0
-hexagon               randconfig-1000-20261121    gcc-11.5.0
-hexagon               randconfig-1001-20261120    gcc-10.5.0
-hexagon               randconfig-1001-20261121    gcc-11.5.0
-i386                              allmodconfig    clang-22
-i386                              allmodconfig    gcc-14
-i386                               allnoconfig    gcc-16.2.0
-i386                              allyesconfig    clang-22
-i386                              allyesconfig    gcc-14
-i386        buildonly-randconfig-1000-20261121    gcc-13
-i386        buildonly-randconfig-1001-20261121    gcc-13
-i386        buildonly-randconfig-1002-20261121    gcc-13
-i386        buildonly-randconfig-1003-20261121    gcc-13
-i386        buildonly-randconfig-1004-20261121    gcc-13
-i386        buildonly-randconfig-1005-20261121    gcc-13
-i386                  randconfig-1000-20261120    clang-22
-i386                  randconfig-1000-20261120    gcc-14
-i386                  randconfig-1001-20261120    clang-22
-i386                  randconfig-1002-20261120    clang-22
-i386                  randconfig-1003-20261120    clang-22
-i386                  randconfig-1004-20261120    clang-22
-i386                  randconfig-1005-20261120    clang-22
-i386                  randconfig-1006-20261120    clang-22
-i386                  randconfig-1006-20261120    gcc-14
-i386                  randconfig-1007-20261120    clang-22
-i386                  randconfig-1008-20261120    clang-22
-i386                  randconfig-1009-20261120    clang-22
-i386                  randconfig-1010-20261120    clang-22
-i386                  randconfig-1011-20261120    clang-22
-i386                  randconfig-1012-20261120    clang-22
-i386                  randconfig-1013-20261120    clang-22
-loongarch                         allmodconfig    clang-19
-loongarch                         allmodconfig    clang-24
-loongarch                          allnoconfig    gcc-16.2.0
-loongarch                            defconfig    clang-24
-loongarch             randconfig-1000-20261120    gcc-10.5.0
-loongarch             randconfig-1000-20261121    gcc-11.5.0
-loongarch             randconfig-1001-20261120    gcc-10.5.0
-loongarch             randconfig-1001-20261121    gcc-11.5.0
-loongarch             randconfig-2200-20261120    clang-18   smatch
-loongarch            randconfig-r2101-20261120    clang-24   cocci
-loongarch            randconfig-r2305-20261120    gcc-12.5.0 sparse
-m68k                              allmodconfig    gcc-16.2.0
-m68k                               allnoconfig    gcc-16.2.0
-m68k                              allyesconfig    clang-24
-m68k                              allyesconfig    gcc-16.2.0
-m68k                                 defconfig    clang-24
-m68k                        m5275evb_defconfig    gcc-16.2.0
-m68k                         mvme16x_defconfig    gcc-16.2.0
-m68k                  randconfig-2000-20261120    gcc-12.5.0
-m68k                  randconfig-2001-20261120    gcc-8.5.0
-m68k                  randconfig-2200-20261120    gcc-14.4.0 smatch
-m68k                 randconfig-r2303-20261120    gcc-9.5.0  sparse
-microblaze                         allnoconfig    gcc-16.2.0
-microblaze                        allyesconfig    gcc-16.2.0
-microblaze                           defconfig    clang-24
-microblaze            randconfig-2000-20261120    gcc-9.5.0
-microblaze            randconfig-2200-20261120    gcc-11.5.0 smatch
-microblaze           randconfig-r2308-20261120    gcc-15.3.0 sparse
-mips                              allmodconfig    gcc-16.2.0
-mips                               allnoconfig    gcc-16.2.0
-mips                              allyesconfig    gcc-16.2.0
-mips                 econet_en751221_defconfig    gcc-16.2.0
-mips                           eyeq5_defconfig    gcc-16.2.0
-mips                      loongson2k_defconfig    gcc-16.2.0
-mips                       maltasmvp_defconfig    gcc-16.2.0
-mips                  randconfig-2200-20261120    clang-24   smatch
-mips                 randconfig-r2307-20261120    clang-24   sparse
-mips                 randconfig-r2311-20261120    clang-24   sparse
-nios2                             allmodconfig    clang-20
-nios2                             allmodconfig    gcc-11.5.0
-nios2                              allnoconfig    clang-24
-nios2                              allnoconfig    gcc-11.5.0
-nios2                                defconfig    clang-24
-nios2                 randconfig-1000-20261120    gcc-10.5.0
-nios2                 randconfig-1000-20261121    gcc-11.5.0
-nios2                 randconfig-1001-20261120    gcc-10.5.0
-nios2                 randconfig-1001-20261121    gcc-11.5.0
-openrisc                          allmodconfig    clang-20
-openrisc                          allmodconfig    gcc-16.2.0
-openrisc                           allnoconfig    clang-24
-openrisc                           allnoconfig    gcc-16.2.0
-openrisc                             defconfig    gcc-16.2.0
-openrisc              randconfig-2000-20261120    gcc-9.5.0
-openrisc              randconfig-2200-20261120    gcc-11.5.0 smatch
-parisc                            allmodconfig    gcc-16.2.0
-parisc                             allnoconfig    clang-24
-parisc                             allnoconfig    gcc-16.2.0
-parisc                            allyesconfig    clang-17
-parisc                               defconfig    gcc-16.2.0
-parisc                 generic-32bit_defconfig    gcc-16.2.0
-parisc                randconfig-1000-20261120    gcc-11.5.0
-parisc                randconfig-1000-20261121    gcc-10.5.0
-parisc                randconfig-1001-20261120    gcc-11.5.0
-parisc                randconfig-1001-20261121    gcc-10.5.0
-parisc                randconfig-2200-20261120    gcc-8.5.0  smatch
-parisc64                             defconfig    clang-24
-powerpc                           allmodconfig    gcc-16.2.0
-powerpc                            allnoconfig    clang-24
-powerpc                            allnoconfig    gcc-16.2.0
-powerpc                       chrp32_defconfig    gcc-16.2.0
-powerpc                         icon_defconfig    gcc-16.2.0
-powerpc               randconfig-1000-20261120    gcc-11.5.0
-powerpc               randconfig-1000-20261121    gcc-10.5.0
-powerpc               randconfig-1001-20261120    gcc-11.5.0
-powerpc               randconfig-1001-20261121    gcc-10.5.0
-powerpc               randconfig-2200-20261120    clang-17   smatch
-powerpc              randconfig-r2306-20261120    gcc-16.2.0 sparse
-powerpc                      taishan_defconfig    gcc-16.2.0
-powerpc64             randconfig-1000-20261120    gcc-11.5.0
-powerpc64             randconfig-1000-20261121    gcc-10.5.0
-powerpc64             randconfig-1001-20261120    gcc-11.5.0
-powerpc64             randconfig-1001-20261121    gcc-10.5.0
-powerpc64             randconfig-2200-20261120    gcc-16.2.0 smatch
-riscv                             allmodconfig    clang-24
-riscv                              allnoconfig    clang-24
-riscv                              allnoconfig    gcc-16.2.0
-riscv                             allyesconfig    clang-24
-riscv                                defconfig    clang-24
-riscv                                defconfig    gcc-16.2.0
-riscv                 randconfig-1000-20261120    gcc-11.5.0
-riscv                 randconfig-1000-20261121    clang-17
-riscv                 randconfig-1001-20261120    gcc-11.5.0
-riscv                 randconfig-1001-20261121    clang-17
-riscv                 randconfig-2001-20261120    gcc-10.5.0
-s390                              allmodconfig    clang-17
-s390                               allnoconfig    clang-24
-s390                              allyesconfig    gcc-16.2.0
-s390                                 defconfig    clang-18
-s390                                 defconfig    gcc-16.2.0
-s390                  randconfig-1000-20261120    gcc-11.5.0
-s390                  randconfig-1000-20261121    clang-17
-s390                  randconfig-1001-20261120    gcc-11.5.0
-s390                  randconfig-1001-20261121    clang-17
-s390                  randconfig-2000-20261120    gcc-8.5.0
-s390                  randconfig-2200-20261120    clang-17   smatch
-s390                        zfcpdump_defconfig    gcc-16.2.0
-sh                                allmodconfig    gcc-16.2.0
-sh                                 allnoconfig    clang-24
-sh                                 allnoconfig    gcc-16.2.0
-sh                                allyesconfig    clang-17
-sh                                allyesconfig    gcc-16.2.0
-sh                                   defconfig    gcc-14
-sh                         dreamcast_defconfig    gcc-16.2.0
-sh                 ecovec24-romimage_defconfig    gcc-16.2.0
-sh                           kfr2r09_defconfig    gcc-16.2.0
-sh                    randconfig-1000-20261120    gcc-11.5.0
-sh                    randconfig-1000-20261121    clang-17
-sh                    randconfig-1001-20261120    gcc-11.5.0
-sh                    randconfig-1001-20261121    clang-17
-sh                    randconfig-2000-20261120    gcc-16.2.0
-sh                    randconfig-2001-20261120    gcc-16.2.0
-sh                    randconfig-2002-20261120    gcc-16.2.0
-sh                    randconfig-2003-20261120    gcc-11.5.0
-sh                    randconfig-2004-20261120    gcc-16.2.0
-sh                    randconfig-2005-20261120    gcc-15.3.0
-sh                    randconfig-2200-20261120    gcc-11.5.0 smatch
-sh                   randconfig-r2309-20261120    gcc-13.5.0 sparse
-sh                         sh7785lcr_defconfig    gcc-16.2.0
-sparc                              allnoconfig    clang-24
-sparc                              allnoconfig    gcc-16.2.0
-sparc                                defconfig    gcc-16.2.0
-sparc                 randconfig-1000-20261121    gcc-14
-sparc                 randconfig-1000-20261121    gcc-8.5.0
-sparc                 randconfig-1001-20261121    gcc-14
-sparc                 randconfig-1001-20261121    gcc-8.5.0
-sparc                 randconfig-2000-20261120    gcc-16.2.0
-sparc                 randconfig-2001-20261120    gcc-8.5.0
-sparc                randconfig-r2301-20261120    gcc-8.5.0  sparse
-sparc64                           allmodconfig    clang-20
-sparc64                              defconfig    gcc-14
-sparc64               randconfig-1000-20261121    clang-20
-sparc64               randconfig-1000-20261121    gcc-14
-sparc64               randconfig-1001-20261121    clang-20
-sparc64               randconfig-1001-20261121    gcc-14
-sparc64               randconfig-2000-20261120    gcc-8.5.0
-sparc64               randconfig-2001-20261120    gcc-8.5.0
-um                                allmodconfig    clang-17
-um                                 allnoconfig    clang-17
-um                                 allnoconfig    clang-24
-um                                allyesconfig    gcc-16.2.0
-um                                   defconfig    gcc-14
-um                              i386_defconfig    gcc-14
-um                    randconfig-1000-20261121    gcc-14
-um                    randconfig-1001-20261121    clang-24
-um                    randconfig-1001-20261121    gcc-14
-um                    randconfig-2000-20261120    clang-24
-um                    randconfig-2001-20261120    gcc-14
-um                    randconfig-2200-20261120    clang-24   smatch
-um                            x86_64_defconfig    gcc-14
-x86_64                            allmodconfig    clang-22
-x86_64                             allnoconfig    clang-22
-x86_64                             allnoconfig    clang-24
-x86_64                            allyesconfig    clang-22
-x86_64      buildonly-randconfig-1000-20261120    clang-22
-x86_64      buildonly-randconfig-1001-20261120    clang-22
-x86_64      buildonly-randconfig-1002-20261120    clang-22
-x86_64      buildonly-randconfig-1003-20261120    clang-22
-x86_64      buildonly-randconfig-1004-20261120    clang-22
-x86_64      buildonly-randconfig-1005-20261120    clang-22
-x86_64                               defconfig    gcc-14
-x86_64                                   kexec    clang-22
-x86_64                randconfig-1000-20261120    clang-22
-x86_64                randconfig-1000-20261121    clang-22
-x86_64                randconfig-1001-20261120    clang-22
-x86_64                randconfig-1001-20261121    clang-22
-x86_64                randconfig-1002-20261120    clang-22
-x86_64                randconfig-1002-20261121    clang-22
-x86_64                randconfig-1003-20261120    clang-22
-x86_64                randconfig-1003-20261121    clang-22
-x86_64                randconfig-1004-20261120    clang-22
-x86_64                randconfig-1004-20261121    clang-22
-x86_64                randconfig-1005-20261120    clang-22
-x86_64                randconfig-1005-20261121    clang-22
-x86_64                randconfig-1006-20261121    clang-22
-x86_64                randconfig-1007-20261121    clang-22
-x86_64                randconfig-1008-20261121    gcc-14
-x86_64                randconfig-1009-20261121    clang-22
-x86_64                randconfig-1010-20261121    gcc-14
-x86_64                randconfig-1011-20261121    clang-22
-x86_64                randconfig-1012-20261120    clang-22
-x86_64                randconfig-1013-20261120    clang-22
-x86_64                randconfig-1014-20261120    clang-22
-x86_64                randconfig-1015-20261120    clang-22
-x86_64                randconfig-1016-20261120    clang-22
-x86_64                randconfig-1017-20261120    clang-22
-x86_64                randconfig-2000-20261120    gcc-14
-x86_64                randconfig-2001-20261120    gcc-14
-x86_64                randconfig-2002-20261120    clang-22
-x86_64                randconfig-2003-20261120    clang-22
-x86_64                randconfig-2005-20261120    gcc-14
-x86_64                                rhel-9.4    clang-22
-x86_64                            rhel-9.4-bpf    gcc-14
-x86_64                           rhel-9.4-func    clang-22
-x86_64                     rhel-9.4-kselftests    clang-22
-x86_64                          rhel-9.4-kunit    gcc-14
-x86_64                            rhel-9.4-ltp    gcc-14
-x86_64                           rhel-9.4-rust    clang-22
-xtensa                            alldefconfig    gcc-16.2.0
-xtensa                             allnoconfig    clang-24
-xtensa                             allnoconfig    gcc-16.2.0
-xtensa                            allyesconfig    clang-20
-xtensa                            allyesconfig    gcc-16.2.0
-xtensa                randconfig-1000-20261121    gcc-14
-xtensa                randconfig-1000-20261121    gcc-8.5.0
-xtensa                randconfig-1001-20261121    gcc-11.5.0
-xtensa                randconfig-1001-20261121    gcc-14
-xtensa                randconfig-2200-20261120    gcc-9.5.0  smatch
-xtensa               randconfig-r2310-20261120    gcc-15.3.0 sparse
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: Christoph Lameter <cl@gentwo.org>
+Subject: mm: vmstat_kunit: add synthetic benchmark for mm stats
+Date: Wed, 04 Nov 2026 17:53:29 -0800
+
+Add a synthetic benchmark that can be used to measure performance of MM
+statistics.  This is used to analyze any improvements or regressions in
+functions that are frequently used in hot code paths.
+
+This is the first of three tests that measure the execution times of
+critical MM functions anticipated to be used by developers to measure the
+impact of any core changes that would end up causing workload performance
+issues.  Vmstats are embedded into MM hotpaths, so any regression can
+cause performance and scalability impact for users.  Google has carried
+these tests internally and kept them updated since Christoph posted them
+back in 2009 for this purpose.
+
+This can also be used to detect regressions over time, from kernel
+version to kernel version, independent of development use cases.
+
+The test is run by KUnit or doing modprobe vmstat_kunit directly.
+
+Sample output:
+ KTAP version 1
+ 1..1
+ KTAP version 1
+ # Subtest: vmstat
+ # module: vmstat_kunit
+      1..3
+      # vmstat_test_inc_dec_zone_page_state: 10000 ops: inc_zone_page_state -> 8 cycles (4 ns/op), dec_zone_page_state -> 9 cycles (4 ns/op)
+      ok 1 vmstat_test_inc_dec_zone_page_state
+      # vmstat_test_interleaved_zone_page_state: 10000 ops: inc/dec pair -> 17 cycles (8 ns/op)
+      ok 2 vmstat_test_interleaved_zone_page_state
+      # vmstat_test_count_vm_event: 10000 ops: count_vm_event -> 4 cycles (2 ns/op)
+      ok 3 vmstat_test_count_vm_event
+ # vmstat: pass:3 fail:0 skip:0 total:3
+ # Totals: pass:3 fail:0 skip:0 total:3
+ ok 1 vmstat
+
+Link: https://patch.msgid.link/21183f5b-2697-cbe6-6370-dbd27c5e2b60@google.com
+Signed-off-by: Christoph Lameter <cl@gentwo.org>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Sarthak Sharma <sarthak.sharma@arm.com>
+
+ MAINTAINERS             |    1 
+ mm/Kconfig              |   12 ++
+ mm/Makefile             |    1 
+ mm/tests/vmstat_kunit.c |  157 ++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 171 insertions(+)
+
+--- a/MAINTAINERS~mm-vmstat_kunit-add-synthetic-benchmark-for-mm-stats
++++ a/MAINTAINERS
+@@ -17556,6 +17556,7 @@ F:	mm/mmzone.c
+ F:	mm/pagewalk.c
+ F:	mm/pgtable-generic.c
+ F:	mm/ptdump.c
++F:	mm/tests/vmstat_kunit.c
+ F:	mm/util.c
+ F:	mm/vmpressure.c
+ F:	mm/vmstat.c
+--- a/mm/Kconfig~mm-vmstat_kunit-add-synthetic-benchmark-for-mm-stats
++++ a/mm/Kconfig
+@@ -1482,6 +1482,18 @@ config LAZY_MMU_MODE_KUNIT_TEST
+ 
+ 	  If unsure, say N.
+ 
++config VMSTAT_KUNIT_TEST
++	tristate "KUnit test for VM statistics" if !KUNIT_ALL_TESTS
++	depends on VM_EVENT_COUNTERS
++	depends on KUNIT
++	default KUNIT_ALL_TESTS
++	help
++	  Enable this option to test and benchmark the performance of VM
++	  statistics updates (zone page state and VM event counters), which
++	  are used frequently in hot memory management code paths.
++
++	  If unsure, say N.
++
+ config ARCH_HAS_CHECK_WX
+ 	bool
+ 
+--- a/mm/Makefile~mm-vmstat_kunit-add-synthetic-benchmark-for-mm-stats
++++ a/mm/Makefile
+@@ -149,4 +149,5 @@ obj-$(CONFIG_SHRINKER_DEBUG) += shrinker
+ obj-$(CONFIG_EXECMEM) += execmem.o
+ obj-$(CONFIG_TMPFS_QUOTA) += shmem_quota.o
+ obj-$(CONFIG_LAZY_MMU_MODE_KUNIT_TEST) += tests/lazy_mmu_mode_kunit.o
++obj-$(CONFIG_VMSTAT_KUNIT_TEST) += tests/vmstat_kunit.o
+ obj-$(CONFIG_MEM_ALLOC_PROFILING) += alloc_tag.o
+diff --git a/mm/tests/vmstat_kunit.c a/mm/tests/vmstat_kunit.c
+new file mode 100644
+--- /dev/null
++++ a/mm/tests/vmstat_kunit.c
+@@ -0,0 +1,157 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++/*
++ * KUnit synthetic performance benchmark for VM statistics.
++ *
++ * (C) 2009 Linux Foundation, Christoph Lameter <cl@gentwo.org>
++ * (C) 2026 Google LLC, David Rientjes <rientjes@google.com>
++ */
++#include <kunit/test.h>
++#include <linux/mm.h>
++#include <linux/vmstat.h>
++#include <linux/timex.h>
++#include <linux/ktime.h>
++#include <linux/math64.h>
++
++#define TEST_COUNT 10000
++
++static void vmstat_test_free_page(void *arg)
++{
++	__free_page((struct page *)arg);
++}
++
++/*
++ * Test 1: Sequential inc_zone_page_state() followed by dec_zone_page_state().
++ * Net change to zone counters is 0.
++ */
++static void vmstat_test_inc_dec_zone_page_state(struct kunit *test)
++{
++	struct page *page;
++	cycles_t time1, time2, time;
++	u64 t1_ns, t2_ns;
++	u64 inc_cycles, dec_cycles;
++	u64 inc_ns, dec_ns;
++	unsigned int i;
++
++	page = alloc_page(GFP_KERNEL);
++	KUNIT_ASSERT_NOT_NULL(test, page);
++	KUNIT_ASSERT_EQ(test, kunit_add_action_or_reset(test, vmstat_test_free_page, page), 0);
++
++	/* Benchmark inc_zone_page_state() */
++	time1 = get_cycles();
++	t1_ns = ktime_get_ns();
++	for (i = 0; i < TEST_COUNT; i++)
++		inc_zone_page_state(page, NR_MLOCK);
++	t2_ns = ktime_get_ns();
++	time2 = get_cycles();
++
++	time = time2 - time1;
++	inc_cycles = div_u64(time, TEST_COUNT);
++	inc_ns = div_u64(t2_ns - t1_ns, TEST_COUNT);
++
++	/* Benchmark dec_zone_page_state() */
++	time1 = get_cycles();
++	t1_ns = ktime_get_ns();
++	for (i = 0; i < TEST_COUNT; i++)
++		dec_zone_page_state(page, NR_MLOCK);
++	t2_ns = ktime_get_ns();
++	time2 = get_cycles();
++
++	time = time2 - time1;
++	dec_cycles = div_u64(time, TEST_COUNT);
++	dec_ns = div_u64(t2_ns - t1_ns, TEST_COUNT);
++
++	if (inc_cycles || dec_cycles)
++		kunit_info(test, "%u ops: inc_zone_page_state -> %llu cycles (%llu ns/op), dec_zone_page_state -> %llu cycles (%llu ns/op)\n",
++			   TEST_COUNT, inc_cycles, inc_ns, dec_cycles, dec_ns);
++	else
++		kunit_info(test, "%u ops: inc_zone_page_state -> %llu ns/op, dec_zone_page_state -> %llu ns/op\n",
++			   TEST_COUNT, inc_ns, dec_ns);
++}
++
++/*
++ * Test 2: Paired inc_zone_page_state() and dec_zone_page_state().
++ * Net change to zone counters is 0.
++ */
++static void vmstat_test_interleaved_zone_page_state(struct kunit *test)
++{
++	struct page *page;
++	cycles_t time1, time2, time;
++	u64 t1_ns, t2_ns;
++	u64 avg_cycles, avg_ns;
++	unsigned int i;
++
++	page = alloc_page(GFP_KERNEL);
++	KUNIT_ASSERT_NOT_NULL(test, page);
++	KUNIT_ASSERT_EQ(test, kunit_add_action_or_reset(test, vmstat_test_free_page, page), 0);
++
++	time1 = get_cycles();
++	t1_ns = ktime_get_ns();
++	for (i = 0; i < TEST_COUNT; i++) {
++		inc_zone_page_state(page, NR_MLOCK);
++		dec_zone_page_state(page, NR_MLOCK);
++	}
++	t2_ns = ktime_get_ns();
++	time2 = get_cycles();
++
++	time = time2 - time1;
++	avg_cycles = div_u64(time, TEST_COUNT);
++	avg_ns = div_u64(t2_ns - t1_ns, TEST_COUNT);
++
++	if (avg_cycles)
++		kunit_info(test, "%u ops: inc/dec pair -> %llu cycles (%llu ns/op)\n",
++			   TEST_COUNT, avg_cycles, avg_ns);
++	else
++		kunit_info(test, "%u ops: inc/dec pair -> %llu ns/op\n",
++			   TEST_COUNT, avg_ns);
++}
++
++/*
++ * Test 3: count_vm_event() benchmark.
++ * Restores counter balance with count_vm_events(item, -TEST_COUNT).
++ */
++static void vmstat_test_count_vm_event(struct kunit *test)
++{
++	cycles_t time1, time2, time;
++	u64 t1_ns, t2_ns;
++	u64 avg_cycles, avg_ns;
++	unsigned int i;
++
++	time1 = get_cycles();
++	t1_ns = ktime_get_ns();
++	for (i = 0; i < TEST_COUNT; i++)
++		count_vm_event(SLABS_SCANNED);
++	t2_ns = ktime_get_ns();
++	time2 = get_cycles();
++
++	/* Restore balance */
++	count_vm_events(SLABS_SCANNED, -TEST_COUNT);
++
++	time = time2 - time1;
++	avg_cycles = div_u64(time, TEST_COUNT);
++	avg_ns = div_u64(t2_ns - t1_ns, TEST_COUNT);
++
++	if (avg_cycles)
++		kunit_info(test, "%u ops: count_vm_event -> %llu cycles (%llu ns/op)\n",
++			   TEST_COUNT, avg_cycles, avg_ns);
++	else
++		kunit_info(test, "%u ops: count_vm_event -> %llu ns/op\n",
++			   TEST_COUNT, avg_ns);
++}
++
++static struct kunit_case vmstat_test_cases[] = {
++	KUNIT_CASE(vmstat_test_inc_dec_zone_page_state),
++	KUNIT_CASE(vmstat_test_interleaved_zone_page_state),
++	KUNIT_CASE(vmstat_test_count_vm_event),
++	{}
++};
++
++static struct kunit_suite vmstat_test_suite = {
++	.name = "vmstat",
++	.test_cases = vmstat_test_cases,
++};
++kunit_test_suite(vmstat_test_suite);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Christoph Lameter <cl@gentwo.org>");
++MODULE_AUTHOR("David Rientjes <rientjes@google.com>");
++MODULE_DESCRIPTION("KUnit benchmark test for VM statistics");
+_
+
+Patches currently in -mm which might be from cl@gentwo.org are
+
+mm-vmstat_kunit-add-synthetic-benchmark-for-mm-stats.patch
+
