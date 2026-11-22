@@ -1,41 +1,41 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795367827;
-	b=s0pIyrQcG4yfAda2gkC1+HXFE1Pq7qY4Aqi0LcZQzsmp/XgEX9oZn/XHlyXZRNsx3cME
-	 TttBAX9ZR1O5eKDCs0AOYR0zJrLTULI7JrfEZQpi540ljHeRDzlUTbzKn9qvGdEZaWwff
-	 nw/ICfwWjLWiM5bKQnZQR0vZrtgIRoPD9Sgj99VyLx6gnRQPGkQF1KD6nSmbF3Gcf1wmX
-	 fHuNgUTareaS+Mg0DSBz8n6kJmisIczaJIb4RhbUEG+z4YDVxnBhc6OKCuOAf4f8g/ABN
-	 zkKotiDakJLBtzmli5yr0FFSLUukK9Z0roE4NnlP2SnpurUhR7jZPI0DWrKzw7rxqYQ==
+	t=1795367836;
+	b=YA2XgXxME9IwyvMoB8zM/dT2H1Y0S+edPnUVfdGwgd8juY6SHGsoAlQ+xfWIFmYn5Oi6
+	 4r0E4/yyYJTvxrsd6oEL1a6LJiV5EQZxvEwmZRfUmhoEkB0lhVhkggbtkp5Tt05nDWSfX
+	 MRfGqMvcmxw3pN49x4jkHGtvg1oHsU5NEWQhPMSK5SqEi+6qajX/IqfhFz8EQfmti/tpm
+	 IcacB/KN4RXcsB/9sjCNoiEgye+QKnC7W87OIBeBByBlvIR/hZZptLN4Niguptl7nU+n9
+	 ZWOLW1XFnh5n/lxQSYp8BZaucLUCrDrlJEq/SWbCDjQnOxCIBnCPK6hIs8uN9q00AfA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795367827;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795367836;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=ou9zmH3TstLn1bZIhOTU8Mp7OF6lBazdiiadMRKF5C4=;
-	b=QtVPU7RMxgnT2JfXcgMNJ1c7exol0j5+t3K5CDqQlz++BIaE6tZUlUlHVBVm1hF+Gga3
-	 PsmpRswi1C+sqQvnyh1EEH9hMNTH98YJPO6KSi2zZYTkExyfZzrq8wBJBwU1L2jpSPq4V
-	 VcP6MiSaPoSK5UVD+4cCJesPYaHOVWyYg2arcEWSC434NzlzZYA1pjhTYT606WoPhNYhQ
-	 +l9VqtPy93hmdo9sBK3Ibux2FsuRGhl41mSFetc468DMZnG/0/Obwx3I8HJQSivd6D3wM
-	 TOFIVj0hykjHfqcDQnMu4+/CoJgvCGX2E7th9BZ7sy+5YStkzhmDHo6W8hcnxm8mY6A==
+	bh=1hgHOd0/5EdC79ssNvf/PMLxpY3g3kFyZw+zSm4gHqg=;
+	b=AyYlJo0+iQhQzzzHaZX1IWz9v7PFVecf0jha9dGUBOR2jfd3kFjwbT1axAml/wkfOGYw
+	 elc8JUlSYOIwNEkXAj/ixAnl+70LtJWiR9VrDxPwNwybL1AENzA2ItF2kq402XHzBlwKU
+	 nQB5He26KJtLWGovrbONkvAOGN+tzxEtEa+B0Bj0085wM3qN+VJS+Woyc1rN+ZHAvdrQM
+	 52XGncmUMt3LGypD3C0sWomRpFLA4zuCDWbzWd/Addtgt6cuMGzVRtrkFME0vzCqPWCyD
+	 0GJoA2rS5v9GztbKO4rYe0vp/qXewjrZoG8SamTi5NQUom4ucpGQU9/vYZ61ooBDEjQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=f2Zr3OM0;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=K5IZ0VdS;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AB8F606A331
-	for <mm-commits@vger.kernel.org>; Sun, 22 Nov 2026 17:17:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23C98606A320
+	for <mm-commits@vger.kernel.org>; Sun, 22 Nov 2026 17:17:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=f2Zr3OM0
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9376E1F000C4;
-	Sun, 22 Nov 2026 17:17:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=K5IZ0VdS
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E6391F000C0;
+	Sun, 22 Nov 2026 17:17:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795367826;
-	bh=ou9zmH3TstLn1bZIhOTU8Mp7OF6lBazdiiadMRKF5C4=;
+	d=linux-foundation.org; s=korg; t=1795367835;
+	bh=1hgHOd0/5EdC79ssNvf/PMLxpY3g3kFyZw+zSm4gHqg=;
 	h=Date:To:From:Subject;
-	b=f2Zr3OM0MYak4MlwMKsHCwecFeRXJe+gckZ/CqXa2Z+zctdlMAUthsfkOUeiq+ZVg
-	 CL7K5ui7th45oW5uBpU0NLS9yYnWDjLsbAN7zBUZxYvFU4lujbJ8dnFhOxAUY/qVQg
-	 L7Ou+Wx5cQRkRKDqxy7qU/5z+Uz/qM+TDTVZHNOo=
-Date: Sun, 22 Nov 2026 09:17:06 -0800
+	b=K5IZ0VdSSWyn/U5wqV33yJoKXzFnfiBQw6WiIdT2h9elafM0wEkQKa3zPCL5hlqop
+	 OeM4qkk0CwWeOdSa9EUgQ4f146hSGV0T5MTUoDs0RW73YrS7U1WbAzXa4ggDEzU+1Y
+	 3XTpjVKBlakwS0xXnYepTOL4HRu52hg+T8tGss98=
+Date: Sun, 22 Nov 2026 09:17:15 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhongyuan@hygon.cn,
 	ying.huang@linux.alibaba.com,xhao@linux.alibaba.com,wujianyong@hygon.cn,
 	wangfengyu@hygon.cn,qiuzhiteng@hygon.cn,matthew.brost@intel.com,
@@ -43,8 +43,8 @@ To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhongyuan@hygon.cn,
 	geshifei@hygon.cn,david@kernel.org,dave.hansen@linux.intel.com,
 	byungchul@sk.com,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate-dont-batch-the-tlb-flush-when-there-is-nothing-to-batch-fix.patch added to mm-unstable branch
-Message-Id: <20261122171706.9376E1F000C4@smtp.kernel.org>
+Subject: [folded-merged] mm-migrate-dont-batch-the-tlb-flush-when-there-is-nothing-to-batch-fix.patch removed from -mm tree
+Message-Id: <20261122171715.8E6391F000C0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,28 +55,12 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
+The quilt patch titled
      Subject: mm/migrate: don't batch the TLB flush when there is nothing to batch (fix)
-has been added to the -mm mm-unstable branch.  Its filename is
+has been removed from the -mm tree.  Its filename was
      mm-migrate-dont-batch-the-tlb-flush-when-there-is-nothing-to-batch-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-dont-batch-the-tlb-flush-when-there-is-nothing-to-batch-fix.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it was folded into mm-migrate-dont-batch-the-tlb-flush-when-there-is-nothing-to-batch.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
@@ -203,7 +187,7 @@ lib-test_hmm-invalidate-all-mirrors-on-device-private-migration.patch
 mm-prevent-pre-content-bypass-through-mremap-and-remap_file_pages.patch
 selinux-recheck-backing-file-permissions-on-remap_file_pages.patch
 mm-madvise-notify-userfaultfd-when-installing-guard-regions.patch
-mm-migrate-dont-batch-the-tlb-flush-when-there-is-nothing-to-batch-fix.patch
+mm-migrate-dont-batch-the-tlb-flush-when-there-is-nothing-to-batch.patch
 mm-highmem-reject-previously-poisoned-pages-in-machine-check-copies.patch
 ocfs2-unregister-the-jbd2-shrinker-before-journal-shutdown.patch
 ipc-msg-clamp-negative-msg_info-usage-counts.patch
