@@ -1,51 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795307117;
-	b=bJVh04NF6KgpDliD2U7grGChT2mt5+16Sfx3J8CRT0UwkWTGRgU8n+GGW1JEbn5amVbQ
-	 tD9F6HFvWZ1s8k9112eQI1crfI+DV7t9I7OMge6UKRO3RG0+/u97ea8R26b8h3x4fVbXb
-	 dUKVl49pPc5+xvxRg9+URrejQ6V8nSFCd3XdXqZt4/HwXjL+zPWee5hsqO6CeuhBBsuhx
-	 CqKReUT6NuRuDSoenssxJgNNa6qzkB92+P0hr1Yvu4Fqj2Xrc6Hai8BrbZLgTRmJg29dL
-	 lp4OdptkITpSEeZ3YhHXiNYpRcbTXUiFd1S3nTfsCJbvCfgyrd5zBYtvDeEOJoXBXkg==
+	t=1795312543;
+	b=aDTlhWWMg5h8MESCZ4NS/iSh9Eh7Y6SazxlCdNpxgwVZ7quoEZv4ruI5D+n4/gMKmbVE
+	 oqqPb2ldBM0DeSGcLp6u2JDtYPL/W1Iv4y+RGOmV2cY7QWxYlxxT31ARbdIOpI1ruUejA
+	 hyOYsmjYY49dvttV6Il08Jix54OButOtcFh5KY4ZYlrEnFvsQK3GsMdEMeJ48Fn2k5H5i
+	 wcHfVkpWcFLR7JG0g0Oz0/8t/UP45wuhMUc031n39sdCECRwrkOnqhKnG6aFpN0+eDPPh
+	 zNuoXJfPYQGolsAk8Oda/ZF2ic8wwRL09Lv7QH7mJSvau3IccF/054t6Ut0MCn/a1ew==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795307117;
-	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
-	 Message-Id;
-	bh=XEDK3fnDkMIykWOli3zsBv4eVNMO1CeXhsyQbBhPp0k=;
-	b=P6/XMJG06Y6OyvSp0MaylKy+l0Gltg6oIKCGhbuFYnsEXKA2b3cisDZT+sJmg2BsHNgU
-	 A6bOOeZU+3hOmjqruL0KfmU72hylef7HPDqJ2w+vo6G8W7c9LwYduY03xciXLxitcIrLG
-	 HfKTAVv86KcyzmFatGyriU7PlNeT1CbcQrdO72WRgBg6yda2G+GuVHJlX4VC99iScUhuN
-	 lTXs++YGoUQtmdwmT+VpnnQ0YwNX52CvDW6Wm4fX8nRO3AEjnqTIT16kBd5BEWq2hM4Ck
-	 vf8npVvuRMfhu98TDxQYcu12s4wi7Dy/oHJEpb4L+APBnDE8ywSDt+xfyOCI83uynNA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795312543;
+	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
+	bh=RLqeJ/0H5EBWQt2YXmc9bwoPNGI3tLUV6kb2yu22VA8=;
+	b=5LB80IzjjllHIUs+tKuZzybmtmJb0OatPL3jWV0NsvLu2pk8U0kC8iqqUHjMhXaS+ldR
+	 JQ+AXTxZfUx56BCbyRi81QkeAiFvmiDq+CRUj1xU7kSccEUDFuOW65FXm1ZFzYh2HENaW
+	 AMLddO5T6cklkoryzhMOmCL2G4biBWPe6Jj1JbDNRfZx09Ksq7lKoqp2PvCrUmsG1KWJO
+	 4IXv2Sw1+J00CfJMiPk8rI3gVL2m5SqZNu2P+sBpadxJMTQ9dTUdMx8YkAm6p5EFa11RO
+	 EtyBZOSXM2o1hfK+hjlVtfkKjIFRbV+DG7ffqa/vEmtg10bq9A4/eZ+TcNPZ7H2X3aw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=uzoXxrU8;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=nvIKN0oU;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF142606A320
-	for <mm-commits@vger.kernel.org>; Sun, 22 Nov 2026 00:25:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99CE9606A320
+	for <mm-commits@vger.kernel.org>; Sun, 22 Nov 2026 01:55:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=uzoXxrU8
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51B1F1F000C4;
-	Sun, 22 Nov 2026 00:25:16 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=nvIKN0oU
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 089651F000C4;
+	Sun, 22 Nov 2026 01:55:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795307116;
-	bh=XEDK3fnDkMIykWOli3zsBv4eVNMO1CeXhsyQbBhPp0k=;
-	h=Date:To:From:In-Reply-To:References:Subject;
-	b=uzoXxrU8bVvqq37VsyYQbkn1sR9kepYjgPmhYvwoSm0hak73QqhKNua8Xuy1UMWoh
-	 Zj4nRiTSpkCNJucq5fYNdakcZZJOTBcVcWfvdRw/GBKHn6SH9peg9MK8CohWWtO/6C
-	 rHlOcg+/na6IgPKmczyW9MUxcQF+e0gYgNWrXiKs=
-Date: Sat, 21 Nov 2026 16:25:15 -0800
-To: mm-commits@vger.kernel.org,yukuai@fygo.io,xiao@kernel.org,song@kernel.org,
-	markus.stockhausen@collogia.de,magiclinan@didiglobal.com,hch@lst.de,
-	ebiggers@kernel.org,david.laight.linux@gmail.com,ardb@kernel.org,
-	antosha20xx@gmail.com,mc@raidlab.org,akpm@linux-foundation.org
+	d=linux-foundation.org; s=korg; t=1795312543;
+	bh=RLqeJ/0H5EBWQt2YXmc9bwoPNGI3tLUV6kb2yu22VA8=;
+	h=Date:To:From:Subject;
+	b=nvIKN0oU5xgZN2I+n/jhQPKlewygcMaxDc4FIVwxdQAwEUFPvn07tISP5JBesVSu+
+	 ptL/oEG0KzZb2IiXTIWVL4A7ccqJSL/4zQ6IaJE4G+en6PJzQkiwN+hatokBKyat3h
+	 8jg+o15FtE29+8uFXPnqUbIaPL7c8RhQnejIgeM0=
+Date: Sat, 21 Nov 2026 17:55:42 -0800
+To: mm-commits@vger.kernel.org,shuah@kernel.org,leon@kernel.org,jgg@ziepe.ca,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261109030805.25709-1-mc@raidlab.org>
-References: <20261109030805.25709-1-mc@raidlab.org>
-Subject: + raid6-use-normal-stores-in-the-x86-x4-xor_syndrome-functions.patch added to mm-nonmm-unstable branch
-Message-Id: <20261122002516.51B1F1F000C4@smtp.kernel.org>
+Subject: + lib-test_hmm-use-backing-pages-for-device-private-mirror-faults.patch added to mm-unstable branch
+Message-Id: <20261122015543.089651F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -57,14 +52,14 @@ Precedence: list
 
 
 The patch titled
-     Subject: raid6: use normal stores in the x86 x4 xor_syndrome functions
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     raid6-use-normal-stores-in-the-x86-x4-xor_syndrome-functions.patch
+     Subject: lib/test_hmm: use backing pages for device-private mirror faults
+has been added to the -mm mm-unstable branch.  Its filename is
+     lib-test_hmm-use-backing-pages-for-device-private-mirror-faults.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/raid6-use-normal-stores-in-the-x86-x4-xor_syndrome-functions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_hmm-use-backing-pages-for-device-private-mirror-faults.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -80,149 +75,129 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Miroslav Cimerman <mc@raidlab.org>
-Subject: raid6: use normal stores in the x86 x4 xor_syndrome functions
-Date: Mon, 09 Nov 2026 03:08:05 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib/test_hmm: use backing pages for device-private mirror faults
+Date: Sat, 21 Nov 2026 17:06:45 -0800
 
-xor_syndrome() updates P and Q in place for a read-modify-write.  md calls
-it twice on the same P/Q page per write, to remove the old data and to add
-the new data.  The x1 and x2 unrolled versions write P and Q with normal
-stores since commit a582564b24be ("md/raid6 algorithms: xor_syndrome() for
-SSE2"), which argued that non-temporal stores of less than a cache line
-are slow, but kept non-temporal stores in the x4 version, as it writes
-whole cache lines.  The AVX2 and AVX-512 versions followed the same
-pattern.
+When one hmm_dmirror descriptor migrates memory to device-private and a
+second descriptor reads it, dmirror_do_fault() stores the device page in
+the second descriptor's page table.  dmirror_do_read() then passes that
+page to memcpy_from_page(), which can oops the kernel.  This was
+reproduced with an unprivileged process using the fake device in a QEMU
+guest.
 
-The non-temporal stores evict P and Q from the cache and the sfence waits
-until they are written to memory, just before the second call reads the
-same P and Q again, now from memory.
+Store the corresponding RAM backing page instead.  For a large device
+folio, retain the subpage offset when selecting the backing page; using
+the backing folio's head for every entry would return the wrong data. 
+Extend the existing PMD migration selftest to read the last subpage
+through a second open before faulting the memory back to RAM.
 
-Use normal aligned stores in the x4 unrolled versions too, like the x1 and
-x2 versions and the other architectures.
-
-md RAID-6, 4 KiB random writes, md thread on one core, Xeon E5-2699 v3:
-
-  8+2 on null_blk (dm-raid):     85.6k -> 98.1k IOPS (+15%)
-  6+2 on 8 Intel Optane M10:     57.3k -> 62.1k IOPS (+8%)
-
-Change in time per write in md's pattern (both calls and the 4 KiB copy
-between them), kernel code built in userspace, one core, geometric
-mean over 2-24 data disks, data in cache / DRAM:
-
-  avx2x4 (Xeon E5-2699 v3):  -66% / -38%
-  avx512x4 (Xeon Gold 6130): -78% / -48%
-  sse2x4 (Core i5-2520M):    -37% / -19%
-
-Link: https://patch.msgid.link/20261109030805.25709-1-mc@raidlab.org
-Signed-off-by: Miroslav Cimerman <mc@raidlab.org>
+Fixes: b2ef9f5a5cb3 ("mm/hmm/test: add selftest driver for HMM")
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Tested-by: Anton Gavriliuk <antosha20xx@gmail.com>
-  Link: https://lore.kernel.org/CAAiJnjqrRo-75jg_Jrr0x2r85kY2g6_ZSH%2B8ukyJJ5UXyMb6pA@mail.gmail.com
-Reviewed-by: Eric Biggers <ebiggers@kernel.org>
-Cc: Song Liu <song@kernel.org>
-Cc: Yu Kuai <yukuai@fygo.io>
-Cc: Li Nan <magiclinan@didiglobal.com>
-Cc: Xiao Ni <xiao@kernel.org>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: David Laight <david.laight.linux@gmail.com>
-Cc: Markus Stockhausen <markus.stockhausen@collogia.de>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+---
+tl;dr: The unpatched kernel oopsed when an unprivileged process opened the
+fake HMM device twice, migrated an anonymous 2 MB PMD to device-private
+memory through one descriptor, then accessed its last page through the
+other.  The patched kernel returned the expected bytes on all three ioctl
+paths.
 
- lib/raid/raid6/x86/avx2.c   |   16 ++++++++--------
- lib/raid/raid6/x86/avx512.c |   16 ++++++++--------
- lib/raid/raid6/x86/sse2.c   |   16 ++++++++--------
- 3 files changed, 24 insertions(+), 24 deletions(-)
+A was reproduced and saved before B was built.  As uid 65534, a static
+userspace program verified that all 512 pages were device-private PMD
+entries.  A READ of the last page through the second descriptor produced a
+KASAN-enabled kernel Oops in dmirror_do_read().  Independent A boots also
+oopsed on WRITE and READ_UNLOCKED at the same last-page access.
 
---- a/lib/raid/raid6/x86/avx2.c~raid6-use-normal-stores-in-the-x86-x4-xor_syndrome-functions
-+++ a/lib/raid/raid6/x86/avx2.c
-@@ -435,18 +435,18 @@ static void raid6_avx24_xor_syndrome(int
- 			asm volatile("vpxor %ymm13,%ymm12,%ymm12");
- 			asm volatile("vpxor %ymm15,%ymm14,%ymm14");
+With only this patch added, READ and READ_UNLOCKED returned the expected
+0x0a byte, and WRITE returned the expected 0xa5 byte after migration back
+to RAM.  The modified in-tree hmm_device_private.migrate_anon_huge_fault
+selftest also passed (1/1).
+
+This reproduces a userspace-triggered kernel Oops in the fake HMM device
+used by test_hmm; it does not establish reachability through physical GPU
+hardware.  QEMU guests used matching kernel configurations with
+CONFIG_TEST_HMM=y and KASAN.  The guest device permissions were set for
+uid 65534.
+
+ lib/test_hmm.c                         |    7 +++++++
+ tools/testing/selftests/mm/hmm-tests.c |   14 ++++++++++++++
+ 2 files changed, 21 insertions(+)
+
+--- a/lib/test_hmm.c~lib-test_hmm-use-backing-pages-for-device-private-mirror-faults
++++ a/lib/test_hmm.c
+@@ -292,6 +292,13 @@ static int dmirror_do_fault(struct dmirr
+ 		page = hmm_pfn_to_page(*pfns);
+ 		WARN_ON(!page);
+ 
++		if (is_device_private_page(page)) {
++			struct folio *folio = page_folio(page);
++			struct page *backing = BACKING_PAGE(&folio->page);
++
++			page = folio_page(page_folio(backing),
++					  folio_page_idx(folio, page));
++		}
+ 		entry = page;
+ 		if (*pfns & HMM_PFN_WRITE)
+ 			entry = xa_tag_pointer(entry, DPT_XA_TAG_WRITE);
+--- a/tools/testing/selftests/mm/hmm-tests.c~lib-test_hmm-use-backing-pages-for-device-private-mirror-faults
++++ a/tools/testing/selftests/mm/hmm-tests.c
+@@ -2087,6 +2087,7 @@ TEST_F(hmm, migrate_anon_huge_fault)
+ 	void *old_ptr;
+ 	void *map;
+ 	int pagemap_fd;
++	int fd2 = -1;
+ 	int *ptr;
+ 	int ret;
+ 
+@@ -2143,12 +2144,25 @@ TEST_F(hmm, migrate_anon_huge_fault)
  		}
--		asm volatile("vmovntdq %%ymm2,%0" : "=m" (p[d]));
--		asm volatile("vmovntdq %%ymm3,%0" : "=m" (p[d+32]));
--		asm volatile("vmovntdq %%ymm10,%0" : "=m" (p[d+64]));
--		asm volatile("vmovntdq %%ymm11,%0" : "=m" (p[d+96]));
-+		asm volatile("vmovdqa %%ymm2,%0" : "=m" (p[d]));
-+		asm volatile("vmovdqa %%ymm3,%0" : "=m" (p[d+32]));
-+		asm volatile("vmovdqa %%ymm10,%0" : "=m" (p[d+64]));
-+		asm volatile("vmovdqa %%ymm11,%0" : "=m" (p[d+96]));
- 		asm volatile("vpxor %0,%%ymm4,%%ymm4" : : "m" (q[d]));
- 		asm volatile("vpxor %0,%%ymm6,%%ymm6" : : "m" (q[d+32]));
- 		asm volatile("vpxor %0,%%ymm12,%%ymm12" : : "m" (q[d+64]));
- 		asm volatile("vpxor %0,%%ymm14,%%ymm14" : : "m" (q[d+96]));
--		asm volatile("vmovntdq %%ymm4,%0" : "=m" (q[d]));
--		asm volatile("vmovntdq %%ymm6,%0" : "=m" (q[d+32]));
--		asm volatile("vmovntdq %%ymm12,%0" : "=m" (q[d+64]));
--		asm volatile("vmovntdq %%ymm14,%0" : "=m" (q[d+96]));
-+		asm volatile("vmovdqa %%ymm4,%0" : "=m" (q[d]));
-+		asm volatile("vmovdqa %%ymm6,%0" : "=m" (q[d+32]));
-+		asm volatile("vmovdqa %%ymm12,%0" : "=m" (q[d+64]));
-+		asm volatile("vmovdqa %%ymm14,%0" : "=m" (q[d+96]));
+ 
+ 		close(pagemap_fd);
++
++		/* A second open must read the last device-private subpage. */
++		fd2 = hmm_open(variant->device_number);
++		ASSERT_GE(fd2, 0);
++		buffer->ptr = (char *)map + (npages - 1) * self->page_size;
++		ret = hmm_dmirror_cmd(fd2, HMM_DMIRROR_READ, buffer, 1);
++		buffer->ptr = map;
++		ASSERT_EQ(ret, 0);
++		ASSERT_EQ(buffer->cpages, 1);
++		ASSERT_EQ(*(int *)buffer->mirror,
++			  (npages - 1) * self->page_size / sizeof(int));
  	}
- 	asm volatile("sfence" : : : "memory");
- 	asm volatile("vzeroupper");
---- a/lib/raid/raid6/x86/avx512.c~raid6-use-normal-stores-in-the-x86-x4-xor_syndrome-functions
-+++ a/lib/raid/raid6/x86/avx512.c
-@@ -516,18 +516,18 @@ static void raid6_avx5124_xor_syndrome(i
- 				     :
- 				     : );
- 		}
--		asm volatile("vmovntdq %%zmm2,%0\n\t"
--			     "vmovntdq %%zmm3,%1\n\t"
--			     "vmovntdq %%zmm10,%2\n\t"
--			     "vmovntdq %%zmm11,%3\n\t"
-+		asm volatile("vmovdqa64 %%zmm2,%0\n\t"
-+			     "vmovdqa64 %%zmm3,%1\n\t"
-+			     "vmovdqa64 %%zmm10,%2\n\t"
-+			     "vmovdqa64 %%zmm11,%3\n\t"
- 			     "vpxorq %4,%%zmm4,%%zmm4\n\t"
- 			     "vpxorq %5,%%zmm6,%%zmm6\n\t"
- 			     "vpxorq %6,%%zmm12,%%zmm12\n\t"
- 			     "vpxorq %7,%%zmm14,%%zmm14\n\t"
--			     "vmovntdq %%zmm4,%4\n\t"
--			     "vmovntdq %%zmm6,%5\n\t"
--			     "vmovntdq %%zmm12,%6\n\t"
--			     "vmovntdq %%zmm14,%7"
-+			     "vmovdqa64 %%zmm4,%4\n\t"
-+			     "vmovdqa64 %%zmm6,%5\n\t"
-+			     "vmovdqa64 %%zmm12,%6\n\t"
-+			     "vmovdqa64 %%zmm14,%7"
- 			     :
- 			     : "m" (p[d]),  "m" (p[d+64]), "m" (p[d+128]),
- 			       "m" (p[d+192]), "m" (q[d]),  "m" (q[d+64]),
---- a/lib/raid/raid6/x86/sse2.c~raid6-use-normal-stores-in-the-x86-x4-xor_syndrome-functions
-+++ a/lib/raid/raid6/x86/sse2.c
-@@ -432,18 +432,18 @@ static void raid6_sse24_xor_syndrome(int
- 			asm volatile("pxor %xmm13,%xmm12");
- 			asm volatile("pxor %xmm15,%xmm14");
- 		}
--		asm volatile("movntdq %%xmm2,%0" : "=m" (p[d]));
--		asm volatile("movntdq %%xmm3,%0" : "=m" (p[d+16]));
--		asm volatile("movntdq %%xmm10,%0" : "=m" (p[d+32]));
--		asm volatile("movntdq %%xmm11,%0" : "=m" (p[d+48]));
-+		asm volatile("movdqa %%xmm2,%0" : "=m" (p[d]));
-+		asm volatile("movdqa %%xmm3,%0" : "=m" (p[d+16]));
-+		asm volatile("movdqa %%xmm10,%0" : "=m" (p[d+32]));
-+		asm volatile("movdqa %%xmm11,%0" : "=m" (p[d+48]));
- 		asm volatile("pxor %0,%%xmm4" : : "m" (q[d]));
- 		asm volatile("pxor %0,%%xmm6" : : "m" (q[d+16]));
- 		asm volatile("pxor %0,%%xmm12" : : "m" (q[d+32]));
- 		asm volatile("pxor %0,%%xmm14" : : "m" (q[d+48]));
--		asm volatile("movntdq %%xmm4,%0" : "=m" (q[d]));
--		asm volatile("movntdq %%xmm6,%0" : "=m" (q[d+16]));
--		asm volatile("movntdq %%xmm12,%0" : "=m" (q[d+32]));
--		asm volatile("movntdq %%xmm14,%0" : "=m" (q[d+48]));
-+		asm volatile("movdqa %%xmm4,%0" : "=m" (q[d]));
-+		asm volatile("movdqa %%xmm6,%0" : "=m" (q[d+16]));
-+		asm volatile("movdqa %%xmm12,%0" : "=m" (q[d+32]));
-+		asm volatile("movdqa %%xmm14,%0" : "=m" (q[d+48]));
- 	}
- 	asm volatile("sfence" : : : "memory");
- 	kernel_fpu_end();
+ 
+ 	/* Fault pages back to system memory and check them. */
+ 	for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
+ 		ASSERT_EQ(ptr[i], i);
+ 
++	if (fd2 >= 0)
++		ASSERT_EQ(close(fd2), 0);
+ 	buffer->ptr = old_ptr;
+ 	hmm_buffer_free(buffer);
+ }
 _
 
-Patches currently in -mm which might be from mc@raidlab.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-raid6-use-normal-stores-in-the-x86-x4-xor_syndrome-functions.patch
+maintainers-add-page_exth-to-memory-management-page-allocator.patch
+kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize-fix.patch
+selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
+alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
+alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
+selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
+selftests-mm-allocate-nr_pages-based-on-pmd-size-for-uffd-pmd_move-tests-fix.patch
+selftests-mm-retain-move-pmd-coverage-and-verify-huge-pmds.patch
+lib-test_xarray-check-unused-spare-node-after-range-creation.patch
+mm-memory-failure-dont-unpoison-a-leaked-raw_hwp_unreliable-folio-fix.patch
+lib-test_hmm-use-backing-pages-for-device-private-mirror-faults.patch
+mm-notify-pre-content-listeners-on-mremap-and-remap_file_pages.patch
+ipc-msg-clamp-negative-msg_info-usage-counts.patch
+squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix.patch
+squashfs-sanity-check-directory-metadata-block-location-fix.patch
+squashfs-fix-variables-in-directory-code-and-add-more-sanity-checks-fix.patch
+ocfs2-skip-network-flush-when-no-domain-handlers-are-registered.patch
+selftests-ptrace-check-that-ptrace_set_syscall_info-rejects-invalid-error-values-fix.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
