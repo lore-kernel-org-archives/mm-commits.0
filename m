@@ -1,51 +1,61 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795296527;
-	b=Asxdzh0myoLr0ArhNvlllcOnwsmXhUF4tKOA1vwW4I7R++bxGX1DyWbGj+LPBGudOgfj
-	 +BlCz41ki/gOv/G0XeYlQsXGADXhyAAfeQLFvv0IsxZO7dqZuxgfMFp/gyNRX/rLSO5zg
-	 cuZ5Hz63w4D+ub3eTFXirqoxtnwvlxamD3jgD04yWSc/dmRK0NK8dyBxm1aOGiEW3qMre
-	 Bx5hC5VleQz5IIqtqQs0gHA01knscn6wm+lJB23ummG0/w2QeWtzbLzi8cFvqXVI1pw/4
-	 FP+7GAZQywsf8sGxGMh+Az7md870O+v+xG7VTVXLYQs58mz9utzrZMD2A/HX00/GoSQ==
+	t=1795305639;
+	b=mRFz9WtCxjlQb2q8GnBB6CEM2Pcedcv9iFaKmly6CYD/hMZWkoj+ZW9vGr3pMkkYyRyy
+	 +ss7nvYMK3EeUc3Ri8NC+15u/Crb9PZvSFdT56ljDBV4MFKa1p9xB7kzKYBSVZ307qdM7
+	 /rmhQlZ48FJxJBL4qw/7RkRpA8pNEQwbPQD/739DHRq7KP72+mHm/7dT91SBrB/Ls7mf5
+	 eJnAzXGXKOoadfEoAiHAVPPs11i794OtB8rhQ+CNRIDZxreIgO/zV8cRb5tTK0VKpDc1A
+	 tktru4314HzgCRiEsyuI4U16jBVsY1+mZf9Ka2KeBxPtK77m9e1MofveTT6D3LurGew==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795296527;
-	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
-	 Message-Id;
-	bh=2ANdwTkgFnCLX2uiC/ZRicSZlvifAWnMnZbQZwNu3GQ=;
-	b=p8byNWgVL63lTBqUK+1av5unNiANjgYKcNPYmWW5oAlCmyylhXQJo5QX7gWSp7m90hWi
-	 nnpeKHFjBIuuvv0FX0XgfrsPxdRC/CHEEfndEh0y5KHM8kD82eL3OgJrnYY/KUCYs9rzU
-	 WchKLSmmDMuE5H0wcnun/NkXDNv3AcDUx4ewn7nfyh71tH5e8qDMHsXPFZdqhrTNFsuP7
-	 aXM21+ay8flJkRy6nZOt5XdecFB87RUU1x2qRIBM4QJGCRTqFWVynnq1CVUVYMatn/96w
-	 fHkMTd1+TyIUT+XH51U0mdManVBESUHOF5JZWLUeRZ+rEJ0NQASGC44OxtjC/1jfGAw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795305639;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-Id:
+	 In-Reply-To:References:X-Mailer:Mime-Version:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=04EqnkPwf0WubK8I3U0HutElecdyfT91xsPRhXdRrm8=;
+	b=y+xKI55+TuDXrpn3l7fHPN3Cms8SqpFX9kimazQtGtEvLp+RgVKcv/nK54Bf4fkCkc7l
+	 9wjgTmgxXTzC91p9eoVP9GfHDAPuN7pFDpv9IQhgBA6bafNNzVeTyy0uPdkC6JkAPJ8wX
+	 pMcH4w6Eo6o338IToBFRUOGkoTCtFFF0W9gzkPxdYpqDBROMnjqE88zxBbHyd0/xGuEIP
+	 FsnDYU+A3vIdcljMnliKNshWo2MOYkQdVUF+xOseZvd8hdeSj+fAJSUQ/sGeLW/xIEKvK
+	 UHxsqiOrDrYxQ/rr23oGDeBkQtydLFsWrSyx3OQ4QBW0HxEQubMQTfrZW9YqZwRd3FA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=L5qY7ndM;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=L2aQbeKX;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A9F1606A320;
-	Sat, 21 Nov 2026 21:28:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4428606A320;
+	Sun, 22 Nov 2026 00:00:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=L5qY7ndM
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F101B1F000C4;
-	Sat, 21 Nov 2026 21:28:46 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=L2aQbeKX
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3F7A1F000C4;
+	Sun, 22 Nov 2026 00:00:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795296527;
-	bh=2ANdwTkgFnCLX2uiC/ZRicSZlvifAWnMnZbQZwNu3GQ=;
-	h=Date:To:From:In-Reply-To:References:Subject;
-	b=L5qY7ndM941SMfKhZJKKInr2YlOLDyyKt2hPYrjVxfKnmtHlsJelqzZdr114up8u/
-	 FtpgpB0bh+C1cJopFYK/hhGxdcWhPgzIXsy9+wASJMQVC6pCVThrnpNbn70apnlPjY
-	 WyppVYGKS/Z6yEir+T5Vyu7xiXPhdDOTI+Cl/fUw=
-Date: Sat, 21 Nov 2026 13:28:46 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,
-	shubhang@os.amperecomputing.com,shuaibinglu@126.com,shuah@kernel.org,
-	sh@gentwo.org,manfred@colorfullife.com,jan.koester@tuxist.de,
-	dave@stgolabs.net,cl@gentwo.org,teel4res@gmail.com,akpm@linux-foundation.org
+	d=linux-foundation.org; s=korg; t=1795305638;
+	bh=04EqnkPwf0WubK8I3U0HutElecdyfT91xsPRhXdRrm8=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=L2aQbeKX/CTPckpuCxg/75CkYq7VgqRjjwXERlHfP3ef/xH4jzlR1llKSlU5CeM8e
+	 gUoqibFABjeIaklQZ6WRqldqwgKZ5YTZ1h3Bi7puox1t9KLDvG/77rmYY7BqGwgQDR
+	 LhWKY3luEuf/ybIxy+nQvMG6VZ1ez9KdmhG98Da8=
+Date: Sat, 21 Nov 2026 16:00:37 -0800
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <179328314077.648427.7284615104475689945@gmail.com>
-References: <179328314077.648427.7284615104475689945@gmail.com>
-Subject: + ipc-msg-align-compat-version-0-msqid_ds-with-native-ipc_old.patch added to mm-nonmm-unstable branch
-Message-Id: <20261121212846.F101B1F000C4@smtp.kernel.org>
+To: Aveline Noir <jm5905938@gmail.com>
+Cc: jgg@nvidia.com, leonro@nvidia.com, airlied@gmail.com,
+ apopple@nvidia.com, balbirs@nvidia.com, christian.koenig@amd.com,
+ dri-devel@lists.freedesktop.org, Francois Dugast
+ <francois.dugast@intel.com>, intel-xe@lists.freedesktop.org, jgg@ziepe.ca,
+ leon@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Lorenzo
+ Stoakes <lorenzo.stoakes@oracle.com>, Matthew Brost
+ <matthew.brost@intel.com>, mm-commits@vger.kernel.org, mpenttil@redhat.com,
+ Patchwork <patchwork@emeril.freedesktop.org>, SeongJae Park
+ <sj@kernel.org>, thomas.hellstrom@linux.intel.com, Vlastimil Babka
+ <vbabka@suse.cz>, ziy@nvidia.com
+Subject: Re: [PATCH] mm/hmm: account for subpage offsets in device-private
+ PMDs
+Message-Id: <20261121160037.1a479f3c8b4e860bc23c106d@linux-foundation.org>
+In-Reply-To: <179342234355.4.16705453209886955762@gmail.com>
+References: <179342234355.4.16705453209886955762@gmail.com>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,121 +64,135 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+On Sat, 31 Oct 2026 15:07:58 +1100 Aveline Noir <jm5905938@gmail.com> wrote:
+
+> When a query starts inside a device-private PMD owned by
+> range->dev_private_owner, hmm_vma_handle_absent_pmd() still fills the PFN
+> array from the folio's first page. The returned PFNs therefore refer to
+> earlier pages rather than the requested subrange.
+>=20
+> Add the query's PMD-relative page offset to the initial PFN, as the
+> present PMD path already does.
+>=20
+> Fixes: 10b9feee2d0d ("mm/hmm: populate PFNs from PMD swap entry")
+> Signed-off-by: Aveline Noir <jm5905938@gmail.com>
+>=20
+> ---
+> Found during a synthetic test_hmm check of device-private THP handling.
+> Tested PMD-aligned and non-aligned subranges, PMD boundaries, split
+> PTEs and fake-device data accesses with test_hmm in QEMU TCG; all
+> executed tests passed with the fix. No real GPU testing was performed.
+
+Thanks.  It appears that the changelog somewhat understates the
+seriousness of this so I came up with a more assertive one, below.=20
+Please check that.
+
+I fed this through LLM-driven QEMU-based runtime testing and it looks
+like it pretty much replicated your testing:
+
+: I tested "mm/hmm: account for subpage offsets in device-private
+: PMDs" on matched x86-64 guest kernels. An unprivileged process
+: (UID 65534) migrated an anonymous 2 MiB THP to the test_hmm
+: device. A second open of the device read pages inside the PMD
+: while the first remained open. A snapshot confirmed a
+: device-private PMD, and temporary kernel log messages confirmed
+: that the reads reached hmm_vma_handle_absent_pmd().
+:=20
+: Without the patch, requests for pages 1, 7, 255 and 511 returned
+: page 0. A request for pages 31-33 returned pages 0-2. With the
+: patch, all seven pages returned the requested contents. Page 0
+: read correctly on both kernels. Thus an unprivileged device user
+: can receive data from the wrong pages.
+:
+: The fake device needed an identical temporary backing-page
+: correction on both kernels to make this read path work. That
+: change was removed after testing. This exercises the HMM path
+: through test_hmm; I did not test GPU hardware.
+
+So it accidentally found a bug in lib/test_hmm.c on the way.  "The QEMU
+run exposed a real test_hmm bug: a second open of /dev/hmm_dmirror0 can
+put a device-private page into its page table, then dmirror_do_read()
+tries to copy from that non-CPU-accessible page and oopses".  I'll prep
+a fix for that separately.
 
 
-The patch titled
-     Subject: ipc/msg: align compat version-0 msqid_ds with native IPC_OLD
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ipc-msg-align-compat-version-0-msqid_ds-with-native-ipc_old.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ipc-msg-align-compat-version-0-msqid_ds-with-native-ipc_old.patch
+I'll queue the below in mm.git's mm-hotfixes queue and shall await
+maintainer input (please).
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+From: Aveline Noir <jm5905938@gmail.com>
+Subject: mm/hmm: account for subpage offsets in device-private PMDs
+Date: Sat, 31 Oct 2026 15:07:58 +1100
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+When a query starts inside a device-private PMD owned by
+range->dev_private_owner, hmm_vma_handle_absent_pmd() still fills the PFN
+array from the folio's first page.  The returned PFNs therefore refer to
+earlier pages rather than the requested subrange.
 
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+Nouveau's GPU fault path can query one page of a device-private PMD at a
+time.  Xe's SVM fault, prefetch and userptr mapping paths can also query
+subranges of their own device-private PMDs.  An unprivileged process with
+access to the GPU render node can reach these paths on hardware supporting
+device-private THP migration.  Xe can read the wrong application data or
+silently overwrite earlier pages of the same process's device-private
+folio.
 
-------------------------------------------------------
-From: Cheng Yongkang <teel4res@gmail.com>
-Subject: ipc/msg: align compat version-0 msqid_ds with native IPC_OLD
-Date: Thu, 29 Oct 2026 07:12:20 -0700
+Nouveau aligns a one-page GPU fault to the PMD head by subtracting the
+fault offset from the returned page.  The faulty HMM PFN already refers to
+the head, so this subtraction can select a page before the folio.  If the
+preceding page belongs to another allocation, GPU access can expose or
+overwrite unrelated userspace data; an invalid page can also fault the
+kernel during its address conversion.  This worst case follows from the
+source, but has not been demonstrated on a real GPU.
 
-The compat version-0 IPC_STAT path copies the 64-bit counters into the
-16-bit msg_cbytes/msg_qnum/msg_qbytes fields without clamping, and leaves
-msg_lcbytes/msg_lqbytes zero.  A queue with 65536 bytes, 8 messages and
-q_qbytes=200000 is reported as cbytes=0, qnum=8, qbytes=3392,
-lcbytes=lqbytes=0, while the native IPC_OLD path reports the clamped
-counters and the full values in the l fields.
+Add the query's PMD-relative page offset to the initial PFN, as the
+present PMD path already does.
 
-The compat version-0 IPC_SET path reads only the 16-bit msg_qbytes and
-ignores msg_lqbytes.  A caller following the old ABI with msg_qbytes=0 and
-msg_lqbytes=131072 gets q_qbytes=0 and the queue stops accepting messages,
-while the native IPC_OLD path falls back to msg_lqbytes.
+The device-private PMD migration machinery first shipped in 6.19.=20
+Backport this fix to the maintained 7.3.y stable series; the HMM path
+exists in 6.18.y but cannot be reached through an in-tree PMD-producing
+device-private migration path there.
 
-Mirror the native IPC_OLD handling in both compat version-0 branches:
-clamp the counters to USHRT_MAX and fill the l fields on stat, and fall
-back to msg_lqbytes when the 16-bit qbytes is zero on set.  The compat
-IPC_64 branches and the native paths are unchanged.
-
-Link: https://patch.msgid.link/179328314077.648427.7284615104475689945@gmail.com
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Signed-off-by: Cheng Yongkang <teel4res@gmail.com>
+Link: https://patch.msgid.link/179342234355.4.16705453209886955762@gmail.com
+Fixes: 10b9feee2d0d ("mm/hmm: populate PFNs from PMD swap entry")
+Signed-off-by: Aveline Noir <jm5905938@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Christopher Lameter (Ampere) <cl@gentwo.org>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Jan Koester <jan.koester@tuxist.de>
-Cc: Lu Shuaibing <shuaibinglu@126.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: "Shubhang Kaushik (Ampere)" <sh@gentwo.org>
-Cc: Shubhang Kaushik <shubhang@os.amperecomputing.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: Francois Dugast <francois.dugast@intel.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Patchwork <patchwork@emeril.freedesktop.org>
+Cc: SJ Park <sj@kernel.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: David Airlie <airlied@gmail.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Balbir Singh <balbirs@nvidia.com>
+Cc: Christian K=F6nig <christian.koenig@amd.com>
+Cc: Mika Penttil=E4 <mpenttil@redhat.com>
+Cc: Thomas Hellstr=F6m <thomas.hellstrom@linux.intel.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Cc: <stable@vger.kernel.org>
 
- ipc/msg.c |   29 +++++++++++++++++++++++++----
- 1 file changed, 25 insertions(+), 4 deletions(-)
+ mm/hmm.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/ipc/msg.c~ipc-msg-align-compat-version-0-msqid_ds-with-native-ipc_old
-+++ a/ipc/msg.c
-@@ -687,10 +687,17 @@ static int copy_compat_msqid_from_user(s
- 			return -EFAULT;
- 	} else {
- 		struct compat_msqid_ds __user *p = buf;
-+		compat_ulong_t qbytes;
-+
- 		if (get_compat_ipc_perm(&out->msg_perm, &p->msg_perm))
- 			return -EFAULT;
--		if (get_user(out->msg_qbytes, &p->msg_qbytes))
-+		if (get_user(qbytes, &p->msg_qbytes))
- 			return -EFAULT;
-+		if (qbytes == 0) {
-+			if (get_user(qbytes, &p->msg_lqbytes))
-+				return -EFAULT;
-+		}
-+		out->msg_qbytes = qbytes;
- 	}
- 	return 0;
- }
-@@ -721,9 +728,23 @@ static int copy_compat_msqid_to_user(voi
- 		v.msg_stime = in->msg_stime;
- 		v.msg_rtime = in->msg_rtime;
- 		v.msg_ctime = in->msg_ctime;
--		v.msg_cbytes = in->msg_cbytes;
--		v.msg_qnum = in->msg_qnum;
--		v.msg_qbytes = in->msg_qbytes;
-+		if (in->msg_cbytes > USHRT_MAX)
-+			v.msg_cbytes = USHRT_MAX;
-+		else
-+			v.msg_cbytes = in->msg_cbytes;
-+		v.msg_lcbytes = in->msg_cbytes;
-+
-+		if (in->msg_qnum > USHRT_MAX)
-+			v.msg_qnum = USHRT_MAX;
-+		else
-+			v.msg_qnum = in->msg_qnum;
-+
-+		if (in->msg_qbytes > USHRT_MAX)
-+			v.msg_qbytes = USHRT_MAX;
-+		else
-+			v.msg_qbytes = in->msg_qbytes;
-+		v.msg_lqbytes = in->msg_qbytes;
-+
- 		v.msg_lspid = in->msg_lspid;
- 		v.msg_lrpid = in->msg_lrpid;
- 		return copy_to_user(buf, &v, sizeof(v));
+--- a/mm/hmm.c~mm-hmm-account-for-subpage-offsets-in-device-private-pmds
++++ a/mm/hmm.c
+@@ -355,7 +355,8 @@ static int hmm_vma_handle_absent_pmd(str
+ 	    range->dev_private_owner) {
+ 		unsigned long cpu_flags =3D HMM_PFN_VALID |
+ 			hmm_pfn_flags_order(PMD_SHIFT - PAGE_SHIFT);
+-		unsigned long pfn =3D softleaf_to_pfn(entry);
++		unsigned long pfn =3D softleaf_to_pfn(entry) +
++			((start & ~PMD_MASK) >> PAGE_SHIFT);
+ 		unsigned long i;
+=20
+ 		if (softleaf_is_device_private_write(entry))
 _
-
-Patches currently in -mm which might be from teel4res@gmail.com are
-
-ipc-msg-align-compat-version-0-msqid_ds-with-native-ipc_old.patch
 
