@@ -1,63 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795341168;
-	b=AxJspCPOqsNkZImeVY80Zc6Mig/BVJBGNFOcQ9VJVs6G4ucCCiyBY9F+8dPHKbACs3WQ
-	 gi4doFqmDWZGFThumCteXSDxg7LbQd2nV4v561lN15+ludBcJqNxaPOcHJiyZuaozTJWy
-	 VK4/BdBYtAphk864mGEbuUnxqnRv6Vj4qn/XhoqEoqdCQzt9MErMnVznkaEE8DsuBzjdD
-	 Qoh9g/HXgw8xjvnYZq9+K+ezyASuC8XR6LepS9CLn7feXEC1nv/BYYhWd4M3tUSh+CQOp
-	 i0/gEenk6tVe5gAD3AkI+ddppH6NSoHA3jl0Fx00o4jJ0YnSk0gBT2o8k0GQS+775aA==
+	t=1795341240;
+	b=2B667ZMLE/O0F/6Kl0hmU5TD9uMSxlUzYPalq9BvoXYPVQ6ltp2QCdeoIFPt08+QE2ag
+	 avEmkB8fL0g88JfU5PXR1K1oAdqkf/Moi/YFSZd6zRKKgF2jcTSJpaBQ2nlU6n444gWyW
+	 DTmQ0glnD6XSom6h35j6xHJaZF/IKNAZqK73u3W59oasCpAFW0Kutn76K4dCtDcdHY6L6
+	 vMctEjtkVAmiHjSkFVJz1s69ShGHPJ05+Zd9/60tlIrYs52VYgUvM9Ri1XT/ce1JDF5Ix
+	 d7GJKR5/R7G/8Y5YvnhqjJOnCULRQbOYN0nIkc39yQTYP/odyEc2Dve3JVMcqvL7q/g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795341168;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-Id:
-	 In-Reply-To:References:X-Mailer:Mime-Version:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=530GHac6mJJlARMcZhnSyYnD4ziuOybglG1oyg7MtIg=;
-	b=qs8pfgaP5qOSR0a7eLXl95w/8M7ce9odkv5iHfEEsAB+XKZ6IzMa/jN1hhoH0v018poh
-	 ZdR5+LrYECtZdrHMcrvdI2/y/P6+wZRgKs6ngBK4WLCVx9T4pIAh7zohFyiCdT4SDak62
-	 KxfKTDXsMI6iahxZJLFEcBbN9KWz83Dk6LkRypDEAn1t2s+VbMFL26RNcTBeewp2gA3bz
-	 OA5iXs9pkjBRCyWY4M3KOb5lMcPrIC/mOsZcRTzzAUFmVF9dJo+fy4c4BzIvsl3T+rmGy
-	 AaTQ6Oy+u/N9kKwxRFamhL/BSIHreS7Uc7CekTg4oUN0C7kykJCeM2wz3xrt7Jrdijg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795341240;
+	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
+	bh=/TJieyUKGdG1gIA3jftlvGU9QA5o6LdGVm+821X58yQ=;
+	b=C1OUYiYGYtd+vg/lCd4Vja0IizngAbep5YE9p4YhyesYfsAnzhZ4iy5bK9SfWZxLAKCL
+	 6/W9okAafVbEaaqaAUV9Pp7Fr311Vi1iM5njLtqPNCAZl4a+Ni0/15PIYV8rzZsvWssf7
+	 IK7WbCVvq12ap6NzSxHlaeWaHX+SSqubMvS4HTudJ61j2FoL+5a9WPV/jXAEG9DqLrhLE
+	 OA8mu9JJYpoPu2ESuvEfD7WNSJy0+pMIuFKpYXAFADVEeuWtcnU0fQYwDtzZ7KDy4axAc
+	 nJj08ZxaDW0/9IvVt9jXovIfZWwFcjaCxCDa6J1qg0K7aeG90gFpiTHweFBkS/Li4uA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=wBlI7zm4;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QfEBkMTd;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BD8F606A32A;
-	Sun, 22 Nov 2026 09:52:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A64ED606A320;
+	Sun, 22 Nov 2026 09:54:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=wBlI7zm4
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C1F21F000CF;
-	Sun, 22 Nov 2026 09:52:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QfEBkMTd
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05FB31F000C4;
+	Sun, 22 Nov 2026 09:53:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795341167;
-	bh=530GHac6mJJlARMcZhnSyYnD4ziuOybglG1oyg7MtIg=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=wBlI7zm4CR5lvitfKL08hDnNAC74F8f+kW0/gspGe5h/qgWpc/cDxmPZCWZGcZXMK
-	 6435A7gXWZuVpxZl8DxkEyJP2dF3PN0HG6NxxY/BpORklPI0tlIcLZ+44lGFN1fJz8
-	 8PPE4FYITG56tMZ4obJfZ1VG4loUfPk0as+pg458=
-Date: Sun, 22 Nov 2026 01:52:46 -0800
+	d=linux-foundation.org; s=korg; t=1795341240;
+	bh=/TJieyUKGdG1gIA3jftlvGU9QA5o6LdGVm+821X58yQ=;
+	h=Date:To:From:Subject;
+	b=QfEBkMTdUddnWQkuxdQFZ4mP2VTCH0sIlJ5D1yTfu44UAQBMBFf5dUH/EDvEqnA+/
+	 ybIpsXP1hGEfq7C7I6KCivbIeAzOG173RBnOZOpNYQ1ZWqjOdNZdRgJohJmJwTJy21
+	 T2XgS3xEZz6OxjjRpbj6GpDVLkUtp/7LVcZnbXXo=
+Date: Sun, 22 Nov 2026 01:53:59 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,
+	mpenttil@redhat.com,leon@kernel.org,jgg@ziepe.ca,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Mika =?ISO-8859-1?Q?Penttil=E4?= <mpenttil@redhat.com>
-Cc: Aveline Noir <jm5905938@gmail.com>, jgg@nvidia.com, leonro@nvidia.com,
- airlied@gmail.com, apopple@nvidia.com, balbirs@nvidia.com,
- christian.koenig@amd.com, dri-devel@lists.freedesktop.org, Francois Dugast
- <francois.dugast@intel.com>, intel-xe@lists.freedesktop.org, jgg@ziepe.ca,
- leon@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Lorenzo
- Stoakes <lorenzo.stoakes@oracle.com>, Matthew Brost
- <matthew.brost@intel.com>, mm-commits@vger.kernel.org, Patchwork
- <patchwork@emeril.freedesktop.org>, SeongJae Park <sj@kernel.org>,
- thomas.hellstrom@linux.intel.com, Vlastimil Babka <vbabka@suse.cz>,
- ziy@nvidia.com
-Subject: Re: [PATCH] mm/hmm: account for subpage offsets in device-private
- PMDs
-Message-Id: <20261122015246.d8b6b98ff5a8157168156339@linux-foundation.org>
-In-Reply-To: <36be0904-168d-4813-82ff-27ecced464e3@redhat.com>
-References: <179342234355.4.16705453209886955762@gmail.com>
-	<20261121160037.1a479f3c8b4e860bc23c106d@linux-foundation.org>
-	<36be0904-168d-4813-82ff-27ecced464e3@redhat.com>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + lib-test_hmm-use-backing-pages-for-device-private-mirror-faults.patch added to mm-unstable branch
+Message-Id: <20261122095400.05FB31F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -66,26 +49,32 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-On Sun, 22 Nov 2026 07:55:37 +0200 Mika Penttil=E4 <mpenttil@redhat.com> wr=
-ote:
-
-> > So it accidentally found a bug in lib/test_hmm.c on the way.  "The QEMU
-> > run exposed a real test_hmm bug: a second open of /dev/hmm_dmirror0 can
-> > put a device-private page into its page table, then dmirror_do_read()
-> > tries to copy from that non-CPU-accessible page and oopses".  I'll prep
-> > a fix for that separately.
->=20
-> I noticed that also and will make changes around it in my series.
-
-I came up with the below.  It all tested out OK.  wdyt?  I guess it
-should have cc:stable>
 
 
+The patch titled
+     Subject: lib/test_hmm: use backing pages for device-private mirror faults
+has been added to the -mm mm-unstable branch.  Its filename is
+     lib-test_hmm-use-backing-pages-for-device-private-mirror-faults.patch
 
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_hmm-use-backing-pages-for-device-private-mirror-faults.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: lib/test_hmm: use backing pages for device-private mirror faults
 Date: Sat, 21 Nov 2026 17:06:45 -0800
@@ -99,7 +88,7 @@ guest.
 
 Store the corresponding RAM backing page instead.  For a large device
 folio, retain the subpage offset when selecting the backing page; using
-the backing folio's head for every entry would return the wrong data.=20
+the backing folio's head for every entry would return the wrong data. 
 Extend the existing PMD migration selftest to read the last subpage
 through a second open before faulting the memory back to RAM.
 
@@ -108,6 +97,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Leon Romanovsky <leon@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
+Cc: Mika Penttilä <mpenttil@redhat.com>
+Cc: <stable@vger.kernel.org>
 ---
 tl;dr: The unpatched kernel oopsed when an unprivileged process opened the
 fake HMM device twice, migrated an anonymous 2 MB PMD to device-private
@@ -129,66 +120,92 @@ selftest also passed (1/1).
 This reproduces a userspace-triggered kernel Oops in the fake HMM device
 used by test_hmm; it does not establish reachability through physical GPU
 hardware.  QEMU guests used matching kernel configurations with
-CONFIG_TEST_HMM=3Dy and KASAN.  The guest device permissions were set for
+CONFIG_TEST_HMM=y and KASAN.  The guest device permissions were set for
 uid 65534.
 
  lib/test_hmm.c                         |    7 +++++++
  tools/testing/selftests/mm/hmm-tests.c |   14 ++++++++++++++
  2 files changed, 21 insertions(+)
 
---- a/lib/test_hmm.c~lib-test_hmm-use-backing-pages-for-device-private-mirr=
-or-faults
+--- a/lib/test_hmm.c~lib-test_hmm-use-backing-pages-for-device-private-mirror-faults
 +++ a/lib/test_hmm.c
 @@ -292,6 +292,13 @@ static int dmirror_do_fault(struct dmirr
- 		page =3D hmm_pfn_to_page(*pfns);
+ 		page = hmm_pfn_to_page(*pfns);
  		WARN_ON(!page);
-=20
+ 
 +		if (is_device_private_page(page)) {
-+			struct folio *folio =3D page_folio(page);
-+			struct page *backing =3D BACKING_PAGE(&folio->page);
++			struct folio *folio = page_folio(page);
++			struct page *backing = BACKING_PAGE(&folio->page);
 +
-+			page =3D folio_page(page_folio(backing),
++			page = folio_page(page_folio(backing),
 +					  folio_page_idx(folio, page));
 +		}
- 		entry =3D page;
+ 		entry = page;
  		if (*pfns & HMM_PFN_WRITE)
- 			entry =3D xa_tag_pointer(entry, DPT_XA_TAG_WRITE);
---- a/tools/testing/selftests/mm/hmm-tests.c~lib-test_hmm-use-backing-pages=
--for-device-private-mirror-faults
+ 			entry = xa_tag_pointer(entry, DPT_XA_TAG_WRITE);
+--- a/tools/testing/selftests/mm/hmm-tests.c~lib-test_hmm-use-backing-pages-for-device-private-mirror-faults
 +++ a/tools/testing/selftests/mm/hmm-tests.c
 @@ -2087,6 +2087,7 @@ TEST_F(hmm, migrate_anon_huge_fault)
  	void *old_ptr;
  	void *map;
  	int pagemap_fd;
-+	int fd2 =3D -1;
++	int fd2 = -1;
  	int *ptr;
  	int ret;
-=20
+ 
 @@ -2143,12 +2144,25 @@ TEST_F(hmm, migrate_anon_huge_fault)
  		}
-=20
+ 
  		close(pagemap_fd);
 +
 +		/* A second open must read the last device-private subpage. */
-+		fd2 =3D hmm_open(variant->device_number);
++		fd2 = hmm_open(variant->device_number);
 +		ASSERT_GE(fd2, 0);
-+		buffer->ptr =3D (char *)map + (npages - 1) * self->page_size;
-+		ret =3D hmm_dmirror_cmd(fd2, HMM_DMIRROR_READ, buffer, 1);
-+		buffer->ptr =3D map;
++		buffer->ptr = (char *)map + (npages - 1) * self->page_size;
++		ret = hmm_dmirror_cmd(fd2, HMM_DMIRROR_READ, buffer, 1);
++		buffer->ptr = map;
 +		ASSERT_EQ(ret, 0);
 +		ASSERT_EQ(buffer->cpages, 1);
 +		ASSERT_EQ(*(int *)buffer->mirror,
 +			  (npages - 1) * self->page_size / sizeof(int));
  	}
-=20
+ 
  	/* Fault pages back to system memory and check them. */
- 	for (i =3D 0, ptr =3D buffer->ptr; i < size / sizeof(*ptr); ++i)
+ 	for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
  		ASSERT_EQ(ptr[i], i);
-=20
-+	if (fd2 >=3D 0)
+ 
++	if (fd2 >= 0)
 +		ASSERT_EQ(close(fd2), 0);
- 	buffer->ptr =3D old_ptr;
+ 	buffer->ptr = old_ptr;
  	hmm_buffer_free(buffer);
  }
 _
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+maintainers-add-page_exth-to-memory-management-page-allocator.patch
+kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize-fix.patch
+selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
+alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
+alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
+selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
+selftests-mm-allocate-nr_pages-based-on-pmd-size-for-uffd-pmd_move-tests-fix.patch
+selftests-mm-retain-move-pmd-coverage-and-verify-huge-pmds.patch
+lib-test_xarray-check-unused-spare-node-after-range-creation.patch
+mm-memory-failure-dont-unpoison-a-leaked-raw_hwp_unreliable-folio-fix.patch
+lib-test_hmm-use-backing-pages-for-device-private-mirror-faults.patch
+mm-prevent-pre-content-bypass-through-mremap-and-remap_file_pages.patch
+selinux-recheck-backing-file-permissions-on-remap_file_pages.patch
+mm-madvise-notify-userfaultfd-when-installing-guard-regions.patch
+mm-migrate-dont-batch-the-tlb-flush-when-there-is-nothing-to-batch-fix.patch
+mm-highmem-reject-previously-poisoned-pages-in-machine-check-copies.patch
+ocfs2-unregister-the-jbd2-shrinker-before-journal-shutdown.patch
+ipc-msg-clamp-negative-msg_info-usage-counts.patch
+squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix.patch
+squashfs-sanity-check-directory-metadata-block-location-fix.patch
+squashfs-fix-variables-in-directory-code-and-add-more-sanity-checks-fix.patch
+ocfs2-skip-network-flush-when-no-domain-handlers-are-registered.patch
+selftests-ptrace-check-that-ptrace_set_syscall_info-rejects-invalid-error-values-fix.patch
+jfs-validate-xattr-entry-bounds-before-replacing-an-attribute.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
