@@ -1,53 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795305713;
-	b=QMJleOywCJrD9AZmoj52q3/S4C9yC2I24z9bjQ9uf391SXg2XeVzBlXx8Yhl9L98+htp
-	 9obKdWYsG0TLhY/32CdvunUH2KXmdyroRMyytClPhXjKdDAuCIT6zhOdHNGdu++Glkvvk
-	 AelH3hUl1CI8cDX4xZOTESeGS7I/jPf5TA0GDuOUmuQQcv0cyU+hStp4rd26fiWDXXVd2
-	 s3VWeaS8V1L3KkRsP+xHGhC0EeaVIt8FZVw7hAG0Ukoi4C+oUyhL4og6np66nvFgZ/id4
-	 levCbNU1PNot3Qt+wtYzfxgi4iWI5P85Huuem3jWTUIIq+DuyvmsZXPSSrNjtqEdWWQ==
+	t=1795307117;
+	b=bJVh04NF6KgpDliD2U7grGChT2mt5+16Sfx3J8CRT0UwkWTGRgU8n+GGW1JEbn5amVbQ
+	 tD9F6HFvWZ1s8k9112eQI1crfI+DV7t9I7OMge6UKRO3RG0+/u97ea8R26b8h3x4fVbXb
+	 dUKVl49pPc5+xvxRg9+URrejQ6V8nSFCd3XdXqZt4/HwXjL+zPWee5hsqO6CeuhBBsuhx
+	 CqKReUT6NuRuDSoenssxJgNNa6qzkB92+P0hr1Yvu4Fqj2Xrc6Hai8BrbZLgTRmJg29dL
+	 lp4OdptkITpSEeZ3YhHXiNYpRcbTXUiFd1S3nTfsCJbvCfgyrd5zBYtvDeEOJoXBXkg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795305713;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795307117;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=I+IIENFxLDP2luRj8b7Q6Jt6bDjOsblgFRuR2eKya5Y=;
-	b=Yz/Ynm4Raa9BOxTTJ0Ku99FnXRPSSpKtq2xghNkMv4te24+W/Wes1lUU7WV0sU+SMISq
-	 BfuvQhp1i/HC0BenjitgkR+iOffFJD4+4FWS3XaW0dam1U5IznT/SklXUOTj2FAOoYMq7
-	 lyHNfv/NShhWkAjwAaTr3L3f27SroQ9iIdtKJM2nyfXvC7VgNUXpmFJx7gabGlL2VmNFL
-	 a03Atmf2FNyAAmUiR5fP31h6w2HdZEIlG+yl1SxYZQEG0g3Z2MDtVuZ74i1sH4CTz5cAL
-	 S68rUyvMvyCF1geL7ZXUxSxOmCwCrxM8rLgt2dIzmtOcHS3WzXx0ZS7Sp7+4TCa86cQ==
+	bh=XEDK3fnDkMIykWOli3zsBv4eVNMO1CeXhsyQbBhPp0k=;
+	b=P6/XMJG06Y6OyvSp0MaylKy+l0Gltg6oIKCGhbuFYnsEXKA2b3cisDZT+sJmg2BsHNgU
+	 A6bOOeZU+3hOmjqruL0KfmU72hylef7HPDqJ2w+vo6G8W7c9LwYduY03xciXLxitcIrLG
+	 HfKTAVv86KcyzmFatGyriU7PlNeT1CbcQrdO72WRgBg6yda2G+GuVHJlX4VC99iScUhuN
+	 lTXs++YGoUQtmdwmT+VpnnQ0YwNX52CvDW6Wm4fX8nRO3AEjnqTIT16kBd5BEWq2hM4Ck
+	 vf8npVvuRMfhu98TDxQYcu12s4wi7Dy/oHJEpb4L+APBnDE8ywSDt+xfyOCI83uynNA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=L7ctKCUT;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=uzoXxrU8;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66516606A320;
-	Sun, 22 Nov 2026 00:01:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF142606A320
+	for <mm-commits@vger.kernel.org>; Sun, 22 Nov 2026 00:25:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=L7ctKCUT
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD16D1F000CF;
-	Sun, 22 Nov 2026 00:01:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=uzoXxrU8
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51B1F1F000C4;
+	Sun, 22 Nov 2026 00:25:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795305713;
-	bh=I+IIENFxLDP2luRj8b7Q6Jt6bDjOsblgFRuR2eKya5Y=;
+	d=linux-foundation.org; s=korg; t=1795307116;
+	bh=XEDK3fnDkMIykWOli3zsBv4eVNMO1CeXhsyQbBhPp0k=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=L7ctKCUTw+RgNuwtjAYYgifwsjJyq4dnrnerQISy+1n0US/0swM2FfZK6XMNuKTr/
-	 K54A+dpyD/0xSKchPg/44Qp4/utDUiAwkPjsUKVMHo2PY7Iz1OIuIeyxCRDiE0ex0e
-	 53K9oK1wijnNGeYVYIFmYRPgNG7sypst7f0uGGZc=
-Date: Sat, 21 Nov 2026 16:01:52 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,
-	thomas.hellstrom@linux.intel.com,stable@vger.kernel.org,sj@kernel.org,
-	patchwork@emeril.freedesktop.org,mpenttil@redhat.com,matthew.brost@intel.com,
-	ljs@kernel.org,leon@kernel.org,jgg@ziepe.ca,francois.dugast@intel.com,
-	christian.koenig@amd.com,balbirs@nvidia.com,apopple@nvidia.com,
-	akpm@linux-foundation.org,airlied@gmail.com,jm5905938@gmail.com
+	b=uzoXxrU8bVvqq37VsyYQbkn1sR9kepYjgPmhYvwoSm0hak73QqhKNua8Xuy1UMWoh
+	 Zj4nRiTSpkCNJucq5fYNdakcZZJOTBcVcWfvdRw/GBKHn6SH9peg9MK8CohWWtO/6C
+	 rHlOcg+/na6IgPKmczyW9MUxcQF+e0gYgNWrXiKs=
+Date: Sat, 21 Nov 2026 16:25:15 -0800
+To: mm-commits@vger.kernel.org,yukuai@fygo.io,xiao@kernel.org,song@kernel.org,
+	markus.stockhausen@collogia.de,magiclinan@didiglobal.com,hch@lst.de,
+	ebiggers@kernel.org,david.laight.linux@gmail.com,ardb@kernel.org,
+	antosha20xx@gmail.com,mc@raidlab.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <179342234355.4.16705453209886955762@gmail.com>
-References: <179342234355.4.16705453209886955762@gmail.com>
-Subject: + mm-hmm-account-for-subpage-offsets-in-device-private-pmds.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261122000152.DD16D1F000CF@smtp.kernel.org>
+In-Reply-To: <20261109030805.25709-1-mc@raidlab.org>
+References: <20261109030805.25709-1-mc@raidlab.org>
+Subject: + raid6-use-normal-stores-in-the-x86-x4-xor_syndrome-functions.patch added to mm-nonmm-unstable branch
+Message-Id: <20261122002516.51B1F1F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -59,14 +57,14 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/hmm: account for subpage offsets in device-private PMDs
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hmm-account-for-subpage-offsets-in-device-private-pmds.patch
+     Subject: raid6: use normal stores in the x86 x4 xor_syndrome functions
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     raid6-use-normal-stores-in-the-x86-x4-xor_syndrome-functions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hmm-account-for-subpage-offsets-in-device-private-pmds.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/raid6-use-normal-stores-in-the-x86-x4-xor_syndrome-functions.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -82,93 +80,149 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Aveline Noir <jm5905938@gmail.com>
-Subject: mm/hmm: account for subpage offsets in device-private PMDs
-Date: Sat, 31 Oct 2026 15:07:58 +1100
+From: Miroslav Cimerman <mc@raidlab.org>
+Subject: raid6: use normal stores in the x86 x4 xor_syndrome functions
+Date: Mon, 09 Nov 2026 03:08:05 +0000
 
-When a query starts inside a device-private PMD owned by
-range->dev_private_owner, hmm_vma_handle_absent_pmd() still fills the PFN
-array from the folio's first page.  The returned PFNs therefore refer to
-earlier pages rather than the requested subrange.
+xor_syndrome() updates P and Q in place for a read-modify-write.  md calls
+it twice on the same P/Q page per write, to remove the old data and to add
+the new data.  The x1 and x2 unrolled versions write P and Q with normal
+stores since commit a582564b24be ("md/raid6 algorithms: xor_syndrome() for
+SSE2"), which argued that non-temporal stores of less than a cache line
+are slow, but kept non-temporal stores in the x4 version, as it writes
+whole cache lines.  The AVX2 and AVX-512 versions followed the same
+pattern.
 
-Nouveau's GPU fault path can query one page of a device-private PMD at a
-time.  Xe's SVM fault, prefetch and userptr mapping paths can also query
-subranges of their own device-private PMDs.  An unprivileged process with
-access to the GPU render node can reach these paths on hardware supporting
-device-private THP migration.  Xe can read the wrong application data or
-silently overwrite earlier pages of the same process's device-private
-folio.
+The non-temporal stores evict P and Q from the cache and the sfence waits
+until they are written to memory, just before the second call reads the
+same P and Q again, now from memory.
 
-Nouveau aligns a one-page GPU fault to the PMD head by subtracting the
-fault offset from the returned page.  The faulty HMM PFN already refers to
-the head, so this subtraction can select a page before the folio.  If the
-preceding page belongs to another allocation, GPU access can expose or
-overwrite unrelated userspace data; an invalid page can also fault the
-kernel during its address conversion.  This worst case follows from the
-source, but has not been demonstrated on a real GPU.
+Use normal aligned stores in the x4 unrolled versions too, like the x1 and
+x2 versions and the other architectures.
 
-Add the query's PMD-relative page offset to the initial PFN, as the
-present PMD path already does.
+md RAID-6, 4 KiB random writes, md thread on one core, Xeon E5-2699 v3:
 
-The device-private PMD migration machinery first shipped in 6.19. 
-Backport this fix to the maintained 7.3.y stable series; the HMM path
-exists in 6.18.y but cannot be reached through an in-tree PMD-producing
-device-private migration path there.
+  8+2 on null_blk (dm-raid):     85.6k -> 98.1k IOPS (+15%)
+  6+2 on 8 Intel Optane M10:     57.3k -> 62.1k IOPS (+8%)
 
-Link: https://patch.msgid.link/179342234355.4.16705453209886955762@gmail.com
-Fixes: 10b9feee2d0d ("mm/hmm: populate PFNs from PMD swap entry")
-Signed-off-by: Aveline Noir <jm5905938@gmail.com>
+Change in time per write in md's pattern (both calls and the 4 KiB copy
+between them), kernel code built in userspace, one core, geometric
+mean over 2-24 data disks, data in cache / DRAM:
+
+  avx2x4 (Xeon E5-2699 v3):  -66% / -38%
+  avx512x4 (Xeon Gold 6130): -78% / -48%
+  sse2x4 (Core i5-2520M):    -37% / -19%
+
+Link: https://patch.msgid.link/20261109030805.25709-1-mc@raidlab.org
+Signed-off-by: Miroslav Cimerman <mc@raidlab.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Tested-by: Andrew Morton <akpm@linux-foundation.org>
-  Link: https://lore.kernel.org/20261121160037.1a479f3c8b4e860bc23c106d@linux-foundation.org
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Francois Dugast <francois.dugast@intel.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Patchwork <patchwork@emeril.freedesktop.org>
-Cc: SJ Park <sj@kernel.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: David Airlie <airlied@gmail.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Balbir Singh <balbirs@nvidia.com>
-Cc: Christian König <christian.koenig@amd.com>
-Cc: Mika Penttilä <mpenttil@redhat.com>
-Cc: Thomas Hellström <thomas.hellstrom@linux.intel.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: <stable@vger.kernel.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Tested-by: Anton Gavriliuk <antosha20xx@gmail.com>
+  Link: https://lore.kernel.org/CAAiJnjqrRo-75jg_Jrr0x2r85kY2g6_ZSH%2B8ukyJJ5UXyMb6pA@mail.gmail.com
+Reviewed-by: Eric Biggers <ebiggers@kernel.org>
+Cc: Song Liu <song@kernel.org>
+Cc: Yu Kuai <yukuai@fygo.io>
+Cc: Li Nan <magiclinan@didiglobal.com>
+Cc: Xiao Ni <xiao@kernel.org>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: David Laight <david.laight.linux@gmail.com>
+Cc: Markus Stockhausen <markus.stockhausen@collogia.de>
 
- mm/hmm.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/raid/raid6/x86/avx2.c   |   16 ++++++++--------
+ lib/raid/raid6/x86/avx512.c |   16 ++++++++--------
+ lib/raid/raid6/x86/sse2.c   |   16 ++++++++--------
+ 3 files changed, 24 insertions(+), 24 deletions(-)
 
---- a/mm/hmm.c~mm-hmm-account-for-subpage-offsets-in-device-private-pmds
-+++ a/mm/hmm.c
-@@ -355,7 +355,8 @@ static int hmm_vma_handle_absent_pmd(str
- 	    range->dev_private_owner) {
- 		unsigned long cpu_flags = HMM_PFN_VALID |
- 			hmm_pfn_flags_order(PMD_SHIFT - PAGE_SHIFT);
--		unsigned long pfn = softleaf_to_pfn(entry);
-+		unsigned long pfn = softleaf_to_pfn(entry) +
-+			((start & ~PMD_MASK) >> PAGE_SHIFT);
- 		unsigned long i;
- 
- 		if (softleaf_is_device_private_write(entry))
+--- a/lib/raid/raid6/x86/avx2.c~raid6-use-normal-stores-in-the-x86-x4-xor_syndrome-functions
++++ a/lib/raid/raid6/x86/avx2.c
+@@ -435,18 +435,18 @@ static void raid6_avx24_xor_syndrome(int
+ 			asm volatile("vpxor %ymm13,%ymm12,%ymm12");
+ 			asm volatile("vpxor %ymm15,%ymm14,%ymm14");
+ 		}
+-		asm volatile("vmovntdq %%ymm2,%0" : "=m" (p[d]));
+-		asm volatile("vmovntdq %%ymm3,%0" : "=m" (p[d+32]));
+-		asm volatile("vmovntdq %%ymm10,%0" : "=m" (p[d+64]));
+-		asm volatile("vmovntdq %%ymm11,%0" : "=m" (p[d+96]));
++		asm volatile("vmovdqa %%ymm2,%0" : "=m" (p[d]));
++		asm volatile("vmovdqa %%ymm3,%0" : "=m" (p[d+32]));
++		asm volatile("vmovdqa %%ymm10,%0" : "=m" (p[d+64]));
++		asm volatile("vmovdqa %%ymm11,%0" : "=m" (p[d+96]));
+ 		asm volatile("vpxor %0,%%ymm4,%%ymm4" : : "m" (q[d]));
+ 		asm volatile("vpxor %0,%%ymm6,%%ymm6" : : "m" (q[d+32]));
+ 		asm volatile("vpxor %0,%%ymm12,%%ymm12" : : "m" (q[d+64]));
+ 		asm volatile("vpxor %0,%%ymm14,%%ymm14" : : "m" (q[d+96]));
+-		asm volatile("vmovntdq %%ymm4,%0" : "=m" (q[d]));
+-		asm volatile("vmovntdq %%ymm6,%0" : "=m" (q[d+32]));
+-		asm volatile("vmovntdq %%ymm12,%0" : "=m" (q[d+64]));
+-		asm volatile("vmovntdq %%ymm14,%0" : "=m" (q[d+96]));
++		asm volatile("vmovdqa %%ymm4,%0" : "=m" (q[d]));
++		asm volatile("vmovdqa %%ymm6,%0" : "=m" (q[d+32]));
++		asm volatile("vmovdqa %%ymm12,%0" : "=m" (q[d+64]));
++		asm volatile("vmovdqa %%ymm14,%0" : "=m" (q[d+96]));
+ 	}
+ 	asm volatile("sfence" : : : "memory");
+ 	asm volatile("vzeroupper");
+--- a/lib/raid/raid6/x86/avx512.c~raid6-use-normal-stores-in-the-x86-x4-xor_syndrome-functions
++++ a/lib/raid/raid6/x86/avx512.c
+@@ -516,18 +516,18 @@ static void raid6_avx5124_xor_syndrome(i
+ 				     :
+ 				     : );
+ 		}
+-		asm volatile("vmovntdq %%zmm2,%0\n\t"
+-			     "vmovntdq %%zmm3,%1\n\t"
+-			     "vmovntdq %%zmm10,%2\n\t"
+-			     "vmovntdq %%zmm11,%3\n\t"
++		asm volatile("vmovdqa64 %%zmm2,%0\n\t"
++			     "vmovdqa64 %%zmm3,%1\n\t"
++			     "vmovdqa64 %%zmm10,%2\n\t"
++			     "vmovdqa64 %%zmm11,%3\n\t"
+ 			     "vpxorq %4,%%zmm4,%%zmm4\n\t"
+ 			     "vpxorq %5,%%zmm6,%%zmm6\n\t"
+ 			     "vpxorq %6,%%zmm12,%%zmm12\n\t"
+ 			     "vpxorq %7,%%zmm14,%%zmm14\n\t"
+-			     "vmovntdq %%zmm4,%4\n\t"
+-			     "vmovntdq %%zmm6,%5\n\t"
+-			     "vmovntdq %%zmm12,%6\n\t"
+-			     "vmovntdq %%zmm14,%7"
++			     "vmovdqa64 %%zmm4,%4\n\t"
++			     "vmovdqa64 %%zmm6,%5\n\t"
++			     "vmovdqa64 %%zmm12,%6\n\t"
++			     "vmovdqa64 %%zmm14,%7"
+ 			     :
+ 			     : "m" (p[d]),  "m" (p[d+64]), "m" (p[d+128]),
+ 			       "m" (p[d+192]), "m" (q[d]),  "m" (q[d+64]),
+--- a/lib/raid/raid6/x86/sse2.c~raid6-use-normal-stores-in-the-x86-x4-xor_syndrome-functions
++++ a/lib/raid/raid6/x86/sse2.c
+@@ -432,18 +432,18 @@ static void raid6_sse24_xor_syndrome(int
+ 			asm volatile("pxor %xmm13,%xmm12");
+ 			asm volatile("pxor %xmm15,%xmm14");
+ 		}
+-		asm volatile("movntdq %%xmm2,%0" : "=m" (p[d]));
+-		asm volatile("movntdq %%xmm3,%0" : "=m" (p[d+16]));
+-		asm volatile("movntdq %%xmm10,%0" : "=m" (p[d+32]));
+-		asm volatile("movntdq %%xmm11,%0" : "=m" (p[d+48]));
++		asm volatile("movdqa %%xmm2,%0" : "=m" (p[d]));
++		asm volatile("movdqa %%xmm3,%0" : "=m" (p[d+16]));
++		asm volatile("movdqa %%xmm10,%0" : "=m" (p[d+32]));
++		asm volatile("movdqa %%xmm11,%0" : "=m" (p[d+48]));
+ 		asm volatile("pxor %0,%%xmm4" : : "m" (q[d]));
+ 		asm volatile("pxor %0,%%xmm6" : : "m" (q[d+16]));
+ 		asm volatile("pxor %0,%%xmm12" : : "m" (q[d+32]));
+ 		asm volatile("pxor %0,%%xmm14" : : "m" (q[d+48]));
+-		asm volatile("movntdq %%xmm4,%0" : "=m" (q[d]));
+-		asm volatile("movntdq %%xmm6,%0" : "=m" (q[d+16]));
+-		asm volatile("movntdq %%xmm12,%0" : "=m" (q[d+32]));
+-		asm volatile("movntdq %%xmm14,%0" : "=m" (q[d+48]));
++		asm volatile("movdqa %%xmm4,%0" : "=m" (q[d]));
++		asm volatile("movdqa %%xmm6,%0" : "=m" (q[d+16]));
++		asm volatile("movdqa %%xmm12,%0" : "=m" (q[d+32]));
++		asm volatile("movdqa %%xmm14,%0" : "=m" (q[d+48]));
+ 	}
+ 	asm volatile("sfence" : : : "memory");
+ 	kernel_fpu_end();
 _
 
-Patches currently in -mm which might be from jm5905938@gmail.com are
+Patches currently in -mm which might be from mc@raidlab.org are
 
-mm-hmm-account-for-subpage-offsets-in-device-private-pmds.patch
-mm-damon-ops-common-align-mmu-notifier-range-when-clearing-pmd-young-bit.patch
-mm-damon-stat-avoid-32-bit-overflow-in-idle-percentiles.patch
-mm-damon-pvaddr-skip-folios-already-on-the-migration-target-node.patch
-docs-admin-guide-mm-damon-start-fix-grammar.patch
-docs-admin-guide-mm-damon-stat-fix-pronoun-agreement.patch
-docs-admin-guide-mm-damon-usage-fix-grammar.patch
-docs-admin-guide-mm-damon-lru_sort-fix-remaining-grammar.patch
-docs-mm-damon-design-fix-grammar-and-typos.patch
-docs-mm-damon-api-fix-verb-form.patch
-docs-mm-damon-maintainer-profile-fix-subject-verb-agreement.patch
-docs-mm-damon-monitoring_intervals_tuning_example-fix-grammar-and-typos.patch
-mm-damon-paddr-add-kunit-tests-for-addr_unit-conversion.patch
-mm-damon-paddr-add-kunit-tests-for-addr_unit-conversion-fix.patch
+raid6-use-normal-stores-in-the-x86-x4-xor_syndrome-functions.patch
 
