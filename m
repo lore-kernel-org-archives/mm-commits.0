@@ -1,45 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795406645;
-	b=KuxPObpcIAR9oodk+GcOuhzczhH1qEJzlsBvvT1jdZ6X9Y+hPWcOcoorNVeyRC0TrTBu
-	 Ddxl1qWnRwEVDnEj2P2Ee8bu8qoYVVsfxzJfLhj+AIEXu0l5A9ZbBXkVmkvj/+ysRtij0
-	 S0WP4/OnxDSM2QneBsEjosiRwbHPC/QBPFtp4v0VXfPVS11qkK56yP7mXxW8JhWkL5iKU
-	 HBu4SGvIEuYuCT7qFNsMtlX5Vh8cQsNBo1bkbdmHM22gD6d1gTV36x6OyWx4xMkgrXB10
-	 9cNlM5+TSc26AU3asEiqQnkqXXmzC0HWhRAuPFfXmqEII+mRqgrZbvY94GlFEFFQEoA==
+	t=1795406646;
+	b=N6V7vivZ+vfUTThVaUGfQaiNJXqMeaw/FwICcbeNriYmkO3XIK480dAQxs3Jbu2B9N36
+	 jC/6B490jzXqNlj7R6Lr8u2oh1xQ3mIQ9mc50wqu3AufCqmobV8WiMUIUnzCjdeRbTNw5
+	 FAtQMMiBbnFeoHX48mn1G0BoCRoejRvpd5L9K8HbxvSH/TitGX9+hJwnJaqICbeS3qQ7v
+	 tr+YGKFvHiByRc8A2SC68Ox5s9ucC1Uh8084gqUjXVvGCyujS6Rw9lpUnl8J31EK+WuL/
+	 7aSW8It/bIEx0+dP6oOVBsrK8NUhy+1+SMKeayUIMWUS0+OXDkFHPV+PEXQ3LtQmDRA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795406645;
-	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=LBYOY5P3es7KfeabGQpyTsz4IBAaWrksgm/fRM9w1xI=;
-	b=K47ifZVXvgc80MHohUvOdVe217FeVhtsl+8i9N8o8bH5Gu6o/JquapcJVJOzqjibpVt1
-	 R8h5z7CSxqDuDw+Cds0mBUi3SJTNSoQmniN4V6FifqtpLiapcW0bjJH1tXo8w1xJq/bIC
-	 d2kt4+FrDmCn9PNGUGSC6Uk1tBYFPv4fsCLDhjpzvaITOkGGJUPa8atAuGvUbFC1oP9KN
-	 TnDAXS63TZ1P3AQoSEbD4mhM3iI4pd5Dn/SxTmXyga5NSmSF3ZGn6Naqi1Ies3cSck7ou
-	 nlmGTa7ZmsuvoV3Ry8ssKhEIrLTucupaI4ePwWdK97tEhMRO6xYuLF320+kPgzDLokQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795406646;
+	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
+	 Message-Id;
+	bh=yhoNGnLd/Lb7ZqWyq7Uqu5y49fUR51DNuTlz8uGoHqE=;
+	b=PZcqxzJUn32Eh5pYAwqpm4ewVjUhkrsqaDsGclunSvrQw3Q2MwdCKM+TZx6Od60/MmEs
+	 /wdCFFnUSDQaRbQos7LAKZOfG2UedBvR7j3ZZt3JBxwoRCfTYL5guYcA4WSBcRFhFLARt
+	 TUMBNZdqZgnYWpZJ2rfzkz3xEYOTZQROFr6vN72/X1z+dh10DxhbgU1oERvBdGgSXj8K1
+	 bygMUJp9WYRdvhT4Mg43vANEmFFFUTO6qlK2EdiDJgzTAaroCPhhEKqlHJ1HRkxMxWpCy
+	 wSu7SeA7vo33nGaydtu9YsFjbvtNEAHPTZCacYuyztmpKIChdPcBXNQ6oSSx4aLGPfA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=fbtjZ6Gb;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="RIAfe/IP";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 518CD606A327
-	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 04:04:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F169606A31A
+	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 04:04:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=fbtjZ6Gb
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 682BD1F000E6;
-	Mon, 23 Nov 2026 04:04:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=RIAfe/IP
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37A4C1F000CA;
+	Mon, 23 Nov 2026 04:04:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795406644;
-	bh=LBYOY5P3es7KfeabGQpyTsz4IBAaWrksgm/fRM9w1xI=;
-	h=Date:To:From:Subject;
-	b=fbtjZ6Gb2xuBnzfIqfJ26nrlQUP+jU5XT5BVSQLA38k53nPSXXcHaMdH3lih6wAoF
-	 /+GrdqIuqCh7u1zRYR2gNgNklOvHAgPVNNUMJtfBYCCaLH5uiw+q3Lw9DaIBU+zrsJ
-	 S0AuPE8Gtl1qU8MIxkqAMnSzK10CXWp8PRbd2lu4=
-Date: Sun, 22 Nov 2026 20:04:03 -0800
-To: mm-commits@vger.kernel.org,akpm@linux-foundation.org
+	d=linux-foundation.org; s=korg; t=1795406646;
+	bh=yhoNGnLd/Lb7ZqWyq7Uqu5y49fUR51DNuTlz8uGoHqE=;
+	h=Date:To:From:In-Reply-To:References:Subject;
+	b=RIAfe/IPHFcjU5m1785P4wh6d6CiyQOY3XoAJrePhpgU7B/ppJt+Q0wNf4rwKrUsS
+	 yI9UMVPE/sk4gA+7r8BT1vdtUoH8F7wB1v4qlfdrI19z/hqSx/j6ECRPZdMX5yXWeV
+	 xlv9Z+XgW30e0yopq8By0Aq1rHlvwnZPHPdo743E=
+Date: Sun, 22 Nov 2026 20:04:05 -0800
+To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] squashfs-fix-variables-in-directory-code-and-add-more-sanity-checks-fix.patch removed from -mm tree
-Message-Id: <20261123040404.682BD1F000E6@smtp.kernel.org>
+In-Reply-To: <20261111234402.252354-22-phillip@squashfs.org.uk>
+References: <20261111234402.252354-22-phillip@squashfs.org.uk>
+Subject: [to-be-updated] squashfs-fix-regression-in-squashfs_copy_cache.patch removed from -mm tree
+Message-Id: <20261123040406.37A4C1F000CA@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,85 +55,84 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: squashfs-fix-variables-in-directory-code-and-add-more-sanity-checks-fix
+     Subject: Squashfs: fix regression in squashfs_copy_cache()
 has been removed from the -mm tree.  Its filename was
-     squashfs-fix-variables-in-directory-code-and-add-more-sanity-checks-fix.patch
+     squashfs-fix-regression-in-squashfs_copy_cache.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: squashfs-fix-variables-in-directory-code-and-add-more-sanity-checks-fix
-Date: Sun Nov 15 09:54:43 PM PST 2026
+From: Phillip Lougher <phillip@squashfs.org.uk>
+Subject: Squashfs: fix regression in squashfs_copy_cache()
+Date: Wed, 11 Nov 2026 23:44:01 +0000
 
-fix smatch warnings
+In a recent commit updating the code to use folios, the bytes variable
+was changed from signed to unsigned in squashfs_copy_cache().
 
+The bytes variable is used in a loop where PAGE_SIZE bytes are
+subtracted from it each time around the loop, and where the loop
+terminates once bytes is less than or equal to zero.
+
+The effect of the change in signedness is bytes no longer becomes
+negative when it is not a multiple of PAGE_SIZE, and the loop does not
+terminate when it should do, and instead folios are created and filled
+after file EOF.
+
+These beyond EOF folios are not visible to user-space and hence this is
+a silent regression.
+
+This commit fixes the code to only subtract the minimum of bytes or
+PAGE_SIZE, and which ensures the variable does not underflow.
+
+Link: https://patch.msgid.link/20261111234402.252354-22-phillip@squashfs.org.uk
+Fixes: 5641371fd0b3 ("squashfs; convert squashfs_copy_cache() to take a folio")
+Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: kernel test robot <lkp@intel.com>
-Reported-by: Dan Carpenter <error27@gmail.com>
-Closes: https://lore.kernel.org/r/202611131955.0Gd7ipSP-lkp@intel.com/
 Cc: Phillip Lougher <phillip.lougher@gmail.com>
-Cc: Phillip Lougher <phillip@squashfs.org.uk>
 
- fs/squashfs/namei.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ fs/squashfs/file.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/fs/squashfs/namei.c~squashfs-fix-variables-in-directory-code-and-add-more-sanity-checks-fix
-+++ a/fs/squashfs/namei.c
-@@ -221,8 +221,10 @@ static struct dentry *squashfs_lookup(st
- 			/*
- 			 * Read directory entry.
- 			 */
--			if (!squashfs_dir_space(dir, length, sizeof(*dire)))
-+			if (!squashfs_dir_space(dir, length, sizeof(*dire))) {
-+				err = -ENOSPC;
- 				goto read_failure;
-+			}
+--- a/fs/squashfs/file.c~squashfs-fix-regression-in-squashfs_copy_cache
++++ a/fs/squashfs/file.c
+@@ -410,6 +410,7 @@ void squashfs_copy_cache(struct folio *f
+ 	struct squashfs_sb_info *msblk = inode->i_sb->s_fs_info;
+ 	s64 i, mask = (1 << (msblk->block_log - PAGE_SHIFT)) - 1;
+ 	s64 start_index = folio->index & ~mask, end_index = start_index | mask;
++	size_t avail;
  
- 			err = squashfs_read_metadata(dir->i_sb, dire, &block,
- 					&offset, sizeof(*dire));
-@@ -236,8 +238,10 @@ static struct dentry *squashfs_lookup(st
- 			if (size > SQUASHFS_NAME_LEN)
- 				goto data_error;
+ 	/*
+ 	 * Loop copying datablock into pages.  As the datablock likely covers
+@@ -417,12 +418,13 @@ void squashfs_copy_cache(struct folio *f
+ 	 * grab the pages from the page cache, except for the page that we've
+ 	 * been called to fill.
+ 	 */
+-	for (i = start_index; i <= end_index && bytes > 0; i++,
+-			bytes -= PAGE_SIZE, offset += PAGE_SIZE) {
++	for (i = start_index; i <= end_index && bytes; i++,
++			bytes -= avail, offset += avail) {
+ 		struct folio *push_folio;
+-		size_t avail = buffer ? min(bytes, PAGE_SIZE) : 0;
+ 		bool updated = false;
  
--			if (!squashfs_dir_space(dir, length, size))
-+			if (!squashfs_dir_space(dir, length, size)) {
-+				err = -ENOSPC;
- 				goto read_failure;
-+			}
++		avail = min(bytes, PAGE_SIZE);
++
+ 		TRACE("bytes %zu, i %lld, available_bytes %zu\n", bytes, i, avail);
  
- 			err = squashfs_read_metadata(dir->i_sb, dire->name,
- 					&block, &offset, size);
+ 		push_folio = (i == folio->index) ? folio :
+@@ -436,7 +438,7 @@ void squashfs_copy_cache(struct folio *f
+ 		if (folio_test_uptodate(push_folio))
+ 			goto skip_folio;
+ 
+-		updated = squashfs_fill_page(push_folio, buffer, offset, avail);
++		updated = squashfs_fill_page(push_folio, buffer, offset, buffer ? avail : 0);
+ skip_folio:
+ 		folio_end_read(push_folio, updated);
+ 		if (i != folio->index)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from phillip@squashfs.org.uk are
 
-maintainers-add-page_exth-to-memory-management-page-allocator.patch
-kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize-fix.patch
-selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
-selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
-selftests-mm-allocate-nr_pages-based-on-pmd-size-for-uffd-pmd_move-tests-fix.patch
-selftests-mm-retain-move-pmd-coverage-and-verify-huge-pmds.patch
-lib-test_xarray-check-unused-spare-node-after-range-creation.patch
-mm-memory-failure-dont-unpoison-a-leaked-raw_hwp_unreliable-folio-fix.patch
-mm-vmstat_kunit-add-synthetic-benchmark-for-mm-stats-fix.patch
-lib-test_hmm-invalidate-all-mirrors-on-device-private-migration.patch
-lib-test_hmm-invalidate-all-mirrors-on-device-private-migration-fix.patch
-mm-prevent-pre-content-bypass-through-mremap-and-remap_file_pages.patch
-selinux-recheck-backing-file-permissions-on-remap_file_pages.patch
-mm-madvise-notify-userfaultfd-when-installing-guard-regions.patch
-mm-highmem-reject-previously-poisoned-pages-in-machine-check-copies.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache.patch
-fuse-let-memory-failure-remove-poisoned-page-cache-folios.patch
-nilfs2-report-mapping-errors-from-fsync.patch
-ocfs2-unregister-the-jbd2-shrinker-before-journal-shutdown.patch
-ipc-msg-clamp-negative-msg_info-usage-counts.patch
-squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix.patch
-ocfs2-skip-network-flush-when-no-domain-handlers-are-registered.patch
-selftests-ptrace-check-that-ptrace_set_syscall_info-rejects-invalid-error-values-fix.patch
-jfs-validate-xattr-entry-bounds-before-replacing-an-attribute.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+squashfs-check-index-isnt-greater-than-s64_max-in-squashfs_read_data.patch
 a.patch
 
