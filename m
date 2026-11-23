@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795465400;
-	b=MKGbtpEPoei1P/ygrGwdU6Vb1jN+jBOCE8I+4paRxg2osDb05wppe00NFak/U47vJvQs
-	 k5k6hTGsewTl8sZHxt2vwOeOKTfQKct5afJLgs4v5lvb5A+/TARcZjM0+QjlSkjx/n+mA
-	 n85GsBOiHQ/1OKMAuqbjgbfI04rBUM+PgDf/RMCYxLf4AG7EwJ1IksJPQ0LtYJfKxlG2d
-	 M7wigQUONCJXmSLxaLnJouZW50i9E6sUMGEq7YfBIUgEYSYUUjjjRbfr1QHS5JBN328x3
-	 rZ/oXrGNtmOInddORAfo8w2vIvz1dwEUhULhiwmN2JH5lXEuYQhcaRfbvylgXFAtr1g==
+	t=1795465403;
+	b=uQboboZL3QqGL7DrXRK4zhFGY40CHC9EylB+h0VE1tvzgtOKU/9dEzFE1qBEaRDZIO8y
+	 HVLM1JVDCO/tLkOf7gric+euKzZJnNXsI6tVBQnL69J1AXiNMFct2DIvt3VDJyEyUnKio
+	 LvqLkD/j2OMSxvIMDm0FcGqBTZ/Ywpv76XQDLc9oCkYi8ZPpgPzT6aGlEOaBH/OYTtMhR
+	 dajR95RfprYV+9mkX9lnKvmtzBKGUKGftsfm2B36KY//OMSpMqw2rmgnC3hgzLrtR6zar
+	 gXEO4HtmbMOHP1rxh468dukKzQ5f3spLinWEaRj21s+U9rQGyeGVtDZeYNV9Tp9GbmQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795465400;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795465403;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=6chN9kK/fsPR0Mu3pXIWFeZXkojTs8fLq/nbHTAfieU=;
-	b=OV1sMXqyULOk6xPmSauseSBrAzJ9Pk98iVrWA7IU/c3OZNLypx+/or7yv9SLzTrlkgu/
-	 5GtQZODlu22sC84iop+ScdDLGO65P6XvCUTxQgxu3gbyIQFJoWq3/Cri9hl9B9b5nNg9m
-	 yoamfByBzKPlQQ7x9D02f50VxNqVRE0OBIfUuxnFKqD2A0lPeglHfk9iBq2uKWjQJBZXm
-	 MUAV/InXnJMwPmMVIAP/IXYQX2tPouy+4uBa/1wQDNyX60Rp8nd9A6ZMKA59TItBNrqAt
-	 cDLkWdrmWHlEOMfLob8l/+5bhMtKq6XclZi9BPDUDwqSQ/d/Qe+y5RX0KWq2TepTcKg==
+	bh=rXqZCkczfjaUR4AgzZlmEiobgbq2nwyDOPMFvW0+ANI=;
+	b=KsdL71FmU7D9Q7xrIeqhsFpYxIdNHV3oqUwmuVhP3LygnzHabr5o7gNxoMBqSuP+IjFo
+	 Xwpl6hXwRg8DXHrPshDmjooddoiNW4pSYtRlUWKZyECq+zcAXw/6bSNanmOTMU3WY3E+z
+	 Z4YQj4rOxqkliNvXOW236Cy4NQQQ80+H8S++G+GRuY3BrRXaipGIu0qriNyy28h0s8JO/
+	 QrSEnOIutR5J29QzrRkGU1FW5JFEj14pGTWJ9PSBX0VFluBb8IdnvTENbYi6nhezGlshx
+	 oo8KI4BsNb1EVoP5r7VH6/gHLiY0BrFkRSaqxGeWCLHnuNhQFyrdSPn17iv6xGaw4RQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=CJR+Im0H;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=XMf3JtuZ;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70361606A31E
-	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 20:23:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3A26606A326
+	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 20:23:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=CJR+Im0H
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 278BE1F000C4;
-	Mon, 23 Nov 2026 20:23:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=XMf3JtuZ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36B1E1F000C0;
+	Mon, 23 Nov 2026 20:23:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795465400;
-	bh=6chN9kK/fsPR0Mu3pXIWFeZXkojTs8fLq/nbHTAfieU=;
+	d=linux-foundation.org; s=korg; t=1795465403;
+	bh=rXqZCkczfjaUR4AgzZlmEiobgbq2nwyDOPMFvW0+ANI=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=CJR+Im0HWPy49KJ6G1SBM2mMMgwT80j2wfQIisbYTOFG/nvZknQaHFbhvgH3WlSaB
-	 DFe2meoe76ASzdY4CkD6SAvQjXyOmp+PRZ/f+bzMUsqP6mt09pnpPaaWGnjnGEG5RZ
-	 MKDJIOqnayWx+GR5ybRes6q5cGStArREjwfK6Xso=
-Date: Mon, 23 Nov 2026 12:23:19 -0800
+	b=XMf3JtuZoPj/oKP15eKDZCE/XqLCoV+bdjI0sRek+5Jgu2hKlQCki5inQJkNlGRxc
+	 aut+/WU9Di/n3Pt0rOPXOpv6cAWqONxt1aC5JqqKOKJlVQZ+nhUnwi/0hVxZJckYhJ
+	 Rx30pVjo2wMCghJZUA35GOlD3I2p/uO8i5WUThFk=
+Date: Mon, 23 Nov 2026 12:23:22 -0800
 To: mm-commits@vger.kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124-mglru-fg-v6-10-8ffea39934a6@tencent.com>
-References: <20261124-mglru-fg-v6-10-8ffea39934a6@tencent.com>
-Subject: + mm-mglru-gup-mark-folios-referenced-via-a-fast-helper.patch added to mm-new branch
-Message-Id: <20261123202320.278BE1F000C4@smtp.kernel.org>
+In-Reply-To: <20261124-mglru-fg-v6-11-8ffea39934a6@tencent.com>
+References: <20261124-mglru-fg-v6-11-8ffea39934a6@tencent.com>
+Subject: + mm-mglru-smaps-convert-to-lru-refs-based-operations-for-mglru.patch added to mm-new branch
+Message-Id: <20261123202323.36B1E1F000C0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +54,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/mglru, gup: mark folios referenced via a fast helper
+     Subject: mm/mglru, smaps: convert to LRU refs based operations for MGLRU
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mglru-gup-mark-folios-referenced-via-a-fast-helper.patch
+     mm-mglru-smaps-convert-to-lru-refs-based-operations-for-mglru.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-gup-mark-folios-referenced-via-a-fast-helper.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-smaps-convert-to-lru-refs-based-operations-for-mglru.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -89,39 +89,33 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm/mglru, gup: mark folios referenced via a fast helper
-Date: Tue, 24 Nov 2026 02:53:02 +0800
+Subject: mm/mglru, smaps: convert to LRU refs based operations for MGLRU
+Date: Tue, 24 Nov 2026 02:53:03 +0800
 
-Introduce folio_inc_lru_refs_fast(): raise refs from 0 to
-LRU_REFS_REFERENCED via cmpxchg, or just set PG_referenced for the
-classical LRU as before. No counter update or promotion is needed,
-nonzero MGLRU refs are left unchanged.
+PG_referenced is only the lowest bit of the folio LRU refs count
+(LRU_REFS_FLAGS) now, and MGLRU never kept it stable: promotion used to
+clear it, and now it toggles as the count grows. But with the LRU
+referenced count as a stable API now, we can use two helpers to provide
+in-kernel users a stable and sane reading of the referenced status of
+an LRU managed folio.
 
-The classical path is taken for a folio that is off the gen lists while
-MGLRU is off, not on lru_gen_enabled() alone: while MGLRU is being
-turned off, a folio can still be on a gen list after the static key
-flips, and setting PG_referenced there would bump its refs count.
+Add folio_check_lru_refs() and folio_clear_lru_refs(), which use the refs
+count when MGLRU is enabled and PG_referenced otherwise, and switch the
+smaps paths over to them. The lru_gen_enabled() test stays inside the
+helpers, so its static key is not splattered over the few call sites.
 
-That check uses lru_get_gen_flags(), so move the helper out of the
-CONFIG_LRU_GEN block, it is now built with the option off, where
-LRU_GEN_WIDTH is 0 and LRU_GEN_MASK is zero. Keep the decoded value in
-an int so the subtraction of the offset-by-one encoding cannot fold to
-ULONG_MAX before it happens to avoid -Woverflow error with CONFIG_WERROR.
+Convert smaps as the first user of them. MGLRU now reports every folio
+with a nonzero count, so the reading no longer flickers and clearing no
+longer results in an ambiguous status.
 
-This helper only aims to be fast, it exists so the gup fast path can
-stay a fast path. The new helper doesn't account for refs above
-LRU_REFS_REFERENCED but that's fine for now as GUP never used that
-or anything similar for CLRU either.
+The classical LRU case is unchanged.
 
-Convert the gup fast-path sites. No behavior change for classical LRU,
-no regression for MGLRU either. Just prepare for the following changes
-by providing a helper that follows the new convention.
-
-Link: https://patch.msgid.link/20261124-mglru-fg-v6-10-8ffea39934a6@tencent.com
+Link: https://patch.msgid.link/20261124-mglru-fg-v6-11-8ffea39934a6@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Tested-by: Zhao Zhenzhuo <zhaozhengzhuo@uniontech.com>
 Reviewed-by: Kunwu Chan <kunwu.chan@gmail.com>
+Tested-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Qi Zheng <qi.zheng@linux.dev>
@@ -144,7 +138,6 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Youngjun Park <youngjun.park@lge.com>
-Cc: Zi Yan <ziy@nvidia.com>
 Cc: Gregory Price <gourry@gourry.net>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
@@ -161,6 +154,7 @@ Cc: Tal Zussman <tz2294@columbia.edu>
 Cc: Kairui Song <ryncsn@gmail.com>
 Cc: Xiang Liu <liuxiang.277@bytedance.com>
 Cc: Ehab Ababneh <ehab.ababneh@intel.com>
+Cc: zhaozhengzhuo <zhaozhengzhuo@uniontech.com>
 Cc: wang lian <lianux.mm@gmail.com>
 Cc: Joanne Koong <joannelkoong@gmail.com>
 Cc: Hui Zhu <hui.zhu@linux.dev>
@@ -169,124 +163,79 @@ Cc: Tianyi Chen <hi@tychen.cc>
 Cc: Ridong Chen <ridong.chen@linux.dev>
 Cc: Harry Yoo <harry@kernel.org>
 
- include/linux/mm_inline.h |   62 ++++++++++++++++++++++++++----------
- mm/gup.c                  |    6 +--
- 2 files changed, 49 insertions(+), 19 deletions(-)
+ fs/proc/task_mmu.c        |    6 +++---
+ include/linux/mm_inline.h |   31 +++++++++++++++++++++++++++++++
+ 2 files changed, 34 insertions(+), 3 deletions(-)
 
---- a/include/linux/mm_inline.h~mm-mglru-gup-mark-folios-referenced-via-a-fast-helper
+--- a/fs/proc/task_mmu.c~mm-mglru-smaps-convert-to-lru-refs-based-operations-for-mglru
++++ a/fs/proc/task_mmu.c
+@@ -890,7 +890,7 @@ static void smaps_account(struct mem_siz
+ 
+ 	mss->resident += size;
+ 	/* Accumulate the size in pages that have been accessed. */
+-	if (young || folio_test_young(folio) || folio_test_referenced(folio))
++	if (young || folio_test_young(folio) || folio_check_lru_refs(folio))
+ 		mss->referenced += size;
+ 
+ 	/*
+@@ -1690,7 +1690,7 @@ static int clear_refs_pte_range(pmd_t *p
+ 		/* Clear accessed and referenced bits. */
+ 		pmdp_test_and_clear_young(vma, addr, pmd);
+ 		folio_test_clear_young(folio);
+-		folio_clear_referenced(folio);
++		folio_clear_lru_refs(folio);
+ out:
+ 		spin_unlock(ptl);
+ 		return 0;
+@@ -1719,7 +1719,7 @@ out:
+ 		/* Clear accessed and referenced bits. */
+ 		ptep_test_and_clear_young(vma, addr, pte);
+ 		folio_test_clear_young(folio);
+-		folio_clear_referenced(folio);
++		folio_clear_lru_refs(folio);
+ 	}
+ 	pte_unmap_unlock(pte - 1, ptl);
+ 	cond_resched();
+--- a/include/linux/mm_inline.h~mm-mglru-smaps-convert-to-lru-refs-based-operations-for-mglru
 +++ a/include/linux/mm_inline.h
-@@ -105,6 +105,22 @@ static __always_inline enum lru_list fol
- 	return lru;
+@@ -513,6 +513,37 @@ static __always_inline void folio_inc_lr
+ 	} while (!try_cmpxchg(folio_flags(folio, 0), &old_flags, new_flags));
  }
  
 +/**
-+ * lru_get_gen_flags - Return the LRU generation number from folio flags.
-+ * @flags: folio flags
++ * folio_check_lru_refs - Test if an LRU managed folio has been referenced.
++ * @folio: The folio to test.
 + *
-+ * Returns: A number between 0 and (MAX_NR_GENS - 1), inclusive. Returns
-+ * -1 if the flags indicate the folio is off the list (e.g., isolated).
++ * Returns true if the MGLRU refs count is nonzero, or PG_referenced is set,
++ * which is also correct for the non-MGLRU case. Kept as a separate helper,
++ * to avoid splattering the lru_gen_enabled() static key.
 + */
-+static inline int lru_get_gen_flags(unsigned long flags)
++static inline bool folio_check_lru_refs(const struct folio *folio)
 +{
-+	int gen = (int)((flags & LRU_GEN_MASK) >> LRU_GEN_PGOFF);
-+
-+	/* The gen is stored offset by one, so zero means off-list */
-+	VM_WARN_ON_ONCE(gen > MAX_NR_GENS);
-+	return gen - 1;
++	if (lru_gen_enabled())
++		return folio_lru_refs(folio) > 0;
++	return folio_test_referenced(folio);
 +}
 +
- #ifdef CONFIG_LRU_GEN
- 
- static inline bool lru_gen_switching(void)
-@@ -168,22 +184,6 @@ static inline void lru_set_gen_flags(uns
- 	*flags |= (gen + 1UL) << LRU_GEN_PGOFF;
- }
- 
--/**
-- * lru_get_gen_flags - Return the LRU generation number from folio flags.
-- * @flags: folio flags
-- *
-- * Returns: A number between 0 and (MAX_NR_GENS - 1), inclusive. Returns
-- * -1 if the flags indicate the folio is off the list (e.g., isolated).
-- */
--static inline int lru_get_gen_flags(unsigned long flags)
--{
--	int gen = ((flags & LRU_GEN_MASK) >> LRU_GEN_PGOFF) - 1;
--
--	/* Exclude the legal -1 from the unsigned MAX_NR_GENS comparison */
--	VM_WARN_ON_ONCE(gen != -1 && gen >= MAX_NR_GENS);
--	return gen;
--}
--
- static inline int folio_lru_gen(const struct folio *folio)
- {
- 	return lru_get_gen_flags(READ_ONCE(*const_folio_flags(folio, 0)));
-@@ -483,6 +483,36 @@ static inline bool lru_gen_del_folio(str
- }
- #endif /* CONFIG_LRU_GEN */
- 
 +/**
-+ * folio_inc_lru_refs_fast - Bump folio refs count without promotion.
-+ * @folio: the folio
++ * folio_clear_lru_refs - Clear the referenced state of an LRU managed folio.
++ * @folio: The folio to clear.
 + *
-+ * Raise refs from 0 to LRU_REFS_REFERENCED and leave hotter folios
-+ * untouched. For a folio off the gen lists with MGLRU off, a plain
-+ * PG_referenced set.
++ * Reset the MGLRU refs count to zero, or clear PG_referenced, leaving
++ * PG_workingset alone for the non-MGLRU case. Kept as a separate helper
++ * just like folio_check_lru_refs().
 + */
-+static __always_inline void folio_inc_lru_refs_fast(struct folio *folio)
++static inline void folio_clear_lru_refs(struct folio *folio)
 +{
-+	unsigned long new_flags, old_flags = READ_ONCE(*folio_flags(folio, 0));
-+	unsigned int refs;
-+
-+	do {
-+		refs = lru_get_refs_flags(old_flags);
-+		if (lru_get_gen_flags(old_flags) < 0 && !lru_gen_enabled()) {
-+			/* For CLRU, just do folio_set_referenced() */
-+			if (refs & LRU_REFS_REFERENCED)
-+				break;
-+			refs |= LRU_REFS_REFERENCED;
-+		} else {
-+			if (refs)
-+				break;
-+			refs = LRU_REFS_REFERENCED;
-+		}
-+		new_flags = old_flags;
-+		lru_set_refs_flags(&new_flags, refs);
-+	} while (!try_cmpxchg(folio_flags(folio, 0), &old_flags, new_flags));
++	if (lru_gen_enabled())
++		folio_set_lru_refs(folio, 0);
++	else
++		folio_clear_referenced(folio);
 +}
 +
  static __always_inline
  void lruvec_add_folio(struct lruvec *lruvec, struct folio *folio)
  {
---- a/mm/gup.c~mm-mglru-gup-mark-folios-referenced-via-a-fast-helper
-+++ a/mm/gup.c
-@@ -2921,7 +2921,7 @@ static unsigned long gup_fast_pte_range(
- 			gup_put_folio(folio, 1, flags);
- 			goto pte_unmap;
- 		}
--		folio_set_referenced(folio);
-+		folio_inc_lru_refs_fast(folio);
- 		pages[nr_pages] = page;
- 		nr_pages++;
- 	} while (ptep++, addr += PAGE_SIZE, addr != end);
-@@ -2990,7 +2990,7 @@ static unsigned long gup_fast_pmd_leaf(p
- 
- 	for (i = 0; i < nr_pages; i++)
- 		*(pages++) = page++;
--	folio_set_referenced(folio);
-+	folio_inc_lru_refs_fast(folio);
- 	return nr_pages;
- }
- 
-@@ -3032,7 +3032,7 @@ static unsigned long gup_fast_pud_leaf(p
- 
- 	for (i = 0; i < nr_pages; i++)
- 		*(pages++) = page++;
--	folio_set_referenced(folio);
-+	folio_inc_lru_refs_fast(folio);
- 	return nr_pages;
- }
- 
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
