@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795465415;
-	b=12AN+csq8QJxy/XbUd+VIsU5i1lqnNXbx7LQ8ckQdEDn+08JxfI2N6LOoYEOgrNW2gne
-	 m43U1/O4czacEaFXsJtLG16vTUd6zV8w1dQyOqDMK7wBo/iCwOh9jGW5BYkJW/SLLZiNg
-	 Kw94eAl76Ru32XrNijGFWXs5lnVb+45mHWb56UP3qYRcH7BRoasKEX6nNecL9aowjiUt+
-	 voot4W+sJDySzv1E8VmKTWEMCc4IjB45iWWg+yeDYm9uLml/IHDeiM9broBHcj9LltkrP
-	 /iA+WV+owBkgxVfYUGrBeHaxhkxyFixFsptiLRiDloYxz4t0fF3I/qSaMpo7YaZcD0g==
+	t=1795465417;
+	b=MyXad0kwMcnxiYa9jeMUHSMv9xUUPJUVDtnowOJtQ9dt2Z7yjrSk3M/U+HL45pyJVo/1
+	 JEtSH9Hk8HDKQEswB6/ZGWn8mJNkunPqB7AHx4PKuCsFUNhtJ46B4d4aO3wYyDsmHgYY2
+	 fzb6vt0wSWJRdm+yd4TlSYEd1y/MkBCsGJSD07wlOdcMFi4rqHn1uDpLLpcEv/l7RM3sG
+	 xX22p0sbpvvF5sG/gafA34t8s+QbDtuYHXCkksOuu8+CNm/eQtGuU2yAZAikYV74drPcV
+	 4vV3R+RMVRMC7t1D1cNnCJgTC9LuqCyQSQYCl67Iwi4fxTA0TYzPcf4ZiRy529BC83Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795465415;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795465417;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=BOSEFz4daTsebdxL/F4xxrIeNcwKR6FJ5kLOuCnQBxw=;
-	b=J9XE3DI9xZm3CXfsvBUYE3s15n6QxLjDr8PtKu1B7lvk4ERB9QcGmkCgXHVdU/3P2VpY
-	 q7IkQABMt2SKEmBfe5ZsX34lVU+KUwC94WS02NJhnAYkvITSVhyr6dmjKY4TaX6NUqS84
-	 o6HihvFfd2fL9mMkx+4nrjKumtRstt6KkvoJI+lcBAQ0DGzGYI0rNLemTfDWcglCCFNn+
-	 PYHwg3MlEXV1u8COCQxAmn7JolT368kL4MY0lnxN2C5hVq8v0LwGaunZvMRLpLpQI/4qR
-	 eZ+xzHxAWsfl7nYOOkA1FwkaKB0AEpagzUwfbty++JCcQvE6AUArS4rvt/FeHx/kMnw==
+	bh=fMe906Jyh0523HR9+HxPnKYkqbRFRtAg5r+ybh7EhbE=;
+	b=e5GaDSSQ3GM+0uPsdEScTT2Y0n9FN6jZyRZyHhE1QpkoCXO1t6U3t8A46dvBj5O5O4eS
+	 1mL327Gaw1YiB5TTzQvbarlNMq2ofWwNXq7i8kMl1eQ1IWCOwcNugIqJbYStoXTZnZjNh
+	 Iwry2BuhjXJ74Jjrb7vaqLSDJ5fA+M03bWptOtkYFlSrt+NRVhD9RLd84OMlC6AQY3X6o
+	 KmH0tUcX8dHGjZfVrxl+dDJK6vBybH3jaY9JuPqz1vFrj8/8eVAZt55gQFDgwmjCS0jF8
+	 3j8tV1XIVtzTnb+RJ2/Glgv/eKf4w3cE57U5moCU9n/ucGvCSQzmOU4aRPvz5vElEDQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=eHmaenAx;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vmSFFGKp;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31D83606A32A
-	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 20:23:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE59C606A31E
+	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 20:23:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=eHmaenAx
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83E601F000C6;
-	Mon, 23 Nov 2026 20:23:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vmSFFGKp
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C4E61F000CA;
+	Mon, 23 Nov 2026 20:23:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795465414;
-	bh=BOSEFz4daTsebdxL/F4xxrIeNcwKR6FJ5kLOuCnQBxw=;
+	d=linux-foundation.org; s=korg; t=1795465417;
+	bh=fMe906Jyh0523HR9+HxPnKYkqbRFRtAg5r+ybh7EhbE=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=eHmaenAxYw9NKKUrLOgvuCX8ayPninBuv/5pPX0+WXheF+4F0tM3y+iDXs7zzgirT
-	 qkvTomxVvhq1J77AOsDyNy1QvlIvffh0h9bf3pWEdEj10AYegIKXwAwuuvw+rUEDGT
-	 QboIbhGiz44b70lVcrFeKuJyCpAvHFC0wIDnGhfg=
-Date: Mon, 23 Nov 2026 12:23:34 -0800
+	b=vmSFFGKpkoMp/Vx2Sa3aV93+kVTwqT8htUp+ynURMMIK5cZ+KZuPkpRVWxYdp3dPv
+	 U9DqF4z9I8EhzHNFZ5R70Q1MRNnCr7pvtk8tsc4bPqte+PK1N0B6Mu4OOMPYFgiY4k
+	 lsDK0n2kmMPpjwcBG+D+Ap2PG+Cxup5yTfwJnOR8=
+Date: Mon, 23 Nov 2026 12:23:36 -0800
 To: mm-commits@vger.kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124-mglru-fg-v6-15-8ffea39934a6@tencent.com>
-References: <20261124-mglru-fg-v6-15-8ffea39934a6@tencent.com>
-Subject: + mm-huge_memory-mark-folio-as-accessed-more-accurately-on-split.patch added to mm-new branch
-Message-Id: <20261123202334.83E601F000C6@smtp.kernel.org>
+In-Reply-To: <20261124-mglru-fg-v6-16-8ffea39934a6@tencent.com>
+References: <20261124-mglru-fg-v6-16-8ffea39934a6@tencent.com>
+Subject: + mm-mglru-make-pg_workingset-helpers-work-based-on-folio-lru-refs.patch added to mm-new branch
+Message-Id: <20261123202337.4C4E61F000CA@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +54,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/huge_memory: mark folio as accessed more accurately on split
+     Subject: mm/mglru: make PG_workingset helpers work based on folio LRU refs
 has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-mark-folio-as-accessed-more-accurately-on-split.patch
+     mm-mglru-make-pg_workingset-helpers-work-based-on-folio-lru-refs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-mark-folio-as-accessed-more-accurately-on-split.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-make-pg_workingset-helpers-work-based-on-folio-lru-refs.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -89,23 +89,37 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm/huge_memory: mark folio as accessed more accurately on split
-Date: Tue, 24 Nov 2026 02:53:07 +0800
+Subject: mm/mglru: make PG_workingset helpers work based on folio LRU refs
+Date: Tue, 24 Nov 2026 02:53:08 +0800
 
-The behavior of updating the folio's access info isn't consistent for
-huge mapping splitting or ordinary unmapping. The page table's young
-flag has to be translated into folio's access info.
+folio_test_workingset() currently tests the PG_workingset bit, which
+is only the second lowest access bit of the folio LRU refs count now.
+Folios with refs 4 or 5 carry it in the LRU_REFS_MASK field
+and no longer have PG_workingset set, so the bit test misses them.
 
-Right now it only checks and sets the folio's referenced flag, which isn't
-enough since folio flag updates on access have their own rules. Ordinary
-unmapping (zapping) calls folio_mark_accessed(), and it also checks
-if the VMA has recency to avoid false updates.
+folio_set_workingset() currently sets the PG_workingset bit with a
+plain set_bit(), which also over-promotes folios at a higher refs
+count: e.g. a folio at refs 4 is bumped to refs 6, advancing it
+toward LRU_REFS_MAX and an earlier generation promotion.
 
-So first just use the right helper here to be more consistent. Keep
-accounting the young PTE as a cache access, sticking to the current
-behavior.
+Move both helpers into mm_inline.h, the test as an inline helper based
+on folio_lru_refs(), checking refs >= LRU_REFS_WORKINGSET.
 
-Link: https://patch.msgid.link/20261124-mglru-fg-v6-15-8ffea39934a6@tencent.com
+The set stays reserved for the classical LRU, as under MGLRU the refs
+count is maintained by folio_inc_lru_refs(): it now warns when the folio
+is on a gen list, where the raw bit would corrupt its refs count.
+
+MADV_COLD, the one caller that runs on an on-list folio, sets the
+count with folio_set_lru_refs() instead. The one PageWorkingset() user
+in erofs is converted to the folio helper.
+
+There is no behavior change for the classical LRU: it does not maintain
+the refs count, so for a folio that was never on a gen list the test is
+equivalent to the PG_workingset bit test.
+
+This prepares the convention for follow up MGLRU change.
+
+Link: https://patch.msgid.link/20261124-mglru-fg-v6-16-8ffea39934a6@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Tested-by: Zhao Zhenzhuo <zhaozhengzhuo@uniontech.com>
@@ -158,33 +172,132 @@ Cc: Tianyi Chen <hi@tychen.cc>
 Cc: Ridong Chen <ridong.chen@linux.dev>
 Cc: Harry Yoo <harry@kernel.org>
 
- mm/huge_memory.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/btrfs/compression.c     |    1 +
+ fs/erofs/zdata.c           |    3 ++-
+ include/linux/mm_inline.h  |   30 ++++++++++++++++++++++++++++++
+ include/linux/page-flags.h |    2 --
+ mm/filemap.c               |    1 +
+ mm/madvise.c               |    2 +-
+ mm/page_io.c               |    1 +
+ 7 files changed, 36 insertions(+), 4 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-mark-folio-as-accessed-more-accurately-on-split
-+++ a/mm/huge_memory.c
-@@ -3122,8 +3122,8 @@ static void __split_huge_pud_locked(stru
+--- a/fs/btrfs/compression.c~mm-mglru-make-pg_workingset-helpers-work-based-on-folio-lru-refs
++++ a/fs/btrfs/compression.c
+@@ -8,6 +8,7 @@
+ #include <linux/file.h>
+ #include <linux/fs.h>
+ #include <linux/pagemap.h>
++#include <linux/mm_inline.h>
+ #include <linux/folio_batch.h>
+ #include <linux/highmem.h>
+ #include <linux/kthread.h>
+--- a/fs/erofs/zdata.c~mm-mglru-make-pg_workingset-helpers-work-based-on-folio-lru-refs
++++ a/fs/erofs/zdata.c
+@@ -6,6 +6,7 @@
+  */
+ #include "compress.h"
+ #include <linux/psi.h>
++#include <linux/mm_inline.h>
+ #include <linux/cpuhotplug.h>
+ #include <trace/events/erofs.h>
  
- 	if (!folio_test_dirty(folio) && pud_dirty(old_pud))
- 		folio_mark_dirty(folio);
--	if (!folio_test_referenced(folio) && pud_young(old_pud))
--		folio_set_referenced(folio);
-+	if (pud_young(old_pud) && vma_has_recency(vma))
-+		folio_mark_accessed(folio);
- 	folio_remove_rmap_pud(folio, page, vma);
- 	add_mm_counter(vma->vm_mm, mm_counter_file(folio),
- 		-HPAGE_PUD_NR);
-@@ -3245,8 +3245,8 @@ static void __split_huge_pmd_locked(stru
- 			folio = page_folio(page);
- 			if (!folio_test_dirty(folio) && pmd_dirty(old_pmd))
- 				folio_mark_dirty(folio);
--			if (!folio_test_referenced(folio) && pmd_young(old_pmd))
--				folio_set_referenced(folio);
-+			if (pmd_young(old_pmd) && vma_has_recency(vma))
-+				folio_mark_accessed(folio);
- 			folio_remove_rmap_pmd(folio, page, vma);
- 			add_mm_counter(mm, mm_counter_file(folio), -HPAGE_PMD_NR);
- 			folio_put(folio);
+@@ -1713,7 +1714,7 @@ drain_io:
+ 				DBG_BUGON(bvec.bv_len < sb->s_blocksize);
+ 			}
+ 
+-			if (unlikely(PageWorkingset(bvec.bv_page)) &&
++			if (unlikely(folio_test_workingset(page_folio(bvec.bv_page))) &&
+ 			    !memstall) {
+ 				psi_memstall_enter(&pflags);
+ 				memstall = 1;
+--- a/include/linux/mm_inline.h~mm-mglru-make-pg_workingset-helpers-work-based-on-folio-lru-refs
++++ a/include/linux/mm_inline.h
+@@ -283,6 +283,21 @@ static inline void folio_migrate_lru_ref
+ 	folio_set_lru_refs(new, folio_lru_refs(old));
+ }
+ 
++/**
++ * folio_test_workingset - Test if a folio is in the workingset.
++ * @folio: the folio
++ *
++ * A folio is workingset when its LRU refs count reaches
++ * LRU_REFS_WORKINGSET. Under the classical LRU flag encoding,
++ * this is just testing the PG_workingset bit.
++ *
++ * Return: true if the folio is workingset.
++ */
++static __always_inline bool folio_test_workingset(const struct folio *folio)
++{
++	return lru_refs_is_workingset(folio_lru_refs(folio));
++}
++
+ #ifdef CONFIG_LRU_GEN
+ static inline bool lru_gen_is_old(struct lruvec *lruvec, int type, int gen)
+ {
+@@ -544,6 +559,21 @@ static inline void folio_clear_lru_refs(
+ 		folio_clear_referenced(folio);
+ }
+ 
++/*
++ * For the classical LRU or isolated folios only: with MGLRU the PG_workingset
++ * bit is part of the folio refs count maintained by folio_inc_lru_refs(),
++ * a raw set would corrupt it.  The warning below catches folios still on a
++ * gen list, the classical paths in the switching window only see off-list ones.
++ */
++static __always_inline void folio_set_workingset(struct folio *folio)
++{
++	unsigned long flags;
++
++	flags = set_mask_bits(folio_flags(folio, 0), BIT(PG_workingset),
++			      BIT(PG_workingset));
++	VM_WARN_ON_ONCE(lru_get_gen_flags(flags) != -1);
++}
++
+ static __always_inline
+ void lruvec_add_folio(struct lruvec *lruvec, struct folio *folio)
+ {
+--- a/include/linux/page-flags.h~mm-mglru-make-pg_workingset-helpers-work-based-on-folio-lru-refs
++++ a/include/linux/page-flags.h
+@@ -549,8 +549,6 @@ PAGEFLAG(LRU, lru, PF_HEAD) __CLEARPAGEF
+ FOLIO_FLAG(active, FOLIO_HEAD_PAGE)
+ 	__FOLIO_CLEAR_FLAG(active, FOLIO_HEAD_PAGE)
+ 	FOLIO_TEST_CLEAR_FLAG(active, FOLIO_HEAD_PAGE)
+-PAGEFLAG(Workingset, workingset, PF_HEAD)
+-	TESTCLEARFLAG(Workingset, workingset, PF_HEAD)
+ PAGEFLAG(Checked, checked, PF_NO_COMPOUND)	   /* Used by some filesystems */
+ 
+ /* Xen */
+--- a/mm/filemap.c~mm-mglru-make-pg_workingset-helpers-work-based-on-folio-lru-refs
++++ a/mm/filemap.c
+@@ -21,6 +21,7 @@
+ #include <linux/gfp.h>
+ #include <linux/mm.h>
+ #include <linux/swap.h>
++#include <linux/mm_inline.h>
+ #include <linux/leafops.h>
+ #include <linux/syscalls.h>
+ #include <linux/mman.h>
+--- a/mm/madvise.c~mm-mglru-make-pg_workingset-helpers-work-based-on-folio-lru-refs
++++ a/mm/madvise.c
+@@ -378,7 +378,7 @@ static void madvise_cold_prep_folio(stru
+ 	if (!lru_gen_enabled()) {
+ 		folio_clear_lru_refs(folio);
+ 		if (folio_test_active(folio))
+-			folio_set_workingset(folio);
++			folio_set_lru_refs(folio, LRU_REFS_WORKINGSET);
+ 	}
+ }
+ 
+--- a/mm/page_io.c~mm-mglru-make-pg_workingset-helpers-work-based-on-folio-lru-refs
++++ a/mm/page_io.c
+@@ -16,6 +16,7 @@
+ #include <linux/gfp.h>
+ #include <linux/pagemap.h>
+ #include <linux/swap.h>
++#include <linux/mm_inline.h>
+ #include <linux/bio.h>
+ #include <linux/swapops.h>
+ #include <linux/writeback.h>
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
