@@ -1,50 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795415087;
-	b=K/NxM/j2x0JvNVCdY3aIeSa3pcihO81Iz+DN4hzmVeADyQV9el6F+WHyvumS83oWT9rE
-	 qU4DcMoVw84wzUwZG6fjwW2HB8V/gfmotFxy+L126gvHESE7bJyuVMlYh+apaEs/n8JAU
-	 /u5TuiPROH/6Drplu7vEiIaj5RaLKz6tfrqGjjNRrHhCtFrSVrLSHKJwDTLN+wOnLi/yi
-	 /ZaQD85iJv7XHRr4/A4Hh/ie4GBO28utGjXlTAqiNNxIhW5bUr9teGoHSperhis1gzq3p
-	 AuhWLGgHAwNC+dkqv+AFOlbrEkrgaBUCWdW92NzPBrk1JNZnMcKVmofRkKjPqUkX27Q==
+	t=1795415088;
+	b=uPykOTAsJXWJniYx59OXSm7VeNTaotcYu/ENzQINdkEB2TBzIpOZLc9uc2YNf0L+XkXW
+	 +7yf0VkeBcUno7KtfIq+rpAloqe2vPAa6BK3CMl/MCKiFuRuZJGb+g7L9/z02ZXjoVqx5
+	 8ApCgNjCllcWL2qmLJhAWf8qdHM0qNSa9yiJz4ORjhzrwfF2kpkaj0SvhC8Quy26s07Mx
+	 C4pZEpKkDhXLaA9FIDFyX8f/CnXyU+mjXIC/kVX7EZwjf6M98pls6SdrJq1wQBFC2qjHb
+	 rBCTLy1EESSlf4SJJC0xCoqIY5OYi+Zlq1wqKdxUvz7N8vKkkxN8HpgmPNptiSy3WIA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795415087;
-	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
-	 Message-Id;
-	bh=v2CappKqoYhJFHQ/D3OMVQHBKbFlGrWQrj/zg4N/UPE=;
-	b=LUlhUiVp/+CwCXJCnVriKuXgtpaDjQHmDPpec/01e0FNXI9DwTWWVHvDf3wxQHsSRYCK
-	 BzDOrlrcR9SZL3SKYi+NDqCUCTati+CIOB5rr0YJO4auAVLiHsyjmazGG0Pom6YI64UmY
-	 8oS1l4gqUVslnZtso69W3NyksUiyXNCjvuK8kcMO1Qv6jkTYiViCz5AECi4bP4KTnq19W
-	 AQiZ/UsbgcN23aEFwep9Tbl7k+eE31mGMKePBNSOBa6Hx0QTXIZEaf6yXWMRqacuE64GM
-	 reQf1yoTAwq0igX20r7PAspdauvNQbMyqHvxLMtx5o8WBMXrGRqfTc5C+LpZ3vam7Zg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795415088;
+	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
+	bh=y8IB1pTKi0tLVTsh2PEh2MZHFVxrUg0Y4YWklANPYKc=;
+	b=GK0b6G6IglVmyv/kDvnPE6aSZKwiI2bCoekqhp9Epbv71pZBS4rSK/RCJWLjpIsNdgR4
+	 iy2NqhuJZYOOdyOOu9D+VLfPrfgVjcWb/Luf8zX8UMqvBykDqeE7FH+KUgrHWozEnNPYC
+	 8lAI4GXamgM3GbTYUhrjlm8Di1NNAlQHhEVqrFn6KYJSroKB4vmUI8nUPOoQZMbVDZn9K
+	 30x/t9m2VxnxAI9k/903zBINa15vTuTwy3paRVsjl9yaWBcHUAf+ZWEYGAdb/hqQXQqEc
+	 F5Jl53t07ZL2A4wunsJsgZzdtIr2M0RQONiCXIyaP26XajrWdQo/KtwksIeukmJMaOg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=A96R67ZI;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=FE4If5iH;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 308B4606A31E;
-	Mon, 23 Nov 2026 06:24:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEEE0606A31E;
+	Mon, 23 Nov 2026 06:24:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=A96R67ZI
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 310EB1F000C0;
-	Mon, 23 Nov 2026 06:24:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=FE4If5iH
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C4951F000CA;
+	Mon, 23 Nov 2026 06:24:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795415086;
-	bh=v2CappKqoYhJFHQ/D3OMVQHBKbFlGrWQrj/zg4N/UPE=;
-	h=Date:To:From:In-Reply-To:References:Subject;
-	b=A96R67ZIjp7nXkoqgbpXNtw5X+atz2Am2gu0T6BOSvwK8pHt8WWtfWhKtxP1JDban
-	 h7ostRg2nh8EIGUJaXYnWFf5xDg+nRUrnuwVFtw44TQfEPMaHsB2yVr3TWckxHbqmU
-	 wSTeTLjnQSDg+IIRpWAgxcH6oMXdm0pTLArdBJ6Y=
-Date: Sun, 22 Nov 2026 22:24:45 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,
-	pfalcato@suse.de,kas@kernel.org,jack@suse.cz,dave.hansen@linux.intel.com,
-	dennylin0707@gmail.com,akpm@linux-foundation.org
+	d=linux-foundation.org; s=korg; t=1795415088;
+	bh=y8IB1pTKi0tLVTsh2PEh2MZHFVxrUg0Y4YWklANPYKc=;
+	h=Date:To:From:Subject;
+	b=FE4If5iHj38SmL8da9KGMbMTXWScgHI67U2aqpVCFKKOREHYCuI0b4qFGtarl/sae
+	 frVaDlxwwpasY0l36926wNrq5EIvxiDIZNI3QyKAHRUVVES4eXeLaSqRczjZJJxh3Y
+	 xMGI4EI0/6V+M4HJdONQzHsgIPcBRzYFGM27VDkg=
+Date: Sun, 22 Nov 2026 22:24:47 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,nphamcs@gmail.com,
+	kasong@tencent.com,alex@ghiti.fr,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261104071002.49693-1-dennylin0707@gmail.com>
-References: <20261104071002.49693-1-dennylin0707@gmail.com>
-Subject: [merged mm-hotfixes-stable] filemap-prefault-writes-starting-beyond-eof.patch removed from -mm tree
-Message-Id: <20261123062446.310EB1F000C0@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-swap-only-prefer-nonfull-clusters-on-synchronous-devices.patch removed from -mm tree
+Message-Id: <20261123062448.1C4951F000CA@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,76 +52,115 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: filemap: prefault writes starting beyond EOF
+     Subject: mm, swap: only prefer nonfull clusters on synchronous devices
 has been removed from the -mm tree.  Its filename was
-     filemap-prefault-writes-starting-beyond-eof.patch
+     mm-swap-only-prefer-nonfull-clusters-on-synchronous-devices.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hungyu Lin <dennylin0707@gmail.com>
-Subject: filemap: prefault writes starting beyond EOF
-Date: Wed, 04 Nov 2026 07:10:02 +0000
+From: Alexandre Ghiti <alex@ghiti.fr>
+Subject: mm, swap: only prefer nonfull clusters on synchronous devices
+Date: Mon, 09 Nov 2026 15:18:32 -0800
 
-Since prefaulting moved to the slow write path, a buffered write can reach
-->write_begin() and ->write_end() before discovering that its source
-buffer is unreadable.  Several filesystems can extend i_size in these
-callbacks even when no data was copied.  For example, a one-byte pwrite()
-at offset 4096 into an empty file can fail with EFAULT but leave a
-4096-byte file.
+Commit 9a42aed48421 ("mm, swap: prefer nonfull over free clusters") made
+the allocator fill nonfull clusters before taking free ones on swap
+devices without discard.  Commit 3cedb745d354 ("mm: clarify the
+folio_free_swap() for do_swap_page()") frees the swap slot on an exclusive
+write fault.  Such faults now leave holes in formerly full clusters,
+putting those clusters back on the nonfull list.  Reclaim allocates slots
+one folio at a time, scattering a batch across the holes instead of
+producing mergeable writes.  Later swapin can also require more read
+requests.
 
-Prefault the source before ->write_begin() when the write position is
-beyond EOF, and return EFAULT if no source bytes can be made readable. 
-Overwrites and appends continue to skip this prefault.  Keep the existing
-slow-path faulting for forward progress after a failed atomic copy.
+On a mysql/sysbench workload in a 256 MiB memcg swapping to an NVMe
+partition, 7.3 compared with the previous version produced 59% more device
+read requests and 27% more write requests per transaction.  Throughput was
+unchanged without iocost and fell 19% with iocost.
 
-This also leaves intentional zero-length ->write_end() calls used by
-generic_cont_expand_simple() unchanged.  As with the previous prefaulting
-behavior, a concurrent userspace unmap can still race with the later copy.
+Prefer free clusters first on nonsynchronous devices, preserving
+contiguous swap slots for merging I/O.  Keep nonfull-first on synchronous
+devices such as zram: they do not merge I/O, and filling holes saves free
+clusters for large folios.  Keep free-cluster preference on discard
+devices to spread writes.
 
-Link: https://patch.msgid.link/20261104071002.49693-1-dennylin0707@gmail.com
-Fixes: 665575cff098 ("filemap: move prefaulting out of hot write path")
-Signed-off-by: Hungyu Lin <dennylin0707@gmail.com>
+In the same workload, v2 reduced read requests per transaction by 14% and
+write requests by 48% against its base kernel.  Throughput was unchanged
+without iocost and improved 33% with iocost.  The RFC's batch-aware
+allocator also improved this workload, but this policy needs no batch
+information from reclaim.  Reverting the slot-freeing change would keep
+swap space pinned under dirty pages; a proposed 50% swap-usage cutoff for
+free-cluster preference was arbitrary and would stop helping as swap
+filled.
+
+The 7.0 to 7.2 kernels retained the swap slot after a write fault as a
+side effect of 4b34f1d82c65 ("mm, swap: free the swap cache after folio is
+mapped").  The observed regression requires both 9a42aed48421 and
+3cedb745d354; stable backports should target trees containing both.
+
+Link: https://lore.kernel.org/r/20261105155032.240457-1-alex@ghiti.fr
+Link: https://lore.kernel.org/r/20261105155032.240457-2-alex@ghiti.fr
+Link: https://lore.kernel.org/r/20261022145615.2184343-1-alex@ghiti.fr
+Link: https://lore.kernel.org/r/CAMgjq7BFbXEKEt9faj_rg5AStfLkpJ0j57EQOOJ+L3-w2xRvtg@mail.gmail.com
+Fixes: 9a42aed48421 ("mm, swap: prefer nonfull over free clusters")
+Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Kiryl Shutsemau <kas@kernel.org>
-Link: https://lore.kernel.org/all/at-XtWBQg3jv3H8Z@thinkstation/
-Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
+Suggested-by: Kairui Song <kasong@tencent.com>
+Acked-by: Kairui Song <kasong@tencent.com>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
 Cc: <stable@vger.kernel.org>
 
- mm/filemap.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ mm/swapfile.c |   19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
---- a/mm/filemap.c~filemap-prefault-writes-starting-beyond-eof
-+++ a/mm/filemap.c
-@@ -4404,6 +4404,16 @@ retry:
- 			break;
- 		}
+--- a/mm/swapfile.c~mm-swap-only-prefer-nonfull-clusters-on-synchronous-devices
++++ a/mm/swapfile.c
+@@ -973,6 +973,17 @@ static bool __swap_cluster_alloc_entries
+ 	return true;
+ }
  
-+		/*
-+		 * Some filesystems can extend i_size even when nothing was copied.
-+		 * Prefault writes beyond EOF to catch unreadable source buffers.
-+		 */
-+		if (unlikely(pos > i_size_read(mapping->host)) &&
-+		    fault_in_iov_iter_readable(i, bytes) == bytes) {
-+			status = -EFAULT;
-+			break;
-+		}
++/*
++ * Prefer a new cluster over a nonfull one if the device needs discard, to
++ * spread out the writes, or if it is not synchronous, to keep the slots
++ * of a swapout batch contiguous so that its writes can be merged.
++ */
++static bool swap_prefer_free_cluster(struct swap_info_struct *si)
++{
++	return (si->flags & SWP_PAGE_DISCARD) ||
++	       !(si->flags & SWP_SYNCHRONOUS_IO);
++}
 +
- 		status = a_ops->write_begin(iocb, mapping, pos, bytes,
- 						&folio, &fsdata);
- 		if (unlikely(status < 0))
+ /* Try use a new cluster for current CPU and allocate from it. */
+ static unsigned int alloc_swap_scan_cluster(struct swap_info_struct *si,
+ 					    struct swap_cluster_info *ci,
+@@ -1143,11 +1154,7 @@ static unsigned long cluster_alloc_swap_
+ 	}
+ 
+ new_cluster:
+-	/*
+-	 * If the device need discard, prefer new cluster over nonfull
+-	 * to spread out the writes.
+-	 */
+-	if (si->flags & SWP_PAGE_DISCARD) {
++	if (swap_prefer_free_cluster(si)) {
+ 		found = alloc_swap_scan_list(si, &si->free_clusters, folio, false);
+ 		if (found)
+ 			goto done;
+@@ -1159,7 +1166,7 @@ new_cluster:
+ 			goto done;
+ 	}
+ 
+-	if (!(si->flags & SWP_PAGE_DISCARD)) {
++	if (!swap_prefer_free_cluster(si)) {
+ 		found = alloc_swap_scan_list(si, &si->free_clusters, folio, false);
+ 		if (found)
+ 			goto done;
 _
 
-Patches currently in -mm which might be from dennylin0707@gmail.com are
+Patches currently in -mm which might be from alex@ghiti.fr are
 
-mm-page-writeback-avoid-overflow-when-reporting-bdi-byte-limits.patch
-mm-skip-empty-finite-ranges-in-truncate_pagecache_range.patch
-hugetlbfs-report-inode-limits-without-a-memory-subpool.patch
-delayacct-preserve-delay-extrema-when-aggregating-taskstats.patch
-shmem-clamp-negative-used-block-samples-in-statfs.patch
+mm-zswap-batch-the-writeback-io-of-consecutive-entries.patch
+mm-zswap-plug-the-writeback-io-of-an-lru-walk.patch
+mm-bypass-swap-readahead-for-zswap.patch
 
