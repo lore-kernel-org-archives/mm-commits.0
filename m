@@ -1,61 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795415130;
-	b=VhJPDSK6JF+c0956eRZ3L/jPGVHJPLpiMIljw85nRajr0izKFJDzy+RZxPV3JiZHqZ5h
-	 WcndfoXSRnwbhaJHokz6mc7J/yVtufVgrxLMmHBz4LzghFR0JzV+7XfemNfLvgXQ/2+9V
-	 AQpFFsWibXr/chV6V0QshOmp69HQJLnpEgUTgRfMmZqCaPtenbuoHIoxsaEYyZBJVcg7/
-	 KjEfhZuC+z8H7xDGgP8Yy9bLZKsrOrz8b8gQmB8RwnCeS08/9Ry3ZRxA0P/fGyJ6kxyvq
-	 QOWeB7wAms2Z2mNqRcNb+QzFV6ka1aIqa3/0dbCra7HmpneKFs/88l7dWU+N2PCIP8w==
+	t=1795415132;
+	b=5I4/P60CcDkH3bMz5Pwg4zSF+a9LIBF2Tq1Bu2WgLsl+e+cUtjaDCYxG41TtQ5TOC9kM
+	 esRDxyJmCCBmS9i6FnOE0d3VJzytbnpgAWM0CcVNLIvee74iN15MyRFHxdecQyyxFEv8w
+	 3+4Pgn+V53mhCcjp5UgTy0rr4LutsrT5BX1uDO0fJaMtBDQliTGk6Ov3Z8f+RNO6dA+Qa
+	 r8fcGFP9MqtRwj/KOAXr5KVcMpUWXXZrXFUIwg7yOzFQfSk0SmrGUVxN0vPVteVPHHNEP
+	 ccTZPuAy/SdVUEqH09R/fuZ7Lmcr+Ix9NEgUL4F2pTBpYL0AsgPpuPC0J+etloHzSew==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795415130;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795415132;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=ClWk66tS4/FKTayE6p2EFTJ26i1zYGM/BOZEtay9yKg=;
-	b=sQ5TPlMas4aXgZlyDdieYPa9JA5VlWaMgxUjHrc4YEfP8SHbHSodpvM4zLnaWNSmwwx8
-	 5lD615HAasYjk4rIHYR7YZAblGAloDfyTQh/7EyxfUII+Le3uUjHm90QIAWhRxJEOEv1W
-	 uKT+mqx036c+7ezdojOswDipHlXSp9+YAYptszXfht96/QqyIBDZ5P428MLCa/P7gkgKj
-	 Px6kN3sTQ9qZ4ftmYvvzXxxeKKObrzIKIMQp8OMA/ykyLKUSmAaw9x+Ur6I+KevyGhdIb
-	 8paEtFjvbqcAef4kn8XHzbf+LwhtMZrr24RpGSRV67fHfjLw0ehDfHCYkJGG3Dcb/PQ==
+	bh=rdf0zAHKQ6uu8bvgyFB5K8RILiYuHoNOtHIPwH9VCZI=;
+	b=4JMvWZ3WagseYEppGxa/bNIlBcAJgT85DxlDAU2FCTbp4o/6Gt+F7ZHX5k+9e38Hdxz+
+	 0XbOht7iaGJeoEiFMIbXRsv6dWhj4POmrVgFiykBLgqr9hM7pVCf+R/xWz5W4784d2g6y
+	 LOcwtLDPgXEnF+0VgQqgJ0Xbx/tQJJNvzmUd3qvCba/VBaC2umTAgbPUnRqsFq50OCj/8
+	 PUBU7Jix9NInz65B7a5BnXwIx20u+D/tC4haimFKMU3kS2C2LvdPWZWcl4CpYxVgEP39P
+	 fFpE6g0+tYy+0SIohrR9c2yipN8cy/dlCGc+ZYo6mhco7zrHh8yzrBSK/cWaUbvGEfQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=eLmnMnhZ;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=XFFZZytH;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2D04606A32C;
-	Mon, 23 Nov 2026 06:25:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8242D606A321;
+	Mon, 23 Nov 2026 06:25:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=eLmnMnhZ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5730B1F000C0;
-	Mon, 23 Nov 2026 06:25:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=XFFZZytH
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 263021F000C6;
+	Mon, 23 Nov 2026 06:25:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795415130;
-	bh=ClWk66tS4/FKTayE6p2EFTJ26i1zYGM/BOZEtay9yKg=;
+	d=linux-foundation.org; s=korg; t=1795415132;
+	bh=rdf0zAHKQ6uu8bvgyFB5K8RILiYuHoNOtHIPwH9VCZI=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=eLmnMnhZYw6KnGI6oTAfxVUhOSUrx9qofSwU4Q3JOq6PMyIBHhQi5ioUvo5TYYwJq
-	 dBT1oHDnonFrj+BdwGkzQq8VGzYHYH5khnjgEQn/eK1YghA0x4oO4fZQ5wfTr670Pv
-	 7ywEj3w4TvSeb72H56tTqmQdJ7U6t+yP6TTYk0UQ=
-Date: Sun, 22 Nov 2026 22:25:29 -0800
-To: mm-commits@vger.kernel.org,will@kernel.org,vivek.kasireddy@intel.com,
-	vbabka@kernel.org,svens@linux.ibm.com,surenb@google.com,
-	stable@vger.kernel.org,skhan@linuxfoundation.org,rppt@kernel.org,
-	riel@surriel.com,rdunlap@infradead.org,peterz@infradead.org,
-	peterx@redhat.com,osalvador@suse.de,osalvador@kernel.org,npiggin@gmail.com,
-	nao.horiguchi@gmail.com,muchun.song@linux.dev,mhocko@suse.com,
-	mgorman@suse.de,mason@kernel.org,luojiajun3@huawei.com,ljs@kernel.org,
-	linmiaohe@huawei.com,liam@infradead.org,leitao@debian.org,kraxel@redhat.com,
-	jgg@ziepe.ca,hughd@google.com,hca@linux.ibm.com,gourry@gourry.net,
-	gor@linux.ibm.com,david@kernel.org,corbet@lwn.net,borntraeger@linux.ibm.com,
-	baolin.wang@linux.alibaba.com,arnd@arndb.de,apw@canonical.com,
-	aneesh.kumar@kernel.org,airlied@redhat.com,agordeev@linux.ibm.com,
-	ackerleytng@google.com,4ncienth@gmail.com,josef@toxicpanda.com,
-	akpm@linux-foundation.org
+	b=XFFZZytHWybp3mynQSJ6wT3ECqJ0Q4BWZAzipyHK7+KrjLGlFgbYVRGI6ax3N31Fv
+	 G1q8YYqUyhm7WwXVqmfWPgjJ/ExnDF3B4VDsuKvMobruYOxRNUa6tfurLQgHUcSdPW
+	 gwLPX6g15QEvGRRI/HP9fXBmA4hdzJdoPlxrtBgY=
+Date: Sun, 22 Nov 2026 22:25:31 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,vbabka@kernel.org,
+	surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,mhocko@suse.com,
+	ljs@kernel.org,liam@infradead.org,kasong@tencent.com,david@kernel.org,
+	baohua@kernel.org,zhuhui@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261116-fixes_hugetlb-v2-7-4dd9e94ea9ac@kernel.org>
-References: <20261116-fixes_hugetlb-v2-7-4dd9e94ea9ac@kernel.org>
-Subject: [merged mm-hotfixes-stable] hugetlbfs-fix-unmapping-folios-from-private-vmas.patch removed from -mm tree
-Message-Id: <20261123062530.5730B1F000C0@smtp.kernel.org>
+In-Reply-To: <20261109021611.22247-1-hui.zhu@linux.dev>
+References: <20261109021611.22247-1-hui.zhu@linux.dev>
+Subject: [merged mm-hotfixes-stable] mm-mglru-fix-a-no-op-lru_gen_clear_refs-call-in-lru_lazyfree.patch removed from -mm tree
+Message-Id: <20261123062532.263021F000C6@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -67,113 +57,84 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: hugetlbfs: fix unmapping folios from private VMAs
+     Subject: mm/mglru: fix a no-op lru_gen_clear_refs() call in lru_lazyfree()
 has been removed from the -mm tree.  Its filename was
-     hugetlbfs-fix-unmapping-folios-from-private-vmas.patch
+     mm-mglru-fix-a-no-op-lru_gen_clear_refs-call-in-lru_lazyfree.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Josef Bacik <josef@toxicpanda.com>
-Subject: hugetlbfs: fix unmapping folios from private VMAs
-Date: Mon, 16 Nov 2026 19:29:28 +0100
+From: Hui Zhu <zhuhui@kylinos.cn>
+Subject: mm/mglru: fix a no-op lru_gen_clear_refs() call in lru_lazyfree()
+Date: Mon,  9 Nov 2026 10:16:11 +0800
 
-hugetlb_unmap_file_folio() assumes vm_private_data points to a struct
-hugetlb_vma_lock when hugetlb_vma_trylock_write() fails. Since hugetlb VMA
-locking was extended to private VMAs, this can also happen when
-vm_private_data contains a resv_map pointer; treating it as a
-hugetlb_vma_lock corrupts memory and can cause crashes or hangs.
+lru_lazyfree() calls lru_gen_clear_refs() after lruvec_del_folio(), but
+lru_gen_del_folio() has already cleared LRU_GEN_MASK, so folio_lru_gen()
+returns -1 and lru_gen_clear_refs() exits at its "gen < 0" check without
+clearing the refs or PG_workingset.
 
-Only take the VMA lock when a shareable lock exists, as additional locking
-is only needed for PMD table sharing. The fault mutex and i_mmap_rwsem
-already provide the required protection for private VMAs.
+A MADV_FREE folio therefore keeps the state it had before madvise(2),
+even though madvise_free_pte_range() has already cleared the accessed and
+dirty bits of its PTEs.  lru_gen_folio_seq() places it one generation
+younger, and PG_workingset puts it in the last tier, so sort_folio()
+promotes and protects it instead of evicting it and charges it to
+lrugen->protected[], which read_ctrl_pos() uses to balance anon against
+file reclaim.  __folio_inc_gen() clears the refs but not PG_workingset,
+so this repeats every time the folio reaches the oldest generation.  If
+the folio is redirtied first, ttu_anon_lazyfree_folio() keeps it and
+lru_gen_eviction() packs the stale state into the shadow entry, so a
+later refault is promoted to the youngest generation.
 
-Fix generated by an LLM and sent by Josef Bacik in private.
+Call lru_gen_clear_refs() while the folio is still on the generation
+list, as deactivate_file_folio() and folio_deactivate() already do.  Its
+return value only says whether the folio is in the oldest generation,
+which lru_lazyfree() does not need because it re-adds the folio below.
+Keep folio_clear_referenced() unconditional: the classic LRU needs it,
+and it also covers the folios that lru_gen_clear_refs() skips.
 
-[david@kernel.org: simplify description and comment]
-Link: https://patch.msgid.link/20261116-fixes_hugetlb-v2-7-4dd9e94ea9ac@kernel.org
-Fixes: bf4916922c60 ("hugetlbfs: extend hugetlb_vma_lock to private VMAs")
-Signed-off-by: Josef Bacik <josef@toxicpanda.com>
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
+Link: https://patch.msgid.link/20261109021611.22247-1-hui.zhu@linux.dev
+Fixes: cc8ec7be78ff ("mm/mglru: optimize deactivation")
+Signed-off-by: Hui Zhu <zhuhui@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Tested-by: Daehyeon Ko <4ncienth@gmail.com>
-  Link: https://lore.kernel.org/20261116-fixes_hugetlb-v2-7-4dd9e94ea9ac@kernel.org
-Acked-by: Muchun Song <muchun.song@linux.dev>
-Tested-by: Gregory Price (Meta) <gourry@gourry.net>
-  Link: https://lore.kernel.org/179490430300.482102.17633361840450824485.b4-reply@b4
-Acked-by: Oscar Salvador (SUSE) <osalvador@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Vivek Kasireddy <vivek.kasireddy@intel.com>
-Cc: Dave Airlie <airlied@redhat.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Suggested-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Liam R. Howlett (Google) <liam@infradead.org>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Breno Leitao <leitao@debian.org>
-Cc: Will Deacon <will@kernel.org>
-Cc: Aneesh Kumar K.V <aneesh.kumar@kernel.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Gerd Hoffmann <kraxel@redhat.com>
-Cc: Chris Mason <mason@kernel.org>
-Cc: luojiajun <luojiajun3@huawei.com>
-Cc: Ackerley Tng <ackerleytng@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Kairui Song <kasong@tencent.com>
 Cc: <stable@vger.kernel.org>
 
- fs/hugetlbfs/inode.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ mm/folio.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlbfs-fix-unmapping-folios-from-private-vmas
-+++ a/fs/hugetlbfs/inode.c
-@@ -401,6 +401,16 @@ retry:
- 		if (!hugetlb_vma_maps_pfn(vma, v_start, pfn))
- 			continue;
+--- a/mm/folio.c~mm-mglru-fix-a-no-op-lru_gen_clear_refs-call-in-lru_lazyfree
++++ a/mm/folio.c
+@@ -623,12 +623,10 @@ static void lru_lazyfree(struct lruvec *
+ 	    folio_test_swapcache(folio) || folio_test_unevictable(folio))
+ 		return;
  
-+		/*
-+		 * We only need additional VMA locking here for PMD table
-+		 * sharing, which synchronizes on the shareable lock.
-+		 */
-+		if (!__vma_shareable_lock(vma)) {
-+			unmap_hugepage_range(vma, v_start, v_end, NULL,
-+					     ZAP_FLAG_DROP_MARKER);
-+			continue;
-+		}
-+
- 		if (!hugetlb_vma_trylock_write(vma)) {
- 			vma_lock = vma->vm_private_data;
- 			/*
++	lru_gen_clear_refs(folio);
+ 	lruvec_del_folio(lruvec, folio);
+ 	folio_clear_active(folio);
+-	if (lru_gen_enabled())
+-		lru_gen_clear_refs(folio);
+-	else
+-		folio_clear_referenced(folio);
++	folio_clear_referenced(folio);
+ 	/*
+ 	 * Lazyfree folios are clean anonymous folios.  They have
+ 	 * the swapbacked flag cleared, to distinguish them from normal
 _
 
-Patches currently in -mm which might be from josef@toxicpanda.com are
+Patches currently in -mm which might be from zhuhui@kylinos.cn are
 
-mm-zswap-drop-the-stale-zswap-entry-of-a-zero-folio.patch
-mm-swap-account-synchronous-swap-reads-as-memory-stall.patch
-mm-mremap-fix-hugetlb-reservation-leak-on-partial-move.patch
-selftests-mm-test-a-partial-mremap-of-hugetlb-memory.patch
-mm-mremap-reaccount-on-unmap-failure-only-if-accounted.patch
-mm-mremap-restore-vma_account_bit-if-the-unmap-fails.patch
-selftests-mm-test-mremap-with-an-old-size-of-0.patch
-zram-lz4-lz4hc-accept-dictionaries-of-more-than-64-kib.patch
-mm-hugetlb-keep-surplus-folios-when-the-pool-shrinks.patch
+mm-vmstat-annotate-data-race-in-zone_page_state_snapshot.patch
+mm-compaction-annotate-data-race-for-zone-free_areanr_free.patch
+mm-mglru-use-a-smaller-batch-in-fill-drain_evictable.patch
 
