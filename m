@@ -1,42 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795403070;
-	b=ibvVd3jLz/Dh2VeeDEapXvNaTySyBiDmP4lvIFC5A2wF691sapY1RMQYFA2ruEkXf9ub
-	 XFIYn1cBrQA7U9mpUwpgYk47iEhVlslIywfa7SrM6w5sfaVtAl6DEMaJ8d5rjp1nU+N3v
-	 4RpO8rUsX0yWLtekdSf/Uz7I2HsQ4ixcTnuq+y8R/Jv4u3351oFGRgut3utqdddkkfNrC
-	 KL4JhUUz8oiHYRUzNHvHqlQAuJmhJ6T6J/+06ajqNNIDZFHcuPXUK5LJzFL0ggtHUwAYR
-	 WbeQra5qL0sehsBBCG0QwO0/0my9utgZYOnlNgGLVv1xzNye7OolpNoZcNoj29+ZdKw==
+	t=1795403074;
+	b=MVICfuPqv/iMlUEg/bqQir2oXkwjktrWuqRM7OamMvubQacsbvvX6GczlHScRdteVvGh
+	 fjwa70Dclvc25plP1wXhxSS3x11AbYs6VRajIONXck5v0XPLUhCdaT3AmwAVTxBvPhNc2
+	 M2yJYH509Co1XuljzUESYR4dlV3UaaK30avuQFa7193RBnCBMc+zFfHikGVxVa2qFZ2kA
+	 NaWaDwRcPdHYPzIlEZK7ugWB2FvKGW9krX/gfJYQ1gJtxOiWB9BDYv026brRc4qyascZZ
+	 AAjn6bCe8b/jmt0ySDYhEDfY8vPAhtpR20P7rqp8MUVGrrsOF2+G91u/8e+Tu4SPcFQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795403070;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795403074;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=YRDl6TR4TIYdqbvcfdGfasa314v9bpIsOPryaoAZLNQ=;
-	b=aE9gRIKWkaAvJs+UksOpc1zdXPBBlKqpghaIKkpYJ+tLje8IFyrB2JQvjFQEu+WMdT0l
-	 ewS7JkEYKoN2vuTZH32hrDsiBhduZ5HiCy8p/s0h9RO+fA/Nbgb6R10Xg85SZt7gwRSpK
-	 qJOSlbNt0xWWhxxFMHvfWJNYuBdPvdJSBlfrxqpikp9gU3QJm/xUVYebpsgwPGlj9YeY2
-	 Xa6qoZOeKZkAXQwK641T2rKuhl/mfCiuLaNnrdsFvL2W7vkt37Iksq+TaadFlOQTUSXQ/
-	 nQUY2Uoivdk64kqxlAPijgwztxi0XQft80oyQVRXVU+yGQnJMoBEXmJ70vAnWRuf99A==
+	bh=rcOSuwXrbf+F2uCaa1NfrKKOgZIkAbiNMtFP84mQxGQ=;
+	b=UG3XOHiVgBgrWKiOh/I8/SspOyxkeTLUc+nwQlslvxXTgACzdJfdMVRkTL5x0jqoVFN5
+	 hfGA/DZXfQMDN2KFOpzQaVQPe09wKawvsJOkOxIg4V12AXSlojAXK2wkEj0t45FvkzmqD
+	 Vbp0SKqviePjVZ69i0R0rM/viYVLD3mu+rYSqkiH6KpWBdiwGAb/TUyNCXaD07aMqSAec
+	 Rp6t3y+/zOkpY3rn73L38wLvsazbaP7sVqNlYwizF/7Al2+nD5a8o4kGFymRJcRKMD1Fm
+	 UX0LrZ9/riO4prVr9SyVQHEKkKmMsI09wPSu4bLkNze3vm4JeeGnqSLtPMZRr2z6e5w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WIiCG4KM;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tQsewlCg;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90EC7606A327
-	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 03:04:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CD12606A31A
+	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 03:04:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WIiCG4KM
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 451581F000C0;
-	Mon, 23 Nov 2026 03:04:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tQsewlCg
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93FC71F000C0;
+	Mon, 23 Nov 2026 03:04:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795403070;
-	bh=YRDl6TR4TIYdqbvcfdGfasa314v9bpIsOPryaoAZLNQ=;
+	d=linux-foundation.org; s=korg; t=1795403073;
+	bh=rcOSuwXrbf+F2uCaa1NfrKKOgZIkAbiNMtFP84mQxGQ=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=WIiCG4KMSPu7Ui2F+scsQs5+WgihiHxpsGsjG9wMb7qPs7i/Odn+x6wwsU63isGh7
-	 CvIgLpum/00PEmLTZIZJ6lZcmXAgHt51LK3lOfQ7u6H4iqpcY7YiPLc8EYu/dClMcc
-	 OrUpqZSMyhaLTTO0voGfqQ+aZ3SHmmWo+m3AqC+M=
-Date: Sun, 22 Nov 2026 19:04:29 -0800
+	b=tQsewlCgZqCP3DRGAELV57JOlzUZ1y87AV4Hd8BkRBtSMbfSqKHyQM4RW/19zmh4Y
+	 t5YT4cGwaehnbfUnURbEHRWFim9WsqAWNidMvVCMbtQ7yhKGRjG3KLgv3vzmTU/Hlz
+	 7R40+nEbmy6X1rO07NE7ojNjfPLn890CUsA2dY4Q=
+Date: Sun, 22 Nov 2026 19:04:33 -0800
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
 	rppt@kernel.org,qi.zheng@linux.dev,osalvador@suse.de,mhocko@suse.com,
 	ljs@kernel.org,lizhe.67@bytedance.com,liam@infradead.org,
@@ -44,10 +44,10 @@ To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
 	balbirs@nvidia.com,apopple@nvidia.com,songmuchun@bytedance.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261120100856.16929-11-songmuchun@bytedance.com>
-References: <20261120100856.16929-11-songmuchun@bytedance.com>
-Subject: + mm-cma-localize-init_cma_pageblock-to-cmac.patch added to mm-new branch
-Message-Id: <20261123030430.451581F000C0@smtp.kernel.org>
+In-Reply-To: <20261120100856.16929-12-songmuchun@bytedance.com>
+References: <20261120100856.16929-12-songmuchun@bytedance.com>
+Subject: + mm-mm_init-move-pageblock-migratetype-init-to-memmap-helpers.patch added to mm-new branch
+Message-Id: <20261123030433.93FC71F000C0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -59,12 +59,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/cma: localize init_cma_pageblock() to cma.c
+     Subject: mm/mm_init: move pageblock migratetype init to memmap helpers
 has been added to the -mm mm-new branch.  Its filename is
-     mm-cma-localize-init_cma_pageblock-to-cmac.patch
+     mm-mm_init-move-pageblock-migratetype-init-to-memmap-helpers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-localize-init_cma_pageblock-to-cmac.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_init-move-pageblock-migratetype-init-to-memmap-helpers.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -94,15 +94,23 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/cma: localize init_cma_pageblock() to cma.c
-Date: Fri, 20 Nov 2026 18:08:55 +0800
+Subject: mm/mm_init: move pageblock migratetype init to memmap helpers
+Date: Fri, 20 Nov 2026 18:08:56 +0800
 
-Move init_cma_pageblock() from mm_init.c into cma.c so it lives
-alongside the CMA code that uses it.
+ZONE_DEVICE memmap initialization already initializes pageblock
+migratetype after all struct pages have been initialized, while hugetlb
+bootmem folios have their own duplicate bootmem-specific initialization.
 
-No functional change intended.
+Move the MIGRATE_MOVABLE pageblock initialization into the frozen memmap
+initialization helpers instead, so the ZONE_DEVICE and hugetlb bootmem
+paths can share the same initialization.
 
-Link: https://patch.msgid.link/20261120100856.16929-11-songmuchun@bytedance.com
+The old hugetlb_bootmem_init_migratetype() skipped CMA folios via
+folio_test_hugetlb_cma(), but the shared helper always initializes
+pageblocks as MIGRATE_MOVABLE. This is safe because cma_activate_area()
+later overrides the migratetype for CMA pageblocks.
+
+Link: https://patch.msgid.link/20261120100856.16929-12-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
@@ -120,70 +128,87 @@ Cc: James Houghton <jthoughton@google.com>
 Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Qi Zheng <qi.zheng@linux.dev>
 
- mm/cma.c     |    8 ++++++++
- mm/mm_init.c |    9 ---------
- mm/mm_init.h |    8 --------
- 3 files changed, 8 insertions(+), 17 deletions(-)
+ mm/hugetlb.c |   25 -------------------------
+ mm/mm_init.c |   11 ++++++-----
+ 2 files changed, 6 insertions(+), 30 deletions(-)
 
---- a/mm/cma.c~mm-cma-localize-init_cma_pageblock-to-cmac
-+++ a/mm/cma.c
-@@ -31,6 +31,7 @@
- #include <linux/kmemleak.h>
- #include <linux/hugetlb.h>
- #include <trace/events/cma.h>
-+#include <linux/page-isolation.h>
- 
- #include "internal.h"
- #include "cma.h"
-@@ -149,6 +150,13 @@ bool cma_validate_zones(struct cma *cma)
+--- a/mm/hugetlb.c~mm-mm_init-move-pageblock-migratetype-init-to-memmap-helpers
++++ a/mm/hugetlb.c
+@@ -3319,30 +3319,6 @@ static bool __init alloc_bootmem_huge_pa
  	return true;
  }
  
-+static void __init init_cma_pageblock(struct page *page)
-+{
-+	init_pageblock_migratetype(page, MIGRATE_CMA, false);
-+	adjust_managed_page_count(page, pageblock_nr_pages);
-+	page_zone(page)->cma_pages += pageblock_nr_pages;
-+}
-+
- static void __init cma_activate_area(struct cma *cma)
- {
- 	unsigned long pfn, end_pfn, early_pfn[CMA_MAX_RANGES];
---- a/mm/mm_init.c~mm-cma-localize-init_cma_pageblock-to-cmac
-+++ a/mm/mm_init.c
-@@ -2202,15 +2202,6 @@ void __init init_cma_reserved_pageblock(
- 	adjust_managed_page_count(page, pageblock_nr_pages);
- 	page_zone(page)->cma_pages += pageblock_nr_pages;
- }
 -/*
-- * Similar to above, but only set the migrate type and stats.
+- * memblock-allocated pageblocks might not have the migrate type set
+- * if marked with the 'noinit' flag. Set it to the default (MIGRATE_MOVABLE)
+- * here, or MIGRATE_CMA if this was a page allocated through an early CMA
+- * reservation.
+- *
+- * In case of vmemmap optimized folios, the tail vmemmap pages are mapped
+- * read-only, but that's ok - for sparse vmemmap this does not write to
+- * the page structure.
 - */
--void __init init_cma_pageblock(struct page *page)
+-static void __init hugetlb_bootmem_init_migratetype(struct folio *folio,
+-							  struct hstate *h)
 -{
--	init_pageblock_migratetype(page, MIGRATE_CMA, false);
--	adjust_managed_page_count(page, pageblock_nr_pages);
--	page_zone(page)->cma_pages += pageblock_nr_pages;
--}
- #endif
- 
- /*
---- a/mm/mm_init.h~mm-cma-localize-init_cma_pageblock-to-cmac
-+++ a/mm/mm_init.h
-@@ -40,14 +40,6 @@ struct zone *pfn_to_zone(unsigned long p
- void init_cma_reserved_pageblock(struct page *page);
- #endif
- 
--#ifdef CONFIG_CMA
--void init_cma_pageblock(struct page *page);
--#else
--static inline void init_cma_pageblock(struct page *page)
--{
--}
--#endif
+-	unsigned long nr_pages = pages_per_huge_page(h), i;
 -
- /* Memory initialisation debug and verification */
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
- DECLARE_STATIC_KEY_TRUE(deferred_pages);
+-	WARN_ON_ONCE(!pageblock_aligned(folio_pfn(folio)));
+-
+-	for (i = 0; i < nr_pages; i += pageblock_nr_pages) {
+-		if (!folio_test_hugetlb_cma(folio))
+-			init_pageblock_migratetype(folio_page(folio, i),
+-					  MIGRATE_MOVABLE, false);
+-	}
+-}
+-
+ static void __init prep_and_add_bootmem_folios(struct hstate *h,
+ 					struct list_head *folio_list)
+ {
+@@ -3350,7 +3326,6 @@ static void __init prep_and_add_bootmem_
+ 	struct folio *folio, *tmp_f;
+ 
+ 	list_for_each_entry_safe(folio, tmp_f, folio_list, lru) {
+-		hugetlb_bootmem_init_migratetype(folio, h);
+ 		/* Subdivide locks to achieve better parallel performance */
+ 		spin_lock_irqsave(&hugetlb_lock, flags);
+ 		account_new_hugetlb_folio(h, folio);
+--- a/mm/mm_init.c~mm-mm_init-move-pageblock-migratetype-init-to-memmap-helpers
++++ a/mm/mm_init.c
+@@ -757,6 +757,9 @@ void __meminit memmap_init_compound_page
+ 	for (unsigned long i = 1; i < nr_pages; i++)
+ 		memmap_init_page_from_template(head + i, pfn + i, zone, &template);
+ 	prep_compound_head(head, order);
++
++	pageblock_migratetype_init_range(pfn, 1UL << order, MIGRATE_MOVABLE,
++					 /* isolate */ false, /* atomic */ false);
+ }
+ 
+ struct zone __meminit *pfn_to_zone(unsigned long pfn, int nid)
+@@ -1110,6 +1113,9 @@ static void memmap_init_zone_device_page
+ 		if (IS_ALIGNED(pfn, PAGES_PER_SECTION))
+ 			cond_resched();
+ 	}
++
++	pageblock_migratetype_init_range(start, end - start, MIGRATE_MOVABLE,
++					 /* isolate */ false, /* atomic */ false);
+ }
+ 
+ void __ref memmap_init_zone_device(struct zone *zone,
+@@ -1147,13 +1153,8 @@ void __ref memmap_init_zone_device(struc
+ 
+ 		memmap_init_compound_page(head, pfn, zone, pgmap->vmemmap_shift);
+ 		memmap_init_zone_device_folio(page_folio(head), pgmap);
+-		if (IS_ALIGNED(pfn, PAGES_PER_SECTION))
+-			cond_resched();
+ 	}
+ out:
+-	pageblock_migratetype_init_range(start_pfn, nr_pages, MIGRATE_MOVABLE,
+-					 /* isolate */ false, /* atomic */ false);
+-
+ 	pr_debug("%s initialised %lu pages in %ums\n", __func__,
+ 		nr_pages, jiffies_to_msecs(jiffies - start));
+ }
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
