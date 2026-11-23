@@ -1,51 +1,54 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795415106;
-	b=LhX3XkPATj0M+yjt3ZjXPg9lATaMMoyNjmZDscChhuE+Gp8ZEshm6BjF4/oH4cuVd6T4
-	 PEB+zlBW3e51lYTWgFZtTJPyfA6z6pw/ur41mG6fEFiO37mnROHSdwufbV9O2SNd15sxp
-	 HsPpDM3dq3TQwWEdydRGEa4OckIMXOH+zGLB1UC0NW/eLJvZ5kCoAVXlDiUFLMilNzRsE
-	 T+pVzsyU1Gp7nTpqb5Yj+o4j2tJOfHKn7eV0wEoAk6oCehTxc+v3kbQotoMK0NprhJsMh
-	 C9yhSLewmrrFxzucrmmJisHfwXMC3CfdpXvZkpeaUmxr+AZBwyVxGTkuuanTeSlxPbQ==
+	t=1795415113;
+	b=cJhGGXmQ2+J1pE5dwcI+9mggaFCayB4P+0sDk1p6aUa32MvQbQeOiwsg78YXLWCvMdds
+	 B3mvmsh+PZRhG4pdFiLQtER5HdvRl4JV9spe5u1I5J9MNWbUlY5DTo0Htht5JUpS++GcW
+	 0pvUZ/N2Gfablbh4ZGQBWVlpNasihezEgCZH221+Jh1xeTd3ZP/YuP9XhCmkBgWf9K8Rj
+	 jfwPRvY5LJ7ya5LRNDaLXI6nQT5Ne7vIHT/mc9V66QZo15UH3/eDS1+P1FHILWo99NWyE
+	 abnkhTeoaW0yxjOnxltryUs/hjp+qSDftCoN68QEBcCgZO6MyhTNmO9K2PNREonIm0w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795415106;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795415113;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=gRLGxMUijEjcjpSvnhcly2PgKTY+iEwCXuDQZOFashQ=;
-	b=sGHvauMKdZJ0eQFUcg1uGXbNwOQ4N9s5CgYsryAIe940sHfAOxtOJWMoFCPubmrUr7F4
-	 /k/Lz2C1u0w8Nsd17DtcmJT4+WF9P0qm1NwhK+k2JWDwmo5CEBpdwLbnVM+KpUJExvHUi
-	 lD3sde80Ikev1peGrShb++AOHaUR6/0Ff/Y/ZSbolieqJIp+3WWwoP9T4DN9pV0F7Qd4O
-	 zCjBxiCpjc2lnueYSnUYf9Rw177GAs2OgjBWWcR/x9mFgwLYxFWk/R/CRFP+dyNBeMTtO
-	 1gPo/6QflMxhDUQ/I+3n+UV9JdF64tyy3lZdiS8yQ5CAGlPkPeuDwyAQEmzOSriw3Lw==
+	bh=4C18oEwdIUoGW8Y0SpBhxom5XPxehN35uGWJKAbE63Y=;
+	b=zpX4tNAcGEZRvert9zPJ/JRWrEsvGrpHHtIAI9YXHI5TD1zionD8iZxn4QVIB8HZRMaL
+	 aNeBHPLTvfFQ+rqP24BFkxzAzNdHlePeIj/TiCG6zaH1VGbXUdTqXfDeMmxsCSpinLd4/
+	 CulocmL6IT8XZq6Gaho4nvKxyqx8QC7wtyo6EvO7TCvauicl/5eXajV3GGaTsjmpGYBl9
+	 sqCNLlvZcumkZgHm1j2k3c8xVREafQF+i3Vx7X94FdqCb+9zRioRjGpKaSbzr/k/16NTP
+	 ZjIgcvaLqkw+I2R6d4epvVKkxIoPUW+A9M0FCcTTz75VcxobJJZyAoiSGczmcwinoAQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=yEY7Hhun;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="xV0/YMb+";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7AEA606A31F;
-	Mon, 23 Nov 2026 06:25:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59660606A31A
+	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 06:25:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=yEY7Hhun
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1320F1F000C6;
-	Mon, 23 Nov 2026 06:25:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xV0/YMb+
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 214A81F000D4;
+	Mon, 23 Nov 2026 06:25:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795415106;
-	bh=gRLGxMUijEjcjpSvnhcly2PgKTY+iEwCXuDQZOFashQ=;
+	d=linux-foundation.org; s=korg; t=1795415113;
+	bh=4C18oEwdIUoGW8Y0SpBhxom5XPxehN35uGWJKAbE63Y=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=yEY7HhunRpRSL06LFjm3MqyGOe5X6sMND4fwZno9Ma2mtP10kyXgQ9r8Jn10/AC6M
-	 wp4hGAKQ3PTH9ke+XEhpOFtI/RoEl01d0sxglifzrrEd21N2eosRniW0wGaQD1/+cg
-	 0nHCtN6Foa/PDTbuhm6Vm5xHghnBcZ1ICF7x8AIg=
-Date: Sun, 22 Nov 2026 22:25:05 -0800
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,
-	roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,
-	mason@kernel.org,harry@kernel.org,hannes@cmpxchg.org,david@kernel.org,
-	shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=xV0/YMb+VleYz2dweVhatMiCF3BxQEyjd1no2rRPe5rQi8J7AxJ5U74/biRzF60Ht
+	 4FCwr9HF5V0IRw8JdflDOTT80h6TIVCpS+LV40Ue2+wBdP8M/2QNI2R1gb4ar52i+w
+	 Vkx0MIJiaDfd85yB0nqtCOWR6z2awTYlFaIOpf4g=
+Date: Sun, 22 Nov 2026 22:25:12 -0800
+To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,
+	sj@kernel.org,shakeel.butt@linux.dev,ryncsn@gmail.com,ridong.chen@linux.dev,
+	qi.zheng@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,
+	lianux.mm@gmail.com,lance.yang@linux.dev,kasong@tencent.com,
+	hannes@cmpxchg.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,
+	baohua@kernel.org,axelrasmussen@google.com,david@kernel.org,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261112013220.4064478-1-shakeel.butt@linux.dev>
-References: <20261112013220.4064478-1-shakeel.butt@linux.dev>
-Subject: [merged mm-hotfixes-stable] memcg-flush-nr_charged_bytes-when-the-obj-stock-trylock-fails.patch removed from -mm tree
-Message-Id: <20261123062506.1320F1F000C6@smtp.kernel.org>
+In-Reply-To: <20261109-maintainers_mglru-v1-1-c25e6de60bcc@kernel.org>
+References: <20261109-maintainers_mglru-v1-1-c25e6de60bcc@kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-memory-management-mglru-multi-gen-lru-update.patch removed from -mm tree
+Message-Id: <20261123062513.214A81F000D4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -57,68 +60,92 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: memcg: flush nr_charged_bytes when the obj stock trylock fails
+     Subject: MAINTAINERS: MEMORY MANAGEMENT - MGLRU (MULTI-GEN LRU) update
 has been removed from the -mm tree.  Its filename was
-     memcg-flush-nr_charged_bytes-when-the-obj-stock-trylock-fails.patch
+     maintainers-memory-management-mglru-multi-gen-lru-update.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: flush nr_charged_bytes when the obj stock trylock fails
-Date: Wed, 11 Nov 2026 17:32:20 -0800
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Subject: MAINTAINERS: MEMORY MANAGEMENT - MGLRU (MULTI-GEN LRU) update
+Date: Mon, 09 Nov 2026 19:31:53 +0100
 
-When interrupt code, such as an RCU callback in softirq, runs on top of a
-task that holds the obj stock lock, its trylock fails and the bytes go to
-objcg->nr_charged_bytes.  Nothing empties that counter while every CPU
-using the objcg keeps it in its stock, so it can grow without limit.
+Patch series "MAINTAINERS: MM updates (2)".
 
-Users see memory.current and the "kernel" field of memory.stat keep
-growing while the cgroup's real usage does not.  With memory.high or
-memory.max set, the cgroup is reclaimed, throttled or even OOM-killed for
-memory it does not use.  The counter is 32-bit, so after 4 GiB it wraps,
-and those 4 GiB stay charged to the cgroup and its ancestors until reboot,
-even after the cgroup is removed.
+Some more MAINTAINERS updates with a focus on MGLRU and reclaim this time.
 
-Fix it by uncharging the whole pages in nr_charged_bytes whenever the
-trylock fails.
 
-Link: https://patch.msgid.link/20261112013220.4064478-1-shakeel.butt@linux.dev
-Fixes: 200577f69f29 ("memcg: objcg stock trylock without irq disabling")
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+This patch (of 2):
+
+MGLRU is currently the only MM component without a dedicated component
+maintainer.  Fortunately, Kairui and Barry have been actively contributing
+to MGLRU and have volunteered to take on more responsibility by officially
+taking care of it.
+
+Given that Kairui is already an established MM component maintainer in a
+related MM component (SWAP), add him as an MGLRU maintainer right away.
+
+For Barry, the idea is to transition him towards a component maintainer
+role over the coming months, starting by moving him to the top of the
+reviewer list.
+
+Link: https://lore.kernel.org/20261109-maintainers_mglru-v1-0-c25e6de60bcc@kernel.org
+Link: https://patch.msgid.link/20261109-maintainers_mglru-v1-1-c25e6de60bcc@kernel.org
+Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Chris Mason <mason@kernel.org>
-Acked-by: Muchun Song (ByteDance) <muchun.song@linux.dev>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Harry Yoo (Meta) <harry@kernel.org>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
+Reviewed-by: Lian Wang <lianux.mm@gmail.com>
+Reviewed-by: Ridong Chen <ridong.chen@linux.dev>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Acked-by: Muchun Song <muchun.song@linux.dev>
+Acked-by: Kairui Song <kasong@tencent.com>
+Acked-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: Qi Zheng <qi.zheng@linux.dev>
+Acked-by: SJ Park <sj@kernel.org>
+Acked-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Baoquan He <baoquan.he@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: <stable@vger.kernel.org>
+Cc: Kairui Song <ryncsn@gmail.com>
 
- mm/memcontrol.c |    2 ++
- 1 file changed, 2 insertions(+)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memcontrol.c~memcg-flush-nr_charged_bytes-when-the-obj-stock-trylock-fails
-+++ a/mm/memcontrol.c
-@@ -3532,6 +3532,8 @@ static void __refill_obj_stock(struct ob
- 	int i, slot = -1, empty_slot = -1;
+--- a/MAINTAINERS~maintainers-memory-management-mglru-multi-gen-lru-update
++++ a/MAINTAINERS
+@@ -17633,10 +17633,10 @@ K:	(?i:vmemmap)
  
- 	if (!stock) {
-+		nr_bytes += atomic_read(&objcg->nr_charged_bytes)
-+			? atomic_xchg(&objcg->nr_charged_bytes, 0) : 0;
- 		nr_pages = nr_bytes >> PAGE_SHIFT;
- 		nr_bytes = nr_bytes & (PAGE_SIZE - 1);
- 		atomic_add(nr_bytes, &objcg->nr_charged_bytes);
+ MEMORY MANAGEMENT - MGLRU (MULTI-GEN LRU)
+ M:	Andrew Morton <akpm@linux-foundation.org>
+-R:	Kairui Song <kasong@tencent.com>
++M:	Kairui Song <kasong@tencent.com>
++R:	Barry Song <baohua@kernel.org>
+ R:	Qi Zheng <qi.zheng@linux.dev>
+ R:	Shakeel Butt <shakeel.butt@linux.dev>
+-R:	Barry Song <baohua@kernel.org>
+ R:	Axel Rasmussen <axelrasmussen@google.com>
+ R:	Yuanchu Xie <yuanchu@google.com>
+ R:	Wei Xu <weixugc@google.com>
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from david@kernel.org are
 
-memcg-move-memoryhigh-enforcement-out-of-try_charge_memcg.patch
-memcg-force-charges-from-reclaim-before-trying-the-limits.patch
-memcg-use-high_work-for-kernel-threads.patch
-memcg-use-high_work-for-remote-charges.patch
-memcg-simplify-high-limit-handling-after-a-charge.patch
+mm-mprotect-dont-skip-uffd-marker-install-when-racing-with-pte-table-reclaim.patch
+mm-khugepaged-free-unused-page-table-when-setting-a-huge-pmd-fails.patch
+mm-userfaultfd-prevent-poison-marker-loss.patch
+mm-hugetlb-compare-against-persistent-count-when-freeing-lowmem-folios.patch
+mm-hugetlb-preserve-reservations-when-shrinking-on-highmem.patch
+mm-hugetlb-account-temporary-folios-separately.patch
+mm-hugetlb-account-temporary-folios-separately-fix.patch
+mm-hugetlb-serialize-page-cache-allocations-with-truncation.patch
+mm-memfd-recheck-the-page-cache-before-allocating-a-hugetlb-folio.patch
+mm-hugetlb-count-again-if-the-reserve-map-shrank.patch
+mm-hugetlb-account-restored-reservations-before-freeing-folios.patch
+mm-hugetlb-delay-anon-folio-rmap-removal-until-after-the-tlb-flush.patch
 
