@@ -1,51 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795415132;
-	b=5I4/P60CcDkH3bMz5Pwg4zSF+a9LIBF2Tq1Bu2WgLsl+e+cUtjaDCYxG41TtQ5TOC9kM
-	 esRDxyJmCCBmS9i6FnOE0d3VJzytbnpgAWM0CcVNLIvee74iN15MyRFHxdecQyyxFEv8w
-	 3+4Pgn+V53mhCcjp5UgTy0rr4LutsrT5BX1uDO0fJaMtBDQliTGk6Ov3Z8f+RNO6dA+Qa
-	 r8fcGFP9MqtRwj/KOAXr5KVcMpUWXXZrXFUIwg7yOzFQfSk0SmrGUVxN0vPVteVPHHNEP
-	 ccTZPuAy/SdVUEqH09R/fuZ7Lmcr+Ix9NEgUL4F2pTBpYL0AsgPpuPC0J+etloHzSew==
+	t=1795420503;
+	b=s1G32PtbRSHhaM1X7sh3sgmI0MKF62ZT7a0V24jh9iKbRM2smtNiY6RUMvmKPQzL7UDD
+	 AHnCmAxnTYEhyyRROyf9RL3FC2CvEJqpjG1EdHWWgIhDwiZ67nw76Wd+TlvEq6KAykFU4
+	 hKBBoM+2fLHrfvhR0xpASxK/XCrbYiPOgypLip4TjGE6UJClPg1YH9Om+hSQ4YMXrG3Hc
+	 e4yosUybD6oQbc5SttRP/GaOon3KjMZkff85zEWctInslTiifj5y6vMqqFOGDgKWyQmvH
+	 H+3qV+nCaLWZh5C8dc78+HfSJDZB7cHkZxhxTdySF9Muq/YkbizvJBFKs0941W6TpUg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795415132;
-	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
-	 Message-Id;
-	bh=rdf0zAHKQ6uu8bvgyFB5K8RILiYuHoNOtHIPwH9VCZI=;
-	b=4JMvWZ3WagseYEppGxa/bNIlBcAJgT85DxlDAU2FCTbp4o/6Gt+F7ZHX5k+9e38Hdxz+
-	 0XbOht7iaGJeoEiFMIbXRsv6dWhj4POmrVgFiykBLgqr9hM7pVCf+R/xWz5W4784d2g6y
-	 LOcwtLDPgXEnF+0VgQqgJ0Xbx/tQJJNvzmUd3qvCba/VBaC2umTAgbPUnRqsFq50OCj/8
-	 PUBU7Jix9NInz65B7a5BnXwIx20u+D/tC4haimFKMU3kS2C2LvdPWZWcl4CpYxVgEP39P
-	 fFpE6g0+tYy+0SIohrR9c2yipN8cy/dlCGc+ZYo6mhco7zrHh8yzrBSK/cWaUbvGEfQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795420503;
+	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
+	bh=HXQ30hMLDSUOS123c7tKUs09AZWkY4gCAj9bKcwMp1k=;
+	b=yH4GssR35AR/tQHFR30I6WMq1ECthL8tmSyXF7WhBtWUXDaavYIr4Soq6uJA7pRh0/wP
+	 Lj/qr7FoTX7JRQBYBWWehEc4qfdAKSAHJkoXEp8rcaLqNdXUDim/iXvwhNTAig9bpqYK/
+	 5F9BMHh+wZvf2/NLQYJ/98aY2i+MxhK5ZqzEoVtF7N+U3RDolcZx/2ASavnHJXROpRBtS
+	 1GFGDTDArdg7jBUS2rrOva2x4UD/yyMz+h4MT+7yhGz9OQN0rlx4MzQtAk/KGsKjI7JUR
+	 KwADpiFbrgnxq+eA0xl1hg0WFzu6TNEbTtpO8xnRtnrduTnyrL7uHwv7xIp1Tqt6oww==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=XFFZZytH;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xoLOWqra;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8242D606A321;
-	Mon, 23 Nov 2026 06:25:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E0D3606A31A
+	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 07:55:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=XFFZZytH
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 263021F000C6;
-	Mon, 23 Nov 2026 06:25:32 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xoLOWqra
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52D871F000C6;
+	Mon, 23 Nov 2026 07:55:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795415132;
-	bh=rdf0zAHKQ6uu8bvgyFB5K8RILiYuHoNOtHIPwH9VCZI=;
-	h=Date:To:From:In-Reply-To:References:Subject;
-	b=XFFZZytHWybp3mynQSJ6wT3ECqJ0Q4BWZAzipyHK7+KrjLGlFgbYVRGI6ax3N31Fv
-	 G1q8YYqUyhm7WwXVqmfWPgjJ/ExnDF3B4VDsuKvMobruYOxRNUa6tfurLQgHUcSdPW
-	 gwLPX6g15QEvGRRI/HP9fXBmA4hdzJdoPlxrtBgY=
-Date: Sun, 22 Nov 2026 22:25:31 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,vbabka@kernel.org,
-	surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,mhocko@suse.com,
-	ljs@kernel.org,liam@infradead.org,kasong@tencent.com,david@kernel.org,
-	baohua@kernel.org,zhuhui@kylinos.cn,akpm@linux-foundation.org
+	d=linux-foundation.org; s=korg; t=1795420502;
+	bh=HXQ30hMLDSUOS123c7tKUs09AZWkY4gCAj9bKcwMp1k=;
+	h=Date:To:From:Subject;
+	b=xoLOWqrapm4zqx77cOV+mPp3/ApHz/EdHaAmnHb542DnwVOLAYpr2gDSFxl5hJxWo
+	 KLacLuMiUWY8DBPqzuFw+Ytlshd4D6eafZDGthyb1BoVAJ/NCfTj6zYxtR+b37/piw
+	 JxdCBFjqwerwgIOZn/nVAJFG0D98G6/Iik0lYlV8=
+Date: Sun, 22 Nov 2026 23:55:01 -0800
+To: mm-commits@vger.kernel.org,
+	syzbot+ci04e7314748e3f6be@syzkaller.appspotmail.com,phillip@squashfs.org.uk,
+	phillip.lougher@gmail.com,error27@gmail.com,christian.loehle@arm.com,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261109021611.22247-1-hui.zhu@linux.dev>
-References: <20261109021611.22247-1-hui.zhu@linux.dev>
-Subject: [merged mm-hotfixes-stable] mm-mglru-fix-a-no-op-lru_gen_clear_refs-call-in-lru_lazyfree.patch removed from -mm tree
-Message-Id: <20261123062532.263021F000C6@smtp.kernel.org>
+Subject: + squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20261123075502.52D871F000C6@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,85 +53,88 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The quilt patch titled
-     Subject: mm/mglru: fix a no-op lru_gen_clear_refs() call in lru_lazyfree()
-has been removed from the -mm tree.  Its filename was
-     mm-mglru-fix-a-no-op-lru_gen_clear_refs-call-in-lru_lazyfree.patch
+The patch titled
+     Subject: squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index-fix
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index-fix.patch
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index-fix.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Hui Zhu <zhuhui@kylinos.cn>
-Subject: mm/mglru: fix a no-op lru_gen_clear_refs() call in lru_lazyfree()
-Date: Mon,  9 Nov 2026 10:16:11 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index-fix
+Date: Sun Nov 22 11:49:59 PM PST 2026
 
-lru_lazyfree() calls lru_gen_clear_refs() after lruvec_del_folio(), but
-lru_gen_del_folio() has already cleared LRU_GEN_MASK, so folio_lru_gen()
-returns -1 and lru_gen_clear_refs() exits at its "gen < 0" check without
-clearing the refs or PG_workingset.
+s/inode/dir/ in TRACE statement
 
-A MADV_FREE folio therefore keeps the state it had before madvise(2),
-even though madvise_free_pte_range() has already cleared the accessed and
-dirty bits of its PTEs.  lru_gen_folio_seq() places it one generation
-younger, and PG_workingset puts it in the last tier, so sort_folio()
-promotes and protects it instead of evicting it and charges it to
-lrugen->protected[], which read_ctrl_pos() uses to balance anon against
-file reclaim.  __folio_inc_gen() clears the refs but not PG_workingset,
-so this repeats every time the folio reaches the oldest generation.  If
-the folio is redirtied first, ttu_anon_lazyfree_folio() keeps it and
-lru_gen_eviction() packs the stale state into the shadow entry, so a
-later refault is promoted to the youngest generation.
-
-Call lru_gen_clear_refs() while the folio is still on the generation
-list, as deactivate_file_folio() and folio_deactivate() already do.  Its
-return value only says whether the folio is in the oldest generation,
-which lru_lazyfree() does not need because it re-adds the folio below.
-Keep folio_clear_referenced() unconditional: the classic LRU needs it,
-and it also covers the folios that lru_gen_clear_refs() skips.
-
-Link: https://patch.msgid.link/20261109021611.22247-1-hui.zhu@linux.dev
-Fixes: cc8ec7be78ff ("mm/mglru: optimize deactivation")
-Signed-off-by: Hui Zhu <zhuhui@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Liam R. Howlett (Google) <liam@infradead.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: <stable@vger.kernel.org>
+Cc: Christian Loehle <christian.loehle@arm.com>
+Cc: Dan Carpenter <error27@gmail.com>
+Cc: Phillip Lougher <phillip.lougher@gmail.com>
+Cc: Phillip Lougher <phillip@squashfs.org.uk>
+Cc: syzbot ci <syzbot+ci04e7314748e3f6be@syzkaller.appspotmail.com>
 
- mm/folio.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ fs/squashfs/namei.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/folio.c~mm-mglru-fix-a-no-op-lru_gen_clear_refs-call-in-lru_lazyfree
-+++ a/mm/folio.c
-@@ -623,12 +623,10 @@ static void lru_lazyfree(struct lruvec *
- 	    folio_test_swapcache(folio) || folio_test_unevictable(folio))
- 		return;
+--- a/fs/squashfs/namei.c~squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index-fix
++++ a/fs/squashfs/namei.c
+@@ -134,8 +134,8 @@ static struct dentry *squashfs_lookup(st
+ 	int offset, err, length;
+ 	unsigned int dir_count, size;
  
-+	lru_gen_clear_refs(folio);
- 	lruvec_del_folio(lruvec, folio);
- 	folio_clear_active(folio);
--	if (lru_gen_enabled())
--		lru_gen_clear_refs(folio);
--	else
--		folio_clear_referenced(folio);
-+	folio_clear_referenced(folio);
- 	/*
- 	 * Lazyfree folios are clean anonymous folios.  They have
- 	 * the swapbacked flag cleared, to distinguish them from normal
+-	TRACE("Entered squashfs_lookup [%llx:%x]\n", squashfs_i(inode)->start,
+-			squashfs_i(inode)->offset);
++	TRACE("Entered squashfs_lookup [%llx:%x]\n", squashfs_i(dir)->start,
++			squashfs_i(dir)->offset);
+ 
+ 	if (len > SQUASHFS_NAME_LEN)
+ 		return ERR_PTR(-ENAMETOOLONG);
 _
 
-Patches currently in -mm which might be from zhuhui@kylinos.cn are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vmstat-annotate-data-race-in-zone_page_state_snapshot.patch
-mm-compaction-annotate-data-race-for-zone-free_areanr_free.patch
-mm-mglru-use-a-smaller-batch-in-fill-drain_evictable.patch
+kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize-fix.patch
+selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
+alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
+alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
+selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
+selftests-mm-allocate-nr_pages-based-on-pmd-size-for-uffd-pmd_move-tests-fix.patch
+selftests-mm-retain-move-pmd-coverage-and-verify-huge-pmds.patch
+lib-test_xarray-check-unused-spare-node-after-range-creation.patch
+mm-memory-failure-dont-unpoison-a-leaked-raw_hwp_unreliable-folio-fix.patch
+mm-vmstat_kunit-add-synthetic-benchmark-for-mm-stats-fix.patch
+lib-test_hmm-invalidate-all-mirrors-on-device-private-migration.patch
+lib-test_hmm-invalidate-all-mirrors-on-device-private-migration-fix.patch
+mm-prevent-pre-content-bypass-through-mremap-and-remap_file_pages.patch
+selinux-recheck-backing-file-permissions-on-remap_file_pages.patch
+mm-madvise-notify-userfaultfd-when-installing-guard-regions.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-2.patch
+fuse-let-memory-failure-remove-poisoned-page-cache-folios.patch
+nilfs2-report-mapping-errors-from-fsync.patch
+ocfs2-unregister-the-jbd2-shrinker-before-journal-shutdown.patch
+ipc-msg-clamp-negative-msg_info-usage-counts.patch
+squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix.patch
+squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index-fix.patch
+ocfs2-skip-network-flush-when-no-domain-handlers-are-registered.patch
+selftests-ptrace-check-that-ptrace_set_syscall_info-rejects-invalid-error-values-fix.patch
+jfs-validate-xattr-entry-bounds-before-replacing-an-attribute.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
