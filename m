@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795415120;
-	b=ZOVUsTGyurMl58q2OfoGtUlVA/MXS9YNk0I84EolwDPrvk2GATlD9mc7SO75Y3Vro/Mh
-	 aPskEWDpQ0SgqG7LWkSHHHMogG8VEfSRVVBsxb35Jjp6+UGsB2x9k13esTHJnci6k0wla
-	 IyPzpbiIv9tgv5BdGdIVMs5RS5fU3+uotbJTIdtfzVHnDj+LqydpBE/PeRZ1S3FOs4jAw
-	 oiPHeYbaW3v4UO+eQL2YX9gMdQggnpyJ/xZgckYZu+vaSHnEYRvU3klYuOvcMVwm7H7Ld
-	 SE1ASNhYrq6G53K9XFmcXrpsqolq39GJKnuHR4qbPiGIdbuGnIMzdoWm3ccaQ5SLx6Q==
+	t=1795415122;
+	b=d8l3XzuL4yb0E9ZMMLEI6h0Pe+FAB+TJxWqRr1VTfWuCWvZSt3l+rQY2EpJWt359ip6x
+	 U4tNy95mgFxinicHGlwpWFwFcxRJ9knGOkFcO0O86MCdKt4QFbReAlbuCfs0zmjnQCW8j
+	 8igwXqe+zW01ZqXu2hynRQeVqGtKvq8PbrnQfdcnB27lw+3Y7qB8OTgJpojvcKVDTeoZQ
+	 pYElOeJUF/yUhsoaB2b+ctxIbR5D4VP7mx68mpl4oZ9ZMx5PPcVTtr+YelpgbF4EEVlum
+	 v/aSBRVTAieuOL+n9Jh8PJzDoctzZFGco6PWEWGTkOzPJgmXG358rkbymtgaa2vCntg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795415120;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795415122;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=KEWB1bPj4Lxhrg8yrNzYVE5Gbaq1Z3832SVQQ7O0i4E=;
-	b=py9EFRoyXCChaxECIvvahxjmbV0b/cRnxSG3InAXpIrIP/AOBupcXyKVJ6ki3wAZnrJ7
-	 qpvj0QwgC+5mJaZdWNWNCnEyALSRJTBJrozakp+5297iDlO32GCwF/49aN5Oo4K1HlH6V
-	 0rBuAb8LFMw6r04L1c4zO6WtEM3npSPaY6z1Jid56uFHss1pL+itx40FQWzD9bFdiaH5Q
-	 I39IpbPv7EreGWPuyeu+WiphUHddAIKBW09EN/GqY50AefeZ455gDWuUqWt9jzqHCfH9/
-	 Gj7IvaniKc+AGYf6xUsJGH57A3Uzg6ZcyPSp9QsynGSz5NE47oMa9iZyye5hXWbv/0A==
+	bh=XPN1MOvK5gk35OoBSkn58TaJvxRSnN53SqThAw2Ak5s=;
+	b=l9ndO5KGSf27VKtUicsSqZ9R7ky4/AEBeeNI9kH9vonF4j1rSh5iJbaIEthlZwVF7F1E
+	 71aiz7qwNzGvka0Z8CsmVSoeaLAKnHPz3IEQl62TUcgTUDsIQHmF7+p2UXUgJidGNFdg7
+	 EUbILApoIrnqvVH/Ln4A0lhoIJjk9tlY5qb4vladwbyTdPqIBrruQuhB6xP0Q8WAyGssi
+	 PsXFOquhIDPyDxWDXEup6rWA2aXjUAYE/D6U5M1H5LAg/sQj2wekYApvGeyElrLdQdQtY
+	 +TRklY77iVGfdJmJHCHc86u5aijrM7q8D2eMv3hpiyJnGUEZAGPB28toYfNj1zsammQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=NekzyAWH;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=IPbabZTt;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD54F606A31A
-	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 06:25:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6996D606A327;
+	Mon, 23 Nov 2026 06:25:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=NekzyAWH
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D611D1F000C0;
-	Mon, 23 Nov 2026 06:25:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=IPbabZTt
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A57931F000C6;
+	Mon, 23 Nov 2026 06:25:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795415120;
-	bh=KEWB1bPj4Lxhrg8yrNzYVE5Gbaq1Z3832SVQQ7O0i4E=;
+	d=linux-foundation.org; s=korg; t=1795415121;
+	bh=XPN1MOvK5gk35OoBSkn58TaJvxRSnN53SqThAw2Ak5s=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=NekzyAWH0UCFJfYU2geDbGAXq4slUq33PTJE1W8yYs+Gh7QoMoRPrYMjy6pRLUuUh
-	 1wO18fOjv0gq0mkcr+t/sXFsJNjy2A9t3xxZL/t+uZcI0vo86Glylm7f5CWULSwjm/
-	 UUKZjx6t0Y+g4gwA/PjN3lGz07rvFYgJeeQjk1D8=
-Date: Sun, 22 Nov 2026 22:25:19 -0800
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
-	sj@kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,pfalcato@suse.de,
-	mhocko@suse.com,liam@infradead.org,jannh@google.com,david@kernel.org,
-	ljs@kernel.org,akpm@linux-foundation.org
+	b=IPbabZTt3/dbm+IhnofDlqgqhGj2qCRlnYriY+1N3G2x2A3MF/x7yvVPewJnM1A/A
+	 7++ZIFsmh/W2bAKty6wGekiXHFdUNnd4KSMRRrg6qQJ0AaZeqoYgg9fuuSEpknhyZP
+	 geqRWOYMY9YPc+gCShh3hf6g3gfbJtd5gmq9bg18=
+Date: Sun, 22 Nov 2026 22:25:21 -0800
+To: mm-commits@vger.kernel.org,youngjun.park@lge.com,stable@vger.kernel.org,
+	shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,
+	chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,aquini@redhat.com,
+	oleksandr@natalenko.name,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261118-maintainers-consolidate-vma-entry-v1-1-8019b0e9928f@kernel.org>
-References: <20261118-maintainers-consolidate-vma-entry-v1-1-8019b0e9928f@kernel.org>
-Subject: [merged mm-hotfixes-stable] maintainers-consolidate-the-memory-mapping-entries-into-a-vma-entry.patch removed from -mm tree
-Message-Id: <20261123062519.D611D1F000C0@smtp.kernel.org>
+In-Reply-To: <20261118112610.122799-1-oleksandr@natalenko.name>
+References: <20261118112610.122799-1-oleksandr@natalenko.name>
+Subject: [merged mm-hotfixes-stable] mm-swapfile-really-fix-integer-overflow-in-swap_show-and-swapon.patch removed from -mm tree
+Message-Id: <20261123062521.A57931F000C6@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -57,170 +57,67 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: consolidate the memory mapping entries into a VMA entry
+     Subject: mm/swapfile: really fix integer overflow in swap_show() and swapon()
 has been removed from the -mm tree.  Its filename was
-     maintainers-consolidate-the-memory-mapping-entries-into-a-vma-entry.patch
+     mm-swapfile-really-fix-integer-overflow-in-swap_show-and-swapon.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: MAINTAINERS: consolidate the memory mapping entries into a VMA entry
-Date: Wed, 18 Nov 2026 18:22:10 +0000
+From: Oleksandr Natalenko <oleksandr@natalenko.name>
+Subject: mm/swapfile: really fix integer overflow in swap_show() and swapon()
+Date: Wed, 18 Nov 2026 12:26:10 +0100
 
-Memory mapping entries were kept in three different sections in order that
-those maintaining/reviewing each distinct part would be made responsible
-for/cc'd on only those parts.
+One of the enterprise customers uses 6 TiB of swap, and the values
+reported in /proc/swaps as well as in dmesg are still not correct.
 
-However this creates confusion as to what files belong to which component,
-so simplify things by consolidating them into one.
+Cast si->pages to long explicitly so that the bitshift in K() doesn't
+truncate the value to 32 bits.
 
-Expand Suren's maintainership to the entire component, as he is a trusted
-and valued member of the VMA kernel team and very much deserving of the
-position.
+Also do the same in swapon() for the same reason.
 
-Additionally, drop Suren's core and misc reviewerships in order to focus
-upon VMA.
-
-As David is receiving pull requests directly, make him a reviewer, purely
-as an administrative change.
-
-Also specify the new tree location in preparation for the tree being
-established for next cycle, and remove the link to the not so regularly
-updated linux-mm website.
-
-Given that, from next cycle, the tree will sit outside of Andrew's current
-process, remove his entry, also purely as an administrative change.
-
-With that said, I'd like to take the opportunity to express gratitude for
-Andrew's huge contribution to mm, and for his being both generous and
-gracious throughout this period of change in the subsystem.
-
-Link: https://patch.msgid.link/20261118-maintainers-consolidate-vma-entry-v1-1-8019b0e9928f@kernel.org
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Link: https://patch.msgid.link/20261118112610.122799-1-oleksandr@natalenko.name
+Fixes: 642929a2ded0 ("mm/swapfile: fix an integer overflow in swap_show()")
+Signed-off-by: Oleksandr Natalenko <oleksandr@natalenko.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Co-developed-by: Suren Baghdasaryan <surenb@google.com>
-Acked-by: Liam R. Howlett (Google) <liam@infradead.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Acked-by: SJ Park <sj@kernel.org>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Jann Horn <jannh@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Reviewed-by: Youngjun Park <youngjun.park@lge.com>
+Cc: Rafael Aquini <aquini@redhat.com>
+Cc: Christopher Li <chrisl@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Barry Song <baohua@kernel.org>
+Cc: <stable@vger.kernel.org>
 
- MAINTAINERS |   51 ++++++++++++--------------------------------------
- 1 file changed, 13 insertions(+), 38 deletions(-)
+ mm/swapfile.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/MAINTAINERS~maintainers-consolidate-the-memory-mapping-entries-into-a-vma-entry
-+++ a/MAINTAINERS
-@@ -17507,7 +17507,6 @@ M:	David Hildenbrand <david@kernel.org>
- R:	Liam R. Howlett <liam@infradead.org>
- R:	Vlastimil Babka <vbabka@kernel.org>
- R:	Mike Rapoport <rppt@kernel.org>
--R:	Suren Baghdasaryan <surenb@google.com>
- R:	Michal Hocko <mhocko@suse.com>
- L:	linux-mm@kvack.org
- S:	Maintained
-@@ -17677,7 +17676,6 @@ M:	David Hildenbrand <david@kernel.org>
- R:	Liam R. Howlett <liam@infradead.org>
- R:	Vlastimil Babka <vbabka@kernel.org>
- R:	Mike Rapoport <rppt@kernel.org>
--R:	Suren Baghdasaryan <surenb@google.com>
- R:	Michal Hocko <mhocko@suse.com>
- L:	linux-mm@kvack.org
- S:	Maintained
-@@ -17969,30 +17967,37 @@ F:	rust/kernel/mm.rs
- F:	rust/kernel/mm/
- F:	rust/kernel/page.rs
+--- a/mm/swapfile.c~mm-swapfile-really-fix-integer-overflow-in-swap_show-and-swapon
++++ a/mm/swapfile.c
+@@ -3452,7 +3452,7 @@ static int swap_show(struct seq_file *sw
+ 		return 0;
+ 	}
  
--MEMORY MAPPING
--M:	Andrew Morton <akpm@linux-foundation.org>
--M:	Liam R. Howlett <liam@infradead.org>
-+MEMORY MANAGEMENT - VMA
- M:	Lorenzo Stoakes <ljs@kernel.org>
-+M:	Liam R. Howlett <liam@infradead.org>
-+M:	Suren Baghdasaryan <surenb@google.com>
- R:	Vlastimil Babka <vbabka@kernel.org>
--R:	Jann Horn <jannh@google.com>
-+R:	Shakeel Butt <shakeel.butt@linux.dev>
- R:	Pedro Falcato <pfalcato@suse.de>
-+R:	David Hildenbrand <david@kernel.org>
-+R:	Jann Horn <jannh@google.com>
- L:	linux-mm@kvack.org
- S:	Maintained
--W:	http://www.linux-mm.org
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mm/vma.git for-next
- F:	Documentation/core-api/protection-keys.rst
- F:	Documentation/filesystems/mmap_prepare.rst
-+F:	Documentation/mm/process_addrs.rst
- F:	Documentation/userspace-api/mseal.rst
- F:	fs/proc/task_mmu.c
- F:	fs/proc/task_nommu.c
- F:	include/linux/mman.h
-+F:	include/linux/mmap_lock.h
- F:	include/linux/pkeys.h
- F:	include/trace/events/mmap.h
-+F:	include/trace/events/mmap_lock.h
-+F:	include/uapi/asm-generic/mman-common.h
- F:	include/uapi/linux/mman.h
- F:	mm/char-mem.c
-+F:	mm/madvise.c
- F:	mm/mincore.c
- F:	mm/mlock.c
- F:	mm/mmap.c
-+F:	mm/mmap_lock.c
- F:	mm/mprotect.c
- F:	mm/mremap.c
- F:	mm/mseal.c
-@@ -18006,36 +18011,6 @@ F:	mm/vma_internal.h
- F:	tools/testing/selftests/mm/merge.c
- F:	tools/testing/vma/
+-	bytes = K(si->pages);
++	bytes = K((unsigned long)si->pages);
+ 	inuse = K(swap_usage_in_pages(si));
  
--MEMORY MAPPING - LOCKING
--M:	Andrew Morton <akpm@linux-foundation.org>
--M:	Suren Baghdasaryan <surenb@google.com>
--M:	Liam R. Howlett <liam@infradead.org>
--M:	Lorenzo Stoakes <ljs@kernel.org>
--R:	Vlastimil Babka <vbabka@kernel.org>
--R:	Shakeel Butt <shakeel.butt@linux.dev>
--L:	linux-mm@kvack.org
--S:	Maintained
--W:	http://www.linux-mm.org
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
--F:	Documentation/mm/process_addrs.rst
--F:	include/linux/mmap_lock.h
--F:	include/trace/events/mmap_lock.h
--F:	mm/mmap_lock.c
--
--MEMORY MAPPING - MADVISE (MEMORY ADVICE)
--M:	Andrew Morton <akpm@linux-foundation.org>
--M:	Liam R. Howlett <liam@infradead.org>
--M:	Lorenzo Stoakes <ljs@kernel.org>
--M:	David Hildenbrand <david@kernel.org>
--R:	Vlastimil Babka <vbabka@kernel.org>
--R:	Jann Horn <jannh@google.com>
--L:	linux-mm@kvack.org
--S:	Maintained
--W:	http://www.linux-mm.org
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
--F:	include/uapi/asm-generic/mman-common.h
--F:	mm/madvise.c
--
- MEMORY TECHNOLOGY DEVICES (MTD)
- M:	Miquel Raynal <miquel.raynal@bootlin.com>
- M:	Richard Weinberger <richard@nod.at>
+ 	file = si->swap_file;
+@@ -3968,8 +3968,8 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	/* Sets SWP_WRITEOK, resurrect the percpu ref, expose the swap device */
+ 	enable_swap_info(si);
+ 
+-	pr_info("Adding %uk swap on %s.  Priority:%d extents:%d across:%lluk %s%s%s%s\n",
+-		K(si->pages), name->name, si->prio, nr_extents,
++	pr_info("Adding %luk swap on %s.  Priority:%d extents:%d across:%lluk %s%s%s%s\n",
++		K((unsigned long)si->pages), name->name, si->prio, nr_extents,
+ 		K((unsigned long long)span),
+ 		(si->flags & SWP_SOLIDSTATE) ? "SS" : "",
+ 		(si->flags & SWP_DISCARDABLE) ? "D" : "",
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from oleksandr@natalenko.name are
 
-mm-vma-predicate-vma_assert_stabilised-on-config_debug_vm.patch
-mm-only-assert-mmap-locks-if-config_debug_vm-or-lockdep-is-set.patch
-mm-only-assert-vma-locks-if-config_debug_vm-is-set.patch
-mm-convert-warn_on_onces-to-vm_warn_on_once-in-vma-lock-code.patch
-mm-madvise-zap-markers-from-guard-regions.patch
 
