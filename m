@@ -1,49 +1,52 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795407298;
-	b=gJ3QzhewDDpiKsNJEpDbJ7ipiWsUxosQCEYuYJ+FiuoigUm1/ZKmpc8CUZw/dgBuMWG+
-	 gQwrH7uhn7rmoDal91K/d0Z3v/i28g2KALfdVS6zM8quFqWU4hLY1/0vOqyIz49UbBxXi
-	 GsQNVftiS7I8GlcQmhEW+Ss5w/qUDofu3+Qcy9JxYPf30Oh6P3GUUNFUrzAbgRAQ/XZeJ
-	 Pcmffdo5gWJN26pJ2EWxcKZKbjL9s63bR9f7vsVCYELqt0ZAkZ87zsu8AI5QKWyv2RZNn
-	 BHuLO+im2puUnhcgHkZyJ29fmyEm9KntLcxDf4SdKk8TvqudQBlbI4pmtijG3OceK+Q==
+	t=1795412339;
+	b=t18byZc7R+hVocKfnrckT+PvSQWkRwv7BbaY1p9mdPof6+xnTNKFlYk+EgOMVr52UcAg
+	 rzTtMyUeu+W3mbdmJTFegtmByBA8y4/4YjAqw0UFxLJLYYcmaJPNN8VLKRLL8pnJAFa9M
+	 t/UexwNa3IXErZ9CQOh5X763hickGj2OB7LooPt70T0IZ+/yIIi1jBTcpNoMaldVrbNpX
+	 2mLvyS/rNAjgI26yCB65l0FJbx+piZM7IwW+xwh0UXjcm4XSjp25o31HqdSMDKNpfge4f
+	 YoZPlpeq06PXA/YX0rS1y4w47WjgrRUVfxQZjyqpjK4N6nZqvwgAfBRlROW0lvwvGbw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795407298;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795412339;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=oAFGkefyc+6sWruPqh3DKGWOs1bQdw1bvUiuUxh/Wuo=;
-	b=Eai22fNTGeqGI/kZbLRTp0432zyKXxLI5iZX0W80MfDVZp8ns6Rjp3E4nVHMJzYKlqxe
-	 uDJ5d9/OgNSY7CbzDtkNd+t277GSGCvl91J8W+5Ybu6wE70bei7ljcLgv7hyBZ9mD4Cac
-	 XUDtlCKcLm+bN6FhrDkJ4fDCF2gha/XTk4twGmx7vqqU1WC0qgmRjQQMVRYI5J21mhGn9
-	 cNgtwsNuO6e03QCfZ8iqaJbOjgTr53lX/69Dj5gaPBIPptdjXAN5T5+IE8j8O8cN9EKu/
-	 YGODJwP5eyibeUxr9MlY/9jGKYy/5w/vLvVVjZ78PPGmtTAjgZsEoAa2S772qG+Z7sA==
+	bh=r1UVk9PC+bS6T8UlO2jjijoYg5uUF+jKP8peQ0BOBDk=;
+	b=kBoz7sblR5AsXnglcYhbZ4r8mDu5BVpSksmyGpNcgpwGkRPM4Zcf90SHcVRCoeARBPn3
+	 wb7B4tETLqxI0lwOsYqM0Xbht/nOHkFR4e+kEf8BnqkziKaUpDl3r4FyUsTgPuIZyAHci
+	 lg5IktwcuNib6P4Inc4/gmMMRvSOUSo/wraVTKX6bH6DVvnTq2AuC5dyFikSTa6hoPMdO
+	 iG5dR8RQx3WJXnX01SBOS7RHs8wT1ZsQwk3zWnOrvgiI5BLTv7aaj6nJul38/ttwcegE+
+	 cEZ2/pVpPCR0uOdqd6+46hJ7dX+MmLkKFKp4N5quKwBaMAZu9ceU5yU3NqL3gJhxJ1w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=RVzgPrqm;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=edivmLTB;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 981C2606A31E
-	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 04:14:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EA28606A31A
+	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 05:38:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=RVzgPrqm
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 377001F000C6;
-	Mon, 23 Nov 2026 04:14:58 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=edivmLTB
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC7241F000CF;
+	Mon, 23 Nov 2026 05:38:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795407298;
-	bh=oAFGkefyc+6sWruPqh3DKGWOs1bQdw1bvUiuUxh/Wuo=;
+	d=linux-foundation.org; s=korg; t=1795412338;
+	bh=r1UVk9PC+bS6T8UlO2jjijoYg5uUF+jKP8peQ0BOBDk=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=RVzgPrqmPbvMCbv9xf3M6cWLGteta1CICPU4G5IgVYKPYKnyxG4SBAh6CIb0zI4DQ
-	 oYHQviAJViJyUv9x5o3syQvUQDEP4PDw1MWPtPvpW99H7ghtM0dOONr1UhhX4sAnit
-	 Ut3mnRXLazeQ6SKa3g+78bJVEEkXTpKmbS0rh3n0=
-Date: Sun, 22 Nov 2026 20:14:57 -0800
-To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,
-	akpm@linux-foundation.org
+	b=edivmLTBE1Q6cE1SwWS390xgJNPIqFO4765HYGjPpna0Kvw5cDLPKB8RLHFQE2Tqv
+	 rPTtTdmN0VY4ABUyUoUSDs31LVqAPVlL6DMlp0fc6+qrF73eriCu1U+3Zu4w6m0eQM
+	 QbLUwoRDSEw7SuyBb9VhdBUHaCfnNaTXvb1znAfk=
+Date: Sun, 22 Nov 2026 21:38:58 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
+	skhan@linuxfoundation.org,shakeel.butt@linux.dev,rppt@kernel.org,
+	rmk+kernel@armlinux.org.uk,rdunlap@infradead.org,qi.zheng@linux.dev,
+	mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,
+	corbet@lwn.net,zhaozhengzhuo@uniontech.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261123034304.261742-24-phillip@squashfs.org.uk>
-References: <20261123034304.261742-24-phillip@squashfs.org.uk>
-Subject: + squashfs-check-index-isnt-greater-than-s64_max-in-squashfs_read_data.patch added to mm-nonmm-unstable branch
-Message-Id: <20261123041458.377001F000C6@smtp.kernel.org>
+In-Reply-To: <6E11B4A6A6E0DCF9+20261123030904.57369-1-zhaozhengzhuo@uniontech.com>
+References: <6E11B4A6A6E0DCF9+20261123030904.57369-1-zhaozhengzhuo@uniontech.com>
+Subject: + docs-mm-fix-stale-split-page-table-lock-references.patch added to mm-unstable branch
+Message-Id: <20261123053858.BC7241F000CF@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,14 +58,14 @@ Precedence: list
 
 
 The patch titled
-     Subject: Squashfs: check index isn't greater than S64_MAX in squashfs_read_data()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-check-index-isnt-greater-than-s64_max-in-squashfs_read_data.patch
+     Subject: Docs/mm: fix stale split page table lock references
+has been added to the -mm mm-unstable branch.  Its filename is
+     docs-mm-fix-stale-split-page-table-lock-references.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-check-index-isnt-greater-than-s64_max-in-squashfs_read_data.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-fix-stale-split-page-table-lock-references.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -78,70 +81,66 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: Squashfs: check index isn't greater than S64_MAX in squashfs_read_data()
-Date: Mon, 23 Nov 2026 03:43:04 +0000
+From: zhaozhengzhuo <zhaozhengzhuo@uniontech.com>
+Subject: Docs/mm: fix stale split page table lock references
+Date: Mon, 23 Nov 2026 11:09:03 +0800
 
-The previous commits in this patch-set now sanity check index before
-squashfs_read_data() is called.  However, it is always wise to take
-a belts and braces approach and sanity check at the lowest level to
-trap any values that could slip through.
+The USE_SPLIT_PTE_PTLOCKS and USE_SPLIT_PMD_PTLOCKS macros were turned
+into Kconfig options, and CONFIG_SPLIT_PTLOCK_CPUS was replaced, but two
+Documentation/mm files still refer to the old names.
 
-Link: https://patch.msgid.link/20261123034304.261742-24-phillip@squashfs.org.uk
-Fixes: e2780ab159ac ("Squashfs: block operations")
-Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
+Update both references.  Point readers to mm/Kconfig for the dependencies
+instead of restating information that can become stale.
+
+Link: https://patch.msgid.link/6E11B4A6A6E0DCF9%2B20261123030904.57369-1-zhaozhengzhuo@uniontech.com
+Fixes: 394290cba966 ("mm: turn USE_SPLIT_PTE_PTLOCKS / USE_SPLIT_PTE_PTLOCKS into Kconfig options")
+Signed-off-by: zhaozhengzhuo <zhaozhengzhuo@uniontech.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Christian Loehle <christian.loehle@arm.com>
-Cc: Dan Carpenter <error27@gmail.com>
-Cc: Phillip Lougher <phillip.lougher@gmail.com>
-Cc: syzbot ci <syzbot+ci04e7314748e3f6be@syzkaller.appspotmail.com>
+Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Russell King <rmk+kernel@armlinux.org.uk>
 
- fs/squashfs/block.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ Documentation/mm/process_addrs.rst         |    2 +-
+ Documentation/mm/split_page_table_lock.rst |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/fs/squashfs/block.c~squashfs-check-index-isnt-greater-than-s64_max-in-squashfs_read_data
-+++ a/fs/squashfs/block.c
-@@ -297,6 +297,15 @@ int squashfs_read_data(struct super_bloc
- 	int res;
- 	int offset;
+--- a/Documentation/mm/process_addrs.rst~docs-mm-fix-stale-split-page-table-lock-references
++++ a/Documentation/mm/process_addrs.rst
+@@ -659,7 +659,7 @@ acquired in :c:func:`!__p4d_alloc`, :c:f
+    references the :c:member:`!mm->page_table_lock`.
  
-+	/*
-+	 * Reject index values greater than possible filesystem size (S64_MAX).
-+	 * This also ensures the index variable doesn't overflow in the function.
-+	 */
-+	if (index > S64_MAX) {
-+		res = -EIO;
-+		goto out;
-+	}
-+
- 	if (length) {
- 		/*
- 		 * Datablock.
+ Allocating a PTE will either use the :c:member:`!mm->page_table_lock` or, if
+-:c:macro:`!USE_SPLIT_PMD_PTLOCKS` is defined, a lock embedded in the PMD
++:c:macro:`!CONFIG_SPLIT_PMD_PTLOCKS` is enabled, a lock embedded in the PMD
+ physical page metadata in the form of a :c:struct:`!struct ptdesc`, acquired by
+ :c:func:`!pmd_ptdesc` called from :c:func:`!pmd_lock` and ultimately
+ :c:func:`!__pte_alloc`.
+--- a/Documentation/mm/split_page_table_lock.rst~docs-mm-fix-stale-split-page-table-lock-references
++++ a/Documentation/mm/split_page_table_lock.rst
+@@ -37,8 +37,8 @@ There are helpers to lock/unlock a table
+  - pmd_lockptr()
+ 	returns pointer to PMD table lock;
+ 
+-Split page table lock for PTE tables is enabled compile-time if
+-CONFIG_SPLIT_PTLOCK_CPUS (usually 4) is less or equal to NR_CPUS.
++Split page table lock for PTE tables is enabled at compile time when
++CONFIG_SPLIT_PTE_PTLOCKS is enabled; see mm/Kconfig for its dependencies.
+ If split lock is disabled, all tables are guarded by mm->page_table_lock.
+ 
+ Split page table lock for PMD tables is enabled, if it's enabled for PTE
 _
 
-Patches currently in -mm which might be from phillip@squashfs.org.uk are
+Patches currently in -mm which might be from zhaozhengzhuo@uniontech.com are
 
-squashfs-convert-squashfs_compressed_-to-inline-functions.patch
-squashfs-convert-squashfs_inode_-and-squashfs_mkinode-to-inline-functions.patch
-squashfs-convert-squashfs_fragment_-to-inline-functions.patch
-squashfs-convert-squashfs_lookup_-to-inline-functions.patch
-squashfs-convert-squashfs_id_-to-inline-functions.patch
-squashfs-convert-squashfs_xattr_-to-inline-functions.patch
-squashfs-fix-offset-in-squashfs_read_inode-trace-statements.patch
-squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index.patch
-squashfs-fix-fragment-bytes-overflow-on-32-bit-architectures.patch
-squashfs-fix-fragment-index-table-length-too-large-exploit.patch
-squashfs-sanity-check-inode-metadata-block-location.patch
-squashfs-sanity-check-directory-metadata-block-location.patch
-squashfs-widen-xattr-count-variables-and-add-sanity-check.patch
-squashfs-very-large-files-can-exceed-an-int-or-size_t.patch
-squashfs-add-more-sanity-checking-to-squashfs_block_size.patch
-squashfs-sanity-check-fragment-block-location-and-range.patch
-squashfs-sanity-check-block-list-sizes-and-range.patch
-squashfs-dont-store-large-export-table-indexes-in-memory.patch
-squashfs-dont-store-large-fragment-table-indexes-in-memory.patch
-squashfs-dont-store-large-xattr-id-table-indexes-in-memory.patch
-squashfs-fix-variables-in-directory-code-and-add-more-sanity-checks.patch
-squashfs-fix-regression-in-squashfs_copy_cache.patch
-squashfs-check-index-isnt-greater-than-s64_max-in-squashfs_read_data.patch
+docs-mm-fix-stale-split-page-table-lock-references.patch
 
