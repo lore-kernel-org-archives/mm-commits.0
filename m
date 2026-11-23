@@ -1,49 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795407237;
-	b=wNnj+AGiuP43WUG4R6iGvTyzy0+T0pbloBe73r7K3aRkyoyazI1nphvBiS3np0SpKcCW
-	 F+UFwqey104BI3izFiWfbbEtrRldNLrDDj5/HjeTI1swWYXIKlSXG9IDs2HrWtYKtfNxb
-	 viXWndWkngJU1Il4G3AsSh4SXTdN1x8cd7i8iZgC1M3ReP7bJHDW2owPcVKeGiF6TuHpJ
-	 EPXb768tFV6GywBIN/6+RnR9hlNa4qGhy85mE1dvkiC0x0AKcebbqZz7lUf/ChWZji4/g
-	 XFKY+u1Ta5Tru/CnODSVFMomihTm/5VpX3TTt7kfFzMYH52wex6CABWBfmi6A+bRmSA==
+	t=1795407239;
+	b=aWHYJcXk4fYdKs31Yk3b5vfiEr725Eim+ISLBy7yiBIlV5zcvPiapRhsYZeIQwnmYSku
+	 0crjidlV9xLD+sHj+tcYLWv4pd3nyK4GZO175TjfGnqTrxl9UMmY148LJcCRrbLjWy8EC
+	 1/0sCPqaUyvHcnm5UkxPQtxqIurfNWsgMOSsE8GG2OHnW6IjhaRqNPLxm2UEvYbNCLFFx
+	 7gnl4iMY5FwB6vvh/k6NgY8p9z5aCeZ11gpg+Wa+/nKvSzIoKFY2en4M4XoCkPZJQq2Ut
+	 m+tCaWeeTLKVrS3WtvaZXvnAtm8JJaZwHME2l9JTuNAbfCORF/+2LG48S7kn+Uqj2Rg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795407237;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795407239;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=kXdeHioVyHOFlQmlt50l1+GlIseZ7c0Wv2jQhOD2KAw=;
-	b=tpu+OqVmV8Sc/8NBKY3XDgviFbo8dR24Mscu/3VYgQxZkN7tIOHmFPZVcyVqEc8QI9Hb
-	 IiJJAnyICTNsPUxHJ9ovuYf7p71jpS4XLEc91MoyHnGxcMo/6JmerEXHJk8TaPXXKe/d4
-	 qDUOvdMGKQFyYra2m/t+lWC7x+hc8AkssNtZBY49j/Q3EBmvBk2UFrHC1ITKOtd4ODnOc
-	 DbgMhUzER3RDMO+4RsFRQOSPmi7uWPlhC3kWTwzUFdA7D7qSSJSOeMKPy0axqH+XNJte/
-	 aVR71sGT14PcjUiJY4NyqnHb4uP3Y75p0eAlzngMI/gFkQA7MaFlPekEk9i7yW/dGlg==
+	bh=wkZECLvlJNsPLE8QuUe0Ju+B0SuNf8Bj0Nm+V2w0BEY=;
+	b=JRut9uVRnIxDMibEe/Jwky49yh6Rs7EMnjopSUjT1pwGJPaSjbfJhgKPlh2k75a+eIuP
+	 VZvSYqrAAw89KNErqxIE9gBDPpHeau/X2RQIo8323kuSVXZvfMvZlL0egbJR+zWb9zw3X
+	 r5cH0drau7vRF9qtEiAjQuZdMKAjjg7WLd5VQNcwLJtFTQGBPTZKedS5n4rKsB6w7lZYY
+	 xqqQtRdIMwmrkWzwIaKSnoqxAua7e4iNig80m8DC+7bbgn6xH+0MkCmMiUM2a0n/Aubrj
+	 Jeko0dHImJ1Z4nAtX0/sn2peq5SndHnMUIdi5H8i/MN4ROXyVUDWBS/eMiNP5XXyixg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=k8vk88bT;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="byOf/UvY";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A4F8606A31A
-	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 04:13:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F237606A332
+	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 04:13:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=k8vk88bT
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 768591F000C0;
-	Mon, 23 Nov 2026 04:13:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=byOf/UvY
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 269351F000D2;
+	Mon, 23 Nov 2026 04:13:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795407236;
-	bh=kXdeHioVyHOFlQmlt50l1+GlIseZ7c0Wv2jQhOD2KAw=;
+	d=linux-foundation.org; s=korg; t=1795407239;
+	bh=wkZECLvlJNsPLE8QuUe0Ju+B0SuNf8Bj0Nm+V2w0BEY=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=k8vk88bTuf9Lawv4s4BNu4yLt5SPqn3VsYesbQq5DCNE2CtEOPdbnZqdayBYykSrO
-	 SArVQecEs1hRBynjCTvJIdzALwo41mk8v4AKAztIvAgkSO2fyh0RKuyMTCFZW4zeaX
-	 NQoUR2Zi+v2D/KQTx6MNALzp8mFMG52NwspKxJRA=
-Date: Sun, 22 Nov 2026 20:13:55 -0800
+	b=byOf/UvYRm9kbjn+PWvWbLgHDh0RUfmja7VFNi2npQr8pyAj5PNaBaD5cC+UND0DA
+	 PAfJjvvNk+ZgOxPN2T4ICJx6ZUrS4WFQIPuga1WD4QqurrrmV5w7idZ/EzTYlBC51D
+	 yInK5pCDUxhfH8CtFqkCdUkeSlbeX2uy/BWHpBis=
+Date: Sun, 22 Nov 2026 20:13:58 -0800
 To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261123034304.261742-8-phillip@squashfs.org.uk>
-References: <20261123034304.261742-8-phillip@squashfs.org.uk>
-Subject: + squashfs-fix-offset-in-squashfs_read_inode-trace-statements.patch added to mm-nonmm-unstable branch
-Message-Id: <20261123041356.768591F000C0@smtp.kernel.org>
+In-Reply-To: <20261123034304.261742-9-phillip@squashfs.org.uk>
+References: <20261123034304.261742-9-phillip@squashfs.org.uk>
+Subject: + squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index.patch added to mm-nonmm-unstable branch
+Message-Id: <20261123041359.269351F000D2@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: Squashfs: fix offset in squashfs_read_inode() TRACE statements
+     Subject: Squashfs: don't compute start or alloc memory on empty directory or index
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-fix-offset-in-squashfs_read_inode-trace-statements.patch
+     squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-fix-offset-in-squashfs_read_inode-trace-statements.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,18 +79,28 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: Squashfs: fix offset in squashfs_read_inode() TRACE statements
-Date: Mon, 23 Nov 2026 03:42:48 +0000
+Subject: Squashfs: don't compute start or alloc memory on empty directory or index
+Date: Mon, 23 Nov 2026 03:42:49 +0000
 
-The offset used in the TRACE statements has been advanced past the start
-of the inode header by the squashfs_read_metadata() call.  This means
-the offset printed is incorrect.
+If a directory is empty (length equals 3), then there is no data to be
+read from the filesystem.
 
-Fix this by using the original offset, which is obtained by calling
-squashfs_inode_offset(ino).
+This means we can optimise directory reading and lookup with empty
+directories by skipping allocating memory to read data into, and
+also skip computing the start location.
 
-Link: https://patch.msgid.link/20261123034304.261742-8-phillip@squashfs.org.uk
-Fixes: 6545b246a2c8 ("Squashfs: inode operations")
+If the directory index is also empty, we can also skip allocating
+memory when reading the index.
+
+This commit also fixes the TRACE statements to display the start
+and offset of the directory data within the directory table,
+rather than the computed location on disk, or the incremented values
+after squashfs_read_metadata() has been called.
+
+It also adds sanity checks to ensure that the directory length is not
+less than 3 bytes.
+
+Link: https://patch.msgid.link/20261123034304.261742-9-phillip@squashfs.org.uk
 Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Christian Loehle <christian.loehle@arm.com>
@@ -98,82 +108,173 @@ Cc: Dan Carpenter <error27@gmail.com>
 Cc: Phillip Lougher <phillip.lougher@gmail.com>
 Cc: syzbot ci <syzbot+ci04e7314748e3f6be@syzkaller.appspotmail.com>
 
- fs/squashfs/inode.c |   22 ++++++++++++++--------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+ fs/squashfs/dir.c   |   32 +++++++++++++++++++++-----------
+ fs/squashfs/inode.c |   16 ++++++++++++++--
+ fs/squashfs/namei.c |   32 +++++++++++++++++++-------------
+ 3 files changed, 54 insertions(+), 26 deletions(-)
 
---- a/fs/squashfs/inode.c~squashfs-fix-offset-in-squashfs_read_inode-trace-statements
-+++ a/fs/squashfs/inode.c
-@@ -184,7 +184,8 @@ int squashfs_read_inode(struct inode *in
+--- a/fs/squashfs/dir.c~squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index
++++ a/fs/squashfs/dir.c
+@@ -99,19 +99,14 @@ static int squashfs_readdir(struct file
+ {
+ 	struct inode *inode = file_inode(file);
+ 	struct squashfs_sb_info *msblk = inode->i_sb->s_fs_info;
+-	u64 block = squashfs_i(inode)->start + msblk->directory_table;
+-	int offset = squashfs_i(inode)->offset, length, err;
++	u64 block;
++	int offset, length, err;
+ 	unsigned int inode_number, dir_count, size, type;
+ 	struct squashfs_dir_header dirh;
+ 	struct squashfs_dir_entry *dire;
  
- 		TRACE("File inode %x:%x, start_block %llx, block_list_start "
- 			"%llx, offset %x\n", squashfs_inode_blk(ino),
--			offset, squashfs_i(inode)->start, block, offset);
-+			squashfs_inode_offset(ino),
-+			squashfs_i(inode)->start, block, offset);
- 		break;
+-	TRACE("Entered squashfs_readdir [%llx:%x]\n", block, offset);
+-
+-	dire = kmalloc(sizeof(*dire) + SQUASHFS_NAME_LEN + 1, GFP_KERNEL);
+-	if (dire == NULL) {
+-		ERROR("Failed to allocate squashfs_dir_entry\n");
+-		goto finish;
+-	}
++	TRACE("Entered squashfs_readdir [%llx:%x]\n", squashfs_i(inode)->start,
++			squashfs_i(inode)->offset);
+ 
+ 	/*
+ 	 * Return "." and  ".." entries as the first two filenames in the
+@@ -142,6 +137,19 @@ static int squashfs_readdir(struct file
+ 		ctx->pos += size;
  	}
- 	case SQUASHFS_LREG_TYPE: {
-@@ -244,7 +245,8 @@ int squashfs_read_inode(struct inode *in
  
- 		TRACE("File inode %x:%x, start_block %llx, block_list_start "
- 			"%llx, offset %x\n", squashfs_inode_blk(ino),
--			offset, squashfs_i(inode)->start, block, offset);
-+			squashfs_inode_offset(ino), squashfs_i(inode)->start,
-+			block, offset);
- 		break;
- 	}
- 	case SQUASHFS_DIR_TYPE: {
-@@ -266,7 +268,8 @@ int squashfs_read_inode(struct inode *in
- 		squashfs_i(inode)->parent = le32_to_cpu(sqsh_ino->parent_inode);
- 
- 		TRACE("Directory inode %x:%x, start_block %llx, offset %x\n",
--				squashfs_inode_blk(ino), offset,
-+				squashfs_inode_blk(ino),
-+				squashfs_inode_offset(ino),
- 				squashfs_i(inode)->start,
- 				le16_to_cpu(sqsh_ino->offset));
- 		break;
-@@ -293,7 +296,8 @@ int squashfs_read_inode(struct inode *in
- 		squashfs_i(inode)->parent = le32_to_cpu(sqsh_ino->parent_inode);
- 
- 		TRACE("Long directory inode %x:%x, start_block %llx, offset "
--				"%x\n", squashfs_inode_blk(ino), offset,
-+				"%x\n", squashfs_inode_blk(ino),
-+				squashfs_inode_offset(ino),
- 				squashfs_i(inode)->start,
- 				le16_to_cpu(sqsh_ino->offset));
- 		break;
-@@ -337,8 +341,8 @@ int squashfs_read_inode(struct inode *in
++	if (i_size_read(inode) == 3)
++		/* The directory is empty, nothing more to do */
++		goto finish;
++
++	dire = kmalloc(sizeof(*dire) + SQUASHFS_NAME_LEN + 1, GFP_KERNEL);
++	if (dire == NULL) {
++		ERROR("Failed to allocate squashfs_dir_entry\n");
++		goto finish;
++	}
++
++	block = squashfs_i(inode)->start + msblk->directory_table;
++	offset = squashfs_i(inode)->offset;
++
+ 	length = get_dir_index_using_offset(inode->i_sb, &block, &offset,
+ 				squashfs_i(inode)->dir_idx_start,
+ 				squashfs_i(inode)->dir_idx_offset,
+@@ -206,12 +214,14 @@ static int squashfs_readdir(struct file
  		}
- 
- 		TRACE("Symbolic link inode %x:%x, start_block %llx, offset "
--				"%x\n", squashfs_inode_blk(ino), offset,
--				block, offset);
-+				"%x\n", squashfs_inode_blk(ino),
-+				squashfs_inode_offset(ino), block, offset);
- 		break;
  	}
- 	case SQUASHFS_BLKDEV_TYPE:
-@@ -361,7 +365,8 @@ int squashfs_read_inode(struct inode *in
- 		squashfs_i(inode)->parent = 0;
  
- 		TRACE("Device inode %x:%x, rdev %x\n",
--				squashfs_inode_blk(ino), offset, rdev);
-+				squashfs_inode_blk(ino),
-+				squashfs_inode_offset(ino), rdev);
- 		break;
- 	}
- 	case SQUASHFS_LBLKDEV_TYPE:
-@@ -386,7 +391,8 @@ int squashfs_read_inode(struct inode *in
- 		squashfs_i(inode)->parent = 0;
+-finish:
+ 	kfree(dire);
++
++finish:
+ 	return 0;
  
- 		TRACE("Device inode %x:%x, rdev %x\n",
--				squashfs_inode_blk(ino), offset, rdev);
-+				squashfs_inode_blk(ino),
-+				squashfs_inode_offset(ino), rdev);
- 		break;
+ failed_read:
+-	ERROR("Unable to read directory block [%llx:%x]\n", block, offset);
++	ERROR("Unable to read directory [%llx:%x]\n", squashfs_i(inode)->start,
++			squashfs_i(inode)->offset);
+ 	kfree(dire);
+ 	return 0;
+ }
+--- a/fs/squashfs/inode.c~squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index
++++ a/fs/squashfs/inode.c
+@@ -257,8 +257,14 @@ int squashfs_read_inode(struct inode *in
+ 		if (err < 0)
+ 			goto failed_read;
+ 
+-		set_nlink(inode, le32_to_cpu(sqsh_ino->nlink));
++		/* The directory size must be 3 or larger, as it includes "." and ".." entries */
+ 		inode->i_size = le16_to_cpu(sqsh_ino->file_size);
++		if (inode->i_size < 3) {
++			err = -EINVAL;
++			goto failed_read;
++		}
++
++		set_nlink(inode, le32_to_cpu(sqsh_ino->nlink));
+ 		inode->i_op = &squashfs_dir_inode_ops;
+ 		inode->i_fop = &squashfs_dir_ops;
+ 		inode->i_mode |= S_IFDIR;
+@@ -282,9 +288,15 @@ int squashfs_read_inode(struct inode *in
+ 		if (err < 0)
+ 			goto failed_read;
+ 
++		/* The directory size must be 3 or larger, as it includes "." and ".." entries */
++		inode->i_size = le32_to_cpu(sqsh_ino->file_size);
++		if (inode->i_size < 3) {
++			err = -EINVAL;
++			goto failed_read;
++		}
++
+ 		xattr_id = le32_to_cpu(sqsh_ino->xattr);
+ 		set_nlink(inode, le32_to_cpu(sqsh_ino->nlink));
+-		inode->i_size = le32_to_cpu(sqsh_ino->file_size);
+ 		inode->i_op = &squashfs_dir_inode_ops;
+ 		inode->i_fop = &squashfs_dir_ops;
+ 		inode->i_mode |= S_IFDIR;
+--- a/fs/squashfs/namei.c~squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index
++++ a/fs/squashfs/namei.c
+@@ -72,6 +72,9 @@ static int get_dir_index_using_name(stru
+ 
+ 	TRACE("Entered get_dir_index_using_name, i_count %d\n", i_count);
+ 
++	if (i_count == 0)
++		goto out;
++
+ 	index = kmalloc(sizeof(*index) + SQUASHFS_NAME_LEN + 1, GFP_KERNEL);
+ 	if (index == NULL) {
+ 		ERROR("Failed to allocate squashfs_dir_index\n");
+@@ -126,13 +129,20 @@ static struct dentry *squashfs_lookup(st
+ 	struct inode *inode = NULL;
+ 	struct squashfs_sb_info *msblk = dir->i_sb->s_fs_info;
+ 	struct squashfs_dir_header dirh;
+-	struct squashfs_dir_entry *dire;
+-	u64 block = squashfs_i(dir)->start + msblk->directory_table;
+-	int offset = squashfs_i(dir)->offset;
+-	int err, length;
++	struct squashfs_dir_entry *dire = NULL;
++	u64 block;
++	int offset, err, length;
+ 	unsigned int dir_count, size;
+ 
+-	TRACE("Entered squashfs_lookup [%llx:%x]\n", block, offset);
++	TRACE("Entered squashfs_lookup [%llx:%x]\n", squashfs_i(inode)->start,
++			squashfs_i(inode)->offset);
++
++	if (len > SQUASHFS_NAME_LEN)
++		return ERR_PTR(-ENAMETOOLONG);
++
++	if (i_size_read(dir) == 3)
++		/* The directory is empty, and so there's nothing to do */
++		goto exit_lookup;
+ 
+ 	dire = kmalloc(sizeof(*dire) + SQUASHFS_NAME_LEN + 1, GFP_KERNEL);
+ 	if (dire == NULL) {
+@@ -140,10 +150,8 @@ static struct dentry *squashfs_lookup(st
+ 		return ERR_PTR(-ENOMEM);
  	}
- 	case SQUASHFS_FIFO_TYPE:
+ 
+-	if (len > SQUASHFS_NAME_LEN) {
+-		err = -ENAMETOOLONG;
+-		goto failed;
+-	}
++	block = squashfs_i(dir)->start + msblk->directory_table;
++	offset = squashfs_i(dir)->offset;
+ 
+ 	length = get_dir_index_using_name(dir->i_sb, &block, &offset,
+ 				squashfs_i(dir)->dir_idx_start,
+@@ -218,10 +226,8 @@ data_error:
+ 	err = -EIO;
+ 
+ read_failure:
+-	ERROR("Unable to read directory block [%llx:%x]\n",
+-		squashfs_i(dir)->start + msblk->directory_table,
+-		squashfs_i(dir)->offset);
+-failed:
++	ERROR("Unable to read directory [%llx:%x]\n", squashfs_i(dir)->start,
++			squashfs_i(dir)->offset);
+ 	kfree(dire);
+ 	return ERR_PTR(err);
+ }
 _
 
 Patches currently in -mm which might be from phillip@squashfs.org.uk are
