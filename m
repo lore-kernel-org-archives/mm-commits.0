@@ -1,48 +1,99 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.214.169
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795420503;
-	b=s1G32PtbRSHhaM1X7sh3sgmI0MKF62ZT7a0V24jh9iKbRM2smtNiY6RUMvmKPQzL7UDD
-	 AHnCmAxnTYEhyyRROyf9RL3FC2CvEJqpjG1EdHWWgIhDwiZ67nw76Wd+TlvEq6KAykFU4
-	 hKBBoM+2fLHrfvhR0xpASxK/XCrbYiPOgypLip4TjGE6UJClPg1YH9Om+hSQ4YMXrG3Hc
-	 e4yosUybD6oQbc5SttRP/GaOon3KjMZkff85zEWctInslTiifj5y6vMqqFOGDgKWyQmvH
-	 H+3qV+nCaLWZh5C8dc78+HfSJDZB7cHkZxhxTdySF9Muq/YkbizvJBFKs0941W6TpUg==
+	t=1795453490;
+	b=v9ys/flVYJXAS5rgZHdhD98i+JAYNUVcMmKt7ZwpN2hJRsfWkaN18dS2COmbwf9FIAnZ
+	 yQVvgbgAbBeNg6G6RWTCWnRIYkyKW7GXcu0ZoOjks8fjkLiRTDim+gqzinpAblJMWepkE
+	 uhlsEOEr4uALB3XmnECxQzwG2o1qXev1e3U9D+aj6yPlaFdVvUXLWBPzprO2KK4LKxZIu
+	 GTtda+8TDLph1qI4fRJtMUZjDOjP2kciQpvGF9g8Abo2qTvgzx3x/BXFEkPcEQjPyiSPz
+	 gayMTPf1BMUZapGcXqSbxUxvJnbYsuUuvH6XXap/HaHRGTLiZGPD6agaZTQ4PrsFWcA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795420503;
-	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=HXQ30hMLDSUOS123c7tKUs09AZWkY4gCAj9bKcwMp1k=;
-	b=yH4GssR35AR/tQHFR30I6WMq1ECthL8tmSyXF7WhBtWUXDaavYIr4Soq6uJA7pRh0/wP
-	 Lj/qr7FoTX7JRQBYBWWehEc4qfdAKSAHJkoXEp8rcaLqNdXUDim/iXvwhNTAig9bpqYK/
-	 5F9BMHh+wZvf2/NLQYJ/98aY2i+MxhK5ZqzEoVtF7N+U3RDolcZx/2ASavnHJXROpRBtS
-	 1GFGDTDArdg7jBUS2rrOva2x4UD/yyMz+h4MT+7yhGz9OQN0rlx4MzQtAk/KGsKjI7JUR
-	 KwADpiFbrgnxq+eA0xl1hg0WFzu6TNEbTtpO8xnRtnrduTnyrL7uHwv7xIp1Tqt6oww==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795453490;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type;
+	bh=6z6ak377Awv+mxJYPSVQS/ONw5MrRNWXM3G9SGJDdio=;
+	b=WROGI0gw2O0Bml0TB++eG1ROciCIa6U6mGcLX+FINyO/xfQpE7wqTLUpc4+rCx6LAaND
+	 GCYGjOIO7biXF9ewFjIymTthz7CaaTMEiE3QFkKHfjMsk1WM/bB6cQUyzmKWYdtCheWLj
+	 cwqnkzTnbdVLnSX9eQrEt9PdFeyBffZXBifjKO9UUVvmDzbH+gEyA5Ci/ECGMJctNwNq7
+	 V3RtEXFon85XtkcqeTnShNxRWUmnpiBpMW0Nw0ethrLtKgoEvLbE1aBVFcuhOZtj7Zhm+
+	 Fi7evOXl6sP2p1yTlP4rHP+1uq4vz1dCcBK5ZLfeGgR9dH/Fm2t3xXFMscvVYaWmtJQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xoLOWqra;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=google.com;
+	spf=pass smtp.mailfrom=google.com;
+	dkim=pass header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=Z+tRy4TR;
+	arc=none smtp.remote-ip=209.85.214.169
+Received: from mail-pl1-f169.google.com (mail-pl1-f169.google.com [209.85.214.169])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E0D3606A31A
-	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 07:55:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E35A5606A31E
+	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 17:04:49 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E35A5606A31E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xoLOWqra
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52D871F000C6;
-	Mon, 23 Nov 2026 07:55:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=Z+tRy4TR
+Received: by mail-pl1-f169.google.com with SMTP id d9443c01a7336-2f048bc09d7so120305ad.0
+        for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 09:04:49 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795420502;
-	bh=HXQ30hMLDSUOS123c7tKUs09AZWkY4gCAj9bKcwMp1k=;
-	h=Date:To:From:Subject;
-	b=xoLOWqrapm4zqx77cOV+mPp3/ApHz/EdHaAmnHb542DnwVOLAYpr2gDSFxl5hJxWo
-	 KLacLuMiUWY8DBPqzuFw+Ytlshd4D6eafZDGthyb1BoVAJ/NCfTj6zYxtR+b37/piw
-	 JxdCBFjqwerwgIOZn/nVAJFG0D98G6/Iik0lYlV8=
-Date: Sun, 22 Nov 2026 23:55:01 -0800
-To: mm-commits@vger.kernel.org,
-	syzbot+ci04e7314748e3f6be@syzkaller.appspotmail.com,phillip@squashfs.org.uk,
-	phillip.lougher@gmail.com,error27@gmail.com,christian.loehle@arm.com,
-	akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20261123075502.52D871F000C6@smtp.kernel.org>
+        d=google.com; s=20260707; t=1795453489; x=1796058289; darn=vger.kernel.org;
+        h=content-type:mime-version:references:message-id:in-reply-to:subject
+         :cc:to:from:date:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=6z6ak377Awv+mxJYPSVQS/ONw5MrRNWXM3G9SGJDdio=;
+        b=Z+tRy4TRZ2gL1kXKXKkEFgbmqyWnnYHJVLAGknNmltW2SvH3rUvuHfPT4OMrCT90N1
+         /lFjF6BnT3PbhQrPH2d6BnlBsJ1Hbv4jacUBCvFrbQFlHAcD+kgODZ7F3J3OO2QzXhwT
+         AJNZBITZhOBQU6f/bJR0v6XTHkGzRNmxnnkNgVYQr369SGiEcZHo22EyqJGXzi9ABCe/
+         st6EK0VFRDFfSatLnlNuALW4N2QW2HnPb2TM/jd+5PppbNboRz4TkYfirfWvnrpNqDI0
+         G5VaZk0SY1ixLMjAXaIsdz09+ctv3M+ckBxgtDxE45te7d3fSqAcCqzLiKeo0E7O4iaI
+         WPGw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795453489; x=1796058289;
+        h=content-type:mime-version:references:message-id:in-reply-to:subject
+         :cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=6z6ak377Awv+mxJYPSVQS/ONw5MrRNWXM3G9SGJDdio=;
+        b=WY4Uc0VKRqhdyZQLPBbEVzGNSLm2lGrTVAzyrMXhsGXI/F8sCAcq9s70B+4SqxqFzi
+         tbI0UPzmmR2H/vedaQegB+3Nx9tivpsXTFBxGAdg1liphDCErRt8abg3cpCReeiwJ4b7
+         1AsKnScwFAMnQiSnFHljisISPQ52gK7Gqb5e37pBqCRB3svDTO/J8OAyZurpzShxvUOZ
+         D+sQ8TK3x1WQaRn9bM185QVkcurNqXbsnen1baVWQWVQPc5FgYi44R53A2La4t2C0zXF
+         3TPNNj29xK2v7B6ZJ/Yvz6t/UuseZFA9ZFDOdrXeuy6m1sZBy3WyccDe0oNaCGwVFK1W
+         LUbw==
+X-Forwarded-Encrypted: i=1; AL+hErG0k7t/iwffmEM1f4MOcVmtPT5XskECBYNhiiPvm+Rzk2EE23jv2V5pFrW3H3WmpFV120sp+TBaZrad@vger.kernel.org
+X-Gm-Message-State: APuU4Z8X3j9ZHDX/1T5F9qgPE5yB5dkOz0c5yqBW5anE8dLTKMSMLI5I
+	mDSuJnUiPMHuGDnFqynpDpttldN2Cpbr0wq2UxX7tQ811Y7VptWKdpORADtGZ2pP8g==
+X-Gm-Gg: AZFdTZfVbzhicsT+KexR2uxVgR8CD8h4WVRX517PKUzhPHEJXBI2/pALOujjodlZFkj
+	FHZj0SfiR3+f0KX1Hv+nqT4q31YzonLomnBTWNaquXUR7xbE1XBTxRTNoPjz8ZGJK6YKi+91vQy
+	/fn7QPB0U8dpojGvifRfPoZexEjjegPivpCjt5J4Zr++kJGswBftqCh+ILhrfuJKORoK1wfRJPe
+	NJzs3JCYYCy5kTD1z6fSgGxJ9maLrtPY9oRKH2HgVjPDY6HE14uTHhvFPu+gpRsvMqDk2pZtTJi
+	KqlKWugC9kDmK+dPysOAbsGF/GV7PB8g1wWawhd+8isFdvxQs9rB9lPseEI6d1Z8rUXxZbFVrX+
+	tISRCpIyM7Rv1h6muA5TA46VYWGi85DzQkshFj5VD/1PDOzYu5nTYoFB4E1jqINt9eIQc8clrk1
+	4wE0LLUiPtc6GLbSM3vUrZWJ4dtFgybd3KQrHnsgvrybKWN32Bo13AcdFH5Q83hc8V5WCZNQrl4
+	j59kF2X1SNoqFyE0t3B4cg1XVaw2NRSyyLbGwy1EYQe/XkVqb+89FhD1KI+5E2CqIC4z4nLytjC
+	juD7xsXQmA//lYEN5KYD2IU6RNCsfz4Yqn1Yk1gZFr6ew213aBlk2I7PfkdodgIZGiZQmWTVH1J
+	E24Qtoorw1fE+x0pWy9SGbWqphQaBd4MfYEll1AYmaf04LxJnx5Pt4zcgcuVyQzEKMl/see6bAn
+	mDEQI7pitaCok0w92S6JOlIli5qWMSACT9IQBrW+BZ2ipTZA==
+X-Received: by 2002:a17:902:f790:b0:2e5:9bdf:6b65 with SMTP id d9443c01a7336-2f0615ca0f5mr7681115ad.0.1795453488528;
+        Mon, 23 Nov 2026 09:04:48 -0800 (PST)
+Received: from [2a00:79e0:2eb4:9:2973:837c:48c1:1e91] ([2a00:79e0:2eb4:9:2973:837c:48c1:1e91])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8c87285b60csm5993799b3a.9.2026.11.23.09.04.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 23 Nov 2026 09:04:47 -0800 (PST)
+Date: Mon, 23 Nov 2026 09:04:45 -0800 (PST)
+From: David Rientjes <rientjes@google.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+cc: kernel test robot <lkp@intel.com>, 
+    Christoph Lameter <cl@linux-foundation.org>, oe-kbuild-all@lists.linux.dev, 
+    David Hildenbrand <david@kernel.org>, 
+    Linux Memory Management List <linux-mm@kvack.org>, 
+    mm-commits@vger.kernel.org
+Subject: Re: [akpm-mm:mm-unstable 327/327] arch/arm64/include/asm/percpu.h:261:1:
+ sparse: sparse: cast truncates bits from constant value (ffffffffffffd8f0
+ becomes f0)
+In-Reply-To: <20261122194825.2541c7389c2f958ef3d07fbc@linux-foundation.org>
+Message-ID: <7d1f916f-2a4b-c31e-617c-e1da7623fca3@google.com>
+References: <20261121133112.48w1QOqw-lkp@intel.com> <20261122194825.2541c7389c2f958ef3d07fbc@linux-foundation.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,90 +102,83 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 
+On Sun, 22 Nov 2026, Andrew Morton wrote:
 
-The patch titled
-     Subject: squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index-fix.patch
+> On Sat, 21 Nov 2026 13:34:45 +0100 kernel test robot <lkp@intel.com> wrote:
+> 
+> > tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-unstable
+> > head:   7d1a16abe4cc5dccd21e3d6262e44433a5885d27
+> > commit: 7d1a16abe4cc5dccd21e3d6262e44433a5885d27 [327/327] mm: vmstat_kunit: add synthetic benchmark for mm stats
+> > config: arm64-randconfig-r2305-20261121 (https://download.01.org/0day-ci/archive/20261121/20261121133112.48w1QOqw-lkp@intel.com/config)
+> > compiler: aarch64-linux-gcc (GCC) 15.3.0
+> > sparse: v0.6.5-rc1-21-g84ec0658
+> > reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20261121/20261121133112.48w1QOqw-lkp@intel.com/reproduce)
+> > 
+> > If you fix the issue in a separate patch/commit (i.e. not just a new version of
+> > the same patch/commit), kindly add following tags
+> > | Reported-by: kernel test robot <lkp@intel.com>
+> > | Closes: https://lore.kernel.org/oe-kbuild-all/20261121133112.48w1QOqw-lkp@intel.com/
+> > 
+> > sparse warnings: (new ones prefixed by >>)
+> >    mm/tests/vmstat_kunit.c: note: in included file (through include/linux/irqflags.h, include/linux/spinlock.h, include/linux/kref.h, include/kunit/test.h):
+> > >> arch/arm64/include/asm/percpu.h:261:1: sparse: sparse: cast truncates bits from constant value (ffffffffffffd8f0 becomes f0)
+> 
+> Thanks.  sparse is being a bit silly here.  Using a variable instead of
+> a constant silences it.
+> 
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index-fix.patch
+Thanks very much for taking care of this, Andrew!
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index-fix
-Date: Sun Nov 22 11:49:59 PM PST 2026
-
-s/inode/dir/ in TRACE statement
-
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Christian Loehle <christian.loehle@arm.com>
-Cc: Dan Carpenter <error27@gmail.com>
-Cc: Phillip Lougher <phillip.lougher@gmail.com>
-Cc: Phillip Lougher <phillip@squashfs.org.uk>
-Cc: syzbot ci <syzbot+ci04e7314748e3f6be@syzkaller.appspotmail.com>
-
- fs/squashfs/namei.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
---- a/fs/squashfs/namei.c~squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index-fix
-+++ a/fs/squashfs/namei.c
-@@ -134,8 +134,8 @@ static struct dentry *squashfs_lookup(st
- 	int offset, err, length;
- 	unsigned int dir_count, size;
- 
--	TRACE("Entered squashfs_lookup [%llx:%x]\n", squashfs_i(inode)->start,
--			squashfs_i(inode)->offset);
-+	TRACE("Entered squashfs_lookup [%llx:%x]\n", squashfs_i(dir)->start,
-+			squashfs_i(dir)->offset);
- 
- 	if (len > SQUASHFS_NAME_LEN)
- 		return ERR_PTR(-ENAMETOOLONG);
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize-fix.patch
-selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
-selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
-selftests-mm-allocate-nr_pages-based-on-pmd-size-for-uffd-pmd_move-tests-fix.patch
-selftests-mm-retain-move-pmd-coverage-and-verify-huge-pmds.patch
-lib-test_xarray-check-unused-spare-node-after-range-creation.patch
-mm-memory-failure-dont-unpoison-a-leaked-raw_hwp_unreliable-folio-fix.patch
-mm-vmstat_kunit-add-synthetic-benchmark-for-mm-stats-fix.patch
-lib-test_hmm-invalidate-all-mirrors-on-device-private-migration.patch
-lib-test_hmm-invalidate-all-mirrors-on-device-private-migration-fix.patch
-mm-prevent-pre-content-bypass-through-mremap-and-remap_file_pages.patch
-selinux-recheck-backing-file-permissions-on-remap_file_pages.patch
-mm-madvise-notify-userfaultfd-when-installing-guard-regions.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-2.patch
-fuse-let-memory-failure-remove-poisoned-page-cache-folios.patch
-nilfs2-report-mapping-errors-from-fsync.patch
-ocfs2-unregister-the-jbd2-shrinker-before-journal-shutdown.patch
-ipc-msg-clamp-negative-msg_info-usage-counts.patch
-squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix.patch
-squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index-fix.patch
-ocfs2-skip-network-flush-when-no-domain-handlers-are-registered.patch
-selftests-ptrace-check-that-ptrace_set_syscall_info-rejects-invalid-error-values-fix.patch
-jfs-validate-xattr-entry-bounds-before-replacing-an-attribute.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
-
+> 
+> From: Andrew Morton <akpm@linux-foundation.org>
+> Subject: mm/vmstat_kunit: avoid sparse warning in vm event cleanup
+> Date: Sun, 22 Nov 2026 18:51:40 -0800
+> 
+> Sparse warns about -TEST_COUNT in an unreachable 1-byte arm64 per-CPU
+> case; the actual counter is 8 bytes.  Pass the completed loop count
+> instead to silence the warning, with no behavior change.
+> 
+> Link: https://lore.kernel.org/r/21183f5b-2697-cbe6-6370-dbd27c5e2b60@google.com
+> Fixes: 7d1a16abe4cc ("mm: vmstat_kunit: add synthetic benchmark for mm stats")
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> Reported-by: kernel test robot <lkp@intel.com>
+> Closes: https://lore.kernel.org/oe-kbuild-all/20261121133112.48w1QOqw-lkp@intel.com/
+> Cc: Christoph Lameter <cl@gentwo.org>
+> Cc: David Rientjes <rientjes@google.com>
+> Cc: David Hildenbrand <david@kernel.org>
+> Cc: Liam R. Howlett <liam@infradead.org>
+> Cc: Vlastimil Babka <vbabka@kernel.org>
+> Cc: Mike Rapoport <rppt@kernel.org>
+> Cc: Michal Hocko <mhocko@suse.com>
+> Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+> Cc: Sarthak Sharma <sarthak.sharma@arm.com>
+> 
+>  mm/tests/vmstat_kunit.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> --- a/mm/tests/vmstat_kunit.c~mm-vmstat_kunit-add-synthetic-benchmark-for-mm-stats-fix
+> +++ a/mm/tests/vmstat_kunit.c
+> @@ -107,7 +107,7 @@ static void vmstat_test_interleaved_zone
+>  
+>  /*
+>   * Test 3: count_vm_event() benchmark.
+> - * Restores counter balance with count_vm_events(item, -TEST_COUNT).
+> + * Restores counter balance after measurement.
+>   */
+>  static void vmstat_test_count_vm_event(struct kunit *test)
+>  {
+> @@ -124,7 +124,7 @@ static void vmstat_test_count_vm_event(s
+>  	time2 = get_cycles();
+>  
+>  	/* Restore balance */
+> -	count_vm_events(SLABS_SCANNED, -TEST_COUNT);
+> +	count_vm_events(SLABS_SCANNED, -(long)i);
+>  
+>  	time = time2 - time1;
+>  	avg_cycles = div_u64(time, TEST_COUNT);
+> _
+> 
+> 
