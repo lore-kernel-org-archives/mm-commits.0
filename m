@@ -1,49 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795407225;
-	b=YksZ2FkeWi+0CMYzMJlqZQ8XsiG9/F0wNd0FZWLUKLzQ2eQp9cEDfvZcwalFxjP4z+Uw
-	 dWM4pQDupY9z3se/2nXioJfHfQ33yD5MY+RyyZ5x5t+7HEUE5d/EeWZ0tykdLz/2yARoY
-	 dt43ACGAKf7otUXrZoAKXya6ZJ2zMVYuWCEpPDrsU1izBaLDgWHhHn5z1k/Y9Ds3f7csL
-	 qJW+3OF5qaa3DshLgI6nCTeAmwrsA4D9woa0u0CEPC8S3TUSbvPA0sJtjYHxnnnTuvhsN
-	 sso0U8Yav5ejNkJNRV6DGVVdaTwgtw+1qqIawPIfjDjNHLW0P8gMSUfomqqgihTD3UQ==
+	t=1795407229;
+	b=thgC4CnoE9wtytEMKSSAU/dYmWN0D0CQN/oiDjoEUIK0CIUTVRkqMBShV/YYvRiJZWGR
+	 GV+rChlVLyphVeQvXKbt9d0pW3ObeIjGAcv9BZs6L1nw9KTGjmBp4MUIdQIXm4rLvHTFm
+	 Zk50rOktl1CFlYPThueVsX8BcXSqK3Cw2btbhlWav03csFivrD8IsGG/XRD3sO2bNz+CB
+	 IolkmNspr3z62i2HDEmGEexGmNmzQpIKLqb6wbzwIa+Y4oXc5yxC46I3FIYd3DVT7wM40
+	 HKkBC/G6w4kATJw2PWqWDa+7MjkUxr6DgDBcYaEAcjLxZ+AE6HyEMTaLzCZBVPjpSBA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795407225;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795407229;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=5Vfyv74ZlkrMROvUg/PKG9q2N1LwWyrjWbN5Nn8wMgc=;
-	b=0Ry5oqQoXD9irm3HYdeQljGmzmy7ss7OCyQnHMimCClo84PgmJ4jsvrHyyTr5tzxPg8O
-	 t/izxlP2Hl0gOS9zKkFZd8AKdquYQYV0J3KvJpOdqgpxyD7/+sGgiXvNZKtuMcOIOT38z
-	 AHFb1JXg1ONddUb/1bNDr/9g7e7gn8Bp3xk/F/PbFC2o4LCCdITJnsibTlEO1nhMshw2h
-	 jq/zLhXXIgLrl0jVRuBsf0S0OAPGBeb19e2O1d7MJo80cLM0xxmX4RivdXd1Dnzo80g9W
-	 GB6TVYnSoBQFIDXJSUHJs/qo9+OZDZs2plaQxxqaQKIhKK7dTaml26a10461NbaDdXw==
+	bh=ix0X1CJCHiyPFHCCy4ZPWWCKlWxon5GJAcz1fbE1tjI=;
+	b=LwyR7TxslyK/sIcSLhpozN/PtK15qeUhyKetD6ngfIBgAHPAc7wOiidhiiNWpZWMGNf4
+	 9XFSJGuwBJ/Ln5kJKHdIcJWvVumb0qG9orY2t7K+Ru6FHNo5iIMqP5fuEMvqNTkrpITtC
+	 QiiB3H1ZssZ2qg5kZ6/6ZldhZpu/rPzbQUKAhINOnw2NDZVfFVwo52sm9zD5ljU0DWZl8
+	 fFHaZ4yK76hqOEkqgVSVVRJ0ul7HWMIKF6huKbk4pR/1SWpJihAylJ6rNZBQ9KZu4at0X
+	 Amy9k/XnjZ0DOXfxrFU2EEo8cb136i5/4rzkZKoIXDcwZcJ854GPZPZMo/bWeJB2PtQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1L1XgeJz;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=T5FzYJV+;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB538606A31A
-	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 04:13:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F2BF606A31A
+	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 04:13:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1L1XgeJz
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B807C1F000C6;
-	Mon, 23 Nov 2026 04:13:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=T5FzYJV+
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A6DC1F000C4;
+	Mon, 23 Nov 2026 04:13:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795407224;
-	bh=5Vfyv74ZlkrMROvUg/PKG9q2N1LwWyrjWbN5Nn8wMgc=;
+	d=linux-foundation.org; s=korg; t=1795407228;
+	bh=ix0X1CJCHiyPFHCCy4ZPWWCKlWxon5GJAcz1fbE1tjI=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=1L1XgeJz4DoVvvrVXTJ2VMibtdfUHO2QJByIZJL9yRpyBeAeI/dm/eAL9YLuPuBJE
-	 62UddLbzN0D3VYyfB+/J+TaUYDJ6IxBQUO7sCgCsuWpnjo0ZHidWBymdvD57S/YaWN
-	 diybrJlq8DXETeefs3BOaqZX3nf1Jfvfais5+CSw=
-Date: Sun, 22 Nov 2026 20:13:44 -0800
+	b=T5FzYJV+U6lEA8JGuKdTby4iGORS+q2SLD5NKfWTt5EymqcrWDy9eyfbPWI2sAIqb
+	 GCO1IzL8vZYTtPQ6GLx5EzyzeCA5olPI93XgK5HV5zRiL7IetBDxhy+a7Ks4eQjEDI
+	 ANyLXX8CnjxLgzc5qZ7LNiVw/m9Yf9uYglThyCzQ=
+Date: Sun, 22 Nov 2026 20:13:48 -0800
 To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261123034304.261742-5-phillip@squashfs.org.uk>
-References: <20261123034304.261742-5-phillip@squashfs.org.uk>
-Subject: + squashfs-convert-squashfs_lookup_-to-inline-functions.patch added to mm-nonmm-unstable branch
-Message-Id: <20261123041344.B807C1F000C6@smtp.kernel.org>
+In-Reply-To: <20261123034304.261742-6-phillip@squashfs.org.uk>
+References: <20261123034304.261742-6-phillip@squashfs.org.uk>
+Subject: + squashfs-convert-squashfs_id_-to-inline-functions.patch added to mm-nonmm-unstable branch
+Message-Id: <20261123041348.8A6DC1F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: Squashfs: convert SQUASHFS_LOOKUP_* to inline functions
+     Subject: Squashfs: convert SQUASHFS_ID_* to inline functions
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-convert-squashfs_lookup_-to-inline-functions.patch
+     squashfs-convert-squashfs_id_-to-inline-functions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-convert-squashfs_lookup_-to-inline-functions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-convert-squashfs_id_-to-inline-functions.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,8 +79,8 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: Squashfs: convert SQUASHFS_LOOKUP_* to inline functions
-Date: Mon, 23 Nov 2026 03:42:45 +0000
+Subject: Squashfs: convert SQUASHFS_ID_* to inline functions
+Date: Mon, 23 Nov 2026 03:42:46 +0000
 
 Convert old fashioned #define macros into inline functions.  This has
 the following improvements:
@@ -94,7 +94,7 @@ the following improvements:
 3. Inline functions are easier to read than #define macros, which
    improves code comprehension.
 
-Link: https://patch.msgid.link/20261123034304.261742-5-phillip@squashfs.org.uk
+Link: https://patch.msgid.link/20261123034304.261742-6-phillip@squashfs.org.uk
 Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Christian Loehle <christian.loehle@arm.com>
@@ -102,100 +102,99 @@ Cc: Dan Carpenter <error27@gmail.com>
 Cc: Phillip Lougher <phillip.lougher@gmail.com>
 Cc: syzbot ci <syzbot+ci04e7314748e3f6be@syzkaller.appspotmail.com>
 
- fs/squashfs/export.c           |    9 +++++----
- fs/squashfs/squashfs_fs.h      |   16 ----------------
+ fs/squashfs/id.c               |    9 +++++----
+ fs/squashfs/squashfs_fs.h      |   15 ---------------
  fs/squashfs/squashfs_helpers.h |   27 +++++++++++++++++++++++++++
- 3 files changed, 32 insertions(+), 20 deletions(-)
+ 3 files changed, 32 insertions(+), 19 deletions(-)
 
---- a/fs/squashfs/export.c~squashfs-convert-squashfs_lookup_-to-inline-functions
-+++ a/fs/squashfs/export.c
-@@ -31,6 +31,7 @@
+--- a/fs/squashfs/id.c~squashfs-convert-squashfs_id_-to-inline-functions
++++ a/fs/squashfs/id.c
+@@ -24,6 +24,7 @@
+ 
  #include "squashfs_fs.h"
  #include "squashfs_fs_sb.h"
- #include "squashfs_fs_i.h"
 +#include "squashfs_helpers.h"
  #include "squashfs.h"
  
  /*
-@@ -39,8 +40,8 @@
- static long long squashfs_inode_lookup(struct super_block *sb, int ino_num)
+@@ -33,8 +34,8 @@ int squashfs_get_id(struct super_block *
+ 					unsigned int *id)
  {
  	struct squashfs_sb_info *msblk = sb->s_fs_info;
--	int blk = SQUASHFS_LOOKUP_BLOCK(ino_num - 1);
--	int offset = SQUASHFS_LOOKUP_BLOCK_OFFSET(ino_num - 1);
-+	int blk = squashfs_lookup_block(ino_num - 1);
-+	int offset = squashfs_lookup_block_offset(ino_num - 1);
- 	u64 start;
- 	__le64 ino;
+-	int block = SQUASHFS_ID_BLOCK(index);
+-	int offset = SQUASHFS_ID_BLOCK_OFFSET(index);
++	int block = squashfs_id_block(index);
++	int offset = squashfs_id_block_offset(index);
+ 	u64 start_block;
+ 	__le32 disk_id;
  	int err;
-@@ -115,8 +116,8 @@ static struct dentry *squashfs_get_paren
- __le64 *squashfs_read_inode_lookup_table(struct super_block *sb,
- 		u64 lookup_table_start, u64 next_table, unsigned int inodes)
+@@ -60,8 +61,8 @@ int squashfs_get_id(struct super_block *
+ __le64 *squashfs_read_id_index_table(struct super_block *sb,
+ 		u64 id_table_start, u64 next_table, unsigned short no_ids)
  {
--	unsigned int length = SQUASHFS_LOOKUP_BLOCK_BYTES(inodes);
--	unsigned int indexes = SQUASHFS_LOOKUP_BLOCKS(inodes);
-+	unsigned int length = squashfs_lookup_block_bytes(inodes);
-+	unsigned int indexes = squashfs_lookup_blocks(inodes);
+-	unsigned int length = SQUASHFS_ID_BLOCK_BYTES(no_ids);
+-	unsigned int indexes = SQUASHFS_ID_BLOCKS(no_ids);
++	unsigned int length = squashfs_id_block_bytes(no_ids);
++	unsigned int indexes = squashfs_id_blocks(no_ids);
  	int n;
  	__le64 *table;
  	u64 start, end;
---- a/fs/squashfs/squashfs_fs.h~squashfs-convert-squashfs_lookup_-to-inline-functions
+--- a/fs/squashfs/squashfs_fs.h~squashfs-convert-squashfs_id_-to-inline-functions
 +++ a/fs/squashfs/squashfs_fs.h
-@@ -107,22 +107,6 @@ static inline int squashfs_block_size(__
+@@ -107,21 +107,6 @@ static inline int squashfs_block_size(__
  	return (size >> 25) ? -EIO : size;
  }
  
--/* inode lookup table defines */
--#define SQUASHFS_LOOKUP_BYTES(A)	((A) * sizeof(u64))
+-/* uid/gid lookup table defines */
+-#define SQUASHFS_ID_BYTES(A)		((A) * sizeof(unsigned int))
 -
--#define SQUASHFS_LOOKUP_BLOCK(A)	(SQUASHFS_LOOKUP_BYTES(A) / \
+-#define SQUASHFS_ID_BLOCK(A)		(SQUASHFS_ID_BYTES(A) / \
 -					SQUASHFS_METADATA_SIZE)
 -
--#define SQUASHFS_LOOKUP_BLOCK_OFFSET(A)	(SQUASHFS_LOOKUP_BYTES(A) % \
+-#define SQUASHFS_ID_BLOCK_OFFSET(A)	(SQUASHFS_ID_BYTES(A) % \
 -					SQUASHFS_METADATA_SIZE)
 -
--#define SQUASHFS_LOOKUP_BLOCKS(A)	((SQUASHFS_LOOKUP_BYTES(A) + \
+-#define SQUASHFS_ID_BLOCKS(A)		((SQUASHFS_ID_BYTES(A) + \
 -					SQUASHFS_METADATA_SIZE - 1) / \
 -					SQUASHFS_METADATA_SIZE)
 -
--#define SQUASHFS_LOOKUP_BLOCK_BYTES(A)	(SQUASHFS_LOOKUP_BLOCKS(A) *\
+-#define SQUASHFS_ID_BLOCK_BYTES(A)	(SQUASHFS_ID_BLOCKS(A) *\
 -					sizeof(u64))
--
- /* uid/gid lookup table defines */
- #define SQUASHFS_ID_BYTES(A)		((A) * sizeof(unsigned int))
+ /* xattr id lookup table defines */
+ #define SQUASHFS_XATTR_BYTES(A)		(((u64) (A)) * sizeof(struct squashfs_xattr_id))
  
---- a/fs/squashfs/squashfs_helpers.h~squashfs-convert-squashfs_lookup_-to-inline-functions
+--- a/fs/squashfs/squashfs_helpers.h~squashfs-convert-squashfs_id_-to-inline-functions
 +++ a/fs/squashfs/squashfs_helpers.h
-@@ -78,4 +78,31 @@ static inline s32 squashfs_fragment_inde
+@@ -105,4 +105,31 @@ static inline s32 squashfs_lookup_block_
  {
- 	return squashfs_fragment_indexes(fragments) * sizeof(long long);
+ 	return squashfs_lookup_blocks(inodes) * sizeof(long long);
  }
 +
-+/* inode lookup table defines */
-+static inline s64 squashfs_lookup_bytes(u32 inodes)
++/* uid lookup table defines */
++static inline s32 squashfs_id_bytes(u16 ids)
 +{
-+	return (s64) inodes * sizeof(s64);
++	return (s32) ids * sizeof(unsigned int);
 +}
 +
-+static inline s32 squashfs_lookup_block(u32 inodes)
++static inline s32 squashfs_id_block(u16 ids)
 +{
-+	return squashfs_lookup_bytes(inodes) / SQUASHFS_METADATA_SIZE;
++	return squashfs_id_bytes(ids) / SQUASHFS_METADATA_SIZE;
 +}
 +
-+static inline s16 squashfs_lookup_block_offset(u32 inodes)
++static inline s16 squashfs_id_block_offset(u16 ids)
 +{
-+	return squashfs_lookup_bytes(inodes) % SQUASHFS_METADATA_SIZE;
++	return squashfs_id_bytes(ids) % SQUASHFS_METADATA_SIZE;
 +}
 +
-+static inline s32 squashfs_lookup_blocks(u32 inodes)
++static inline s8 squashfs_id_blocks(u16 ids)
 +{
-+	return (squashfs_lookup_bytes(inodes) + (SQUASHFS_METADATA_SIZE - 1)) /
++	return (squashfs_id_bytes(ids) + (SQUASHFS_METADATA_SIZE - 1)) /
 +		SQUASHFS_METADATA_SIZE;
 +}
 +
-+static inline s32 squashfs_lookup_block_bytes(u32 inodes)
++static inline s16 squashfs_id_block_bytes(u16 ids)
 +{
-+	return squashfs_lookup_blocks(inodes) * sizeof(long long);
++	return squashfs_id_blocks(ids) * sizeof(long long);
 +}
  #endif
 _
