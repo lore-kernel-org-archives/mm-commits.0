@@ -1,42 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795403045;
-	b=1tL5vCJgOl8KFrt/6i3AUspEEonNkjIAE6CpsQwDcQH8iN4yi75BgR+H/7ckh09VPgCu
-	 Vblz9TU1nBX6tiTzA+M1nQ8MYcjqHjDvuZvuMscSdOH1iwBQ2J+TLiBzlqwuxcLjQCy6M
-	 ERmdX9Sgbhhra1mw/XH/oYsi5OZ7s9r75qd5SrjKPKfg1ClgMhjMNkZmDe2Q1BQ1BF0XG
-	 epVGFSLl1hNeBPuhVU25G0SyrtvbZq2wmrBPgz0BZQH9gPu0hMhKT8pXbEw1pRb0ObqT/
-	 Kq/HH+1e8KVq3tkRykxN5T8O4bd8BKhh5lrAKIoOCSiz/JMqA1CqfjA1cuAii6dHFRA==
+	t=1795403049;
+	b=GCFfnQ3Yzvob7tsXE8tI+yNMW+JyzWob0k5eOkJsPL9UlCLEv/xOt+c8ySVt3FH7Iy2f
+	 Q3XmTlmoMl3nPFiuYTGT9e4LFNTTQlOYBO+F0a/LcmWYrsvP9usq12QJu3wpx831RqDOL
+	 g33V6g9i2UD/kR66C+SzbyrToCIyWeA3uVOBfGN7WA0PUIEa58SUqWoihlIvRWZEF2X0h
+	 y4uodOZ8ic4W+meYxBllawLG0+M1FKn8wTKsMiNDApHhqMrX3GyXJWlWr+sNPQaknL/IC
+	 3NTb/WShSqRXKdZvXAretmZsL4AJSYOUoB/VZ8qu+XWyrfFBtivVtP43wQ9qyYC7Ejw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795403045;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795403049;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=v41/m8sWU1L6tF6xQxqey5XuUtmgfOQuSsDSbgLpX24=;
-	b=seBftYaWmxBmwA46ZKSa7WUrnyrl2Dziuvf+uc/GXL5mvWxiDdrBDwH5Z38Eu8MjGAHW
-	 /wqPFxGCR24p1Ak/7YSbOS7xQgz+Wlz48CC13V0Eb95Qy3TewZeT+UZ/eY/B3GsFr3cki
-	 pdBDm4ZZ+rUIoSm8rhyTSageMCZiLfZoHOnnKLCNerpuT1pN2fo9eNEwYTuWTncc8pX19
-	 sP3KWSOMPbnQkjVYPPDEuwhHpCBsK1AsG5l01AIztDN5NVPHzj3MNWigTcOMnaeIU7LUq
-	 KZO7v0uOinoy3GmIduxKsG//9GPeu1ABbVlqz7n03KhFC0rD2iLFZn5KwuenOd/yysQ==
+	bh=oISz6wy/f/cl7XmB7letZdQMv+v6QnyXM6glwwP0FoQ=;
+	b=0D+D/OritUc3AoTsiaa745FOsyCvgVsm7iiSm5FThIaUTVqipTwy7TxPHKevBGH1NI3X
+	 FUgNq1Xy1fMk2wpXk3kC2M5NGnKnao/cXd/87BpWvgsJ2/UXWdKlwynZd0xfGBP79buvV
+	 QsZiBCXpKyntiw6nmAhve2pv5A8h5xVftff2GsF/IxjcT49nDvKDuL/PH/YgyDFnjVZIE
+	 ma8Awz2n00dusGFhnBV0nVl69LAYByhtErUkbNJXKGba97D/9X+4SuRi+HGkNJzJhkXOp
+	 A0/zDWESEj9wJJ3rD6n90nL3Xj6jTe19h1okdfmef3CjgOaLL+eHe0kTWxO9WOjRHYg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=FSBFhV39;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=OquAuYIj;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0CBB606A31A
-	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 03:04:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8589E606A31A
+	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 03:04:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=FSBFhV39
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4ABE1F000CF;
-	Mon, 23 Nov 2026 03:04:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=OquAuYIj
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA69E1F000C4;
+	Mon, 23 Nov 2026 03:04:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795403045;
-	bh=v41/m8sWU1L6tF6xQxqey5XuUtmgfOQuSsDSbgLpX24=;
+	d=linux-foundation.org; s=korg; t=1795403049;
+	bh=oISz6wy/f/cl7XmB7letZdQMv+v6QnyXM6glwwP0FoQ=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=FSBFhV391TYUI4l2CdzkpmLeN0nsZaSgcWIi3dlqaLdys/vJonT8bPfo0hjtKLFZI
-	 fEufPaJ8DebjC7XYdqqumheVQkePOzlWuRpXDXoT03hXme4Lzync2at5bF/MTi1gIM
-	 mLD7W5hTF4KvB33+dZ/7Tqo4a28STe8cWg3UtWLA=
-Date: Sun, 22 Nov 2026 19:04:04 -0800
+	b=OquAuYIjuXMgC532EBpyIZ37juAEBMWMduBcH5fImmonkVCPSflL0RKm9+S/DCQmt
+	 brgA/c0LL21Wm9MqLM10gJtM9CeQ3VXISmuPDuLng7oyURG407/BYutdjbwVGXb1na
+	 CLabpp1nVYbMnQb8PuiTNVlst2G70HS7fvlFbC4Y=
+Date: Sun, 22 Nov 2026 19:04:08 -0800
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
 	rppt@kernel.org,qi.zheng@linux.dev,osalvador@suse.de,mhocko@suse.com,
 	ljs@kernel.org,lizhe.67@bytedance.com,liam@infradead.org,
@@ -44,10 +44,10 @@ To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
 	balbirs@nvidia.com,apopple@nvidia.com,songmuchun@bytedance.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261120100856.16929-3-songmuchun@bytedance.com>
-References: <20261120100856.16929-3-songmuchun@bytedance.com>
-Subject: + mm-mm_init-factor-out-common-struct-page-initialization.patch added to mm-new branch
-Message-Id: <20261123030404.D4ABE1F000CF@smtp.kernel.org>
+In-Reply-To: <20261120100856.16929-4-songmuchun@bytedance.com>
+References: <20261120100856.16929-4-songmuchun@bytedance.com>
+Subject: + mm-mm_init-simplify-zone-device-page-initialization.patch added to mm-new branch
+Message-Id: <20261123030408.EA69E1F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -59,12 +59,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/mm_init: factor out common struct page initialization
+     Subject: mm/mm_init: simplify zone device page initialization
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mm_init-factor-out-common-struct-page-initialization.patch
+     mm-mm_init-simplify-zone-device-page-initialization.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_init-factor-out-common-struct-page-initialization.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_init-simplify-zone-device-page-initialization.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -94,24 +94,24 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/mm_init: factor out common struct page initialization
-Date: Fri, 20 Nov 2026 18:08:47 +0800
+Subject: mm/mm_init: simplify zone device page initialization
+Date: Fri, 20 Nov 2026 18:08:48 +0800
 
-Several struct page fields have the same initial values for every page in
-a zone. __init_single_page() initializes this state as part of its
-per-page setup, while the shared vmemmap tail path open-codes only a
-subset.
+memmap_init_zone_device() currently seeds its reusable head and tail
+templates by fully initializing the first real struct page and copying
+it back into a stack object. This keeps the first page outside the
+common loops and leaves __init_zone_device_page() only for template
+construction.
 
-Factor the PFN-independent state into memmap_init_page() and use it for
-both regular and shared tail struct pages. Keep section-, PFN- and
-instance-specific initialization in __init_single_page().
+Build both templates directly from the PFN-independent state. Add the
+head-specific pgmap and refcount state to the head template and the
+compound metadata to the tail template, then initialize every page
+through zone_device_page_init_from_template().
 
-This also initializes the last cpupid and KASAN tag for shared tail
-struct pages consistently with regular struct pages. Since
-memmap_init_page() marks ZONE_DEVICE pages reserved, remove the redundant
-update from the memory hotplug path.
+This removes the special handling for the first head and tail pages
+without changing their final state.
 
-Link: https://patch.msgid.link/20261120100856.16929-3-songmuchun@bytedance.com
+Link: https://patch.msgid.link/20261120100856.16929-4-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
@@ -129,137 +129,133 @@ Cc: James Houghton <jthoughton@google.com>
 Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Qi Zheng <qi.zheng@linux.dev>
 
- include/linux/mm.h  |    8 --------
- mm/mm_init.c        |   37 +++++++++++++++++++++----------------
- mm/mm_init.h        |    1 +
- mm/sparse-vmemmap.c |    7 +------
- 4 files changed, 23 insertions(+), 30 deletions(-)
+ mm/mm_init.c |   94 +++++++------------------------------------------
+ 1 file changed, 14 insertions(+), 80 deletions(-)
 
---- a/include/linux/mm.h~mm-mm_init-factor-out-common-struct-page-initialization
-+++ a/include/linux/mm.h
-@@ -3096,14 +3096,6 @@ static inline void set_page_node(struct
- 	page->flags.f |= (node & NODES_MASK) << NODES_PGSHIFT;
+--- a/mm/mm_init.c~mm-mm_init-simplify-zone-device-page-initialization
++++ a/mm/mm_init.c
+@@ -1036,48 +1036,6 @@ static void __init memmap_init(void)
  }
  
--static inline void set_page_links(struct page *page, enum zone_type zone,
--	unsigned long node, unsigned long pfn)
+ #ifdef CONFIG_ZONE_DEVICE
+-static void __ref __init_zone_device_page(struct page *page, unsigned long pfn,
+-					  unsigned long zone_idx, int nid,
+-					  struct dev_pagemap *pgmap)
 -{
--	set_page_zone(page, zone);
--	set_page_node(page, node);
--	set_page_section_from_pfn(page, pfn);
+-
+-	__init_single_page(page, pfn, zone_idx, nid);
+-
+-	/*
+-	 * Mark page reserved as it will need to wait for onlining
+-	 * phase for it to be fully associated with a zone.
+-	 *
+-	 * We can use the non-atomic __set_bit operation for setting
+-	 * the flag as we are still initializing the pages.
+-	 */
+-	__SetPageReserved(page);
+-
+-	/*
+-	 * ZONE_DEVICE pages union ->lru with a ->pgmap back pointer
+-	 * and zone_device_data.  It is a bug if a ZONE_DEVICE page is
+-	 * ever freed or placed on a driver-private list.
+-	 */
+-	page_folio(page)->pgmap = pgmap;
+-	page->zone_device_data = NULL;
+-
+-	/*
+-	 * MEMORY_DEVICE_GENERIC pages regain a refcount of 1 in the free
+-	 * path. The remaining ZONE_DEVICE types start from 0 here and raise
+-	 * the count again when the allocator or driver hands the page out.
+-	 */
+-	switch (pgmap->type) {
+-	case MEMORY_DEVICE_FS_DAX:
+-	case MEMORY_DEVICE_PRIVATE:
+-	case MEMORY_DEVICE_COHERENT:
+-	case MEMORY_DEVICE_PCI_P2PDMA:
+-		set_page_count(page, 0);
+-		break;
+-
+-	case MEMORY_DEVICE_GENERIC:
+-		break;
+-	}
 -}
 -
- /**
-  * folio_nr_pages - The number of pages in the folio.
-  * @folio: The folio.
---- a/mm/mm_init.c~mm-mm_init-factor-out-common-struct-page-initialization
-+++ a/mm/mm_init.c
-@@ -602,15 +602,27 @@ static inline void vmemmap_optimization_
- 			page_zone_id(page));
- }
- 
--void __meminit __init_single_page(struct page *page, unsigned long pfn,
--				unsigned long zone, int nid)
-+/* Initialize PFN-independent fields common to pages in the same zone. */
-+void memmap_init_page(struct page *page, enum zone_type zone, int nid)
+ static void zone_device_page_init_from_template(struct page *page,
+ 		unsigned long pfn, struct page *template)
  {
- 	mm_zero_struct_page(page);
--	set_page_links(page, zone, nid, pfn);
--	init_page_count(page);
--	atomic_set(&page->_mapcount, -1);
-+	set_page_zone(page, zone);
-+	set_page_node(page, nid);
- 	page_cpupid_reset_last(page);
- 	page_kasan_tag_reset(page);
-+	atomic_set(&page->_mapcount, -1);
-+#ifdef CONFIG_ZONE_DEVICE
-+	if (zone == ZONE_DEVICE)
-+		__SetPageReserved(page);
-+#endif
-+}
-+
-+void __meminit __init_single_page(struct page *page, unsigned long pfn,
-+		unsigned long zone, int nid)
-+{
-+	memmap_init_page(page, zone, nid);
-+	set_page_section_from_pfn(page, pfn);
-+	init_page_count(page);
+@@ -1118,30 +1076,13 @@ static void __ref memmap_init_compound(s
+ 	unsigned long pfn, end_pfn = head_pfn + nr_pages;
+ 	unsigned int order = pgmap->vmemmap_shift;
+ 	struct page template;
+-	struct page *page;
  
- 	INIT_LIST_HEAD(&page->lru);
- #ifdef WANT_PAGE_VIRTUAL
-@@ -891,11 +903,11 @@ void __meminit memmap_init_range(unsigne
- {
- 	unsigned long pfn, end_pfn = start_pfn + size;
- 	struct page *page;
-+	const struct zone *z = &NODE_DATA(nid)->node_zones[zone];
+-	/*
+-	 * We have to initialize the pages, including setting up page links.
+-	 * prep_compound_page() does not take care of that, so instead we
+-	 * open-code prep_compound_page() so we can take care of initializing
+-	 * the pages in the same go.
+-	 */
+-	__SetPageHead(head);
++	memmap_init_page(&template, zone_idx, nid);
++	prep_compound_tail(&template, head, order);
  
- 	if (highest_memmap_pfn < end_pfn - 1)
- 		highest_memmap_pfn = end_pfn - 1;
+-	/*
+-	 * All tails of the same compound page share the state established by
+-	 * prep_compound_tail(). Reuse one tail template for the whole range and
+-	 * refresh only the PFN-dependent fields in that template before each copy.
+-	 */
+-	pfn = head_pfn + 1;
+-	page = pfn_to_page(pfn);
+-	__init_zone_device_page(page, pfn, zone_idx, nid, pgmap);
+-	prep_compound_tail(page, head, order);
+-	set_page_count(page, 0);
+-	memcpy(&template, page, sizeof(*page));
+-
+-	/* Initialize the remaining tail pages from template. */
+-	for (pfn = head_pfn + 2; pfn < end_pfn; pfn++)
++	__SetPageHead(head);
++	/* Initialize the tail pages from template. */
++	for (pfn = head_pfn + 1; pfn < end_pfn; pfn++)
+ 		zone_device_page_init_from_template(pfn_to_page(pfn), pfn,
+ 						    &template);
+ 	prep_compound_head(head, order);
+@@ -1175,27 +1116,20 @@ void __ref memmap_init_zone_device(struc
+ 		nr_pages = end_pfn - start_pfn;
+ 	}
  
--#ifdef CONFIG_ZONE_DEVICE
+-	if (!nr_pages)
+-		return;
+-
+ 	VM_WARN_ON(!IS_ALIGNED(start_pfn | nr_pages, pfns_per_compound));
+ 
++	memmap_init_page(&template, zone_idx, nid);
++	page_folio(&template)->pgmap = pgmap;
  	/*
- 	 * Honor reservation requested by the driver for this ZONE_DEVICE
- 	 * memory. We limit the total number of pages to initialize to just
-@@ -903,7 +915,7 @@ void __meminit memmap_init_range(unsigne
- 	 * ZONE_DEVICE page initialization until after we have released
- 	 * the hotplug lock.
+-	 * Seed the reusable head-page template from the first real struct
+-	 * page. The normal page-init and refcount helpers must operate on
+-	 * a real memmap entry rather than a stack object.
++	 * MEMORY_DEVICE_GENERIC pages regain a refcount of one in the free
++	 * path. The remaining ZONE_DEVICE types start from zero here and raise
++	 * the count again when the allocator or driver hands the page out.
  	 */
--	if (zone == ZONE_DEVICE) {
-+	if (zone_is_zone_device(z)) {
- 		if (!altmap)
- 			return;
+-	pfn = start_pfn;
+-	page = pfn_to_page(pfn);
+-	__init_zone_device_page(page, pfn, zone_idx, nid, pgmap);
+-	memcpy(&template, page, sizeof(*page));
+-	if (pfns_per_compound != 1)
+-		memmap_init_compound(page, pfn, zone_idx, nid, pgmap,
+-				     compound_nr_pages(pfn, pgmap));
+-	pfn += pfns_per_compound;
++	if (pgmap->type == MEMORY_DEVICE_GENERIC)
++		atomic_set(&template._refcount, 1);
  
-@@ -911,7 +923,6 @@ void __meminit memmap_init_range(unsigne
- 			start_pfn += altmap->reserve;
- 		end_pfn = altmap->base_pfn + vmem_altmap_offset(altmap);
- 	}
--#endif
- 
- 	for (pfn = start_pfn; pfn < end_pfn; ) {
- 		const unsigned int order = pfn_to_section_compound_order(pfn);
-@@ -938,14 +949,8 @@ void __meminit memmap_init_range(unsigne
- 
+-	/* Initialize the remaining head pages from template. */
+-	for (; pfn < end_pfn; pfn += pfns_per_compound) {
++	/* Initialize the head pages from template. */
++	for (pfn = start_pfn; pfn < end_pfn; pfn += pfns_per_compound) {
  		page = pfn_to_page(pfn);
- 		__init_single_page(page, pfn, zone, nid);
--		if (context == MEMINIT_HOTPLUG) {
--#ifdef CONFIG_ZONE_DEVICE
--			if (zone == ZONE_DEVICE)
--				__SetPageReserved(page);
--			else
--#endif
--				__SetPageOffline(page);
--		}
-+		if (context == MEMINIT_HOTPLUG && !zone_is_zone_device(z))
-+			__SetPageOffline(page);
  
- 		if (pageblock_aligned(pfn))
- 			cond_resched();
---- a/mm/mm_init.h~mm-mm_init-factor-out-common-struct-page-initialization
-+++ a/mm/mm_init.h
-@@ -109,6 +109,7 @@ extern bool mirrored_kernelcore;
- bool memblock_has_mirror(void);
- void memblock_free_all(void);
- 
-+void memmap_init_page(struct page *page, enum zone_type zone, int nid);
- void __meminit __init_single_page(struct page *page, unsigned long pfn,
- 				unsigned long zone, int nid);
- 
---- a/mm/sparse-vmemmap.c~mm-mm_init-factor-out-common-struct-page-initialization
-+++ a/mm/sparse-vmemmap.c
-@@ -212,12 +212,7 @@ struct page __ref *vmemmap_shared_tail_p
- 
- 	for (int i = 0; i < PAGE_SIZE / sizeof(struct page); i++) {
- 		page = (struct page *)addr + i;
--		mm_zero_struct_page(page);
--		atomic_set(&page->_mapcount, -1);
--		set_page_node(page, zone_to_nid(zone));
--		set_page_zone(page, zone_idx(zone));
--		if (zone_is_zone_device(zone))
--			__SetPageReserved(page);
-+		memmap_init_page(page, zone_idx(zone), zone_to_nid(zone));
- 		prep_compound_tail(page, NULL, order);
- 	}
- 
+ 		zone_device_page_init_from_template(page, pfn, &template);
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
