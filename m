@@ -1,49 +1,50 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795454923;
-	b=jITaeUF1irV4HTIET/k7L5xmZC45qoyXboo4MwMA8SXC1z8sLeKmT/zxsUtb3saYBVVa
-	 JtnF58tWSEWMCIl4NZmDIq4HZxdF9Z8C8MgfhtwGQomt2KlEV34Y6iiYnn43DFG5omewx
-	 lKYnUOx1qzJAAk5IbnPUTRzUx6JGdqC68BR36u9dF3dzy8NcPV18EPfdPGUgm/3Jz7S+R
-	 QUyFGjqDIO46q5D7dA+4cK8qH4ZjKj6e1zRBAt2jFugWpEhAivXvWX0odIEs2b5k3hsG7
-	 Vygn3bUoq4/xeudjJ0Bgs7oj6kCtkCEF5zLflyH4aC1BUGxpYwvmdXZllJ0JgKTC3og==
+	t=1795454925;
+	b=vL3O6Jcqxy6GhfqbpBubHfK2GUPP89wFGFm13hct6fKrD3OeURhgMegKdPE9IJH5ywqz
+	 R5DytsYVC+BT6sTLm82vyK5d1NcaKElyhvtP3ZzuDGwRXLcLOXmLHmB/ZrfE242b61s+L
+	 QK2XzmlZxlcVJ3bCPNVG994pzh7JTUqmOgVdwN6QtujuWTY4DFkk3wlZx7cA1YMYDOlQE
+	 gO5ryyn9IuCJlqzKr7ghNROnJNZWtg1OZPW9gTQoNTSAOt8tcBgUkRAiO2p0Qt4jEqS9e
+	 BPqo2byJT+XTDseNwuWmGN/iVIUNZFTdjgJxscfJw3UBUe4R8ccmMBcOhTy90jdqPXA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795454923;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795454925;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=mfuItOLagBcEETEGaoFjlTh8TTnArXbmLULyXuk3SwY=;
-	b=X+uQWA2OMB44+1eyw1sGUyYReHRdRjoEoYsCq2LG5o9lHFU0J5r0MFcWZmoFr8ta8Bob
-	 ZntOX9zkPNgUFy+gJDnD90PKdisFQQZgo6BvRK4w78R/kkYRxfQRBVO+fQbTIiNVkFxxK
-	 +9ThzcItHUjvsXxUFtL52me+WywsywwvyfM/7YQwcAapZAecuk3WRq5UECX5XGe0hBTrA
-	 RVCp8b7rfSTMZDOeEKujpIDAoN7tq6b8LkHes4TV5GSXyUAAZpneoqYWXV7Gx8vUA253V
-	 EF54dfwPCd/fNhclMND11aDKhr8y4n3yKm0PwveyCh82bRofdm74Q1bxmZESxB1uymg==
+	bh=bSg9HU106zbrPqoyjn1WJElcznsTHJVtKL2a1eXCryA=;
+	b=PPBnmV97Egr8SC6rSRD3UkfJLpDnLbqQBJFFYzdpY4HjO1A185IDyI7w7mbWt/BDDxrD
+	 gPDPH2B+JK4MlpK5PL6l2x+cJkGfmbziGfcldMWTLHUhnAIfW05PyAD6m/iIoB494Emgo
+	 B2pthrS6mbRm7iux5EXrqtJkawO0lo01vN8MkjwGqlB5Rw4XBQ69X9NXOM5ta/TNDdJe4
+	 4SN9CpBO2tYMDD/mL2jJch3ZYlMe1MnWEq7JpewcySzQZEktZYt7z1HZ4FWoTxV4cPwFs
+	 6bAAfHzS25vlnyW1gCZjdv+wLnuYslJHvhOpO6f0gFkxWezlNY+02xmZayYs1911BHg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Pt0xke92;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=H6j7OPaA;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF0C7606A31E
-	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 17:28:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9EF9606A31A
+	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 17:28:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Pt0xke92
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E81C1F000C0;
-	Mon, 23 Nov 2026 17:28:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=H6j7OPaA
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DAEE11F000C0;
+	Mon, 23 Nov 2026 17:28:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795454922;
-	bh=mfuItOLagBcEETEGaoFjlTh8TTnArXbmLULyXuk3SwY=;
+	d=linux-foundation.org; s=korg; t=1795454925;
+	bh=bSg9HU106zbrPqoyjn1WJElcznsTHJVtKL2a1eXCryA=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=Pt0xke92nJi9og0Ia//lTVw+hpr7EP6SSeDlrNlDWwFeWgm0irmzefSeZEaRrzGPQ
-	 GJyLEEL5bVa0etlrJ/sUc2wRa228P32+zO8yAdf6Hc58I1ryo/ZKYrw70DJmYVbStz
-	 t2dBZmTDByScnL5MJhe2qlqwQZCdvW6fmzvcb+h0=
-Date: Mon, 23 Nov 2026 09:28:41 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,mattathias.pinchover@uber.com,
+	b=H6j7OPaAQMmPnWhoScO2BM9I14tcmLYsqtzhvCC5f+4NNJ4Kct/UYrTRHNo8RVeNr
+	 3G9P3JCInN19ZTWTOaSZURCJJCfW15ZS2n+XsuFdAIKFxS8LLw0dOmIqozZ/c48q9R
+	 K+AB8l1gjkT6mqWTmpzVX2S6Jv54vpp1Fo6jbJUA=
+Date: Mon, 23 Nov 2026 09:28:44 -0800
+To: mm-commits@vger.kernel.org,sj@kernel.org,davidgow@davidgow.net,
+	brendan.higgins@linux.dev,mattathias.pinchover@uber.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261123151309.82675-3-sj@kernel.org>
-References: <20261123151309.82675-3-sj@kernel.org>
-Subject: + mm-damon-sysfs-schemes-add-sz_ops_filter_passed_last-file.patch added to mm-new branch
-Message-Id: <20261123172842.1E81C1F000C0@smtp.kernel.org>
+In-Reply-To: <20261123151309.82675-4-sj@kernel.org>
+References: <20261123151309.82675-4-sj@kernel.org>
+Subject: + mm-damon-tests-core-kunit-test-sz_ops_filter_passed_last.patch added to mm-new branch
+Message-Id: <20261123172844.DAEE11F000C0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,12 +56,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: add sz_ops_filter_passed_last file
+     Subject: mm/damon/tests/core-kunit: test sz_ops_filter_passed_last
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-schemes-add-sz_ops_filter_passed_last-file.patch
+     mm-damon-tests-core-kunit-test-sz_ops_filter_passed_last.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-add-sz_ops_filter_passed_last-file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-test-sz_ops_filter_passed_last.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -90,77 +91,136 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Mattathias Pinchover <mattathias.pinchover@uber.com>
-Subject: mm/damon/sysfs-schemes: add sz_ops_filter_passed_last file
-Date: Mon, 23 Nov 2026 07:13:03 -0800
+Subject: mm/damon/tests/core-kunit: test sz_ops_filter_passed_last
+Date: Mon, 23 Nov 2026 07:13:04 -0800
 
-Introduce a new DAMON sysfs interface file for exposing the newly added
-DAMOS stat, sz_ops_filter_passed_last.  The file has the same
-name as the stat and is placed under the DAMOS stats directory.  Like
-other stats files, it is updated when the stats are refreshed via
-refresh_ms or the update_schemes_stats command.
+Add a kunit test for the sz_ops_filter_passed_last DAMOS
+stat.  The test runs kdamond_apply_schemes() for multiple apply intervals
+with a stub apply_scheme() operation that reports a given ops
+filter-passed size, and checks that the stat is set to the value of the
+last apply interval rather than the accumulated value, and that it is
+kept unchanged until the next apply interval is completed.
 
-Link: https://patch.msgid.link/20261123151309.82675-3-sj@kernel.org
+Link: https://patch.msgid.link/20261123151309.82675-4-sj@kernel.org
 Signed-off-by: Mattathias Pinchover <mattathias.pinchover@uber.com>
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: SJ Park <sj@kernel.org>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: David Gow <davidgow@davidgow.net>
 
- mm/damon/sysfs-schemes.c |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ mm/damon/tests/core-kunit.h |   93 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 93 insertions(+)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-add-sz_ops_filter_passed_last-file
-+++ a/mm/damon/sysfs-schemes.c
-@@ -370,6 +370,7 @@ struct damon_sysfs_stats {
- 	unsigned long nr_applied;
- 	unsigned long sz_applied;
- 	unsigned long sz_ops_filter_passed;
-+	unsigned long sz_ops_filter_passed_last;
- 	unsigned long qt_exceeds;
- 	unsigned long nr_snapshots;
- 	unsigned long max_nr_snapshots;
-@@ -425,6 +426,15 @@ static ssize_t sz_ops_filter_passed_show
- 	return sysfs_emit(buf, "%lu\n", stats->sz_ops_filter_passed);
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-test-sz_ops_filter_passed_last
++++ a/mm/damon/tests/core-kunit.h
+@@ -2632,6 +2632,98 @@ static void damon_test_last_region_quota
+ 	damon_destroy_ctx(ctx);
  }
  
-+static ssize_t sz_ops_filter_passed_last_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
-+{
-+	struct damon_sysfs_stats *stats = container_of(kobj,
-+			struct damon_sysfs_stats, kobj);
++/* bytes that damos_test_apply_scheme_passed_stub() reports per region */
++static unsigned long damos_test_sz_passed;
 +
-+	return sysfs_emit(buf, "%lu\n", stats->sz_ops_filter_passed_last);
++static unsigned long damos_test_apply_scheme_passed_stub(struct damon_ctx *c,
++		struct damon_target *t, struct damon_region *r,
++		struct damos *s, unsigned long *sz_filter_passed)
++{
++	*sz_filter_passed = damos_test_sz_passed;
++	return 0;
 +}
 +
- static ssize_t qt_exceeds_show(struct kobject *kobj,
- 		struct kobj_attribute *attr, char *buf)
- {
-@@ -485,6 +495,9 @@ static struct kobj_attribute damon_sysfs
- static struct kobj_attribute damon_sysfs_stats_sz_ops_filter_passed_attr =
- 		__ATTR_RO_MODE(sz_ops_filter_passed, 0400);
- 
-+static struct kobj_attribute damon_sysfs_stats_sz_ops_filter_passed_last_attr =
-+		__ATTR_RO_MODE(sz_ops_filter_passed_last, 0400);
++/* run one apply interval and return the last apply interval's passed bytes */
++static unsigned long damos_test_apply_interval(struct damon_ctx *c,
++		struct damos *s)
++{
++	c->passed_sample_intervals = s->next_apply_sis;
++	kdamond_apply_schemes(c);
++	return s->stat.sz_ops_filter_passed_last;
++}
 +
- static struct kobj_attribute damon_sysfs_stats_qt_exceeds_attr =
- 		__ATTR_RO_MODE(qt_exceeds, 0400);
++static void damos_test_sz_ops_filter_passed_last(struct kunit *test)
++{
++	struct damos_access_pattern pattern = {
++		.min_sz_region = 0,
++		.max_sz_region = ULONG_MAX,
++		.min_nr_accesses = 0,
++		.max_nr_accesses = UINT_MAX,
++		.min_age_region = 0,
++		.max_age_region = UINT_MAX,
++	};
++	struct damos_watermarks wmarks = {};
++	struct damos_quota quota = {};
++	struct damon_ctx *c;
++	struct damon_target *t;
++	struct damon_region *r;
++	struct damos *s;
++
++	c = damon_new_ctx();
++	if (!c)
++		kunit_skip(test, "ctx alloc fail");
++	c->ops.apply_scheme = damos_test_apply_scheme_passed_stub;
++
++	s = damon_new_scheme(&pattern, DAMOS_STAT, 0, &quota, &wmarks,
++			NUMA_NO_NODE);
++	if (!s) {
++		damon_destroy_ctx(c);
++		kunit_skip(test, "scheme alloc fail");
++	}
++	damos_set_filters_default_reject(s);
++	damon_add_scheme(c, s);
++
++	t = damon_new_target();
++	if (!t) {
++		damon_destroy_ctx(c);
++		kunit_skip(test, "target alloc fail");
++	}
++	damon_add_target(c, t);
++
++	r = damon_new_region(0, DAMON_MIN_REGION_SZ);
++	if (!r) {
++		damon_destroy_ctx(c);
++		kunit_skip(test, "region alloc fail");
++	}
++	damon_add_region(r, t);
++
++	KUNIT_EXPECT_EQ(test, s->stat.sz_ops_filter_passed_last, 0);
++
++	/* each value is for the last apply interval only, not cumulative */
++	damos_test_sz_passed = 1000;
++	KUNIT_EXPECT_EQ(test, damos_test_apply_interval(c, s), 1000);
++	KUNIT_EXPECT_EQ(test, damos_test_apply_interval(c, s), 1000);
++	KUNIT_EXPECT_EQ(test, s->stat.sz_ops_filter_passed, 2000);
++
++	damos_test_sz_passed = 300;
++	KUNIT_EXPECT_EQ(test, damos_test_apply_interval(c, s), 300);
++	KUNIT_EXPECT_EQ(test, s->stat.sz_ops_filter_passed, 2300);
++
++	damos_test_sz_passed = 0;
++	KUNIT_EXPECT_EQ(test, damos_test_apply_interval(c, s), 0);
++	KUNIT_EXPECT_EQ(test, s->stat.sz_ops_filter_passed, 2300);
++
++	/* not yet the time to apply, so the last value should be kept */
++	damos_test_sz_passed = 500;
++	damos_test_apply_interval(c, s);
++	c->passed_sample_intervals = s->next_apply_sis - 1;
++	kdamond_apply_schemes(c);
++	KUNIT_EXPECT_EQ(test, s->stat.sz_ops_filter_passed_last,
++			500);
++
++	damon_destroy_ctx(c);
++}
++
+ static struct kunit_case damon_test_cases[] = {
+ 	KUNIT_CASE(damon_test_target),
+ 	KUNIT_CASE(damon_test_regions),
+@@ -2678,6 +2770,7 @@ static struct kunit_case damon_test_case
+ 	KUNIT_CASE(damon_test_rand),
+ 	KUNIT_CASE(damos_test_esz_goal_temporal),
+ 	KUNIT_CASE(damon_test_last_region_quota_reset),
++	KUNIT_CASE(damos_test_sz_ops_filter_passed_last),
+ 	{},
+ };
  
-@@ -500,6 +513,7 @@ static struct attribute *damon_sysfs_sta
- 	&damon_sysfs_stats_nr_applied_attr.attr,
- 	&damon_sysfs_stats_sz_applied_attr.attr,
- 	&damon_sysfs_stats_sz_ops_filter_passed_attr.attr,
-+	&damon_sysfs_stats_sz_ops_filter_passed_last_attr.attr,
- 	&damon_sysfs_stats_qt_exceeds_attr.attr,
- 	&damon_sysfs_stats_nr_snapshots_attr.attr,
- 	&damon_sysfs_stats_max_nr_snapshots_attr.attr,
-@@ -3130,6 +3144,8 @@ void damon_sysfs_schemes_update_stats(
- 		sysfs_stats->sz_applied = scheme->stat.sz_applied;
- 		sysfs_stats->sz_ops_filter_passed =
- 			scheme->stat.sz_ops_filter_passed;
-+		sysfs_stats->sz_ops_filter_passed_last =
-+			scheme->stat.sz_ops_filter_passed_last;
- 		sysfs_stats->qt_exceeds = scheme->stat.qt_exceeds;
- 		sysfs_stats->nr_snapshots = scheme->stat.nr_snapshots;
- 	}
 _
 
 Patches currently in -mm which might be from mattathias.pinchover@uber.com are
