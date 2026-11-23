@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795465373;
-	b=DWMi/VM+4ngVn28EfjVMxhC+qQNj3xzIOC/6YLOADBtAHnsNpXUMT7Ey605SZr+D2yc5
-	 AsGPBnDUnWbGrCF1SSQ0dHP+9RMTKCAAltrjFONQ4WqCPxlYPAGS+vdM2jcAnecfTdmbV
-	 YZNVDzvOBxJGKOIQti/C/J6DiLSDM4ObvsEvSqqaL2JUK15O7Tjli6jSsBAeJO1K+OFLT
-	 eR2yzviBm3dinMvS/tBf1B114c4rC8mIT+Ut6O8VgPt7NkBS06eue6L/ds12GgpZ4L9rl
-	 KWk5uOPnZfX4fJVgWnmxuU+VMbznys7p9uqN/7uu3QpJyhLNxN2ZbMTEjDCS3FcTCzQ==
+	t=1795465376;
+	b=QrRiifqxOzaUEFL/sZoPqetqXs2O7abqOY0evnSMu3MPf5pW/dsVgQeWf68Z53Gw50WN
+	 2n3u6Cq/NzsUzOuwjglzjVk+n8T9lwG2OySp/7IDipnvfwkbvdpzYSskavMwJe/q996Hg
+	 yK97i/TG+beiO+/GLRGcvSsVolM77I00Xr6jBanKzh4umH8wgczbeOU7OGJ748eezI1qf
+	 97/j77evH4ZkjCKX95nEaMhik0yymW8cOo9vSdYb534sJeiiQLnA49AizUpsNQgNAwwRZ
+	 WkUGCrsbEjM2xZwmuOCswpcYVYWzPhxPFkUrTi8Vve+C8Sv7f8HHvC2kpcli8216/5w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795465373;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795465376;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=GqRW3E9W7olJT5kvUHZdedv2muJR410HaQFRbhzUIUM=;
-	b=cjlzm+h2oscum21FJ344AQKsuXbdpXNws8LTXsKn/2f0/NVGuPAZnkYCZ+5UClVFAxr9
-	 LELqSh/XgNr/fwGUknoTBZJSzns+A/48+BTBk5SSLmHRApoF7Lnr+LRoTblKK0dXiMeXq
-	 ne2+JIdDiJov5MXVmCarF0kYXrNp8JD3V8SL2soFiwmotch9RSGPqY7KDtMPgc3VKzJNH
-	 ARJZrdPJtc6xS3wa2pzR84Q/PQi06WMJ+z6xztty8sAO3eyTDqIf7B7e1uLElwJH6mGEn
-	 6WjEzsayi+LWdqSAYOJP9irKX2qcmYsqisjwk5Ol5JGuie/ehVoStzE3WwtQ4c6ATRw==
+	bh=a6fqmvfIHALcuQAG7pfY1MqriD56+ptQHc7g2Mqw/oI=;
+	b=Kr2k5uP37tO32vB4vQsNbKLdB98ZJGQXLCUBJHSpnuMYZNhsJEZcm+EG61JLY1lCgA6S
+	 027eRobUR8Mzy53JxObfwiwKYhBSA8P975M0IsSGEI8O9baOLJ4Evs4WufAIYMZ61bvd+
+	 aFvzGy74b8/HKUt/AXEVgWREkRqfuv0ZZLcsLUL5h1UhshBmwSkmjMKKnZX+EUndoXjRn
+	 8VoR8I4BVG6a/jZCbO1F2D9LxrfVIbZcGT/xLtH7GNWMmrcTCXIr3fLI+1amZoFgH14h7
+	 r0512kKxcIG11bsqUVbpo+CFQJrXkZAPr0EmLVPmRPY4j7vgQnzFDrnkx5YtfV+AYiA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LspD0fEZ;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=f7dS9KLv;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08712606A321
-	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 20:22:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FDE1606A31E
+	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 20:22:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LspD0fEZ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D6BE1F000D0;
-	Mon, 23 Nov 2026 20:22:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=f7dS9KLv
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 174EB1F000C6;
+	Mon, 23 Nov 2026 20:22:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795465372;
-	bh=GqRW3E9W7olJT5kvUHZdedv2muJR410HaQFRbhzUIUM=;
+	d=linux-foundation.org; s=korg; t=1795465375;
+	bh=a6fqmvfIHALcuQAG7pfY1MqriD56+ptQHc7g2Mqw/oI=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=LspD0fEZWlokqcRsDHL7oHPbTRluSqzHTMNlntftuXGWxQyiQrlv2tl+8c9NiQnis
-	 bgeUuKvzOFd+t5Dc0j5mitO/WvUtghkbEzfyGEkS6LPIx1foBNB3uO8bA+5Xbnz8DB
-	 JgPlSbmbZxn5G1UI2SwxMr3zV4rNJtozH5EeqrYo=
-Date: Mon, 23 Nov 2026 12:22:51 -0800
+	b=f7dS9KLvap9cojdsAsnyTAkiuw22V2oxgFB1pRK/6NWGWn4LfakP282X2pa0rHnC0
+	 GoJiC78bIK6M1O7UQ/fMq8N76Jy0X5ADWMWgM8PoNkgpLZx2hIhrtdDiAkmdIkfzqD
+	 V7lbgxsnwBy8sMzGQUWEOpcvtcAD4yK8H8HKd5U0=
+Date: Mon, 23 Nov 2026 12:22:54 -0800
 To: mm-commits@vger.kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124-mglru-fg-v6-2-8ffea39934a6@tencent.com>
-References: <20261124-mglru-fg-v6-2-8ffea39934a6@tencent.com>
-Subject: + mm-memcontrol-allow-update-of-lru-statistic-without-holding-lru-lock.patch added to mm-new branch
-Message-Id: <20261123202252.1D6BE1F000D0@smtp.kernel.org>
+In-Reply-To: <20261124-mglru-fg-v6-3-8ffea39934a6@tencent.com>
+References: <20261124-mglru-fg-v6-3-8ffea39934a6@tencent.com>
+Subject: + mm-memcontrol-avoid-potential-counter-leak-when-reparenting-local-stats.patch added to mm-new branch
+Message-Id: <20261123202255.174EB1F000C6@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +54,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/memcontrol: allow update of LRU statistic without holding LRU lock
+     Subject: mm/memcontrol: avoid potential counter leak when reparenting local stats
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memcontrol-allow-update-of-lru-statistic-without-holding-lru-lock.patch
+     mm-memcontrol-avoid-potential-counter-leak-when-reparenting-local-stats.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-allow-update-of-lru-statistic-without-holding-lru-lock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-avoid-potential-counter-leak-when-reparenting-local-stats.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -89,23 +89,48 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm/memcontrol: allow update of LRU statistic without holding LRU lock
-Date: Tue, 24 Nov 2026 02:52:54 +0800
+Subject: mm/memcontrol: avoid potential counter leak when reparenting local stats
+Date: Tue, 24 Nov 2026 02:52:55 +0800
 
-To enable moving file pages in folio_mark_accessed directly and lazily
-for MGLRU, allow updating the LRU statistic atomically without holding a
-lock. It may cause temporary counter underflow, which should be fine as
-the counter is eventually consistent and only serves as an estimate.
+lruvec_page_state_local() clamps negative values to zero on SMP.  That
+is right for readers reporting page counts, but can be wrong for
+reparenting once MGLRU updates the counters without the lruvec lock.
 
-Link: https://patch.msgid.link/20261124-mglru-fg-v6-2-8ffea39934a6@tencent.com
+Reparenting runs after the forced stats flush, so a negative is a real
+balance that has to move to the parent, not be discarded. We will
+introduce lockless MGLRU promotion which may cause following problem:
+
+ 1. A refs CAS on a folio on the child's lruvec moves it from
+    inactive to active, and its active/inactive counter update follows
+    as a separate step.
+
+ 2. A concurrent isolation of the folio reads the folio as active,
+    debits the child's NR_ACTIVE_* by delta before CSS_DYING is visible
+    to it.
+
+ 3. The child is killed, and the two __update_lru_size() calls from
+    step 1 land on the parent: NR_INACTIVE_* -delta, then NR_ACTIVE_*
+    +delta.
+
+The child is left with NR_ACTIVE_* -delta while the parent holds the
+matching +delta, and reparenting the child's raw value is what cancels
+the parent's credit.  However, if the child happens to hold few enough
+folios for that counter to be negative, lruvec_page_state_local() clamps
+the child's negative to zero, which drops the debit instead, so the
+parent keeps NR_ACTIVE_* overcounted by delta, and its active + inactive
+total overcounted as well, permanently: the child's local counters are
+gone once reparenting is done.
+
+So use a raw signed helper and reparent with that.  Ordinary readers
+still keep the clamp.
+
+Link: https://patch.msgid.link/20261124-mglru-fg-v6-3-8ffea39934a6@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Kunwu Chan <kunwu.chan@gmail.com>
-Tested-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Muchun Song (ByteDance) <muchun.song@linux.dev>
-Reviewed-by: Lian Wang <lianux.mm@gmail.com>
+Reported-by: Kunwu Chan <kunwu.chan@gmail.com>
+Closes: https://lore.kernel.org/linux-mm/CAN_Opa-+nb0vxQ+HsENCG2fEEMZoxG9Sy_DBC4CLkWjNLzDWKw@mail.gmail.com/
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Qi Zheng <qi.zheng@linux.dev>
 Cc: Ying Huang <ying.huang@linux.alibaba.com>
 Cc: Christopher Li <chrisl@kernel.org>
@@ -118,6 +143,7 @@ Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Barry Song <baohua@kernel.org>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Yuanchu Xie <yuanchu@google.com>
 Cc: Wei Xu <weixugc@google.com>
@@ -143,6 +169,7 @@ Cc: Kairui Song <ryncsn@gmail.com>
 Cc: Xiang Liu <liuxiang.277@bytedance.com>
 Cc: Ehab Ababneh <ehab.ababneh@intel.com>
 Cc: zhaozhengzhuo <zhaozhengzhuo@uniontech.com>
+Cc: wang lian <lianux.mm@gmail.com>
 Cc: Joanne Koong <joannelkoong@gmail.com>
 Cc: Hui Zhu <hui.zhu@linux.dev>
 Cc: Maxim Muzafarov <maxmuzaf@gmail.com>
@@ -150,26 +177,50 @@ Cc: Tianyi Chen <hi@tychen.cc>
 Cc: Ridong Chen <ridong.chen@linux.dev>
 Cc: Harry Yoo <harry@kernel.org>
 
- include/linux/mm_inline.h |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
---- a/include/linux/mm_inline.h~mm-memcontrol-allow-update-of-lru-statistic-without-holding-lru-lock
-+++ a/include/linux/mm_inline.h
-@@ -47,12 +47,11 @@ static __always_inline void __update_lru
- {
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
- 
--	lockdep_assert_held(&lruvec->lru_lock);
- 	WARN_ON_ONCE(nr_pages != (int)nr_pages);
- 
- 	mod_lruvec_state(lruvec, NR_LRU_BASE + lru, nr_pages);
--	__mod_zone_page_state(&pgdat->node_zones[zid],
--				NR_ZONE_LRU_BASE + lru, nr_pages);
-+	mod_zone_page_state(&pgdat->node_zones[zid],
-+			    NR_ZONE_LRU_BASE + lru, nr_pages);
+--- a/mm/memcontrol.c~mm-memcontrol-avoid-potential-counter-leak-when-reparenting-local-stats
++++ a/mm/memcontrol.c
+@@ -562,11 +562,10 @@ unsigned long lruvec_page_state_monotoni
+ 	return (unsigned long)READ_ONCE(pn->lruvec_stats->state[i]);
  }
  
- static __always_inline void update_lru_size(struct lruvec *lruvec,
+-unsigned long lruvec_page_state_local(const struct lruvec *lruvec,
++static long __lruvec_page_state_local(const struct lruvec *lruvec,
+ 				      enum node_stat_item idx)
+ {
+ 	const struct mem_cgroup_per_node *pn;
+-	long x;
+ 	int i;
+ 
+ 	if (mem_cgroup_disabled())
+@@ -577,7 +576,14 @@ unsigned long lruvec_page_state_local(co
+ 		return 0;
+ 
+ 	pn = container_of_const(lruvec, struct mem_cgroup_per_node, lruvec);
+-	x = READ_ONCE(pn->lruvec_stats->state_local[i]);
++	return READ_ONCE(pn->lruvec_stats->state_local[i]);
++}
++
++unsigned long lruvec_page_state_local(const struct lruvec *lruvec,
++				      enum node_stat_item idx)
++{
++	long x = __lruvec_page_state_local(lruvec, idx);
++
+ #ifdef CONFIG_SMP
+ 	if (x < 0)
+ 		x = 0;
+@@ -595,7 +601,8 @@ void reparent_memcg_lruvec_state_local(s
+ 
+ 	for_each_node(nid) {
+ 		struct lruvec *lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
+-		unsigned long value = lruvec_page_state_local(lruvec, idx);
++		/* Reparent the raw value: the clamp drops the child's debit. */
++		long value = __lruvec_page_state_local(lruvec, idx);
+ 
+ 		__mod_memcg_lruvec_state(memcg, nid, idx, -value);
+ 		__mod_memcg_lruvec_state(parent, nid, idx, value);
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
