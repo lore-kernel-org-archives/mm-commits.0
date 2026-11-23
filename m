@@ -1,45 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795415116;
-	b=jGvoFqtqx4t9m9Rg0Z95x0XE8roLpovrbL5jYPqtlcEm/i1Id8+Vj2cBsVWo+CPaMLEt
-	 kHX0bNABJXecxJUVy8PQrMh3rdDr9Ou8tVnU/HrAGEgXGj550En99o6Yj9JxOQgH3c5Tf
-	 ES/v/uGxCWsd7uCNqTNBW+Tu1Qe62R4qsExlKnyo10H9H9GPdfsE4iYMjb3QiZebyQMKY
-	 OPV+nVUEWfi0fpcTpSJEY6ZBOWJEjGXa0pAW9QTAyvORleXrCHmvJSg9rfhJQP8MfYnpD
-	 nRRXk20tzg2KJTK0kUMNc5QPiSbfFENuG/ifHG5JkDGrGcMDy383OgtiVnGlH4KY03A==
+	t=1795415112;
+	b=L14wfR+7vfbIua38DZ2/4uoK7W5ShrJk+W20hVCoXvwu2tLInynWMamz0ndo2oEVLgLz
+	 QAAdlX3xnew1Iz8GkZfjFYy+eXw0bdQRKC7r/BkBbDXhrU0VaiVATLQTTjZQgSKVbYvow
+	 D2jWapsp0+tIzcUzQ4+kUmnEZnMJmbP008lawPXak71LhNkn7eWt27uNtRDUEFh+knzQJ
+	 Kb9DUqjsTCx59us0B37aHufPBVmhU9sih14CL5ziWhfsnLcC3BJE7BWbVmoSMzEO1SSIE
+	 qNjnbiIK6ghUCK3NU8t8RLuOnxtNPwI/fvmTKntAH9ZBwDLBuW1DpxExa89Es0s31xw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795415116;
-	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=2gGBj7VCBYoyTOqjoI22Fg3nekgK8FbObEEnMEW0274=;
-	b=Xqty0AxuXwuV0gOCJ5emhzRBNv3ZiX+LowAo+m5HJRuGwYxaxJqtfZKuZJwjAxnWJvh/
-	 pODC5uOfGJR9J8MXely+KZGppa9t9mPbR/Jn3MMBrUNyaSH4l5itSzr0ulpfiLJeyaGuo
-	 dPl+3fsspYEasp3Sg2JiTW4hKT9leUF3JKYCj2toA3CrU3fTayAoEj3uynwYMSKa5/h/W
-	 RkIUgfdX/+J7Zby8nyLbPyU/ehDD7yFYeSUm0j/8hFlMM8HcDfXNIcUbkf13BqTHnlXiT
-	 1jAXloP73PW2peo58Tjg/T8rzXkzd+HMWFJOOP0SpxIZJnV+VgfvBVBwmcc94j8P8pg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795415112;
+	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
+	 Message-Id;
+	bh=stcLyFlVGCUzMc/1JkRtmUbriyH+lTTWKKLgq5Z10s4=;
+	b=g4rkrpcj+yg/M/UMP0PbBBtHa3X9A/MA+DKZqd5wxegl9ddvJoSlzktuIcctDtCM3U1x
+	 QQ9QhfDFqhcV7oHTCPnQs1Fb+GMIvHr/3qoVHllIyMWTDrsYNbTtGiETfQgzilchzxPWi
+	 lJCld5ayMUNc7k6szHv/UDLbfhyK6dMoU1ruo7gvrDn+z4s7o3dJvjlLkuK81F+jbUuYS
+	 uJ2DIq1QwPh9VRIl5vHmclzTp2mYNZ7ZQ0lU+9QeVbWEuVvIdKHJEAv4wY1JU1Yav8o3q
+	 zBJczVCG7MUJCGgsEZAMjCIt79k31SyZ+CcyPqPJ0XfFyJOq+W0Yxtk5RHi8XvKzA7Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="Hfj0M/KK";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=XRXaPIhN;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B7AF606A31E
-	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 06:25:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1125D606A327;
+	Mon, 23 Nov 2026 06:25:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Hfj0M/KK
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3664C1F000C6;
-	Mon, 23 Nov 2026 06:25:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=XRXaPIhN
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A48F81F000C6;
+	Mon, 23 Nov 2026 06:25:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795415116;
-	bh=2gGBj7VCBYoyTOqjoI22Fg3nekgK8FbObEEnMEW0274=;
-	h=Date:To:From:Subject;
-	b=Hfj0M/KK6GlCJi2LYDKxJJP1PWquBmWK7JHtGPbCDr2ozLoHARo+QZw3/g4xbRNh5
-	 kBNiPm8SFfXUyoj0ctfZRXUliuPosxnMUGC+VaLADpcJk0kHAqm4KwvHaJ8iunkJP5
-	 qkhepoGnIl2wx92ap/BIgwjIt8j0cyGQBQtHL/Qw=
-Date: Sun, 22 Nov 2026 22:25:15 -0800
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,akpm@linux-foundation.org
+	d=linux-foundation.org; s=korg; t=1795415111;
+	bh=stcLyFlVGCUzMc/1JkRtmUbriyH+lTTWKKLgq5Z10s4=;
+	h=Date:To:From:In-Reply-To:References:Subject;
+	b=XRXaPIhNxRj2ZgHf2Iq3jiFii6z+cXGzdtTa78QL0qMR28HP2sfWF6jWgTQOkCVQz
+	 jRVylxNfkOWuHtDAZwH6ArpVJE8e26Bft1JPH3mAcLFqlyMm1ejqd+xVbMDwlvetZj
+	 olD6TDmGt6gaMkfd4+DtHoAl5cSwOjXZL5oVQFoo=
+Date: Sun, 22 Nov 2026 22:25:11 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
+	stable@vger.kernel.org,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,
+	ljs@kernel.org,liam@infradead.org,jannh@google.com,david@kernel.org,
+	ivanrwcm25@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maintainers-add-page_exth-to-memory-management-page-allocator.patch removed from -mm tree
-Message-Id: <20261123062516.3664C1F000C6@smtp.kernel.org>
+In-Reply-To: <20261113193812.1239880-1-ivanrwcm25@gmail.com>
+References: <20261113193812.1239880-1-ivanrwcm25@gmail.com>
+Subject: [merged mm-hotfixes-stable] mm-use-pfn_phys-in-phys_mem_access_prot.patch removed from -mm tree
+Message-Id: <20261123062511.A48F81F000C6@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,63 +57,61 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: add page_ext.h to MEMORY MANAGEMENT - PAGE ALLOCATOR
+     Subject: mm: use PFN_PHYS() in phys_mem_access_prot()
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-page_exth-to-memory-management-page-allocator.patch
+     mm-use-pfn_phys-in-phys_mem_access_prot.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: MAINTAINERS: add page_ext.h to MEMORY MANAGEMENT - PAGE ALLOCATOR
-Date: Tue Nov 17 11:05:44 AM PST 2026
+From: Iván Ezequiel Rodriguez <ivanrwcm25@gmail.com>
+Subject: mm: use PFN_PHYS() in phys_mem_access_prot()
+Date: Fri, 13 Nov 2026 16:38:12 -0300
 
+phys_mem_access_prot() stores "pfn << PAGE_SHIFT" in a phys_addr_t.  The
+shift is evaluated as unsigned long, so on a 32-bit kernel with
+CONFIG_PHYS_ADDR_T_64BIT an address above 4 GiB is truncated before
+uncached_access() compares it with __pa(high_memory).
+
+mmap_mem_prepare() already shifts in phys_addr_t, so the mapping is
+accepted and then left cacheable.  PFN_PHYS() casts before the shift.
+
+On a MIPS32 XPA Malta guest, mmap of /dev/mem at 0xf00000000 without
+O_DSYNC used the boot CCA.  The same mapping with O_DSYNC was uncached. 
+With PFN_PHYS() both are uncached.
+
+Link: https://patch.msgid.link/20261113193812.1239880-1-ivanrwcm25@gmail.com
+Fixes: 7e6735c3578e ("/dev/mem: use phys_addr_t for physical addresses")
+Signed-off-by: Iván Ezequiel Rodriguez <ivanrwcm25@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: <stable@vger.kernel.org>
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ mm/char-mem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/MAINTAINERS~maintainers-add-page_exth-to-memory-management-page-allocator
-+++ a/MAINTAINERS
-@@ -17779,6 +17779,7 @@ F:	include/linux/compaction.h
- F:	include/linux/gfp.h
- F:	include/linux/page-isolation.h
- F:	include/linux/pageblock-flags.h
-+F:	include/linux/page_ext.h
- F:	include/trace/events/compaction.h
- F:	include/trace/events/page_isolation.h
- F:	include/trace/events/page_ref.h
+--- a/mm/char-mem.c~mm-use-pfn_phys-in-phys_mem_access_prot
++++ a/mm/char-mem.c
+@@ -272,7 +272,7 @@ static pgprot_t phys_mem_access_prot(str
+ 				     unsigned long size, pgprot_t vma_prot)
+ {
+ #ifdef pgprot_noncached
+-	phys_addr_t offset = pfn << PAGE_SHIFT;
++	phys_addr_t offset = PFN_PHYS(pfn);
+ 
+ 	if (uncached_access(file, offset))
+ 		return pgprot_noncached(vma_prot);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ivanrwcm25@gmail.com are
 
-kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize-fix.patch
-selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
-selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
-selftests-mm-allocate-nr_pages-based-on-pmd-size-for-uffd-pmd_move-tests-fix.patch
-selftests-mm-retain-move-pmd-coverage-and-verify-huge-pmds.patch
-lib-test_xarray-check-unused-spare-node-after-range-creation.patch
-mm-memory-failure-dont-unpoison-a-leaked-raw_hwp_unreliable-folio-fix.patch
-mm-vmstat_kunit-add-synthetic-benchmark-for-mm-stats-fix.patch
-lib-test_hmm-invalidate-all-mirrors-on-device-private-migration.patch
-lib-test_hmm-invalidate-all-mirrors-on-device-private-migration-fix.patch
-mm-prevent-pre-content-bypass-through-mremap-and-remap_file_pages.patch
-selinux-recheck-backing-file-permissions-on-remap_file_pages.patch
-mm-madvise-notify-userfaultfd-when-installing-guard-regions.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-2.patch
-fuse-let-memory-failure-remove-poisoned-page-cache-folios.patch
-nilfs2-report-mapping-errors-from-fsync.patch
-ipc-msg-serialize-receive-permission-checks-with-ipc_set.patch
-ocfs2-unregister-the-jbd2-shrinker-before-journal-shutdown.patch
-ipc-msg-clamp-negative-msg_info-usage-counts.patch
-squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix.patch
-ocfs2-skip-network-flush-when-no-domain-handlers-are-registered.patch
-selftests-ptrace-check-that-ptrace_set_syscall_info-rejects-invalid-error-values-fix.patch
-jfs-validate-xattr-entry-bounds-before-replacing-an-attribute.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
