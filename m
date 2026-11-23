@@ -1,50 +1,53 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795401417;
-	b=4sr3iwXsnhLS1mgZE/NybB6FuX47wrHAiiLiRKLbcNmnd0DAlbRR09l5jFZP+HNj+vhf
-	 InX8x+VcXej6jJYfaMH5Kdox7TccXr7TLx+cfuGd8+iXT3lYRHsS49z1TyyBdxLnEQmkW
-	 yBoh7lhQN5QZS1tmwKZI33kmB2y35DRrqXjIC2nWx8RV9+dB591HgGGesWk+KZpUa+2V7
-	 c+QdhAj97JSZsSiTSpHS8XwdzJuOjDeqd7Lp1Mf5Q13N4rWeyfrwkW0ZLf/7RMD6hqrDP
-	 QTKCZRMmmlZaveh+aD0gx/ZE0zZTgCxuV0T/XEacNclcvgmFjpDNQW29cFmC583i3rg==
+	t=1795403042;
+	b=1UjVrgjPRF0MhdsYHihsPqKmvCuxglgDwAl0axXqWGSim6TY+2DZphF6fPLhDJ93C8wF
+	 vnT0u2BKDNArH6xXHzj8MiIfU+QSn8YNTP65aTR7VcTJOFJcyiFYo4eYOok1rfzIGJA9M
+	 yggj8hoXWuZ1UDxGvMHG4+Dunr3hOsDxzp6OvOnnkYQBbf9Er262aVb7joBNKl2KSAjz4
+	 3I0F0lYbJOFFVRlL7zuY7EjDPcGZg/OAJ2F8L1zyaB7cHyb/V9IcYf6jnKs3HmGQX9zm7
+	 cx2USTQYUOdT+dcffcUfmbcqu5liHn+Njwc7MK9IVFslHih1p9ZZXWSuotC9gk0yZzw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795401417;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795403042;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=Azy4kkAU8CmYcQtQcLDXCu8p3eLi5Mic+kvICQ7KALI=;
-	b=j3XPbvWLH1puiUYfNlr+VmrZ7z84nQVOGaZKIIVg7yKrjKFGCIM7QhvRv5KaQfgiglKF
-	 2sjEsGlOdq3tVTvpuh4ZPaX2wpHQIAnq154a5REoQNFcgVu1gfF9ZrSuIXKsVmabzTFkp
-	 oaqUWjzu3C5ORNeUKRpnlo7MGEBFpABJzJonWkfcJJ3AY+1LpTJ1WLrUcYM6aynWQ5+8b
-	 YW5W/KQUK925sunbeA+20w75pPw0rO2v5QcOc8Y3QW3uvTuSXhQ1YX/EyRLxesHf3y4KO
-	 zU5rQnumoeUhZBd+MTj0wkRB3fdNUSbe4vl1bVZ4i77QEAWxPwj8V29AkHuqH9Dig+w==
+	bh=WRTeM2NDS6Ii1PGiOalIsThhE6bxBzU7MASclo4NcUA=;
+	b=OtPV/1XRJuXAiGxxw+vVLQcnV9JtdLO8LerBgHs3RT8EM6QvToLnguW/TW12r4AzXcsi
+	 +ylt+lU/H0lNtOsR3oI9U1tGDqVo0svXUY51/I4YXCXC7TJlXDdNtxLGaG3kLQmecy+O6
+	 qQGkcr6sm6qjL+IGFKAHVgNhfj22tP9AGZFSzBuQdGcHc58YkgTi8KUQjrnQKgt546PEt
+	 jj9DC8iMfLM7EPDtvrZ3wACLwk4hv+YZKg4Td1eMFf44aSgqCyroi04H+6DmdZKUlTx+t
+	 fSpwzGR/HXRqHGUzs2nmJ4Z7LXfrLuRBwlD5I7wrQRVNziBiua3Z8gtbkkB5t4D3IFg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=aoTVVTrM;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ONOSkISy;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE1DB606A337;
-	Mon, 23 Nov 2026 02:36:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D281A606A31A
+	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 03:04:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=aoTVVTrM
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 497D91F000D4;
-	Mon, 23 Nov 2026 02:36:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ONOSkISy
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A3821F000D0;
+	Mon, 23 Nov 2026 03:04:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795401416;
-	bh=Azy4kkAU8CmYcQtQcLDXCu8p3eLi5Mic+kvICQ7KALI=;
+	d=linux-foundation.org; s=korg; t=1795403042;
+	bh=WRTeM2NDS6Ii1PGiOalIsThhE6bxBzU7MASclo4NcUA=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=aoTVVTrMYA9NMgvX4U1kKDDr0bcv/Q0/VeMTE+8vUz7EAkaUJnBYUUCZZXmWlYLyd
-	 pxzqDzSA18OR8UHrCS6p8Tq9r2dxnGBOcY+n/w2AGs533GTKTHvN8YepvCaXRAX7UJ
-	 q/QUnlV47zFyMxc4Geke5y5eoSQ3I+keL4VZBz+o=
-Date: Sun, 22 Nov 2026 18:36:55 -0800
-To: mm-commits@vger.kernel.org,wakel@google.com,w@1wt.eu,
-	stable@vger.kernel.org,shuah@kernel.org,linux@weissschuh.net,
-	sashal@kernel.org,akpm@linux-foundation.org
+	b=ONOSkISy1ngFeSwFBCxGoHCgeXUpJpzX9Bu+arbqDi2VyDrA1Y0tXBq3mmRhwow1D
+	 mLV69MFowx5KnxsH/TmjiLi1NZl2auvzaoWCPKpMPZixwx70UPB/AKSuhkeabyln0d
+	 KOOh6k+9p666n2jjfWHeGMfjKiKThsmmPT6T5nrQ=
+Date: Sun, 22 Nov 2026 19:04:01 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
+	rppt@kernel.org,qi.zheng@linux.dev,osalvador@suse.de,mhocko@suse.com,
+	ljs@kernel.org,lizhe.67@bytedance.com,liam@infradead.org,
+	lance.yang@linux.dev,jthoughton@google.com,david@kernel.org,
+	balbirs@nvidia.com,apopple@nvidia.com,songmuchun@bytedance.com,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261105125701.1605281-4-sashal@kernel.org>
-References: <20261105125701.1605281-4-sashal@kernel.org>
-Subject: + selftests-size-use-nolibc-startup-and-syscall-wrappers.patch added to mm-nonmm-unstable branch
-Message-Id: <20261123023656.497D91F000D4@smtp.kernel.org>
+In-Reply-To: <20261120100856.16929-2-songmuchun@bytedance.com>
+References: <20261120100856.16929-2-songmuchun@bytedance.com>
+Subject: + mm-mm_init-verify-zones-for-template-initialized-pages.patch added to mm-new branch
+Message-Id: <20261123030402.3A3821F000D0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,15 +59,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: selftests/size: use nolibc startup and syscall wrappers
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     selftests-size-use-nolibc-startup-and-syscall-wrappers.patch
+     Subject: mm/mm_init: verify zones for template-initialized pages
+has been added to the -mm mm-new branch.  Its filename is
+     mm-mm_init-verify-zones-for-template-initialized-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-size-use-nolibc-startup-and-syscall-wrappers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_init-verify-zones-for-template-initialized-pages.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -79,153 +93,106 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sasha Levin <sashal@kernel.org>
-Subject: selftests/size: use nolibc startup and syscall wrappers
-Date: Thu, 05 Nov 2026 07:57:01 -0500
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm/mm_init: verify zones for template-initialized pages
+Date: Fri, 20 Nov 2026 18:08:46 +0800
 
-get_size provides its own _start and is linked statically against the C
-library with -nostartfiles.  That combination assumes startup and TLS
-details that vary between architectures and C library versions: errno
-lives in thread-local storage that is never set up, and the static link
-expects symbols from the skipped startup files.  CI builds have failed
-with undefined _init/_fini on ARM with clang and an undefined _DYNAMIC on
-LoongArch.
+Patch series "mm: Unify memmap initialization for compound pages", v3.
 
-Build the test with the in-tree nolibc instead.  nolibc provides the
-startup code, so the test returns from main(), and it provides the write()
-and syscall() wrappers without the TLS errno problem.  A failing sysinfo()
-is now reported as a TAP failure instead of crashing the test.  Keep the
-static link and the existing TAP output.
+This series is split out from the earlier, larger series "mm: Generalize
+HVO for HugeTLB and device DAX" [1].  That series generalized vmemmap
+optimization across HugeTLB and device DAX.  One remaining piece is the
+separate compound struct page initialization used by boot-time gigantic
+HugeTLB pages and compound ZONE_DEVICE ranges.
 
-Since the test no longer uses the system C library headers, the kernel
-UAPI headers have to be installed before it is built.  Add the headers
-target as an order-only prerequisite, as nolibc-test does, so that a
-standalone build installs them.  Link libgcc only when the selected
-compiler is GCC, which needs it for division helpers on ARM, and detect
-that from the compiler rather than from LLVM so that CC=clang builds do
-not try to link a libgcc that clang does not provide.
+In v3, Li Zhe's template-copy work is integrated directly into the generic
+compound-page initialization changes instead of being stacked as two
+prerequisite patches.  The shared memmap_init_compound_page() helper now
+covers both compound ZONE_DEVICE ranges and boot-time gigantic HugeTLB
+folios.  ZONE_DEVICE retains memcpy_nontemporal(), while normal memory
+uses memcpy().
 
-nolibc does not support arc, csky, microblaze, nios2 or xtensa, so the
-test can no longer be built for those architectures.  This conversion also
-makes the separate i386 vDSO workaround proposed for get_size unnecessary.
+The first four patches make the generic memmap initialization code
+suitable for sharing.  They add zone-consistency verification, factor the
+PFN-independent page state, simplify ZONE_DEVICE template setup, and
+introduce the common compound-page initialization helper.
 
-Link: https://patch.msgid.link/20261105125701.1605281-4-sashal@kernel.org
-Link: https://lore.kernel.org/r/20260929043637.1917707-1-wakel@google.com
-Fixes: 3ce51050fadd ("selftest: size: Add size test for Linux kernel")
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+The next four patches remove the boot-time HugeTLB HVO special handling,
+initialize all bootmem hugepage struct pages in one place, switch HugeTLB
+to the common helper, and make the now-local page initializer static.
+
+The final three patches centralize early CMA pageblock setup and move
+MIGRATE_MOVABLE pageblock initialization into the shared memmap helpers.
+
+After this series, boot-time HugeTLB and compound ZONE_DEVICE ranges,
+including device DAX, use the same helpers for compound-page and pageblock
+initialization.
+
+
+This patch (of 11):
+
+Template-based ZONE_DEVICE initialization bypasses
+__init_single_page(), which means copied struct pages do not run the
+vmemmap zone consistency check.
+
+Verify each destination after copying the template so the fast path gets
+the same validation as regular page initialization.
+
+Link: https://lore.kernel.org/20261120100856.16929-1-songmuchun@bytedance.com
+Link: https://patch.msgid.link/20261120100856.16929-2-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20260513130542.35604-1-songmuchun@bytedance.com/ [1]
+Link: https://lore.kernel.org/20261112112816.55095-1-lizhe.67@bytedance.com/ [2]
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Thomas Weißschuh <linux@weissschuh.net>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Willy Tarreau <w@1wt.eu>
-Cc: Wake Liu <wakel@google.com>
-Cc: <stable@vger.kernel.org> # 6.18.x
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Li Zhe <lizhe.67@bytedance.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Balbir Singh <balbirs@nvidia.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: James Houghton <jthoughton@google.com>
+Cc: Qi Zheng <qi.zheng@linux.dev>
 
- tools/testing/selftests/size/Makefile   |    9 +++++-
- tools/testing/selftests/size/get_size.c |   33 ++++++----------------
- 2 files changed, 17 insertions(+), 25 deletions(-)
+ mm/mm_init.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/tools/testing/selftests/size/get_size.c~selftests-size-use-nolibc-startup-and-syscall-wrappers
-+++ a/tools/testing/selftests/size/get_size.c
-@@ -11,26 +11,12 @@
-  * own execution.  It also attempts to have as few dependencies
-  * on kernel features as possible.
-  *
-- * It should be statically linked, with startup libs avoided.  It uses
-- * no library calls except the syscall() function for the following 3
-- * syscalls:
-- *   sysinfo(), write(), and _exit()
-- *
-- * For output, it avoids printf (which in some C libraries
-- * has large external dependencies) by  implementing it's own
-- * number output and print routines, and using __builtin_strlen()
-- *
-- * The test may crash if any of the above syscalls fails because in some
-- * libc implementations (e.g. the GNU C Library) errno is saved in
-- * thread-local storage, which does not get initialized due to avoiding
-- * startup libs.
-+ * It is statically linked with nolibc startup and syscall wrappers.
-+ * For output, it avoids printf by implementing its own print routines.
-  */
- 
--#include <sys/sysinfo.h>
--#include <unistd.h>
--#include <sys/syscall.h>
--
--#define STDOUT_FILENO 1
-+#include <nolibc.h>
-+#include <linux/sysinfo.h>
- 
- static int print(const char *s)
- {
-@@ -39,7 +25,7 @@ static int print(const char *s)
- 	while (s[len] != '\0')
- 		len++;
- 
--	return syscall(SYS_write, STDOUT_FILENO, s, len);
-+	return write(STDOUT_FILENO, s, len);
+--- a/mm/mm_init.c~mm-mm_init-verify-zones-for-template-initialized-pages
++++ a/mm/mm_init.c
+@@ -1082,6 +1082,7 @@ static void zone_device_page_init_from_t
+ 		set_page_address(template, __va(pfn << PAGE_SHIFT));
+ #endif
+ 	memcpy_nontemporal(page, template, sizeof(*page));
++	vmemmap_optimization_verify_zone(page);
  }
  
- static inline char *num_to_str(unsigned long num, char *buf, int len)
-@@ -80,8 +66,7 @@ static int print_k_value(const char *s,
- 	return ccode;
- }
- 
--/* this program has no main(), as startup libraries are not used */
--void _start(void)
-+int main(void)
- {
- 	int ccode;
- 	struct sysinfo info;
-@@ -91,12 +76,12 @@ void _start(void)
- 	print("TAP version 13\n");
- 	print("# Testing system size.\n");
- 
--	ccode = syscall(SYS_sysinfo, &info);
-+	ccode = syscall(__NR_sysinfo, &info);
- 	if (ccode < 0) {
- 		print("not ok 1");
- 		print(test_name);
- 		print(" ---\n reason: \"could not get sysinfo\"\n ...\n");
--		syscall(SYS_exit, ccode);
-+		return 1;
- 	}
- 	print("ok 1");
- 	print(test_name);
-@@ -112,5 +97,5 @@ void _start(void)
- 	print(" ...\n");
- 	print("1..1\n");
- 
--	syscall(SYS_exit, 0);
-+	return 0;
- }
---- a/tools/testing/selftests/size/Makefile~selftests-size-use-nolibc-startup-and-syscall-wrappers
-+++ a/tools/testing/selftests/size/Makefile
-@@ -1,6 +1,13 @@
- # SPDX-License-Identifier: GPL-2.0-only
--CFLAGS := -static -ffreestanding -nostartfiles -s
-+CFLAGS = -Os -static -nostdlib -nostdinc -ffreestanding -fno-stack-protector -s
-+CFLAGS += -isystem $(top_srcdir)/tools/include/nolibc $(KHDR_INCLUDES)
- 
- TEST_GEN_PROGS := get_size
- 
- include ../lib.mk
-+
-+CC_IS_GCC := $(shell printf '\043if defined(__GNUC__) && !defined(__clang__)\nGCC\n\043endif\n' | \
-+	$(CC) $(CFLAGS) -E -P -x c - 2>/dev/null)
-+LDLIBS += $(if $(filter GCC,$(CC_IS_GCC)),-lgcc)
-+
-+$(OUTPUT)/get_size: | headers
+ /*
 _
 
-Patches currently in -mm which might be from sashal@kernel.org are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-selftests-proc-cast-the-procmap_query-address-through-uintptr_t.patch
-selftests-mm-fix-pointer-width-warnings-on-32-bit-architectures.patch
-selftests-mm-uffd-wp-mremap-keep-the-thp-sizes-in-unsigned-long.patch
-kselftest-alloc_tag-use-the-ll64-types-on-powerpc64.patch
-selftests-proc-search-the-kernel-headers-before-the-tools-copies.patch
-selftests-prctl-select-the-tests-by-arch-alone.patch
-selftests-prctl-skip-the-anonymous-vma-naming-test-when-unsupported.patch
-selftests-kexec-select-tests-using-the-target-compiler.patch
-selftests-size-use-nolibc-startup-and-syscall-wrappers.patch
+powerpc-mm-make-vmemmap_populate_compound_pages-static.patch
+powerpc-mm-drop-powerpc-vmemmap_can_optimize.patch
+mm-sparse-vmemmap-drop-vmemmap_can_optimize.patch
+mm-sparse-vmemmap-drop-pgmap-from-vmemmap-population-apis.patch
+mm-hugetlb_vmemmap-fix-hwpoison-state-races-during-optimization.patch
+mm-hugetlb_vmemmap-fix-pmd-split-tlb-flush-race.patch
+mm-hugetlb_vmemmap-fix-deadlock-during-pmd-split.patch
+mm-list_lru-fix-potential-infinite-loop-on-xa-node-allocation-failure.patch
+mm-mm_init-verify-zones-for-template-initialized-pages.patch
+mm-mm_init-factor-out-common-struct-page-initialization.patch
+mm-mm_init-simplify-zone-device-page-initialization.patch
+mm-mm_init-factor-out-compound-page-initialization.patch
+mm-hugetlb-drop-boot-time-hvo-handling-for-gigantic-folios.patch
+mm-hugetlb-initialize-all-struct-pages-for-bootmem-hugepages.patch
+mm-hugetlb-use-common-compound-page-initialization-helper.patch
+mm-mm_init-make-__init_single_page-static.patch
+mm-cma-centralize-cma-pageblock-initialization.patch
+mm-cma-localize-init_cma_pageblock-to-cmac.patch
+mm-mm_init-move-pageblock-migratetype-init-to-memmap-helpers.patch
 
