@@ -1,52 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795415108;
-	b=WKXOfb2WuKypWfQZCVS8m1DY910fO2J1jBXc5ZXCqHxVnGPIEONjj0saXH85FsRUGDaU
-	 6lOsSBHzex7nMDTCyu3SCN5ubTVP4/t0LvGdjZ0SnMGITHkvYtooy2UGqyujlCSc0OmFd
-	 9b14dlV7ulQdWcZ005ao/STQnfPjHvEgS0J4CId8JyDwGPCg60Mdt3qb20IlMbXa8tnkU
-	 zDt5z+mQQ9OAJxM6q7kpcMvqM3fQmcI206p7OLzr6RAVDYQeq0EbXwFZC3NBIUfGxq4ov
-	 z4eO0LQc2kKaswOvelIbNm1VOMz0ztP6jDZ5A50DFb5Zjg0K3BBbEp4rnd5UMKeDO9w==
+	t=1795415110;
+	b=rOiqjr1zcexPaEY8eR15bMCKA1EjvDe4YOUYPZDHTRmMXTjMDpgwlq/79rpFMG0cSgwo
+	 Y8r/IDHobdOuUxP7El0RZcFYJyu21nIvqa3pqHWR45hYiH3VDQb9RUD6e8rzN64msMyfW
+	 QZYHJ9wlob1uOSrD7XASC+locNaUaybcKsiL17bM8XUsOYn4GzIXMHnUmLxTv+y2r7JaN
+	 5BQCjPRxX5ek9Dqyqh7ZyXfnVCeJvfFYgLXLtSbggK3JEY2DFln7Pn105bFnvZKM7Uc3y
+	 lvOvCbYbx6VwlfnVjtW1ToMZTB1MCIERQ5XeabkkyxR+Rc9F3bBBVzQPVEQW0TuQHIQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795415108;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795415110;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=blgTir2CiNn4nlbvKVYHU3o/G6+SBpSW3BgBXeHYpOA=;
-	b=j5IEPVPTsjSWe1HEv0OZD+LnToBab0odlMtKJYu14ll0j5RFUW+Uh9qx6yn3d9n4AeWf
-	 SY2Jq/lqoW/Nm81DFQYkwZ6w7HkVwd1RMJoSOMoxbNilIjj+LdBNDOYgQiSIGUhjvugjy
-	 1AMqcLI3Gad6VoedezURTU621X4JEi7SN1jIbBdStYtIUIrMMAk2Tvfa9BMKY8xMXJN8U
-	 U0LsbG0h5H51pBtCz23uxGKMDrj1lf1GPpoaKj8UDrAjGVaSTc6KXJ35Vi2Bpcm35wluk
-	 pvt0+1DFRfkLWYetJmnvo0CqYH1LjDWq4Jn5JXmJrS3UcsHq3rRy0BTj8DPd/HRKXTQ==
+	bh=9X23z60W08W1vgILVcBDdtvO2rhbYbUD0IIp8bQPFFM=;
+	b=W4UFFsMRb8sU/ebJ936mwFch4taBwPHwfxEsvxhDBXf7n3ZSbYqUVCJk3uiYN9ijdV/5
+	 ETNVGPflH2AIPnRQz1j7LydOEKPF5XBy1HbHWX5949LFR1LhmEmDgc9Rbxj9FxVsCjxth
+	 zmGcpqNaLRj6LrCgkOjtk+qO69+4ziK5ykiV2Lmg2LjwmiUexDncEECGrLYItx9V7EOZk
+	 keE2+EDM4mghABlTAMV5kZ2zbiqkMbd17dU04Q0QCMTW0VQ2szOLBv1V69z4or1/Ltkb+
+	 KsLfi9MM0qf86AcDqY2yuOUzXg2Q3bCAPSHC+jojU8fdDfLM4jUqL654mh0n2IpAxGg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Jp+ZKhm0;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TQWxCex+;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EA5B606A333;
-	Mon, 23 Nov 2026 06:25:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C23F606A327
+	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 06:25:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Jp+ZKhm0
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5FCD1F000D2;
-	Mon, 23 Nov 2026 06:25:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TQWxCex+
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D53521F000CA;
+	Mon, 23 Nov 2026 06:25:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795415108;
-	bh=blgTir2CiNn4nlbvKVYHU3o/G6+SBpSW3BgBXeHYpOA=;
+	d=linux-foundation.org; s=korg; t=1795415110;
+	bh=9X23z60W08W1vgILVcBDdtvO2rhbYbUD0IIp8bQPFFM=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=Jp+ZKhm02iLxPrZvantG5h4H+aZB8BbTkkcVhW8r0mHb80MjpGgCGgzgiXea+P/vY
-	 /aXjZhWtKCgnw+C3AKWCMx/9Pt7iie0m3E90HKqp/+JytNv/+nmkXJI8oUZ82oirML
-	 CrzDvmuzpNJuKi5+Keih3Z0UI2wNIJ7Vg8+xG3GM=
-Date: Sun, 22 Nov 2026 22:25:07 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,
-	roman.gushchin@linux.dev,qi.zheng@linux.dev,muchun.song@linux.dev,
-	mhocko@kernel.org,mason@kernel.org,harry@kernel.org,hannes@cmpxchg.org,
+	b=TQWxCex+278EKKeyBIx4B2XurCRH6zMwxqMc+SlSh2d4LtdCwLt3+DdhVMo7G1Em6
+	 hNtwowgvc3Gp2apct+uN6p/ikMTIeS/Sq/OwhtI4+BfMC/LYRhp6FvrpKw5yR233MY
+	 SwsTqVZtAXaksccszVIl/vZrZw7d+hmZGUwpjcQc=
+Date: Sun, 22 Nov 2026 22:25:09 -0800
+To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,qi.zheng@linux.dev,
+	muchun.song@linux.dev,mhocko@kernel.org,mason@kernel.org,hannes@cmpxchg.org,
 	david@kernel.org,david@fromorbit.com,shakeel.butt@linux.dev,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261112061231.2469026-1-shakeel.butt@linux.dev>
-References: <20261112061231.2469026-1-shakeel.butt@linux.dev>
-Subject: [merged mm-hotfixes-stable] mm-list_lru-fix-null-deref-when-a-folio-moves-to-the-root-memcg.patch removed from -mm tree
-Message-Id: <20261123062507.E5FCD1F000D2@smtp.kernel.org>
+In-Reply-To: <20261112221248.3512447-1-shakeel.butt@linux.dev>
+References: <20261112221248.3512447-1-shakeel.butt@linux.dev>
+Subject: [merged mm-hotfixes-stable] mm-list_lru-dont-use-a-new-memcgs-lists-for-an-offline-memcg.patch removed from -mm tree
+Message-Id: <20261123062509.D53521F000CA@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -58,83 +57,160 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm: list_lru: fix NULL deref when a folio moves to the root memcg
+     Subject: mm: list_lru: don't use a new memcg's lists for an offline memcg
 has been removed from the -mm tree.  Its filename was
-     mm-list_lru-fix-null-deref-when-a-folio-moves-to-the-root-memcg.patch
+     mm-list_lru-dont-use-a-new-memcgs-lists-for-an-offline-memcg.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: mm: list_lru: fix NULL deref when a folio moves to the root memcg
-Date: Wed, 11 Nov 2026 22:12:31 -0800
+Subject: mm: list_lru: don't use a new memcg's lists for an offline memcg
+Date: Thu, 12 Nov 2026 14:12:48 -0800
 
-folio_memcg_list_lru_alloc() makes sure that a folio's memcg has its own
-lists in a list_lru, such as the THP deferred split queue.  It looks up
-the folio's memcg twice: a fast path under RCU checks if the lists exist,
-and a slow path takes a reference and allocates them.  The fast path
-returns early for the root memcg, which uses the global lists.  The slow
-path does not check for the root.
+A memcg's list_lru lists are found by its kmemcg_id, which is its
+private ID. Offlining a memcg moves its lists to the parent and frees
+the ID right away, with no RCU grace period. The next new memcg can get
+the same ID and allocate its own lists at that index.
 
-The memcg can change between the two lookups: when a cgroup is removed,
-its folios are moved to the parent memcg.  If the folio is moved up to the
-root in between, the slow path gets the root, and __memcg_list_lru_alloc()
-dereferences the root's parent, which is NULL.
+A caller that holds only the RCU read lock, such as
+__folio_unqueue_deferred_split(), can still hold the offline memcg. If
+it is preempted until the ID is reused, it then locks the new memcg's
+list and unlinks a folio that now sits on the parent's list, without
+holding the parent's lock. A concurrent change to the parent's list can
+then leave a pointer to a freed folio on it.
 
-Users see a NULL pointer dereference oops while a THP is allocated, such
-as in a page fault, in khugepaged or at swap-in.  tmpfs huge pages are
-affected too, and for them the oops can also happen in reclaim, for
-example in kswapd.  The task that hits the oops is killed, or the machine
-panics if panic_on_oops is set.
+Users see list corruption reports, crashes or silent memory corruption
+when memory cgroups are removed and created while THPs are freed, on
+kernels with preemptible RCU, which is the default on x86 and arm64.
+They can also see a warning from memcg_reparent_list_lru_one() when the
+new memcg is removed, because the wrong unlink made its count negative.
 
-The race is narrow: the folio has to be moved up to the root right between
-the two lookups.  For example, its cgroup is directly below the root and
-is removed, or has its memory controller disabled, at that moment.
+Fix it by recording the owning memcg in each list_lru_memcg, and by
+treating the index as empty when its lists belong to another memcg. The
+lookup then moves up to the parent, whose list holds the folio.
 
-Fix it by checking memcg_list_lru_allocated() again in the slow path, like
-the fast path does.  It returns true for the root, which needs no lists of
-its own.
-
-Link: https://patch.msgid.link/20261112061231.2469026-1-shakeel.butt@linux.dev
-Fixes: ae64f07a6a40 ("mm: list_lru: introduce folio_memcg_list_lru_alloc()")
+[akpm@linux-foundation.org: verify memcg owner before skipping allocation]
+  Link: https://lore.kernel.org/20261112161502.18d9d72c0139b8f69bb88ff4@linux-foundation.org
+Link: https://patch.msgid.link/20261112221248.3512447-1-shakeel.butt@linux.dev
+Fixes: 28e98022b31e ("mm/list_lru: simplify reparenting and initial allocation")
 Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reported-by: Chris Mason <mason@kernel.org>
-Acked-by: Muchun Song (ByteDance) <muchun.song@linux.dev>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Harry Yoo (Meta) <harry@kernel.org>
 Cc: Dave Chinner <david@fromorbit.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: <stable@vger.kernel.org>
 
- mm/list_lru.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ include/linux/list_lru.h |    2 ++
+ mm/list_lru.c            |   30 ++++++++++++++++++++++--------
+ 2 files changed, 24 insertions(+), 8 deletions(-)
 
---- a/mm/list_lru.c~mm-list_lru-fix-null-deref-when-a-folio-moves-to-the-root-memcg
-+++ a/mm/list_lru.c
-@@ -645,9 +645,16 @@ int folio_memcg_list_lru_alloc(struct fo
- 	if (likely(res))
- 		return 0;
+--- a/include/linux/list_lru.h~mm-list_lru-dont-use-a-new-memcgs-lists-for-an-offline-memcg
++++ a/include/linux/list_lru.h
+@@ -38,6 +38,8 @@ struct list_lru_one {
  
--	/* Allocation may block, pin the memcg */
-+	/*
-+	 * Allocation may block, so pin the memcg. If the folio's cgroup
-+	 * was removed after the check above, the folio has moved up to a
-+	 * parent memcg. That memcg may already have its lists, or may be
-+	 * the root, which uses the global lists and has no parent. So
-+	 * check again before allocating.
-+	 */
- 	memcg = get_mem_cgroup_from_folio(folio);
--	res = __memcg_list_lru_alloc(memcg, lru, gfp);
-+	if (!memcg_list_lru_allocated(memcg, lru))
-+		res = __memcg_list_lru_alloc(memcg, lru, gfp);
- 	mem_cgroup_put(memcg);
- 	return res;
+ struct list_lru_memcg {
+ 	struct rcu_head		rcu;
++	/* owning memcg, only compared and never dereferenced */
++	const void		*memcg;
+ 	/* array of per cgroup per node lists, indexed by node id */
+ 	struct list_lru_one	node[];
+ };
+--- a/mm/list_lru.c~mm-list_lru-dont-use-a-new-memcgs-lists-for-an-offline-memcg
++++ a/mm/list_lru.c
+@@ -72,12 +72,15 @@ static int lru_shrinker_id(struct list_l
  }
+ 
+ static inline struct list_lru_one *
+-list_lru_from_memcg_idx(struct list_lru *lru, int nid, int idx)
++list_lru_from_memcg(struct list_lru *lru, int nid, struct mem_cgroup *memcg)
+ {
++	int idx = memcg_kmem_id(memcg);
++
+ 	if (list_lru_memcg_aware(lru) && idx >= 0) {
+ 		struct list_lru_memcg *mlru = xa_load(&lru->xa, idx);
+ 
+-		return mlru ? &mlru->node[nid] : NULL;
++		/* Lists at a reused index belong to another memcg. */
++		return mlru && mlru->memcg == memcg ? &mlru->node[nid] : NULL;
+ 	}
+ 	return &lru->node[nid].lru;
+ }
+@@ -91,7 +94,7 @@ lock_list_lru_of_memcg(struct list_lru *
+ 
+ 	rcu_read_lock();
+ again:
+-	l = list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(*memcg));
++	l = list_lru_from_memcg(lru, nid, *memcg);
+ 	if (likely(l)) {
+ 		lock_list_lru(l, irq, irq_flags);
+ 		if (likely(READ_ONCE(l->nr_items) != LONG_MIN)) {
+@@ -132,7 +135,7 @@ static inline bool list_lru_memcg_aware(
+ }
+ 
+ static inline struct list_lru_one *
+-list_lru_from_memcg_idx(struct list_lru *lru, int nid, int idx)
++list_lru_from_memcg(struct list_lru *lru, int nid, struct mem_cgroup *memcg)
+ {
+ 	return &lru->node[nid].lru;
+ }
+@@ -313,7 +316,7 @@ unsigned long list_lru_count_one(struct
+ 	long count;
+ 
+ 	rcu_read_lock();
+-	l = list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(memcg));
++	l = list_lru_from_memcg(lru, nid, memcg);
+ 	count = l ? READ_ONCE(l->nr_items) : 0;
+ 	rcu_read_unlock();
+ 
+@@ -502,11 +505,10 @@ static void memcg_reparent_list_lru_one(
+ 					struct list_lru_one *src,
+ 					struct mem_cgroup *dst_memcg)
+ {
+-	int dst_idx = dst_memcg->kmemcg_id;
+ 	struct list_lru_one *dst;
+ 
+ 	spin_lock_irq(&src->lock);
+-	dst = list_lru_from_memcg_idx(lru, nid, dst_idx);
++	dst = list_lru_from_memcg(lru, nid, dst_memcg);
+ 	spin_lock_nested(&dst->lock, SINGLE_DEPTH_NESTING);
+ 
+ 	list_splice_init(&src->list, &dst->list);
+@@ -566,9 +568,19 @@ void memcg_reparent_list_lrus(struct mem
+ static inline bool memcg_list_lru_allocated(struct mem_cgroup *memcg,
+ 					    struct list_lru *lru)
+ {
++	struct list_lru_memcg *mlru;
++	bool allocated;
+ 	int idx = memcg->kmemcg_id;
+ 
+-	return idx < 0 || xa_load(&lru->xa, idx);
++	if (idx < 0)
++		return true;
++
++	rcu_read_lock();
++	mlru = xa_load(&lru->xa, idx);
++	allocated = mlru && mlru->memcg == memcg;
++	rcu_read_unlock();
++
++	return allocated;
+ }
+ 
+ static int __memcg_list_lru_alloc(struct mem_cgroup *memcg,
+@@ -602,6 +614,8 @@ static int __memcg_list_lru_alloc(struct
+ 			if (!mlru)
+ 				return -ENOMEM;
+ 		}
++		/* Set before the lists are published, and never changed after. */
++		mlru->memcg = pos;
+ 		xas_set(&xas, pos->kmemcg_id);
+ 		do {
+ 			xas_lock_irqsave(&xas, flags);
 _
 
 Patches currently in -mm which might be from shakeel.butt@linux.dev are
