@@ -1,42 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795403064;
-	b=RdwCfmjJkXHUeglvuF7fsT8LddJ4uYygFGAGeGVm3x5et/6easTFUbYHs7Nh16PFmUhj
-	 FlGExrMSYuzSA9kVjYUkz68Aaxph96E5CtupNYlbE08oBA0O5l+EgfNK+ZJZM+k2B1RE3
-	 lCnWBL5ZX3OQYn1lgELaZPhf/antYhqErFpq4p4+pm1p7DeQBrJIanorFQM/xPf113O8q
-	 WxLPrjbA6/YiKkAuCW2nC8D9btdn1jSG5xv5MwyJBQAnhqNPo4GfbPufu0UyPrljbZhor
-	 R5mb/SycWbjTHOSZbDhUN6he3PpoWCbSLdxBtCqZ/VQqQNSBDU8LodqgsqI3wRckJSw==
+	t=1795403067;
+	b=DC4e1WPtfCQtF6yL3Kwx9GjBBgsOiTDx0XTZDg++i3JnLJcmFV8cDn2wB2pQK/FYsZkx
+	 OCn0in0SxlIAgSxx6eqjhRx3bKcYpVDVGFW9ycHm7TUWBwVUBfxrApmGUubUhuih53qrC
+	 X421D68zkKDHDiO4KVyeAhCsC2KdnZSlFCTboCHQtylXjafW1xWX3hjdEl6jrbfcwzEQ5
+	 lXPqMBkrBX7GOOIKUswnQwCqJywFBrSO0LsheKbirGTVFK3ygyD80TV1zE6gxKziDdYFM
+	 O0gietET4Agmx1QIHpRr051bnjNxkmTkTfCG5f90J/s5aB7ufpBAamj6q7fUPn4ZuDg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795403064;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795403067;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=cJO2DuA+Tb0hS/OistkL0+vFlBdR5ybq/z1ZEjPPo1o=;
-	b=YyccEf1r7cjIomVP468w5UvqG/d1gD+Y08TtbE4VWEXYdI4GX/64YkwxUMx+WJF/ajQd
-	 Koqy+p9yluSYOuYmrzyD3Tqw3Fdykpf+W/bEOtngO8jmokBPYPbX6DEUAW35HCa098z6I
-	 HY8P6blysDEvKXhx3wLpNyC35zbwtXngMVNwN0uwOGwNY37J/k/ogrSb2ptWhVsejkr5W
-	 m4qvxgT1R4hDAud60Q17Wb5bLIRJrrZz1ieWrgrVnE7ELhWXzCALF5/Zcz8wW2TvKNA9p
-	 kKg7MPDhiMlNVVUhzXTbVtJCT2PwR6I4DHwHowHWi9da5brT4UVS6U1Cd40vw3Pw5GQ==
+	bh=rYKmDz+gpBF8tWM/FbgD5PPRw5CNtZ3hGmiZceAQSAg=;
+	b=fs50aS3KkVTDTuGCmZQrigzJTn2GvkoEVMvfi5N9zj+/i8dGujpUM80i2uC7T3zUuo7v
+	 T6hGvZvG3r9PYT/bVsOF+dFpPHyJ98E+MEDaabGpaat+WLhVDL7COsgI0MkgJUmQzrwL/
+	 JAqsZo3E+3iQsjXZbC7xIjamd3iXJPXavXu1g/CGhpoj1zEWqjkJk3yE0h9duXodkuvUa
+	 iT7zdpHqvM7ybo7YHPz/H9mU2J2xRgZYfohydJqKi/0y5UxYowBo5a+IEyXgKvmLB2XPF
+	 AvUu1EoXnjhD20soFtfGxEvXCCaCBXRufWlmL24kkn5++NP6Rlirdfy4uPN4lqWSHKA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=IHg9uCp6;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2YtO0rzc;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E379606A320
-	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 03:04:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BC60606A31A
+	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 03:04:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=IHg9uCp6
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9BF61F000C4;
-	Mon, 23 Nov 2026 03:04:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2YtO0rzc
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0E551F000C4;
+	Mon, 23 Nov 2026 03:04:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795403064;
-	bh=cJO2DuA+Tb0hS/OistkL0+vFlBdR5ybq/z1ZEjPPo1o=;
+	d=linux-foundation.org; s=korg; t=1795403067;
+	bh=rYKmDz+gpBF8tWM/FbgD5PPRw5CNtZ3hGmiZceAQSAg=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=IHg9uCp6UUgbG0P7yAORoIQQpahlTOVXsWklfha42meUNDZ+QYNl76qha5k55u2CP
-	 1GU48qVfj+H9VIkY10hFZN9QCOHQI2R5bpplc6BGpQc2X/nWdsIG7C6vf84EU19brL
-	 MkLzGfuV7eDkGV0dr7wyYnEQiBDApMcRgO1Mbk2U=
-Date: Sun, 22 Nov 2026 19:04:23 -0800
+	b=2YtO0rzcxn4OriMnfPVcLHvqdRbU1ohOlXcVbLJirdrs0pMV96WZu3YvD+c1BznmR
+	 wXxBQcU9oc728W9qRrM/lZ5Q6AcLqDHVNNxH9yZ/wsToNh01ytHuEFMSR7gLXvSxFt
+	 B7CxVT/YrXqD/hmu8dqN7I3nClal+I7H8dZnnDOA=
+Date: Sun, 22 Nov 2026 19:04:26 -0800
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
 	rppt@kernel.org,qi.zheng@linux.dev,osalvador@suse.de,mhocko@suse.com,
 	ljs@kernel.org,lizhe.67@bytedance.com,liam@infradead.org,
@@ -44,10 +44,10 @@ To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
 	balbirs@nvidia.com,apopple@nvidia.com,songmuchun@bytedance.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261120100856.16929-9-songmuchun@bytedance.com>
-References: <20261120100856.16929-9-songmuchun@bytedance.com>
-Subject: + mm-mm_init-make-__init_single_page-static.patch added to mm-new branch
-Message-Id: <20261123030423.D9BF61F000C4@smtp.kernel.org>
+In-Reply-To: <20261120100856.16929-10-songmuchun@bytedance.com>
+References: <20261120100856.16929-10-songmuchun@bytedance.com>
+Subject: + mm-cma-centralize-cma-pageblock-initialization.patch added to mm-new branch
+Message-Id: <20261123030426.D0E551F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -59,12 +59,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/mm_init: make __init_single_page() static
+     Subject: mm/cma: centralize CMA pageblock initialization
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mm_init-make-__init_single_page-static.patch
+     mm-cma-centralize-cma-pageblock-initialization.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_init-make-__init_single_page-static.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-centralize-cma-pageblock-initialization.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -94,16 +94,22 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/mm_init: make __init_single_page() static
-Date: Fri, 20 Nov 2026 18:08:53 +0800
+Subject: mm/cma: centralize CMA pageblock initialization
+Date: Fri, 20 Nov 2026 18:08:54 +0800
 
-__init_single_page() is only used within mm/mm_init.c, so make it
-static.
+Early CMA reservations currently require callers to maintain CMA state.
+This exposes internal bookkeeping requirements and splits responsibility
+for the same area between CMA and its users.
 
-Link: https://patch.msgid.link/20261120100856.16929-9-songmuchun@bytedance.com
+Make CMA fully responsible for the state of early reservations. Pages
+already handed to a caller remain owned by that caller if activation
+fails, so keep their managed-page accounting intact regardless of whether
+CMA retains the rest of the area.
+
+Link: https://patch.msgid.link/20261120100856.16929-10-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Liam R. Howlett <liam@infradead.org>
@@ -118,32 +124,89 @@ Cc: James Houghton <jthoughton@google.com>
 Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Qi Zheng <qi.zheng@linux.dev>
 
- mm/mm_init.c |    2 +-
- mm/mm_init.h |    2 --
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ mm/cma.c     |   32 +++++++++++++++++++-------------
+ mm/hugetlb.c |    8 +++-----
+ 2 files changed, 22 insertions(+), 18 deletions(-)
 
---- a/mm/mm_init.c~mm-mm_init-make-__init_single_page-static
-+++ a/mm/mm_init.c
-@@ -617,7 +617,7 @@ void memmap_init_page(struct page *page,
- #endif
- }
+--- a/mm/cma.c~mm-cma-centralize-cma-pageblock-initialization
++++ a/mm/cma.c
+@@ -174,6 +174,10 @@ static void __init cma_activate_area(str
+ 			count = early_pfn[r] - cmr->base_pfn;
+ 			bitmap_count = cma_bitmap_pages_to_bits(cma, count);
+ 			bitmap_set(cmr->bitmap, 0, bitmap_count);
++
++			for (pfn = cmr->base_pfn; pfn < early_pfn[r];
++			     pfn += pageblock_nr_pages)
++				init_cma_pageblock(pfn_to_page(pfn));
+ 		}
  
--void __meminit __init_single_page(struct page *page, unsigned long pfn,
-+static __meminit void __init_single_page(struct page *page, unsigned long pfn,
- 		unsigned long zone, int nid)
- {
- 	memmap_init_page(page, zone, nid);
---- a/mm/mm_init.h~mm-mm_init-make-__init_single_page-static
-+++ a/mm/mm_init.h
-@@ -110,8 +110,6 @@ bool memblock_has_mirror(void);
- void memblock_free_all(void);
+ 		WARN_ON_ONCE(!pfn_valid(cmr->base_pfn));
+@@ -199,17 +203,20 @@ cleanup:
+ 	for (r = 0; r < allocrange; r++)
+ 		bitmap_free(cma->ranges[r].bitmap);
  
- void memmap_init_page(struct page *page, enum zone_type zone, int nid);
--void __meminit __init_single_page(struct page *page, unsigned long pfn,
--				unsigned long zone, int nid);
- void __meminit memmap_init_compound_page(struct page *head, unsigned long pfn,
- 		const struct zone *zone, unsigned int order);
+-	/* Expose all pages to the buddy, they are useless for CMA. */
+-	if (!test_bit(CMA_RESERVE_PAGES_ON_ERROR, &cma->flags)) {
+-		for (r = 0; r < cma->nranges; r++) {
+-			unsigned long start_pfn;
+-
+-			cmr = &cma->ranges[r];
+-			start_pfn = r <= allocrange ? early_pfn[r] : cmr->early_pfn;
+-			end_pfn = cmr->base_pfn + cmr->count;
+-			for (pfn = start_pfn; pfn < end_pfn; pfn++)
+-				free_reserved_page(pfn_to_page(pfn));
+-		}
++	for (r = 0; r < cma->nranges; r++) {
++		cmr = &cma->ranges[r];
++		end_pfn = r <= allocrange ? early_pfn[r] : cmr->early_pfn;
++		/* Restore managed page accounting for early-reserved pages. */
++		for (pfn = cmr->base_pfn; pfn < end_pfn; pfn++)
++			adjust_managed_page_count(pfn_to_page(pfn), 1);
++
++		if (test_bit(CMA_RESERVE_PAGES_ON_ERROR, &cma->flags))
++			continue;
++
++		/* Expose the remaining pages to the buddy. */
++		end_pfn = cmr->base_pfn + cmr->count;
++		for (; pfn < end_pfn; pfn++)
++			free_reserved_page(pfn_to_page(pfn));
+ 	}
+ 	totalcma_pages -= cma->count;
+ 	cma->available_count = cma->count = 0;
+@@ -1020,8 +1027,7 @@ bool cma_intersects(struct cma *cma, uns
+  *
+  * The caller is responsible for initializing the page structures
+  * in the area properly, since this just points to memblock-allocated
+- * memory. The caller should subsequently use init_cma_pageblock to
+- * set the migrate type and CMA stats  the pageblocks that were reserved.
++ * memory.
+  *
+  * If the CMA area fails to activate later, memory obtained through
+  * this interface is not handed to the page allocator, this is
+--- a/mm/hugetlb.c~mm-cma-centralize-cma-pageblock-initialization
++++ a/mm/hugetlb.c
+@@ -3337,9 +3337,7 @@ static void __init hugetlb_bootmem_init_
+ 	WARN_ON_ONCE(!pageblock_aligned(folio_pfn(folio)));
  
+ 	for (i = 0; i < nr_pages; i += pageblock_nr_pages) {
+-		if (folio_test_hugetlb_cma(folio))
+-			init_cma_pageblock(folio_page(folio, i));
+-		else
++		if (!folio_test_hugetlb_cma(folio))
+ 			init_pageblock_migratetype(folio_page(folio, i),
+ 					  MIGRATE_MOVABLE, false);
+ 	}
+@@ -3402,8 +3400,8 @@ static void __init gather_bootmem_preall
+ 		 * in order to fix confusing memory reports from free(1) and
+ 		 * other side-effects, like CommitLimit going negative.
+ 		 *
+-		 * For CMA pages, this is done in init_cma_pageblock
+-		 * (via hugetlb_bootmem_init_migratetype), so skip it here.
++		 * For CMA pages, this is done in cma_activate_area(), so skip
++		 * it here.
+ 		 */
+ 		if (hugetlb_early_cma(h))
+ 			folio_set_hugetlb_cma(folio);
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
