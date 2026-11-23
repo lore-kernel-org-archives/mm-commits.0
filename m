@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795415110;
-	b=rOiqjr1zcexPaEY8eR15bMCKA1EjvDe4YOUYPZDHTRmMXTjMDpgwlq/79rpFMG0cSgwo
-	 Y8r/IDHobdOuUxP7El0RZcFYJyu21nIvqa3pqHWR45hYiH3VDQb9RUD6e8rzN64msMyfW
-	 QZYHJ9wlob1uOSrD7XASC+locNaUaybcKsiL17bM8XUsOYn4GzIXMHnUmLxTv+y2r7JaN
-	 5BQCjPRxX5ek9Dqyqh7ZyXfnVCeJvfFYgLXLtSbggK3JEY2DFln7Pn105bFnvZKM7Uc3y
-	 lvOvCbYbx6VwlfnVjtW1ToMZTB1MCIERQ5XeabkkyxR+Rc9F3bBBVzQPVEQW0TuQHIQ==
+	t=1795415106;
+	b=LhX3XkPATj0M+yjt3ZjXPg9lATaMMoyNjmZDscChhuE+Gp8ZEshm6BjF4/oH4cuVd6T4
+	 PEB+zlBW3e51lYTWgFZtTJPyfA6z6pw/ur41mG6fEFiO37mnROHSdwufbV9O2SNd15sxp
+	 HsPpDM3dq3TQwWEdydRGEa4OckIMXOH+zGLB1UC0NW/eLJvZ5kCoAVXlDiUFLMilNzRsE
+	 T+pVzsyU1Gp7nTpqb5Yj+o4j2tJOfHKn7eV0wEoAk6oCehTxc+v3kbQotoMK0NprhJsMh
+	 C9yhSLewmrrFxzucrmmJisHfwXMC3CfdpXvZkpeaUmxr+AZBwyVxGTkuuanTeSlxPbQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795415110;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795415106;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=9X23z60W08W1vgILVcBDdtvO2rhbYbUD0IIp8bQPFFM=;
-	b=W4UFFsMRb8sU/ebJ936mwFch4taBwPHwfxEsvxhDBXf7n3ZSbYqUVCJk3uiYN9ijdV/5
-	 ETNVGPflH2AIPnRQz1j7LydOEKPF5XBy1HbHWX5949LFR1LhmEmDgc9Rbxj9FxVsCjxth
-	 zmGcpqNaLRj6LrCgkOjtk+qO69+4ziK5ykiV2Lmg2LjwmiUexDncEECGrLYItx9V7EOZk
-	 keE2+EDM4mghABlTAMV5kZ2zbiqkMbd17dU04Q0QCMTW0VQ2szOLBv1V69z4or1/Ltkb+
-	 KsLfi9MM0qf86AcDqY2yuOUzXg2Q3bCAPSHC+jojU8fdDfLM4jUqL654mh0n2IpAxGg==
+	bh=gRLGxMUijEjcjpSvnhcly2PgKTY+iEwCXuDQZOFashQ=;
+	b=sGHvauMKdZJ0eQFUcg1uGXbNwOQ4N9s5CgYsryAIe940sHfAOxtOJWMoFCPubmrUr7F4
+	 /k/Lz2C1u0w8Nsd17DtcmJT4+WF9P0qm1NwhK+k2JWDwmo5CEBpdwLbnVM+KpUJExvHUi
+	 lD3sde80Ikev1peGrShb++AOHaUR6/0Ff/Y/ZSbolieqJIp+3WWwoP9T4DN9pV0F7Qd4O
+	 zCjBxiCpjc2lnueYSnUYf9Rw177GAs2OgjBWWcR/x9mFgwLYxFWk/R/CRFP+dyNBeMTtO
+	 1gPo/6QflMxhDUQ/I+3n+UV9JdF64tyy3lZdiS8yQ5CAGlPkPeuDwyAQEmzOSriw3Lw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TQWxCex+;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=yEY7Hhun;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C23F606A327
-	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 06:25:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7AEA606A31F;
+	Mon, 23 Nov 2026 06:25:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TQWxCex+
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D53521F000CA;
-	Mon, 23 Nov 2026 06:25:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=yEY7Hhun
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1320F1F000C6;
+	Mon, 23 Nov 2026 06:25:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795415110;
-	bh=9X23z60W08W1vgILVcBDdtvO2rhbYbUD0IIp8bQPFFM=;
+	d=linux-foundation.org; s=korg; t=1795415106;
+	bh=gRLGxMUijEjcjpSvnhcly2PgKTY+iEwCXuDQZOFashQ=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=TQWxCex+278EKKeyBIx4B2XurCRH6zMwxqMc+SlSh2d4LtdCwLt3+DdhVMo7G1Em6
-	 hNtwowgvc3Gp2apct+uN6p/ikMTIeS/Sq/OwhtI4+BfMC/LYRhp6FvrpKw5yR233MY
-	 SwsTqVZtAXaksccszVIl/vZrZw7d+hmZGUwpjcQc=
-Date: Sun, 22 Nov 2026 22:25:09 -0800
-To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,qi.zheng@linux.dev,
-	muchun.song@linux.dev,mhocko@kernel.org,mason@kernel.org,hannes@cmpxchg.org,
-	david@kernel.org,david@fromorbit.com,shakeel.butt@linux.dev,
-	akpm@linux-foundation.org
+	b=yEY7HhunRpRSL06LFjm3MqyGOe5X6sMND4fwZno9Ma2mtP10kyXgQ9r8Jn10/AC6M
+	 wp4hGAKQ3PTH9ke+XEhpOFtI/RoEl01d0sxglifzrrEd21N2eosRniW0wGaQD1/+cg
+	 0nHCtN6Foa/PDTbuhm6Vm5xHghnBcZ1ICF7x8AIg=
+Date: Sun, 22 Nov 2026 22:25:05 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,
+	roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,
+	mason@kernel.org,harry@kernel.org,hannes@cmpxchg.org,david@kernel.org,
+	shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261112221248.3512447-1-shakeel.butt@linux.dev>
-References: <20261112221248.3512447-1-shakeel.butt@linux.dev>
-Subject: [merged mm-hotfixes-stable] mm-list_lru-dont-use-a-new-memcgs-lists-for-an-offline-memcg.patch removed from -mm tree
-Message-Id: <20261123062509.D53521F000CA@smtp.kernel.org>
+In-Reply-To: <20261112013220.4064478-1-shakeel.butt@linux.dev>
+References: <20261112013220.4064478-1-shakeel.butt@linux.dev>
+Subject: [merged mm-hotfixes-stable] memcg-flush-nr_charged_bytes-when-the-obj-stock-trylock-fails.patch removed from -mm tree
+Message-Id: <20261123062506.1320F1F000C6@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -57,160 +57,61 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm: list_lru: don't use a new memcg's lists for an offline memcg
+     Subject: memcg: flush nr_charged_bytes when the obj stock trylock fails
 has been removed from the -mm tree.  Its filename was
-     mm-list_lru-dont-use-a-new-memcgs-lists-for-an-offline-memcg.patch
+     memcg-flush-nr_charged_bytes-when-the-obj-stock-trylock-fails.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: mm: list_lru: don't use a new memcg's lists for an offline memcg
-Date: Thu, 12 Nov 2026 14:12:48 -0800
+Subject: memcg: flush nr_charged_bytes when the obj stock trylock fails
+Date: Wed, 11 Nov 2026 17:32:20 -0800
 
-A memcg's list_lru lists are found by its kmemcg_id, which is its
-private ID. Offlining a memcg moves its lists to the parent and frees
-the ID right away, with no RCU grace period. The next new memcg can get
-the same ID and allocate its own lists at that index.
+When interrupt code, such as an RCU callback in softirq, runs on top of a
+task that holds the obj stock lock, its trylock fails and the bytes go to
+objcg->nr_charged_bytes.  Nothing empties that counter while every CPU
+using the objcg keeps it in its stock, so it can grow without limit.
 
-A caller that holds only the RCU read lock, such as
-__folio_unqueue_deferred_split(), can still hold the offline memcg. If
-it is preempted until the ID is reused, it then locks the new memcg's
-list and unlinks a folio that now sits on the parent's list, without
-holding the parent's lock. A concurrent change to the parent's list can
-then leave a pointer to a freed folio on it.
+Users see memory.current and the "kernel" field of memory.stat keep
+growing while the cgroup's real usage does not.  With memory.high or
+memory.max set, the cgroup is reclaimed, throttled or even OOM-killed for
+memory it does not use.  The counter is 32-bit, so after 4 GiB it wraps,
+and those 4 GiB stay charged to the cgroup and its ancestors until reboot,
+even after the cgroup is removed.
 
-Users see list corruption reports, crashes or silent memory corruption
-when memory cgroups are removed and created while THPs are freed, on
-kernels with preemptible RCU, which is the default on x86 and arm64.
-They can also see a warning from memcg_reparent_list_lru_one() when the
-new memcg is removed, because the wrong unlink made its count negative.
+Fix it by uncharging the whole pages in nr_charged_bytes whenever the
+trylock fails.
 
-Fix it by recording the owning memcg in each list_lru_memcg, and by
-treating the index as empty when its lists belong to another memcg. The
-lookup then moves up to the parent, whose list holds the folio.
-
-[akpm@linux-foundation.org: verify memcg owner before skipping allocation]
-  Link: https://lore.kernel.org/20261112161502.18d9d72c0139b8f69bb88ff4@linux-foundation.org
-Link: https://patch.msgid.link/20261112221248.3512447-1-shakeel.butt@linux.dev
-Fixes: 28e98022b31e ("mm/list_lru: simplify reparenting and initial allocation")
+Link: https://patch.msgid.link/20261112013220.4064478-1-shakeel.butt@linux.dev
+Fixes: 200577f69f29 ("memcg: objcg stock trylock without irq disabling")
 Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reported-by: Chris Mason <mason@kernel.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Muchun Song (ByteDance) <muchun.song@linux.dev>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Harry Yoo (Meta) <harry@kernel.org>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: <stable@vger.kernel.org>
 
- include/linux/list_lru.h |    2 ++
- mm/list_lru.c            |   30 ++++++++++++++++++++++--------
- 2 files changed, 24 insertions(+), 8 deletions(-)
+ mm/memcontrol.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/linux/list_lru.h~mm-list_lru-dont-use-a-new-memcgs-lists-for-an-offline-memcg
-+++ a/include/linux/list_lru.h
-@@ -38,6 +38,8 @@ struct list_lru_one {
+--- a/mm/memcontrol.c~memcg-flush-nr_charged_bytes-when-the-obj-stock-trylock-fails
++++ a/mm/memcontrol.c
+@@ -3532,6 +3532,8 @@ static void __refill_obj_stock(struct ob
+ 	int i, slot = -1, empty_slot = -1;
  
- struct list_lru_memcg {
- 	struct rcu_head		rcu;
-+	/* owning memcg, only compared and never dereferenced */
-+	const void		*memcg;
- 	/* array of per cgroup per node lists, indexed by node id */
- 	struct list_lru_one	node[];
- };
---- a/mm/list_lru.c~mm-list_lru-dont-use-a-new-memcgs-lists-for-an-offline-memcg
-+++ a/mm/list_lru.c
-@@ -72,12 +72,15 @@ static int lru_shrinker_id(struct list_l
- }
- 
- static inline struct list_lru_one *
--list_lru_from_memcg_idx(struct list_lru *lru, int nid, int idx)
-+list_lru_from_memcg(struct list_lru *lru, int nid, struct mem_cgroup *memcg)
- {
-+	int idx = memcg_kmem_id(memcg);
-+
- 	if (list_lru_memcg_aware(lru) && idx >= 0) {
- 		struct list_lru_memcg *mlru = xa_load(&lru->xa, idx);
- 
--		return mlru ? &mlru->node[nid] : NULL;
-+		/* Lists at a reused index belong to another memcg. */
-+		return mlru && mlru->memcg == memcg ? &mlru->node[nid] : NULL;
- 	}
- 	return &lru->node[nid].lru;
- }
-@@ -91,7 +94,7 @@ lock_list_lru_of_memcg(struct list_lru *
- 
- 	rcu_read_lock();
- again:
--	l = list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(*memcg));
-+	l = list_lru_from_memcg(lru, nid, *memcg);
- 	if (likely(l)) {
- 		lock_list_lru(l, irq, irq_flags);
- 		if (likely(READ_ONCE(l->nr_items) != LONG_MIN)) {
-@@ -132,7 +135,7 @@ static inline bool list_lru_memcg_aware(
- }
- 
- static inline struct list_lru_one *
--list_lru_from_memcg_idx(struct list_lru *lru, int nid, int idx)
-+list_lru_from_memcg(struct list_lru *lru, int nid, struct mem_cgroup *memcg)
- {
- 	return &lru->node[nid].lru;
- }
-@@ -313,7 +316,7 @@ unsigned long list_lru_count_one(struct
- 	long count;
- 
- 	rcu_read_lock();
--	l = list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(memcg));
-+	l = list_lru_from_memcg(lru, nid, memcg);
- 	count = l ? READ_ONCE(l->nr_items) : 0;
- 	rcu_read_unlock();
- 
-@@ -502,11 +505,10 @@ static void memcg_reparent_list_lru_one(
- 					struct list_lru_one *src,
- 					struct mem_cgroup *dst_memcg)
- {
--	int dst_idx = dst_memcg->kmemcg_id;
- 	struct list_lru_one *dst;
- 
- 	spin_lock_irq(&src->lock);
--	dst = list_lru_from_memcg_idx(lru, nid, dst_idx);
-+	dst = list_lru_from_memcg(lru, nid, dst_memcg);
- 	spin_lock_nested(&dst->lock, SINGLE_DEPTH_NESTING);
- 
- 	list_splice_init(&src->list, &dst->list);
-@@ -566,9 +568,19 @@ void memcg_reparent_list_lrus(struct mem
- static inline bool memcg_list_lru_allocated(struct mem_cgroup *memcg,
- 					    struct list_lru *lru)
- {
-+	struct list_lru_memcg *mlru;
-+	bool allocated;
- 	int idx = memcg->kmemcg_id;
- 
--	return idx < 0 || xa_load(&lru->xa, idx);
-+	if (idx < 0)
-+		return true;
-+
-+	rcu_read_lock();
-+	mlru = xa_load(&lru->xa, idx);
-+	allocated = mlru && mlru->memcg == memcg;
-+	rcu_read_unlock();
-+
-+	return allocated;
- }
- 
- static int __memcg_list_lru_alloc(struct mem_cgroup *memcg,
-@@ -602,6 +614,8 @@ static int __memcg_list_lru_alloc(struct
- 			if (!mlru)
- 				return -ENOMEM;
- 		}
-+		/* Set before the lists are published, and never changed after. */
-+		mlru->memcg = pos;
- 		xas_set(&xas, pos->kmemcg_id);
- 		do {
- 			xas_lock_irqsave(&xas, flags);
+ 	if (!stock) {
++		nr_bytes += atomic_read(&objcg->nr_charged_bytes)
++			? atomic_xchg(&objcg->nr_charged_bytes, 0) : 0;
+ 		nr_pages = nr_bytes >> PAGE_SHIFT;
+ 		nr_bytes = nr_bytes & (PAGE_SIZE - 1);
+ 		atomic_add(nr_bytes, &objcg->nr_charged_bytes);
 _
 
 Patches currently in -mm which might be from shakeel.butt@linux.dev are
