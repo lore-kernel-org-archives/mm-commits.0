@@ -1,61 +1,61 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795415124;
-	b=NKrVZFtqUaJNNNCQr69b4Ey2Mx9yvqTmD8Ijws8B6jDKtEDbydnbtbYijbe6W5XYEIql
-	 mPinNn9PaqmgVnT5933pQ/P452U3JPrrtlBbQ4g9VpIFeDBeIDXJ7zJJClKmj815+WiSx
-	 JG8frGdz4pcjJgHx1puBiqS/ncAX8aRaDgb32T0fcYiSHjXRgOeMYWEsameYueBAo7cfG
-	 yiDKyIde/L5mdsZ/IN6jsXLDjZ2yqLod27n8e3WEcrB7dFEK1DogQCn+7X/NogMRnyUrc
-	 7ZeRoO52VEYPW50Re+2I1yEc7CUlgMlpw1AA74ZdPtnLzA5RHkmrvxZTlY1BycR/97w==
+	t=1795415130;
+	b=VhJPDSK6JF+c0956eRZ3L/jPGVHJPLpiMIljw85nRajr0izKFJDzy+RZxPV3JiZHqZ5h
+	 WcndfoXSRnwbhaJHokz6mc7J/yVtufVgrxLMmHBz4LzghFR0JzV+7XfemNfLvgXQ/2+9V
+	 AQpFFsWibXr/chV6V0QshOmp69HQJLnpEgUTgRfMmZqCaPtenbuoHIoxsaEYyZBJVcg7/
+	 KjEfhZuC+z8H7xDGgP8Yy9bLZKsrOrz8b8gQmB8RwnCeS08/9Ry3ZRxA0P/fGyJ6kxyvq
+	 QOWeB7wAms2Z2mNqRcNb+QzFV6ka1aIqa3/0dbCra7HmpneKFs/88l7dWU+N2PCIP8w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795415124;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795415130;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=D09dkXM9IMBQTvBXGK1I74C5JnX8Qaj9vntsag0PCj0=;
-	b=vkXJtcjuPkm92I8Ab0Yzegtm4WpEaJtxnBYE4nOhv3o28qpSRY6BxhsHNDZGCX1JX6jk
-	 4wmA3izGynQJNKwtLPyp79BBwrUEf94ZdGEMN8hxQC7CHdLRQPL+a2nB0O028oXCaWSnO
-	 LVXwXGuK8Pmscut94UEjVNTKcPzGVDT3SG0I8BaFeUWzGFd/rE87txkSpBUoOceZHVFJ+
-	 y8fyLlckQhwmf8uK0ZG+DG0C/DpAY7tVd2qaqK3KCNxnaB4lDqxuBU3pfNdCduX0YnUeh
-	 NaS5BTfRXYLoBoM46fUWF/98iAegDULOuuhsKzvLAKHOuq//GJxT0l253tt7NMAaTWA==
+	bh=ClWk66tS4/FKTayE6p2EFTJ26i1zYGM/BOZEtay9yKg=;
+	b=sQ5TPlMas4aXgZlyDdieYPa9JA5VlWaMgxUjHrc4YEfP8SHbHSodpvM4zLnaWNSmwwx8
+	 5lD615HAasYjk4rIHYR7YZAblGAloDfyTQh/7EyxfUII+Le3uUjHm90QIAWhRxJEOEv1W
+	 uKT+mqx036c+7ezdojOswDipHlXSp9+YAYptszXfht96/QqyIBDZ5P428MLCa/P7gkgKj
+	 Px6kN3sTQ9qZ4ftmYvvzXxxeKKObrzIKIMQp8OMA/ykyLKUSmAaw9x+Ur6I+KevyGhdIb
+	 8paEtFjvbqcAef4kn8XHzbf+LwhtMZrr24RpGSRV67fHfjLw0ehDfHCYkJGG3Dcb/PQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xdPFcI5r;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=eLmnMnhZ;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4814F606A31A;
-	Mon, 23 Nov 2026 06:25:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2D04606A32C;
+	Mon, 23 Nov 2026 06:25:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xdPFcI5r
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C8FC1F000C0;
-	Mon, 23 Nov 2026 06:25:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=eLmnMnhZ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5730B1F000C0;
+	Mon, 23 Nov 2026 06:25:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795415123;
-	bh=D09dkXM9IMBQTvBXGK1I74C5JnX8Qaj9vntsag0PCj0=;
+	d=linux-foundation.org; s=korg; t=1795415130;
+	bh=ClWk66tS4/FKTayE6p2EFTJ26i1zYGM/BOZEtay9yKg=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=xdPFcI5rImUrDp+XW89waYZty4xWIrVIhf7uCT6fKXS5EMWNMN5Hu61L62LteFQW3
-	 fD7yhrrCR/DDhDiIhGsLaya8OyFxj4ZLgZNyeXJ8H2AvrPtiS4P3kxP+Z/PNwQbFSm
-	 b83eQuDbJukeABuUTVR6kwN3wQePVQhOUB9f9hlk=
-Date: Sun, 22 Nov 2026 22:25:23 -0800
+	b=eLmnMnhZYw6KnGI6oTAfxVUhOSUrx9qofSwU4Q3JOq6PMyIBHhQi5ioUvo5TYYwJq
+	 dBT1oHDnonFrj+BdwGkzQq8VGzYHYH5khnjgEQn/eK1YghA0x4oO4fZQ5wfTr670Pv
+	 7ywEj3w4TvSeb72H56tTqmQdJ7U6t+yP6TTYk0UQ=
+Date: Sun, 22 Nov 2026 22:25:29 -0800
 To: mm-commits@vger.kernel.org,will@kernel.org,vivek.kasireddy@intel.com,
 	vbabka@kernel.org,svens@linux.ibm.com,surenb@google.com,
 	stable@vger.kernel.org,skhan@linuxfoundation.org,rppt@kernel.org,
 	riel@surriel.com,rdunlap@infradead.org,peterz@infradead.org,
-	peterx@redhat.com,osalvador@suse.de,osalavador@suse.de,npiggin@gmail.com,
+	peterx@redhat.com,osalvador@suse.de,osalvador@kernel.org,npiggin@gmail.com,
 	nao.horiguchi@gmail.com,muchun.song@linux.dev,mhocko@suse.com,
 	mgorman@suse.de,mason@kernel.org,luojiajun3@huawei.com,ljs@kernel.org,
 	linmiaohe@huawei.com,liam@infradead.org,leitao@debian.org,kraxel@redhat.com,
-	josef@toxicpanda.com,jgg@ziepe.ca,hughd@google.com,hca@linux.ibm.com,
-	gourry@gourry.net,gor@linux.ibm.com,corbet@lwn.net,borntraeger@linux.ibm.com,
+	jgg@ziepe.ca,hughd@google.com,hca@linux.ibm.com,gourry@gourry.net,
+	gor@linux.ibm.com,david@kernel.org,corbet@lwn.net,borntraeger@linux.ibm.com,
 	baolin.wang@linux.alibaba.com,arnd@arndb.de,apw@canonical.com,
 	aneesh.kumar@kernel.org,airlied@redhat.com,agordeev@linux.ibm.com,
-	ackerleytng@google.com,4ncienth@gmail.com,david@kernel.org,
+	ackerleytng@google.com,4ncienth@gmail.com,josef@toxicpanda.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261116-fixes_hugetlb-v2-1-4dd9e94ea9ac@kernel.org>
-References: <20261116-fixes_hugetlb-v2-1-4dd9e94ea9ac@kernel.org>
-Subject: [merged mm-hotfixes-stable] hugetlbfs-fix-integer-overflow-in-fallocate.patch removed from -mm tree
-Message-Id: <20261123062523.8C8FC1F000C0@smtp.kernel.org>
+In-Reply-To: <20261116-fixes_hugetlb-v2-7-4dd9e94ea9ac@kernel.org>
+References: <20261116-fixes_hugetlb-v2-7-4dd9e94ea9ac@kernel.org>
+Subject: [merged mm-hotfixes-stable] hugetlbfs-fix-unmapping-folios-from-private-vmas.patch removed from -mm tree
+Message-Id: <20261123062530.5730B1F000C0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -67,52 +67,43 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: hugetlbfs: fix integer overflow in fallocate()
+     Subject: hugetlbfs: fix unmapping folios from private VMAs
 has been removed from the -mm tree.  Its filename was
-     hugetlbfs-fix-integer-overflow-in-fallocate.patch
+     hugetlbfs-fix-unmapping-folios-from-private-vmas.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: hugetlbfs: fix integer overflow in fallocate()
-Date: Mon, 16 Nov 2026 19:29:22 +0100
+From: Josef Bacik <josef@toxicpanda.com>
+Subject: hugetlbfs: fix unmapping folios from private VMAs
+Date: Mon, 16 Nov 2026 19:29:28 +0100
 
-hugetlbfs_fallocate() rounds the range end up by adding hpage_size - 1
-to offset + len. vfs_fallocate()'s existing overflow check only makes
-sure that offset + len does not overflow.
+hugetlb_unmap_file_folio() assumes vm_private_data points to a struct
+hugetlb_vma_lock when hugetlb_vma_trylock_write() fails. Since hugetlb VMA
+locking was extended to private VMAs, this can also happen when
+vm_private_data contains a resv_map pointer; treating it as a
+hugetlb_vma_lock corrupts memory and can cause crashes or hangs.
 
-Once we overflow for valid endpoints near LLONG_MAX, we can get a
-negative temporary result that is then converted to a very large
-huge page index.
+Only take the VMA lock when a shareable lock exists, as additional locking
+is only needed for PMD table sharing. The fault mutex and i_mmap_rwsem
+already provide the required protection for private VMAs.
 
-A one-byte allocation ending at LLONG_MAX can therefore consume all
-available huge pages. Pages added beyond LLONG_MAX are skipped during
-inode eviction, leaking them and triggering the BUG_ON() in clear_inode().
+Fix generated by an LLM and sent by Josef Bacik in private.
 
-To fix it, calculate the end index in a simpler way that cannot
-overflow. This also fixes the signed overflow reported by luojiajun in
-2019.
-
-Backporting notes: without commit a08c7193e4f18 ("mm/filemap: remove
-hugetlb special casing in filemap.c"), remove_inode_hugepages() must
-include the final huge page during truncate and eviction.
-
-Link: https://lore.kernel.org/20261116-fixes_hugetlb-v2-0-4dd9e94ea9ac@kernel.org
-Link: https://patch.msgid.link/20261116-fixes_hugetlb-v2-1-4dd9e94ea9ac@kernel.org
-Fixes: 70c3547e36f5 ("hugetlbfs: add hugetlbfs_fallocate()")
+[david@kernel.org: simplify description and comment]
+Link: https://patch.msgid.link/20261116-fixes_hugetlb-v2-7-4dd9e94ea9ac@kernel.org
+Fixes: bf4916922c60 ("hugetlbfs: extend hugetlb_vma_lock to private VMAs")
+Signed-off-by: Josef Bacik <josef@toxicpanda.com>
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: luojiajun <luojiajun3@huawei.com>
-Closes: https://lore.kernel.org/all/1554775226-67213-1-git-send-email-luojiajun3@huawei.com/
-Reported-by: Josef Bacik <josef@toxicpanda.com>
+Tested-by: Daehyeon Ko <4ncienth@gmail.com>
+  Link: https://lore.kernel.org/20261116-fixes_hugetlb-v2-7-4dd9e94ea9ac@kernel.org
 Acked-by: Muchun Song <muchun.song@linux.dev>
-Reviewed-by: Ackerley Tng <ackerleytng@google.com>
 Tested-by: Gregory Price (Meta) <gourry@gourry.net>
-  Link: https://lore.kernel.org/20261116-fixes_hugetlb-v2-1-4dd9e94ea9ac@kernel.org
-Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
-Acked-by: Oscar Salvador <osalvador@suse.de>
+  Link: https://lore.kernel.org/179490430300.482102.17633361840450824485.b4-reply@b4
+Acked-by: Oscar Salvador (SUSE) <osalvador@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Andy Whitcroft <apw@canonical.com>
@@ -146,46 +137,43 @@ Cc: Sven Schnelle <svens@linux.ibm.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Gerd Hoffmann <kraxel@redhat.com>
 Cc: Chris Mason <mason@kernel.org>
-Cc: Daehyeon Ko <4ncienth@gmail.com>
-Cc: Oscar Salvador <osalavador@suse.de>
+Cc: luojiajun <luojiajun3@huawei.com>
+Cc: Ackerley Tng <ackerleytng@google.com>
 Cc: <stable@vger.kernel.org>
 
- fs/hugetlbfs/inode.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ fs/hugetlbfs/inode.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/fs/hugetlbfs/inode.c~hugetlbfs-fix-integer-overflow-in-fallocate
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-fix-unmapping-folios-from-private-vmas
 +++ a/fs/hugetlbfs/inode.c
-@@ -722,11 +722,13 @@ static long hugetlbfs_fallocate(struct f
+@@ -401,6 +401,16 @@ retry:
+ 		if (!hugetlb_vma_maps_pfn(vma, v_start, pfn))
+ 			continue;
  
- 	/*
- 	 * Default preallocate case.
--	 * For this range, start is rounded down and end is rounded up
--	 * as well as being converted to page offsets.
-+	 * vfs_fallocate() guarantees that offset + len is positive and does
-+	 * not overflow. Avoid overflows when calculating the end huge page
-+	 * index: set it to one past the index of the huge page containing the
-+	 * last byte.
- 	 */
- 	start = offset >> hpage_shift;
--	end = (offset + len + hpage_size - 1) >> hpage_shift;
-+	end = ((offset + len - 1) >> hpage_shift) + 1;
- 
- 	inode_lock(inode);
- 
++		/*
++		 * We only need additional VMA locking here for PMD table
++		 * sharing, which synchronizes on the shareable lock.
++		 */
++		if (!__vma_shareable_lock(vma)) {
++			unmap_hugepage_range(vma, v_start, v_end, NULL,
++					     ZAP_FLAG_DROP_MARKER);
++			continue;
++		}
++
+ 		if (!hugetlb_vma_trylock_write(vma)) {
+ 			vma_lock = vma->vm_private_data;
+ 			/*
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from josef@toxicpanda.com are
 
-mm-mprotect-dont-skip-uffd-marker-install-when-racing-with-pte-table-reclaim.patch
-mm-khugepaged-free-unused-page-table-when-setting-a-huge-pmd-fails.patch
-mm-userfaultfd-prevent-poison-marker-loss.patch
-mm-hugetlb-compare-against-persistent-count-when-freeing-lowmem-folios.patch
-mm-hugetlb-preserve-reservations-when-shrinking-on-highmem.patch
-mm-hugetlb-account-temporary-folios-separately.patch
-mm-hugetlb-account-temporary-folios-separately-fix.patch
-mm-hugetlb-serialize-page-cache-allocations-with-truncation.patch
-mm-memfd-recheck-the-page-cache-before-allocating-a-hugetlb-folio.patch
-mm-hugetlb-count-again-if-the-reserve-map-shrank.patch
-mm-hugetlb-account-restored-reservations-before-freeing-folios.patch
-mm-hugetlb-delay-anon-folio-rmap-removal-until-after-the-tlb-flush.patch
+mm-zswap-drop-the-stale-zswap-entry-of-a-zero-folio.patch
+mm-swap-account-synchronous-swap-reads-as-memory-stall.patch
+mm-mremap-fix-hugetlb-reservation-leak-on-partial-move.patch
+selftests-mm-test-a-partial-mremap-of-hugetlb-memory.patch
+mm-mremap-reaccount-on-unmap-failure-only-if-accounted.patch
+mm-mremap-restore-vma_account_bit-if-the-unmap-fails.patch
+selftests-mm-test-mremap-with-an-old-size-of-0.patch
+zram-lz4-lz4hc-accept-dictionaries-of-more-than-64-kib.patch
+mm-hugetlb-keep-surplus-folios-when-the-pool-shrinks.patch
 
