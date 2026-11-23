@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795465376;
-	b=QrRiifqxOzaUEFL/sZoPqetqXs2O7abqOY0evnSMu3MPf5pW/dsVgQeWf68Z53Gw50WN
-	 2n3u6Cq/NzsUzOuwjglzjVk+n8T9lwG2OySp/7IDipnvfwkbvdpzYSskavMwJe/q996Hg
-	 yK97i/TG+beiO+/GLRGcvSsVolM77I00Xr6jBanKzh4umH8wgczbeOU7OGJ748eezI1qf
-	 97/j77evH4ZkjCKX95nEaMhik0yymW8cOo9vSdYb534sJeiiQLnA49AizUpsNQgNAwwRZ
-	 WkUGCrsbEjM2xZwmuOCswpcYVYWzPhxPFkUrTi8Vve+C8Sv7f8HHvC2kpcli8216/5w==
+	t=1795465378;
+	b=ljFtF+24VrV6zwkMMK9tknBsSUu2jht6rjAczgUt1AEiW9Duwkr/HK28LMBDgIZj8SRp
+	 IgYMqPA8XU4zcYmmLi/inARowXZcHDnhrTLWxyz3NxjuEKa1umFHEVYXhbykjY3kMuyVw
+	 QGYEXmWfG0AriyCbpYYdQtibGZ9VHipXrPP0LIBlmnouiZhDxkbGdJOZeVZCJcYWAgd3H
+	 5l7LTMyWfJCuobGEl2heucW84aobMjM8z/eQIgiI3++S/2kwVelU6hz93EroJpv3L9kBZ
+	 KXwiyjXk46kDm4QO6AwKYT7YeakK5de85wJoTxEnDD0Yqn6Ic6ylKm38x2Uekdx+wJQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795465376;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795465378;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=a6fqmvfIHALcuQAG7pfY1MqriD56+ptQHc7g2Mqw/oI=;
-	b=Kr2k5uP37tO32vB4vQsNbKLdB98ZJGQXLCUBJHSpnuMYZNhsJEZcm+EG61JLY1lCgA6S
-	 027eRobUR8Mzy53JxObfwiwKYhBSA8P975M0IsSGEI8O9baOLJ4Evs4WufAIYMZ61bvd+
-	 aFvzGy74b8/HKUt/AXEVgWREkRqfuv0ZZLcsLUL5h1UhshBmwSkmjMKKnZX+EUndoXjRn
-	 8VoR8I4BVG6a/jZCbO1F2D9LxrfVIbZcGT/xLtH7GNWMmrcTCXIr3fLI+1amZoFgH14h7
-	 r0512kKxcIG11bsqUVbpo+CFQJrXkZAPr0EmLVPmRPY4j7vgQnzFDrnkx5YtfV+AYiA==
+	bh=3WdZrhRt86LJzSImDBlnOI3ks/mh/8D5VSYEtJ+n3gI=;
+	b=C7K7VyU+OkZSJjQUKDBNfC9oa6YKI/1/GMAH8S+amuuX0ftYxHrl9Nlg60kmgFarsO7F
+	 14G8sy2pWfHwxDDYLzaCSGpkrkqxskNw+a1Zh7NiONEpyU3Ww8bYrj/0f5huMAR57fvO8
+	 NM1T9s+HYwajLXEeRR+OTB20AQ7X+M5s6qdvx3NkvaLp6LSsJU2eqB/60E1LOQ/BSCguI
+	 ul7q76MkUoy1HOmgJ6U+5chf2ltRC7CsCIwy6LFfi7qmdjA6kPCZ0iZOtTdzcB/E0YcbF
+	 Stxzzx+kNsfEnpPD9HL67GZIsU4xpOvd6mN8Uw1LMvZVmPjXDYfU3m2cpClsI+DuPMg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=f7dS9KLv;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=0qJmxVwx;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FDE1606A31E
-	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 20:22:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78E03606A321
+	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 20:22:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=f7dS9KLv
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 174EB1F000C6;
-	Mon, 23 Nov 2026 20:22:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=0qJmxVwx
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 273381F000C0;
+	Mon, 23 Nov 2026 20:22:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795465375;
-	bh=a6fqmvfIHALcuQAG7pfY1MqriD56+ptQHc7g2Mqw/oI=;
+	d=linux-foundation.org; s=korg; t=1795465378;
+	bh=3WdZrhRt86LJzSImDBlnOI3ks/mh/8D5VSYEtJ+n3gI=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=f7dS9KLvap9cojdsAsnyTAkiuw22V2oxgFB1pRK/6NWGWn4LfakP282X2pa0rHnC0
-	 GoJiC78bIK6M1O7UQ/fMq8N76Jy0X5ADWMWgM8PoNkgpLZx2hIhrtdDiAkmdIkfzqD
-	 V7lbgxsnwBy8sMzGQUWEOpcvtcAD4yK8H8HKd5U0=
-Date: Mon, 23 Nov 2026 12:22:54 -0800
+	b=0qJmxVwxAA+AWDq8oDeuUby3COMLqZxaVILC8sy0uqP+u/1/2aVfzodpsNHsMXGrg
+	 v5HUoLu8aPgW85fu9Xtn7y+KlqL+qf+o3FsucsEWSLu6B4wKTOSVAfb6Qq+ZjtBAbK
+	 B2fORQerZr17J4GbeZko2WfYBiY0s8TqhbfiosOo=
+Date: Mon, 23 Nov 2026 12:22:57 -0800
 To: mm-commits@vger.kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124-mglru-fg-v6-3-8ffea39934a6@tencent.com>
-References: <20261124-mglru-fg-v6-3-8ffea39934a6@tencent.com>
-Subject: + mm-memcontrol-avoid-potential-counter-leak-when-reparenting-local-stats.patch added to mm-new branch
-Message-Id: <20261123202255.174EB1F000C6@smtp.kernel.org>
+In-Reply-To: <20261124-mglru-fg-v6-4-8ffea39934a6@tencent.com>
+References: <20261124-mglru-fg-v6-4-8ffea39934a6@tencent.com>
+Subject: + mm-mglru-make-generation-page-counters-atomic.patch added to mm-new branch
+Message-Id: <20261123202258.273381F000C0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +54,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/memcontrol: avoid potential counter leak when reparenting local stats
+     Subject: mm/mglru: make generation page counters atomic
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memcontrol-avoid-potential-counter-leak-when-reparenting-local-stats.patch
+     mm-mglru-make-generation-page-counters-atomic.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-avoid-potential-counter-leak-when-reparenting-local-stats.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-make-generation-page-counters-atomic.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -89,46 +89,22 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm/memcontrol: avoid potential counter leak when reparenting local stats
-Date: Tue, 24 Nov 2026 02:52:55 +0800
+Subject: mm/mglru: make generation page counters atomic
+Date: Tue, 24 Nov 2026 02:52:56 +0800
 
-lruvec_page_state_local() clamps negative values to zero on SMP.  That
-is right for readers reporting page counts, but can be wrong for
-reparenting once MGLRU updates the counters without the lruvec lock.
+No feature change, convert them to atomic so we can update them without
+holding the LRU lock. A temporary underflow is fine: readers clamp a
+negative value to zero, and the counters only need to be eventually
+consistent.
 
-Reparenting runs after the forced stats flush, so a negative is a real
-balance that has to move to the parent, not be discarded. We will
-introduce lockless MGLRU promotion which may cause following problem:
-
- 1. A refs CAS on a folio on the child's lruvec moves it from
-    inactive to active, and its active/inactive counter update follows
-    as a separate step.
-
- 2. A concurrent isolation of the folio reads the folio as active,
-    debits the child's NR_ACTIVE_* by delta before CSS_DYING is visible
-    to it.
-
- 3. The child is killed, and the two __update_lru_size() calls from
-    step 1 land on the parent: NR_INACTIVE_* -delta, then NR_ACTIVE_*
-    +delta.
-
-The child is left with NR_ACTIVE_* -delta while the parent holds the
-matching +delta, and reparenting the child's raw value is what cancels
-the parent's credit.  However, if the child happens to hold few enough
-folios for that counter to be negative, lruvec_page_state_local() clamps
-the child's negative to zero, which drops the debit instead, so the
-parent keeps NR_ACTIVE_* overcounted by delta, and its active + inactive
-total overcounted as well, permanently: the child's local counters are
-gone once reparenting is done.
-
-So use a raw signed helper and reparent with that.  Ordinary readers
-still keep the clamp.
-
-Link: https://patch.msgid.link/20261124-mglru-fg-v6-3-8ffea39934a6@tencent.com
+Link: https://patch.msgid.link/20261124-mglru-fg-v6-4-8ffea39934a6@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Kunwu Chan <kunwu.chan@gmail.com>
-Closes: https://lore.kernel.org/linux-mm/CAN_Opa-+nb0vxQ+HsENCG2fEEMZoxG9Sy_DBC4CLkWjNLzDWKw@mail.gmail.com/
+Tested-by: Zhao Zhenzhuo <zhaozhengzhuo@uniontech.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Kunwu Chan <kunwu.chan@gmail.com>
+Tested-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Lian Wang <lianux.mm@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Qi Zheng <qi.zheng@linux.dev>
@@ -143,7 +119,6 @@ Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Barry Song <baohua@kernel.org>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Yuanchu Xie <yuanchu@google.com>
 Cc: Wei Xu <weixugc@google.com>
@@ -168,8 +143,6 @@ Cc: Tal Zussman <tz2294@columbia.edu>
 Cc: Kairui Song <ryncsn@gmail.com>
 Cc: Xiang Liu <liuxiang.277@bytedance.com>
 Cc: Ehab Ababneh <ehab.ababneh@intel.com>
-Cc: zhaozhengzhuo <zhaozhengzhuo@uniontech.com>
-Cc: wang lian <lianux.mm@gmail.com>
 Cc: Joanne Koong <joannelkoong@gmail.com>
 Cc: Hui Zhu <hui.zhu@linux.dev>
 Cc: Maxim Muzafarov <maxmuzaf@gmail.com>
@@ -177,50 +150,114 @@ Cc: Tianyi Chen <hi@tychen.cc>
 Cc: Ridong Chen <ridong.chen@linux.dev>
 Cc: Harry Yoo <harry@kernel.org>
 
- mm/memcontrol.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ include/linux/mm_inline.h |    6 ++----
+ include/linux/mmzone.h    |    2 +-
+ mm/vmscan.c               |   26 +++++++++++++-------------
+ mm/vmscan.h               |    2 +-
+ 4 files changed, 17 insertions(+), 19 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-avoid-potential-counter-leak-when-reparenting-local-stats
-+++ a/mm/memcontrol.c
-@@ -562,11 +562,10 @@ unsigned long lruvec_page_state_monotoni
- 	return (unsigned long)READ_ONCE(pn->lruvec_stats->state[i]);
+--- a/include/linux/mm_inline.h~mm-mglru-make-generation-page-counters-atomic
++++ a/include/linux/mm_inline.h
+@@ -265,11 +265,9 @@ static inline void lru_gen_update_size(s
+ 	VM_WARN_ON_ONCE(old_gen == -1 && new_gen == -1);
+ 
+ 	if (old_gen >= 0)
+-		WRITE_ONCE(lrugen->nr_pages[old_gen][type][zone],
+-			   lrugen->nr_pages[old_gen][type][zone] - delta);
++		atomic_long_sub(delta, &lrugen->nr_pages[old_gen][type][zone]);
+ 	if (new_gen >= 0)
+-		WRITE_ONCE(lrugen->nr_pages[new_gen][type][zone],
+-			   lrugen->nr_pages[new_gen][type][zone] + delta);
++		atomic_long_add(delta, &lrugen->nr_pages[new_gen][type][zone]);
+ 
+ 	/* addition */
+ 	if (old_gen < 0) {
+--- a/include/linux/mmzone.h~mm-mglru-make-generation-page-counters-atomic
++++ a/include/linux/mmzone.h
+@@ -554,7 +554,7 @@ struct lru_gen_folio {
+ 	/* the multi-gen LRU lists, lazily sorted on eviction */
+ 	struct list_head folios[MAX_NR_GENS][ANON_AND_FILE][MAX_NR_ZONES];
+ 	/* the multi-gen LRU sizes, eventually consistent */
+-	long nr_pages[MAX_NR_GENS][ANON_AND_FILE][MAX_NR_ZONES];
++	atomic_long_t nr_pages[MAX_NR_GENS][ANON_AND_FILE][MAX_NR_ZONES];
+ 	/* the exponential moving average of refaulted */
+ 	unsigned long avg_refaulted[ANON_AND_FILE][MAX_NR_TIERS];
+ 	/* the exponential moving average of evicted+protected */
+--- a/mm/vmscan.c~mm-mglru-make-generation-page-counters-atomic
++++ a/mm/vmscan.c
+@@ -3350,8 +3350,7 @@ static void reset_batch_size(struct lru_
+ 			continue;
+ 
+ 		walk->nr_pages[gen][type][zone] = 0;
+-		WRITE_ONCE(lrugen->nr_pages[gen][type][zone],
+-			   lrugen->nr_pages[gen][type][zone] + delta);
++		atomic_long_add(delta, &lrugen->nr_pages[gen][type][zone]);
+ 
+ 		if (lru_gen_is_active(lruvec, gen))
+ 			lru += LRU_ACTIVE;
+@@ -3971,11 +3970,8 @@ static bool inc_min_seq(struct lruvec *l
+ 				break;
+ 		}
+ 		flush_lru_batch(head, &batch_end, target_list);
+-
+-		WRITE_ONCE(lrugen->nr_pages[old_gen][type][zone],
+-			   lrugen->nr_pages[old_gen][type][zone] - delta);
+-		WRITE_ONCE(lrugen->nr_pages[target_gen][type][zone],
+-			   lrugen->nr_pages[target_gen][type][zone] + delta);
++		atomic_long_sub(delta, &lrugen->nr_pages[old_gen][type][zone]);
++		atomic_long_add(delta, &lrugen->nr_pages[target_gen][type][zone]);
+ 		if (!remaining)
+ 			return false;
+ 	}
+@@ -4093,8 +4089,8 @@ restart:
+ 	for (type = 0; type < ANON_AND_FILE; type++) {
+ 		for (zone = 0; zone < MAX_NR_ZONES; zone++) {
+ 			enum lru_list lru = type * LRU_INACTIVE_FILE;
+-			long delta = lrugen->nr_pages[prev][type][zone] -
+-				     lrugen->nr_pages[next][type][zone];
++			long delta = atomic_long_read(&lrugen->nr_pages[prev][type][zone]) -
++				     atomic_long_read(&lrugen->nr_pages[next][type][zone]);
+ 
+ 			if (!delta)
+ 				continue;
+@@ -4625,8 +4621,13 @@ static void __lru_gen_reparent_memcg(str
+ 	child_lrugen = &child_lruvec->lrugen;
+ 	parent_lrugen = &parent_lruvec->lrugen;
+ 
++	/*
++	 * The child is offline and the lockless updaters, which hold
++	 * rcu_read_lock() over the update, avoid racing with reparenting,
++	 * so the read/set/add operations below are safe.
++	 */
+ 	for (gen = 0; gen < MAX_NR_GENS; gen++) {
+-		long nr_pages = child_lrugen->nr_pages[gen][type][zone];
++		long nr_pages = atomic_long_read(&child_lrugen->nr_pages[gen][type][zone]);
+ 		int child_lru_active = lru_gen_is_active(child_lruvec, gen) ? LRU_ACTIVE : 0;
+ 		int parent_lru_active = lru_gen_is_active(parent_lruvec, gen) ? LRU_ACTIVE : 0;
+ 
+@@ -4634,9 +4635,8 @@ static void __lru_gen_reparent_memcg(str
+ 		list_splice_tail_init(&child_lrugen->folios[gen][type][zone],
+ 				      &parent_lrugen->folios[gen][type][zone]);
+ 
+-		WRITE_ONCE(child_lrugen->nr_pages[gen][type][zone], 0);
+-		WRITE_ONCE(parent_lrugen->nr_pages[gen][type][zone],
+-			   parent_lrugen->nr_pages[gen][type][zone] + nr_pages);
++		atomic_long_set(&child_lrugen->nr_pages[gen][type][zone], 0);
++		atomic_long_add(nr_pages, &parent_lrugen->nr_pages[gen][type][zone]);
+ 
+ 		if (lru_gen_is_active(child_lruvec, gen) != lru_gen_is_active(parent_lruvec, gen)) {
+ 			__update_lru_size(child_lruvec, lru + child_lru_active, zone, -nr_pages);
+--- a/mm/vmscan.h~mm-mglru-make-generation-page-counters-atomic
++++ a/mm/vmscan.h
+@@ -126,7 +126,7 @@ static inline unsigned long lruvec_gen_s
+ 	unsigned long size = 0;
+ 
+ 	for (int zone = 0; zone < max_zone; zone++)
+-		size += max(READ_ONCE(lrugen->nr_pages[gen][type][zone]), 0L);
++		size += max(atomic_long_read(&lrugen->nr_pages[gen][type][zone]), 0L);
+ 
+ 	return size;
  }
- 
--unsigned long lruvec_page_state_local(const struct lruvec *lruvec,
-+static long __lruvec_page_state_local(const struct lruvec *lruvec,
- 				      enum node_stat_item idx)
- {
- 	const struct mem_cgroup_per_node *pn;
--	long x;
- 	int i;
- 
- 	if (mem_cgroup_disabled())
-@@ -577,7 +576,14 @@ unsigned long lruvec_page_state_local(co
- 		return 0;
- 
- 	pn = container_of_const(lruvec, struct mem_cgroup_per_node, lruvec);
--	x = READ_ONCE(pn->lruvec_stats->state_local[i]);
-+	return READ_ONCE(pn->lruvec_stats->state_local[i]);
-+}
-+
-+unsigned long lruvec_page_state_local(const struct lruvec *lruvec,
-+				      enum node_stat_item idx)
-+{
-+	long x = __lruvec_page_state_local(lruvec, idx);
-+
- #ifdef CONFIG_SMP
- 	if (x < 0)
- 		x = 0;
-@@ -595,7 +601,8 @@ void reparent_memcg_lruvec_state_local(s
- 
- 	for_each_node(nid) {
- 		struct lruvec *lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
--		unsigned long value = lruvec_page_state_local(lruvec, idx);
-+		/* Reparent the raw value: the clamp drops the child's debit. */
-+		long value = __lruvec_page_state_local(lruvec, idx);
- 
- 		__mod_memcg_lruvec_state(memcg, nid, idx, -value);
- 		__mod_memcg_lruvec_state(parent, nid, idx, value);
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
