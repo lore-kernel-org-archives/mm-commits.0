@@ -1,42 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795403061;
-	b=FpeJDqlp2myZWK6hWxo4qZTyGbnSYL8pH3Wo8F9x6EVPHcqMZwzHrZ2zyf0RNx8az7jc
-	 0HGSCvxsrWvJAHEayBbMqL2JpIV/8HEJ2mYBB1GF+DKBCTPLPmGBThrkbsZi0TwlL1uMD
-	 yCZ1lW+KjBpNHyp11cyxY7EfTSrYa4+Fu8d7y9LkLRX0oi4+DaHLLmnx6L9+q3gPFeVa8
-	 SaR2KCYHbbw273DRB6LrOZL9CqKjT4w9yq7hMLZUMgwdCRMk289PCo7LOCJpHg+bj0IEx
-	 Hl+ES8cmY8TxFA0qzBhmz3tHUPOISYGKevMkxzNLgv8hY+aaTVy3cnrDBHEoFXy+59g==
+	t=1795403064;
+	b=RdwCfmjJkXHUeglvuF7fsT8LddJ4uYygFGAGeGVm3x5et/6easTFUbYHs7Nh16PFmUhj
+	 FlGExrMSYuzSA9kVjYUkz68Aaxph96E5CtupNYlbE08oBA0O5l+EgfNK+ZJZM+k2B1RE3
+	 lCnWBL5ZX3OQYn1lgELaZPhf/antYhqErFpq4p4+pm1p7DeQBrJIanorFQM/xPf113O8q
+	 WxLPrjbA6/YiKkAuCW2nC8D9btdn1jSG5xv5MwyJBQAnhqNPo4GfbPufu0UyPrljbZhor
+	 R5mb/SycWbjTHOSZbDhUN6he3PpoWCbSLdxBtCqZ/VQqQNSBDU8LodqgsqI3wRckJSw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795403061;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795403064;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=qrK1tGYnnCnqaoLVODtI90CY0gEF+utte/nB/acpSBs=;
-	b=lXRaOkh8VeRl6zn93J8a2+mS3lE2SB62csyNRiop5ziPjBfDM0OBnGZjfXIo1TF4xEaT
-	 kL6LRoSe8BI/4rIY4RacoAQz+a3c1N6S9rau7FKV5xKyjRN1iutlx1RNmj+kzdIeA1Gm6
-	 DZBpV5cVAr8PXKF8eS7ATmo5d2UI0oJaB74M6wPYmeVL4AdSsWR+qp1JJeTi/bGVoK3nE
-	 ZjhGG9Dyu/GJEeiw4/ZGSjA56nmsMRkbWTD673BWsZD+zjyQ7sRoae3/jbOUQD9g/CAHY
-	 El18pvEtN2a3Ag0x3CrLIMviLOIINSj2tTE34XWHx3+R1X6VZbEw4k2GSTdw7UDS3Hw==
+	bh=cJO2DuA+Tb0hS/OistkL0+vFlBdR5ybq/z1ZEjPPo1o=;
+	b=YyccEf1r7cjIomVP468w5UvqG/d1gD+Y08TtbE4VWEXYdI4GX/64YkwxUMx+WJF/ajQd
+	 Koqy+p9yluSYOuYmrzyD3Tqw3Fdykpf+W/bEOtngO8jmokBPYPbX6DEUAW35HCa098z6I
+	 HY8P6blysDEvKXhx3wLpNyC35zbwtXngMVNwN0uwOGwNY37J/k/ogrSb2ptWhVsejkr5W
+	 m4qvxgT1R4hDAud60Q17Wb5bLIRJrrZz1ieWrgrVnE7ELhWXzCALF5/Zcz8wW2TvKNA9p
+	 kKg7MPDhiMlNVVUhzXTbVtJCT2PwR6I4DHwHowHWi9da5brT4UVS6U1Cd40vw3Pw5GQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ANfz4rrN;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=IHg9uCp6;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C889606A334
-	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 03:04:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E379606A320
+	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 03:04:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ANfz4rrN
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A2451F000D0;
-	Mon, 23 Nov 2026 03:04:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=IHg9uCp6
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9BF61F000C4;
+	Mon, 23 Nov 2026 03:04:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795403060;
-	bh=qrK1tGYnnCnqaoLVODtI90CY0gEF+utte/nB/acpSBs=;
+	d=linux-foundation.org; s=korg; t=1795403064;
+	bh=cJO2DuA+Tb0hS/OistkL0+vFlBdR5ybq/z1ZEjPPo1o=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=ANfz4rrN5TPSip7gNpDxf8edRBrb3f2LNLFqKW8/SKsp3jzfM125g3jC6s+hbPrHK
-	 nSSfJ7cHhwyGJU+Esll6R5yAkDtmax9qjTkWB18LJXeK8oCOsY3SsBe0KjVCRwc4yu
-	 hh1TczHpL2LeGD+06nSCQlsTAeUj6B5uskStVRd8=
-Date: Sun, 22 Nov 2026 19:04:19 -0800
+	b=IHg9uCp6UUgbG0P7yAORoIQQpahlTOVXsWklfha42meUNDZ+QYNl76qha5k55u2CP
+	 1GU48qVfj+H9VIkY10hFZN9QCOHQI2R5bpplc6BGpQc2X/nWdsIG7C6vf84EU19brL
+	 MkLzGfuV7eDkGV0dr7wyYnEQiBDApMcRgO1Mbk2U=
+Date: Sun, 22 Nov 2026 19:04:23 -0800
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
 	rppt@kernel.org,qi.zheng@linux.dev,osalvador@suse.de,mhocko@suse.com,
 	ljs@kernel.org,lizhe.67@bytedance.com,liam@infradead.org,
@@ -44,10 +44,10 @@ To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
 	balbirs@nvidia.com,apopple@nvidia.com,songmuchun@bytedance.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261120100856.16929-8-songmuchun@bytedance.com>
-References: <20261120100856.16929-8-songmuchun@bytedance.com>
-Subject: + mm-hugetlb-use-common-compound-page-initialization-helper.patch added to mm-new branch
-Message-Id: <20261123030420.6A2451F000D0@smtp.kernel.org>
+In-Reply-To: <20261120100856.16929-9-songmuchun@bytedance.com>
+References: <20261120100856.16929-9-songmuchun@bytedance.com>
+Subject: + mm-mm_init-make-__init_single_page-static.patch added to mm-new branch
+Message-Id: <20261123030423.D9BF61F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -59,12 +59,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/hugetlb: use common compound page initialization helper
+     Subject: mm/mm_init: make __init_single_page() static
 has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb-use-common-compound-page-initialization-helper.patch
+     mm-mm_init-make-__init_single_page-static.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-use-common-compound-page-initialization-helper.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_init-make-__init_single_page-static.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -94,42 +94,22 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/hugetlb: use common compound page initialization helper
-Date: Fri, 20 Nov 2026 18:08:52 +0800
+Subject: mm/mm_init: make __init_single_page() static
+Date: Fri, 20 Nov 2026 18:08:53 +0800
 
-Boot-time gigantic hugetlb folios currently use a separate path to
-initialize their compound struct pages.
+__init_single_page() is only used within mm/mm_init.c, so make it
+static.
 
-Use memmap_init_compound_page() for these folios so that HugeTLB and
-ZONE_DEVICE share the common compound page initialization path. This
-removes the HugeTLB-specific implementation and improves initialization
-performance.
-
-ZONE_DEVICE initializes struct pages by walking one contiguous memory
-range. Boot-time HugeTLB instead initializes multiple disjoint ranges,
-one for each contiguous hugepage. Measurements showed that memcpy()
-performed better than memcpy_nontemporal() for the latter access pattern.
-Therefore, use memcpy() for normal memory while retaining
-memcpy_nontemporal() for ZONE_DEVICE.
-
-The initialization time for 64 boot-time 1G hugepages with 4K base
-pages was measured as follows:
-
-  arch    without this patch  with this patch  reduction
-  x86-64          195.60 ms          170.40 ms      12.88%
-  arm64           374.40 ms          237.60 ms      36.54%
-
-Link: https://patch.msgid.link/20261120100856.16929-8-songmuchun@bytedance.com
-Signed-off-by: Li Zhe <lizhe.67@bytedance.com>
+Link: https://patch.msgid.link/20261120100856.16929-9-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Co-developed-by: Li Zhe <lizhe.67@bytedance.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Li Zhe <lizhe.67@bytedance.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Balbir Singh <balbirs@nvidia.com>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
@@ -138,109 +118,31 @@ Cc: James Houghton <jthoughton@google.com>
 Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Qi Zheng <qi.zheng@linux.dev>
 
- mm/hugetlb.c |   52 +------------------------------------------------
- mm/mm_init.c |   10 +++++----
- 2 files changed, 8 insertions(+), 54 deletions(-)
+ mm/mm_init.c |    2 +-
+ mm/mm_init.h |    2 --
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-use-common-compound-page-initialization-helper
-+++ a/mm/hugetlb.c
-@@ -3319,50 +3319,6 @@ static bool __init alloc_bootmem_huge_pa
- 	return true;
- }
- 
--/* Initialize [start_page:end_page_number] tail struct pages of a hugepage */
--static void __init hugetlb_folio_init_tail_vmemmap(struct folio *folio,
--					struct hstate *h,
--					unsigned long start_page_number,
--					unsigned long end_page_number)
--{
--	enum zone_type zone = folio_zonenum(folio);
--	int nid = folio_nid(folio);
--	struct page *page = folio_page(folio, start_page_number);
--	unsigned long head_pfn = folio_pfn(folio);
--	unsigned long pfn, end_pfn = head_pfn + end_page_number;
--	unsigned int order = huge_page_order(h);
--
--	/*
--	 * As we marked all tail pages with memblock_reserved_mark_noinit(),
--	 * we must initialize them ourselves here.
--	 */
--	for (pfn = head_pfn + start_page_number; pfn < end_pfn; page++, pfn++) {
--		__init_single_page(page, pfn, zone, nid);
--		prep_compound_tail(page, &folio->page, order);
--		set_page_count(page, 0);
--	}
--}
--
--static void __init hugetlb_folio_init_vmemmap(struct folio *folio,
--					      unsigned long pfn,
--					      struct hstate *h,
--					      enum zone_type zone, int nid,
--					      unsigned long nr_pages)
--{
--	struct page *head = &folio->page;
--
--	/*
--	 * This is an open-coded prep_compound_page() whereby we avoid
--	 * walking pages twice by initializing/preparing+freezing them in the
--	 * same go.
--	 */
--	__init_single_page(head, pfn, zone, nid);
--	__folio_set_head(folio);
--	set_page_count(head, 0);
--	hugetlb_folio_init_tail_vmemmap(folio, h, 1, nr_pages);
--	prep_compound_head(head, huge_page_order(h));
--}
--
- /*
-  * memblock-allocated pageblocks might not have the migrate type set
-  * if marked with the 'noinit' flag. Set it to the default (MIGRATE_MOVABLE)
-@@ -3420,8 +3376,7 @@ static void __init gather_bootmem_preall
- 		struct folio *folio = (void *)page;
- 		const unsigned long pfn = PHYS_PFN(__pa(m));
- 		const unsigned long nr_pages = pages_per_huge_page(m->hstate);
--		const enum zone_type zone = zone_idx(pfn_to_zone(pfn, nid));
--		unsigned long nr_struct_pages = nr_pages;
-+		const struct zone *zone = pfn_to_zone(pfn, nid);
- 
- 		h = m->hstate;
- 		/*
-@@ -3433,10 +3388,7 @@ static void __init gather_bootmem_preall
- 		prev_h = h;
- 
- 		VM_BUG_ON(!hstate_is_gigantic(h));
--
--		if (vmemmap_optimizable_order(pfn_to_section_compound_order(pfn)))
--			nr_struct_pages = VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES;
--		hugetlb_folio_init_vmemmap(folio, pfn, h, zone, nid, nr_struct_pages);
-+		memmap_init_compound_page(page, pfn, zone, huge_page_order(h));
- 		init_new_hugetlb_folio(folio);
- 
- 		if (vmemmap_optimizable_order(pfn_to_section_compound_order(pfn)))
---- a/mm/mm_init.c~mm-hugetlb-use-common-compound-page-initialization-helper
+--- a/mm/mm_init.c~mm-mm_init-make-__init_single_page-static
 +++ a/mm/mm_init.c
-@@ -722,16 +722,18 @@ static void __meminit memmap_init_page_f
- 		unsigned long pfn, const struct zone *zone, struct page *template)
- {
- 	/*
--	 * Refresh PFN-dependent fields in the template before the non-temporal
--	 * copy, so the destination page does not need cached stores after
--	 * memcpy_nontemporal().
-+	 * Refresh PFN-dependent fields in the template before copying it, so
-+	 * the destination page does not need follow-up stores.
- 	 */
- 	set_page_section_from_pfn(template, pfn);
- #ifdef WANT_PAGE_VIRTUAL
- 	if (!is_highmem_idx(zone_idx(zone)))
- 		set_page_address(template, __va(pfn << PAGE_SHIFT));
+@@ -617,7 +617,7 @@ void memmap_init_page(struct page *page,
  #endif
--	memcpy_nontemporal(page, template, sizeof(*page));
-+	if (zone_is_zone_device(zone))
-+		memcpy_nontemporal(page, template, sizeof(*page));
-+	else
-+		memcpy(page, template, sizeof(*page));
- 	vmemmap_optimization_verify_zone(page);
  }
+ 
+-void __meminit __init_single_page(struct page *page, unsigned long pfn,
++static __meminit void __init_single_page(struct page *page, unsigned long pfn,
+ 		unsigned long zone, int nid)
+ {
+ 	memmap_init_page(page, zone, nid);
+--- a/mm/mm_init.h~mm-mm_init-make-__init_single_page-static
++++ a/mm/mm_init.h
+@@ -110,8 +110,6 @@ bool memblock_has_mirror(void);
+ void memblock_free_all(void);
+ 
+ void memmap_init_page(struct page *page, enum zone_type zone, int nid);
+-void __meminit __init_single_page(struct page *page, unsigned long pfn,
+-				unsigned long zone, int nid);
+ void __meminit memmap_init_compound_page(struct page *head, unsigned long pfn,
+ 		const struct zone *zone, unsigned int order);
  
 _
 
