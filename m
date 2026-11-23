@@ -1,51 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795401407;
-	b=MZ9AYq6YwwbGHUuJiq1JP/UGMZ6KeJhMg+U+AxG/Oj8q2IgnLb72BYHCZRz9cFgMxgRa
-	 YQJE7W7XYYFTO1gb0IPn7AUlc7YQlzSLCq0AV5oRJM1BHYZ3wJA0WHvbwxlY/bYKxcgXn
-	 a7XEMFYKYSU8A6OeCmfJoj9Cuwv2FXNkkDjssfwCil78P+d8WtonfUu6QoSVnjBGRkvK+
-	 BPya/z/zI9k4RAGq3wl79h2EVkOVtneWG4QxTyZ3TQW4Dd0363EEgR8NTTTo3XpzipxHu
-	 jGBuOLklNfi2irr3qldu5h6enS/VUjnwykQFvbJM/sIy887ZadcjLjaO6gy5nuYE4hA==
+	t=1795401410;
+	b=0qgz3Ef0dsPPsIq8vUX4+G2dfjPiwL0JkZ6aCwQp2rVALC6lPzk720ELHDJhBdGT2awz
+	 DrEBOGmMxYfaI4vcXgmv5Hqsa0ZO5M2Ie0YfFnyqgnQkIiFwSFrUbVnq31KQ9Zvz3Tgg+
+	 lR95Zwlqn/UOVuVGMF5LfgDiB9gdn2OOdACYtK6w9AESqmtCswOtzlNfeawZLodXL7UJI
+	 /aYMpArM5NsG1sgkHMeaOSxZ0YwGv2AKHXmxpW6sqhL7gQyAHojqa6sextVC8yELFUfY1
+	 MCg50dpFbzd3/AKyj9B4dwizWHsU7Rt1H0R98pI4i/MAxmudCHuJU9yzQ4nvkOW5gFw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795401407;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795401410;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=ILvGwMGKnK/kFzYTG5OfqXKUQuxZ/PqmWvHJtDkKCHs=;
-	b=Y/38HLaKU5skvqsvnB6Prp6twzJlnyFXPE4mmZBbyHpj7En5m3N8dmfqxRP4X9bjysC4
-	 Ak0bftawxtVUpCEVLTfuBnrkmYKJAqOindHfJ7qvGqXVRZEBLO1iPg8L677J/zhx89qOa
-	 0DuNs0JVUBYkxT+ow2Niv9gqp5ju81fQ8QlhXfMqKlTHsjUK8SY2Rvk40XGkugTF3zGBw
-	 uIOwoMZE9ZmhjmO5NZZEr2Nzrn7/b7zl7iJaM5PPUEZaOeNJeJbKXRFgcyGBguiARAMEE
-	 lHd3ocYaequGeWYsKSai39xbcFSaVNT3LctjhdKOqprUfB1CPTsel8bXbkHonJk+spg==
+	bh=Ce+qzpekLAoNSmIZqZ9iH6uKDDTjJO6CFn4Vrsm2cCM=;
+	b=Qafmw9i4B9e1HFebE6tYInyH/d1Oy3jZ2dm0r4AyfU+Fu5uNsay3pJYoIBf6qQqIlxlM
+	 9me3hGjZZPLZEMBTuzWr2vv3QfSjmj+rWR1vZAsvi+q7YSnXv6ZQuDsFBliadtxTt6MUG
+	 H/16Q54zGUOXqZeHHdRuQZxw/KbSVtRq2AkDC+Bu/wyIn1h/2p69x3n/wHlXpff7j19pU
+	 LfKPysJhM7A0sEl6DYvjXnTGfeezeMo3OcPQbhDtrWr8mcRWtD97GPAv8qh89jQOs3+wl
+	 8qGL3FDT/UM2HHwev7Aotyx65jIA/leEcvbtIU+SDBdDpguAJHNPF4UnTtGjzOxl/GQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=us8QY8wA;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PSqF+Y1B;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C736B60A2605
-	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 02:36:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4E85606A327
+	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 02:36:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=us8QY8wA
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED9A41F000E1;
-	Mon, 23 Nov 2026 02:36:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PSqF+Y1B
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73A8E1F01569;
+	Mon, 23 Nov 2026 02:36:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795401407;
-	bh=ILvGwMGKnK/kFzYTG5OfqXKUQuxZ/PqmWvHJtDkKCHs=;
+	d=linux-foundation.org; s=korg; t=1795401410;
+	bh=Ce+qzpekLAoNSmIZqZ9iH6uKDDTjJO6CFn4Vrsm2cCM=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=us8QY8wAs7bGL9dr0Jrf9KwUXqzbss2THC1Nx6BEX7/kCMLlfwzhb6e+RTZjlAxbb
-	 YrdQo2zUGoG/j+f/j6G2lxyaPUN1H5sNSAavyAK/gSes9xqpvTC1wKXjwD8xgs+8Ey
-	 koIGltg/ssFObANKguBOqM1063sNRb41mtjaM0dA=
-Date: Sun, 22 Nov 2026 18:36:46 -0800
-To: mm-commits@vger.kernel.org,yukuai@fygo.io,xiao@kernel.org,song@kernel.org,
-	markus.stockhausen@collogia.de,magiclinan@didiglobal.com,hch@lst.de,
-	ebiggers@kernel.org,david.laight.linux@gmail.com,mc@raidlab.org,
-	akpm@linux-foundation.org
+	b=PSqF+Y1BKo/pGv8dCJRhrwyH9Odj1FigOKrO/vmNEaONEWd6pF4SILAk/6heO/xt7
+	 3649eoZ7TubMjKHmR3GaP8LbUmvXFUcC7oybDKeZ6+m4qYjHD3A0CBSFcByvRCDJQ/
+	 6iF1cOC0LLfkzrN9JGoedqSPJVuO/ca8USfUkiCA=
+Date: Sun, 22 Nov 2026 18:36:49 -0800
+To: mm-commits@vger.kernel.org,shuah@kernel.org,linux@weissschuh.net,
+	ivan.orlov0322@gmail.com,sashal@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261122032933.2306875-4-mc@raidlab.org>
-References: <20261122032933.2306875-4-mc@raidlab.org>
-Subject: + raid6-prefetch-q-with-prefetcht0-in-the-x86-x4-xor_syndrome-functions.patch added to mm-nonmm-unstable branch
-Message-Id: <20261123023646.ED9A41F000E1@smtp.kernel.org>
+In-Reply-To: <20261105125701.1605281-2-sashal@kernel.org>
+References: <20261105125701.1605281-2-sashal@kernel.org>
+Subject: + selftests-prctl-skip-the-anonymous-vma-naming-test-when-unsupported.patch added to mm-nonmm-unstable branch
+Message-Id: <20261123023650.73A8E1F01569@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -57,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: raid6: prefetch Q with prefetcht0 in the x86 x4 xor_syndrome functions
+     Subject: selftests/prctl: skip the anonymous VMA naming test when unsupported
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     raid6-prefetch-q-with-prefetcht0-in-the-x86-x4-xor_syndrome-functions.patch
+     selftests-prctl-skip-the-anonymous-vma-naming-test-when-unsupported.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/raid6-prefetch-q-with-prefetcht0-in-the-x86-x4-xor_syndrome-functions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-prctl-skip-the-anonymous-vma-naming-test-when-unsupported.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -80,94 +78,78 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Miroslav Cimerman <mc@raidlab.org>
-Subject: raid6: prefetch Q with prefetcht0 in the x86 x4 xor_syndrome functions
-Date: Sun, 22 Nov 2026 03:29:33 +0000
+From: Sasha Levin <sashal@kernel.org>
+Subject: selftests/prctl: skip the anonymous VMA naming test when unsupported
+Date: Thu, 05 Nov 2026 07:56:59 -0500
 
-The x4 xor_syndrome() functions for SSE2, AVX2 and AVX-512 prefetch Q
-with prefetchnta. That hint is meant for data that is used once. Q is
-read, updated and written back with normal stores, and md calls
-xor_syndrome() twice on the same P/Q page for each write.
+Patch series "selftests: target selection fixes for cross and LLVM builds".
 
-Prefetch Q with prefetcht0, which keeps it in all cache levels. The data
-blocks are read once and keep prefetchnta.
+A few suites select their tests from the build host instead of the
+target, or depend on the host C library in ways that break cross
+builds:
 
-Time per write measured in a userspace harness in md's read-modify-write
-pattern (two xor_syndrome() calls on the same P/Q page), avx512x4 on a
-Xeon Gold 6130, 2-24 data disks, write to the first, middle and last
-data disk, median of 10 passes:
+ - set-anon-vma-name-test fails instead of skipping on kernels built
+   without CONFIG_ANON_VMA_NAME.
 
-  P and Q in DRAM:      -2.2% (geometric mean), up to -5.7%
-  P and Q in L3:        +0.2%
-  P and Q in L1/L2:     +0.3%
+ - kexec only recognizes the ppc64le spelling of PowerPC and decides
+   about the x86-64 jump test from the build host.
 
-The gain comes with 2-8 data disks, where Q is a larger part of the
-work. The SSE2 and AVX2 versions were not measured.
+ - size links a custom _start against the static C library, which
+   fails on ARM with clang and on LoongArch; it now uses nolibc.
 
-Link: https://patch.msgid.link/20261122032933.2306875-4-mc@raidlab.org
-Signed-off-by: Miroslav Cimerman <mc@raidlab.org>
+The patches are independent of each other and apply on
+mm-nonmm-unstable.
+
+
+This patch (of 3):
+
+PR_SET_VMA_ANON_NAME is only implemented when CONFIG_ANON_VMA_NAME is
+enabled. Without it, set_anon_vma_name() returns -EINVAL for every
+request, so set-anon-vma-name-test reports a failure on kernels that
+simply do not provide the feature:
+
+  # renaming: Expected rename_vma(...) (-22) >= 0
+  not ok 1 vma.renaming
+
+Probe the interface in the fixture setup by clearing the name of the
+anonymous mapping, which succeeds whenever the feature is available,
+and skip the test when the kernel rejects the request with EINVAL.
+
+Link: https://lore.kernel.org/20261105125701.1605281-1-sashal@kernel.org
+Link: https://patch.msgid.link/20261105125701.1605281-2-sashal@kernel.org
+Fixes: 5290586186d2 ("selftests: prctl: Add new prctl test for PR_SET_VMA action")
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Eric Biggers <ebiggers@kernel.org>
-Link: https://lore.kernel.org/linux-raid/20261116210440.GE229817@google.com/
-Reviewed-by: Eric Biggers <ebiggers@kernel.org>
-Cc: Song Liu <song@kernel.org>
-Cc: Yu Kuai <yukuai@fygo.io>
-Cc: Li Nan <magiclinan@didiglobal.com>
-Cc: Xiao Ni <xiao@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: David Laight <david.laight.linux@gmail.com>
-Cc: Markus Stockhausen <markus.stockhausen@collogia.de>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Ivan Orlov <ivan.orlov0322@gmail.com>
+Cc: Thomas Weißschuh <linux@weissschuh.net>
 
- lib/raid/raid6/x86/avx2.c   |    4 ++--
- lib/raid/raid6/x86/avx512.c |    4 ++--
- lib/raid/raid6/x86/sse2.c   |    4 ++--
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ tools/testing/selftests/prctl/set-anon-vma-name-test.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/lib/raid/raid6/x86/avx2.c~raid6-prefetch-q-with-prefetcht0-in-the-x86-x4-xor_syndrome-functions
-+++ a/lib/raid/raid6/x86/avx2.c
-@@ -408,8 +408,8 @@ static void raid6_avx24_xor_syndrome(int
- 			asm volatile("vpxor %ymm13,%ymm12,%ymm12");
- 			asm volatile("vpxor %ymm15,%ymm14,%ymm14");
- 		}
--		asm volatile("prefetchnta %0" :: "m" (q[d]));
--		asm volatile("prefetchnta %0" :: "m" (q[d+64]));
-+		asm volatile("prefetcht0 %0" :: "m" (q[d]));
-+		asm volatile("prefetcht0 %0" :: "m" (q[d+64]));
- 		/* P/Q left side optimization */
- 		for (z = start-1 ; z >= 0 ; z--) {
- 			asm volatile("vpxor %ymm5,%ymm5,%ymm5");
---- a/lib/raid/raid6/x86/avx512.c~raid6-prefetch-q-with-prefetcht0-in-the-x86-x4-xor_syndrome-functions
-+++ a/lib/raid/raid6/x86/avx512.c
-@@ -476,8 +476,8 @@ static void raid6_avx5124_xor_syndrome(i
- 				       "m" (dptr[z][d+128]),
- 				       "m" (dptr[z][d+192]));
- 		}
--		asm volatile("prefetchnta %0\n\t"
--			     "prefetchnta %1\n\t"
-+		asm volatile("prefetcht0 %0\n\t"
-+			     "prefetcht0 %1\n\t"
- 			     :
- 			     : "m" (q[d]), "m" (q[d+128]));
- 		/* P/Q left side optimization */
---- a/lib/raid/raid6/x86/sse2.c~raid6-prefetch-q-with-prefetcht0-in-the-x86-x4-xor_syndrome-functions
-+++ a/lib/raid/raid6/x86/sse2.c
-@@ -405,8 +405,8 @@ static void raid6_sse24_xor_syndrome(int
- 			asm volatile("pxor %xmm13,%xmm12");
- 			asm volatile("pxor %xmm15,%xmm14");
- 		}
--		asm volatile("prefetchnta %0" :: "m" (q[d]));
--		asm volatile("prefetchnta %0" :: "m" (q[d+32]));
-+		asm volatile("prefetcht0 %0" :: "m" (q[d]));
-+		asm volatile("prefetcht0 %0" :: "m" (q[d+32]));
- 		/* P/Q left side optimization */
- 		for ( z = start-1 ; z >= 0 ; z-- ) {
- 			asm volatile("pxor %xmm5,%xmm5");
+--- a/tools/testing/selftests/prctl/set-anon-vma-name-test.c~selftests-prctl-skip-the-anonymous-vma-naming-test-when-unsupported
++++ a/tools/testing/selftests/prctl/set-anon-vma-name-test.c
+@@ -93,6 +93,9 @@ FIXTURE_SETUP(vma) {
+ 					MAP_PRIVATE, self->fd_not_anon, 0);
+ 	ASSERT_NE(self->ptr_not_anon, MAP_FAILED);
+ 	close(self->fd_not_anon);
++
++	if (rename_vma((unsigned long)self->ptr_anon, AREA_SIZE, NULL) == -EINVAL)
++		SKIP(return, "PR_SET_VMA_ANON_NAME is not supported");
+ }
+ 
+ FIXTURE_TEARDOWN(vma) {
 _
 
-Patches currently in -mm which might be from mc@raidlab.org are
+Patches currently in -mm which might be from sashal@kernel.org are
 
-raid6-use-normal-stores-in-the-x86-x4-xor_syndrome-functions.patch
-raid6-declare-the-avx-512-p-q-stores-as-asm-outputs.patch
-raid6-remove-the-sfence-from-the-x86-xor_syndrome-functions.patch
-raid6-prefetch-q-with-prefetcht0-in-the-x86-x4-xor_syndrome-functions.patch
+selftests-proc-cast-the-procmap_query-address-through-uintptr_t.patch
+selftests-mm-fix-pointer-width-warnings-on-32-bit-architectures.patch
+selftests-mm-uffd-wp-mremap-keep-the-thp-sizes-in-unsigned-long.patch
+kselftest-alloc_tag-use-the-ll64-types-on-powerpc64.patch
+selftests-proc-search-the-kernel-headers-before-the-tools-copies.patch
+selftests-prctl-select-the-tests-by-arch-alone.patch
+selftests-prctl-skip-the-anonymous-vma-naming-test-when-unsupported.patch
+selftests-kexec-select-tests-using-the-target-compiler.patch
+selftests-size-use-nolibc-startup-and-syscall-wrappers.patch
 
