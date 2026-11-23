@@ -1,54 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795415115;
-	b=qR7E/nGJ9w1MKZlE3sE1NmV7VMgTU+zrMK8z3hAn2Uph0yed3Q17E4yQ9t4IzseBUhWm
-	 dQaiBGNpH8Csgy6/uNdVJuk5lZAbybotIPcigS0bDhYHyavKDcw4l09EMagNvJqkRTUpZ
-	 Nq1ruPIw7fytyllhhGyHxK4cChascyXflyhB61d7l19hAb6yzzwewGkcCq+8z89o5NoO+
-	 rv57Zr68GF1Xfw6o58GLx5m1GeXBidfRKYprJOD0jznTW+XvUx1eniI+HZFIq+JB79foY
-	 hCjkHoWu+3zzx7bQONO847X1Wyxmpd6c3x4tT7um+32a6No9cU1V+n4GIrmXkp0q7SQ==
+	t=1795415116;
+	b=jGvoFqtqx4t9m9Rg0Z95x0XE8roLpovrbL5jYPqtlcEm/i1Id8+Vj2cBsVWo+CPaMLEt
+	 kHX0bNABJXecxJUVy8PQrMh3rdDr9Ou8tVnU/HrAGEgXGj550En99o6Yj9JxOQgH3c5Tf
+	 ES/v/uGxCWsd7uCNqTNBW+Tu1Qe62R4qsExlKnyo10H9H9GPdfsE4iYMjb3QiZebyQMKY
+	 OPV+nVUEWfi0fpcTpSJEY6ZBOWJEjGXa0pAW9QTAyvORleXrCHmvJSg9rfhJQP8MfYnpD
+	 nRRXk20tzg2KJTK0kUMNc5QPiSbfFENuG/ifHG5JkDGrGcMDy383OgtiVnGlH4KY03A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795415115;
-	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
-	 Message-Id;
-	bh=6SAGj2VAHb37TKcIdUOPT944wn94c6YXJ3pm54WAah0=;
-	b=o3XrgJnMtIe15sNXfKoHwLYKXE9Z47tge8ymqGwM4bkwhKYtS78nXaDKNERjfwTvfwOX
-	 B2vg0Q8z5s7Mp0dQ1iDz9wDOLp/6blAM8k2GIiixFlNwCWSWJU6LqTwMK6mKVJL97OBvp
-	 cdcRvVakHOk/wjM8sMbv1lRmGWqsiKPvyvQp0RvGusi+KbQCkJCyHDV9bXDElKb8YfnCG
-	 UbF2R2SHQ/cqz/m9RHGKwh9DareTDjD2IMX4BP7JZcKofkaJAP6ldizUa3/vIDKfWuQAD
-	 X9+8Be8YDa9UdlWXdXXWZ6yNEA6sWW8Uk7J2/hoj6vz/y4yxTJdQ6c1n3y2SfAVr4vQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795415116;
+	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
+	bh=2gGBj7VCBYoyTOqjoI22Fg3nekgK8FbObEEnMEW0274=;
+	b=Xqty0AxuXwuV0gOCJ5emhzRBNv3ZiX+LowAo+m5HJRuGwYxaxJqtfZKuZJwjAxnWJvh/
+	 pODC5uOfGJR9J8MXely+KZGppa9t9mPbR/Jn3MMBrUNyaSH4l5itSzr0ulpfiLJeyaGuo
+	 dPl+3fsspYEasp3Sg2JiTW4hKT9leUF3JKYCj2toA3CrU3fTayAoEj3uynwYMSKa5/h/W
+	 RkIUgfdX/+J7Zby8nyLbPyU/ehDD7yFYeSUm0j/8hFlMM8HcDfXNIcUbkf13BqTHnlXiT
+	 1jAXloP73PW2peo58Tjg/T8rzXkzd+HMWFJOOP0SpxIZJnV+VgfvBVBwmcc94j8P8pg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=yepCUpNa;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="Hfj0M/KK";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48CA4606A32A
-	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 06:25:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B7AF606A31E
+	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 06:25:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=yepCUpNa
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 932051F000C6;
-	Mon, 23 Nov 2026 06:25:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Hfj0M/KK
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3664C1F000C6;
+	Mon, 23 Nov 2026 06:25:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795415114;
-	bh=6SAGj2VAHb37TKcIdUOPT944wn94c6YXJ3pm54WAah0=;
-	h=Date:To:From:In-Reply-To:References:Subject;
-	b=yepCUpNaGogt9EL6hnTvWuYyJKI1iV969x70y0uN6fXrGVs34sqUNDyEIWpkzWKBu
-	 sd4aPCqkTZLwztAsoeGRIfQJb5sznO5/AEjKxSHWxiV/OHjZcpYWbFSlpc9ZStfR8y
-	 BYxy6gfntHmi/ixKYj2Glz1KsFU13emoCP3O2zl0=
-Date: Sun, 22 Nov 2026 22:25:14 -0800
-To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,
-	sj@kernel.org,shakeel.butt@linux.dev,ridong.chen@linux.dev,
-	qi.zheng@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,
-	lianux.mm@gmail.com,lance.yang@linux.dev,kasong@tencent.com,
-	hannes@cmpxchg.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,
-	baohua@kernel.org,axelrasmussen@google.com,david@kernel.org,
-	akpm@linux-foundation.org
+	d=linux-foundation.org; s=korg; t=1795415116;
+	bh=2gGBj7VCBYoyTOqjoI22Fg3nekgK8FbObEEnMEW0274=;
+	h=Date:To:From:Subject;
+	b=Hfj0M/KK6GlCJi2LYDKxJJP1PWquBmWK7JHtGPbCDr2ozLoHARo+QZw3/g4xbRNh5
+	 kBNiPm8SFfXUyoj0ctfZRXUliuPosxnMUGC+VaLADpcJk0kHAqm4KwvHaJ8iunkJP5
+	 qkhepoGnIl2wx92ap/BIgwjIt8j0cyGQBQtHL/Qw=
+Date: Sun, 22 Nov 2026 22:25:15 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261109-maintainers_mglru-v1-2-c25e6de60bcc@kernel.org>
-References: <20261109-maintainers_mglru-v1-2-c25e6de60bcc@kernel.org>
-Subject: [merged mm-hotfixes-stable] maintainers-remove-myself-from-memory-management-reclaim.patch removed from -mm tree
-Message-Id: <20261123062514.932051F000C6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-add-page_exth-to-memory-management-page-allocator.patch removed from -mm tree
+Message-Id: <20261123062516.3664C1F000C6@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -60,72 +51,63 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: remove myself from MEMORY MANAGEMENT - RECLAIM
+     Subject: MAINTAINERS: add page_ext.h to MEMORY MANAGEMENT - PAGE ALLOCATOR
 has been removed from the -mm tree.  Its filename was
-     maintainers-remove-myself-from-memory-management-reclaim.patch
+     maintainers-add-page_exth-to-memory-management-page-allocator.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: MAINTAINERS: remove myself from MEMORY MANAGEMENT - RECLAIM
-Date: Mon, 09 Nov 2026 19:31:54 +0100
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: MAINTAINERS: add page_ext.h to MEMORY MANAGEMENT - PAGE ALLOCATOR
+Date: Tue Nov 17 11:05:44 AM PST 2026
 
-I don't really get to look at most reclaim related stuff.  For things that
-are actually relevant for me, I'm sure people will CC me.
-
-So remove myself from the MEMORY MANAGEMENT - RECLAIM section for now to
-have a bit less noise in my inbox.
-
-Link: https://patch.msgid.link/20261109-maintainers_mglru-v1-2-c25e6de60bcc@kernel.org
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: SJ Park <sj@kernel.org>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Acked-by: Muchun Song <muchun.song@linux.dev>
-Acked-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Ridong Chen <ridong.chen@linux.dev>
-Cc: Lian Wang <lianux.mm@gmail.com>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/MAINTAINERS~maintainers-remove-myself-from-memory-management-reclaim
+--- a/MAINTAINERS~maintainers-add-page_exth-to-memory-management-page-allocator
 +++ a/MAINTAINERS
-@@ -17805,7 +17805,6 @@ F:	tools/mm/page_owner_sort.c
- MEMORY MANAGEMENT - RECLAIM
- M:	Andrew Morton <akpm@linux-foundation.org>
- M:	Johannes Weiner <hannes@cmpxchg.org>
--R:	David Hildenbrand <david@kernel.org>
- R:	Michal Hocko <mhocko@kernel.org>
- R:	Qi Zheng <qi.zheng@linux.dev>
- R:	Shakeel Butt <shakeel.butt@linux.dev>
+@@ -17779,6 +17779,7 @@ F:	include/linux/compaction.h
+ F:	include/linux/gfp.h
+ F:	include/linux/page-isolation.h
+ F:	include/linux/pageblock-flags.h
++F:	include/linux/page_ext.h
+ F:	include/trace/events/compaction.h
+ F:	include/trace/events/page_isolation.h
+ F:	include/trace/events/page_ref.h
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-mprotect-dont-skip-uffd-marker-install-when-racing-with-pte-table-reclaim.patch
-mm-khugepaged-free-unused-page-table-when-setting-a-huge-pmd-fails.patch
-mm-userfaultfd-prevent-poison-marker-loss.patch
-mm-hugetlb-compare-against-persistent-count-when-freeing-lowmem-folios.patch
-mm-hugetlb-preserve-reservations-when-shrinking-on-highmem.patch
-mm-hugetlb-account-temporary-folios-separately.patch
-mm-hugetlb-account-temporary-folios-separately-fix.patch
-mm-hugetlb-serialize-page-cache-allocations-with-truncation.patch
-mm-memfd-recheck-the-page-cache-before-allocating-a-hugetlb-folio.patch
-mm-hugetlb-count-again-if-the-reserve-map-shrank.patch
-mm-hugetlb-account-restored-reservations-before-freeing-folios.patch
-mm-hugetlb-delay-anon-folio-rmap-removal-until-after-the-tlb-flush.patch
+kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize-fix.patch
+selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
+alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
+alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
+selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
+selftests-mm-allocate-nr_pages-based-on-pmd-size-for-uffd-pmd_move-tests-fix.patch
+selftests-mm-retain-move-pmd-coverage-and-verify-huge-pmds.patch
+lib-test_xarray-check-unused-spare-node-after-range-creation.patch
+mm-memory-failure-dont-unpoison-a-leaked-raw_hwp_unreliable-folio-fix.patch
+mm-vmstat_kunit-add-synthetic-benchmark-for-mm-stats-fix.patch
+lib-test_hmm-invalidate-all-mirrors-on-device-private-migration.patch
+lib-test_hmm-invalidate-all-mirrors-on-device-private-migration-fix.patch
+mm-prevent-pre-content-bypass-through-mremap-and-remap_file_pages.patch
+selinux-recheck-backing-file-permissions-on-remap_file_pages.patch
+mm-madvise-notify-userfaultfd-when-installing-guard-regions.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-2.patch
+fuse-let-memory-failure-remove-poisoned-page-cache-folios.patch
+nilfs2-report-mapping-errors-from-fsync.patch
+ipc-msg-serialize-receive-permission-checks-with-ipc_set.patch
+ocfs2-unregister-the-jbd2-shrinker-before-journal-shutdown.patch
+ipc-msg-clamp-negative-msg_info-usage-counts.patch
+squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix.patch
+ocfs2-skip-network-flush-when-no-domain-handlers-are-registered.patch
+selftests-ptrace-check-that-ptrace_set_syscall_info-rejects-invalid-error-values-fix.patch
+jfs-validate-xattr-entry-bounds-before-replacing-an-attribute.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
