@@ -1,42 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795415091;
-	b=FEH36cdj2cRPgv8hPg91R2DnN07almgYtomeYnRYsafpnvY2iD5IC4FYRvx0A0mfF0ju
-	 t9ooBw6sy5ZqXJRoLNwxdOVslCW4/tYOH/xSK/Fy1rIYhIkVrXyCHwxOjmTILqw1tofg3
-	 xpVzU5s1dTqsYhWlp97bfRo7/vIApCI0OS5S4Zfipyyma+qT8H2rx606hZvrHjP8DCzYt
-	 6zjSs/b1Wf4gqXuUljr1CPAUMKhezQndVaiBYloh+gltTLrGIRXU5H29ZYDNYLinntMsQ
-	 Olz9AszBGpJ0aegJfH/w9lsTiRUsAElGAea4ozRaYmUchWBuC0zO3Xgd9IetC5NT/eA==
+	t=1795415093;
+	b=rCGEfMl/buOSPt0QDyaanj/i3UQnnStQL/Q3LYxoXxQO5GLGCwlhnX4pRyVEtfAbr7e3
+	 MA2xywF6rTig+WLh9MyKmFU9flEV2Q1yAi/Semy/zN21xiUkdkGRCAs4ofm3u5RTOLIhA
+	 JWvFJ/nGFVs6UzASAtcfJUHxE1sxymOqGebIXWx9jUvqN9HyDgf1n9OfxMHjlmce4Ff1Y
+	 jxE767XmgZbB4satoQXRauCuRZsBesvjQHinQ48G0HFYxTYnW3HI5HA+7pVvxhzFdIvw5
+	 zjembr90nN/5k1R67MM2orbXeZr7AJoLdzcVFOAPNDmB+5yGEEQ9InVkCW3+mdMRldw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795415091;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795415093;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=JVXduJk1QASGFB9FLnRCaaqq4ZLd4kLr/Z08WpNtlP4=;
-	b=cmkJKC4AJ0dpuw7VWPUyyPks/ueUq58NmWhFxi4xQKRuD/L56Yf7jICJ1F1ZTZ7KGY89
-	 m1vvhP0tBDVsG4OoS4xntpTp9pSrwfb+6rjaaI1SrfYDF613a3UTG5QO5PoxHdpStui94
-	 cUSHM77mZppzsHmNwuidRPFQABGX4KPlHl2R3b+EYXr1/rnsdhiN4xv32Fo8btfuTk45e
-	 1f1L6DNddrQELRQzmQCqpV4rOGNQoCqStuVraFVGFOO/S2SQeq5sNJDXkoIIiUPyNqEx8
-	 Q0HTB0yREA42SUuTCF40eF08Lzcy2/tuzvslDEAjLB3l9OPqRp9or0dBH6DzEJsT/nQ==
+	bh=wO1t+tgiO8cq1YXIwe5qBnPiu7av5i2q++hV1QLW4ms=;
+	b=KdaybDZK80wCXOB7kOvzFu/WbkJTUEyDW3L3DcH6jDtUUM2+VsGv3DhFPqEAbBb1fDPb
+	 nDRtm3FtBaMPn0PiyLeLfXx3yMn+CnmCH4CdoRkGPxdxRA9lKNfG77cxB458t0Xy103mK
+	 BMwhZm8EBNrYhIiXVIEJ1sKI5IuLSTtPPh39Isn6ukCQqXJ43FWlzfwQ0Zsj1HhW43jUE
+	 UedG0UHPrZreL74kFI1z/wVMKpX6i+xUjsX4iqxQNUMvvhExyzj20ROqvUhdaORA1BN0I
+	 qPK2BA93p1HpIFu8VjvAPYLFFtS9Ufl/KbbINA0TLb5z/MxqmO5X92u16puNAb13BvQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pBcLlSLf;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=iwHCT2+K;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B07A0606A31A
-	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 06:24:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 994B5606A321
+	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 06:24:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pBcLlSLf
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 601811F000E1;
-	Mon, 23 Nov 2026 06:24:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=iwHCT2+K
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CB971F000CA;
+	Mon, 23 Nov 2026 06:24:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795415091;
-	bh=JVXduJk1QASGFB9FLnRCaaqq4ZLd4kLr/Z08WpNtlP4=;
+	d=linux-foundation.org; s=korg; t=1795415093;
+	bh=wO1t+tgiO8cq1YXIwe5qBnPiu7av5i2q++hV1QLW4ms=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=pBcLlSLfGHltDSmrACmTAzA1Q8M13RcT1GIuAK7mKDWuOlOSsgA6N+iICKsSkeJE+
-	 XgzM4blMxdWwZl3fZAD/tsQn88KQXz1cxpaSi9s1QzTT+AbQgKEMsYNP8n9LfodgaV
-	 OX3wLL89BIjR20E8bwn/DDkkXJLegas/9mBky2VY=
-Date: Sun, 22 Nov 2026 22:24:50 -0800
+	b=iwHCT2+KKR1YJxMz6jcW2qsz53ENy2S+W84W3Vo2IP5/Ew4ks3o0V9H3ltE0T1ZaZ
+	 HaVJBRRaBPkosZRatsyZJHCWEZgIApJfOnkJBtfjYJActFDKNSWpQ4rh1AzRYInJF3
+	 VAanMMXp1qBgeo+YpKNDS4mi1h6INiULsOGJXfaI=
+Date: Sun, 22 Nov 2026 22:24:52 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,work@onurozkan.dev,
 	vbabka@kernel.org,usama.arif@linux.dev,urezki@gmail.com,tmgross@umich.edu,
 	tamird@kernel.org,surenb@google.com,sj@kernel.org,shakeel.butt@linux.dev,
@@ -49,10 +49,10 @@ To: mm-commits@vger.kernel.org,ziy@nvidia.com,work@onurozkan.dev,
 	a.hindborg@kernel.org,acourbot@nvidia.com,ljs@kernel.org,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261110-drop-reviewerships-v1-1-07c2f06e8dfa@kernel.org>
-References: <20261110-drop-reviewerships-v1-1-07c2f06e8dfa@kernel.org>
-Subject: [merged mm-hotfixes-stable] maintainers-remove-myself-from-mm-core-reviewership.patch removed from -mm tree
-Message-Id: <20261123062451.601811F000E1@smtp.kernel.org>
+In-Reply-To: <20261110-drop-reviewerships-v1-2-07c2f06e8dfa@kernel.org>
+References: <20261110-drop-reviewerships-v1-2-07c2f06e8dfa@kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-remove-myself-from-mm-misc-reclaim-reviewership.patch removed from -mm tree
+Message-Id: <20261123062453.1CB971F000CA@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -64,38 +64,17 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: remove myself from MM core reviewership
+     Subject: MAINTAINERS: remove myself from MM misc, reclaim reviewership
 has been removed from the -mm tree.  Its filename was
-     maintainers-remove-myself-from-mm-core-reviewership.patch
+     maintainers-remove-myself-from-mm-misc-reclaim-reviewership.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: MAINTAINERS: remove myself from MM core reviewership
-Date: Tue, 10 Nov 2026 12:03:07 +0000
-
-Patch series "MAINTAINERS: remove my reviewerships, add CREDITS entry for
-THP".
-
-Given the current throughput in the kernel resulting from AI-generated
-series, I unfortunately lack the bandwidth to generally be able to offer
-review except in those areas I maintain.
-
-I have separated the patches into areas maintained by David, Andrew, and
-Alice + Danilo, so each can take the patches relevant to the subsystems,
-for convenience.
-
-Apologies for doing this, but given the current trends I'd like to do
-something to make my inbox a little more manageable :)
-
-Also add a CREDITS entry for THP, as, since Zi's rightful and well-earned
-appointment as co-maintainer there, I have no fear of needing to step in
-there, and so would like to record my time in that role.
-
-
-This patch (of 4):
+Subject: MAINTAINERS: remove myself from MM misc, reclaim reviewership
+Date: Tue, 10 Nov 2026 12:03:08 +0000
 
 Given the current throughput in the kernel resulting from AI-generated
 series, I unfortunately lack the bandwidth to generally be able to offer
@@ -103,8 +82,7 @@ review except in those areas I maintain.
 
 Therefore, remove myself as a reviewer.
 
-Link: https://lore.kernel.org/20261110-drop-reviewerships-v1-0-07c2f06e8dfa@kernel.org
-Link: https://patch.msgid.link/20261110-drop-reviewerships-v1-1-07c2f06e8dfa@kernel.org
+Link: https://patch.msgid.link/20261110-drop-reviewerships-v1-2-07c2f06e8dfa@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
@@ -141,19 +119,27 @@ Cc: Nico Pache <nico.pache@linux.dev>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Usama Arif <usama.arif@linux.dev>
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ MAINTAINERS |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/MAINTAINERS~maintainers-remove-myself-from-mm-core-reviewership
+--- a/MAINTAINERS~maintainers-remove-myself-from-mm-misc-reclaim-reviewership
 +++ a/MAINTAINERS
-@@ -17504,7 +17504,6 @@ F:	mm/balloon.c
- 
- MEMORY MANAGEMENT - CORE
+@@ -17674,7 +17674,6 @@ F:	mm/migrate_device.c
+ MEMORY MANAGEMENT - MISC
+ M:	Andrew Morton <akpm@linux-foundation.org>
  M:	David Hildenbrand <david@kernel.org>
 -R:	Lorenzo Stoakes <ljs@kernel.org>
  R:	Liam R. Howlett <liam@infradead.org>
  R:	Vlastimil Babka <vbabka@kernel.org>
  R:	Mike Rapoport <rppt@kernel.org>
+@@ -17810,7 +17809,6 @@ R:	David Hildenbrand <david@kernel.org>
+ R:	Michal Hocko <mhocko@kernel.org>
+ R:	Qi Zheng <qi.zheng@linux.dev>
+ R:	Shakeel Butt <shakeel.butt@linux.dev>
+-R:	Lorenzo Stoakes <ljs@kernel.org>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ F:	include/trace/events/vmscan.h
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
