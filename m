@@ -1,50 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795454453;
-	b=vegpzBvqXJ+woIaIBFvgf5OlC5g53/RTWmScz1RYADmG+zel4v0EetlySUXANZJvrFXZ
-	 30krotdsaCPFN+wgLmso8mXYTXxTnEl0fWGUHEZ9K0paoFEdjdgFZFTgJ7DAxPjA7YbXg
-	 GmUdInYINTuQ61jpkX6sSq/mwfQK9XsP9xJiOkKPw3MGSiu2nHV08YcLxmVNcUyUyv+oJ
-	 iKXO/Sed9ndF1LbbB7Y+x4JJDi4/x+gUFQxpwsW3PBcSRwtDzGUESu0b/cG+cla0bSgqp
-	 hFHgyXRLNBxKstnhcj6xjAxV8aBS//cPNp2HuGBuVidjHNWupfqOk8uIN09tB+RgtQw==
+	t=1795454919;
+	b=spQPj4TJiKwmG69BYBfYIk6wkU6Z+LuLXGMh8fgh+WHmvwYak06prMPVgoJAjNsIVn8E
+	 6acrJo/9q2T+K1hvhOjw8V5T0BAM5RI4M11IsTV0tZiXcl36J8SDmqbXBVukrEYXLkRbJ
+	 WXo7Q73cc0FS2jJpUM/txdJcZL9BddTJCxkrrRS0nC685CT/4fGKWqs/hTogXq0GPnoCz
+	 eGPv+dGQL6CeqrRfps9+pIU5FzXg2+q+FrH5UrXGx7KuzoPQ20AieuT1iokiKUDiXGCFO
+	 pFQo+v54LxdtknQ8kdWg0sKm4ScXli8eRq+jPQrv+21X4P2EfJaMjM90tJMjH/J2Kaw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795454453;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795454919;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=5NWlbfRmFK/LNQAkhnlSGY6+CpXofyf498DNnv0Rv9g=;
-	b=LZdL/6vdaNOKsDTZusKHRN9d7Ct+DMiQ2XmMWfTc3EYtzSDdYoOprQLVO/YX5itDb7sW
-	 ccb7xAi9RY3MfBmER4m5Tl5qvaBU1/3gwAAMTVl6lItbt/uCtEb374WAU0GJhkqpDHPL9
-	 RXdpti6WVlaNVFClM9CFzwU/b0H4sG79DyTkl903ZeJMpcIs2HtSbJPIk0AfSLCFS6f28
-	 +vEN6vAeeaJURzVEq21ug86ZXOvA0qcUxbXnHHDqK0bH9qGrQ+COW7K+IFvC6ySsCRTz3
-	 bQj0rV6FZGtduL8HzbGgcjqpnKytX85SBrB/Wv2lCQOVRO5JpKRelkyIG0PSOzZr4cg==
+	bh=1IpValrY206HIvXWPrVKQECtFHODDWWVo1+mmegSbco=;
+	b=Elb24pDi1haOhQqVnm8fs5OD9zONFlFJm8Mz1ePLVpUi8DfImpSFHpV4+ks9CAxtg9xy
+	 apBc8hMoU+FKtT2bZEJWfZxbUyskCewZcGOYvXhYvU3PEEwG8ahGpqIEw6oAWxE3ZIrPx
+	 LaKv+G74DaLqiTBMfC2H8B7pdKfrO1QcEykFPc8DhObDl2bMj+NXfzI1UTndND9YUWbcz
+	 3FQt6HBxezb1FSLgEVJHZdHe/MktrLhf2HYjvRxjIcWsaOJ5YLvECofc1jWlv+lxw5H4j
+	 iY1wRu2K/X2iym7gU0X3u1DMprfQGNNKMr7CoiFeYHBbzl8yKZKI96cTFpkbaFxnz4Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=cfwS5hXO;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=W5eti8zM;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12311606A31E
-	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 17:20:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DA5F606A31A
+	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 17:28:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=cfwS5hXO
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3CFB1F000D0;
-	Mon, 23 Nov 2026 17:20:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=W5eti8zM
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90AC11F000C0;
+	Mon, 23 Nov 2026 17:28:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795454452;
-	bh=5NWlbfRmFK/LNQAkhnlSGY6+CpXofyf498DNnv0Rv9g=;
+	d=linux-foundation.org; s=korg; t=1795454918;
+	bh=1IpValrY206HIvXWPrVKQECtFHODDWWVo1+mmegSbco=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=cfwS5hXOYhbun6ZptR3zDgeELnV4xBwppyKsvys2Y98Wu9UV3K2QNwsHcMqExO3pA
-	 GOx4Po9OwZ3IkP3vw9t4payMmW8PJHhOvLQE2UCgQdIwJQuHm9O37uiTmQkZZEaRMn
-	 xzO8LQdqzGDAjlRBOGwoVO5pmb84imE68qk3i504=
-Date: Mon, 23 Nov 2026 09:20:52 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,jm5905938@gmail.com,
-	davidgow@davidgow.net,brendan.higgins@linux.dev,jasonangelov@ucla.edu,
+	b=W5eti8zMbQOA6IGWulGjeenwzLMgfCWORtqcV4tZE/Tv8t5xazSE7DDi6Bgm5LF+F
+	 qD/q7y2bmc2NOEttTOFJ8Le4ZzszE2nryRff1ZqQzNHqiCQnLwEL2EB3IlfThz8Fjm
+	 nJ+VorFhULT5qVO/6R0KNN8bsrZLXS9gxW5gvNaA=
+Date: Mon, 23 Nov 2026 09:28:38 -0800
+To: mm-commits@vger.kernel.org,sj@kernel.org,mattathias.pinchover@uber.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261123150929.81797-4-sj@kernel.org>
-References: <20261123150929.81797-4-sj@kernel.org>
-Subject: + mm-damon-tests-core-kunit-test-damos_filter_type_age_ms-interval-changes.patch added to mm-new branch
-Message-Id: <20261123172052.A3CFB1F000D0@smtp.kernel.org>
+In-Reply-To: <20261123151309.82675-2-sj@kernel.org>
+References: <20261123151309.82675-2-sj@kernel.org>
+Subject: + mm-damon-core-introduce-sz_ops_filter_passed_last-stat.patch added to mm-new branch
+Message-Id: <20261123172838.90AC11F000C0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: test DAMOS_FILTER_TYPE_AGE_MS interval changes
+     Subject: mm/damon/core: introduce sz_ops_filter_passed_last stat
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-test-damos_filter_type_age_ms-interval-changes.patch
+     mm-damon-core-introduce-sz_ops_filter_passed_last-stat.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-test-damos_filter_type_age_ms-interval-changes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-introduce-sz_ops_filter_passed_last-stat.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -90,120 +89,163 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Jason Angelov <jasonangelov@ucla.edu>
-Subject: mm/damon/tests/core-kunit: test DAMOS_FILTER_TYPE_AGE_MS interval changes
-Date: Mon, 23 Nov 2026 07:09:27 -0800
+From: Mattathias Pinchover <mattathias.pinchover@uber.com>
+Subject: mm/damon/core: introduce sz_ops_filter_passed_last stat
+Date: Mon, 23 Nov 2026 07:13:02 -0800
 
-DAMOS_FILTER_TYPE_AGE_MS defines an inclusive range for age in
-milliseconds to filter for target regions. Aggregation interval can be
-changed by users or intervals auto-tuning features.
+Patch series "mm/damon: add sz_ops_filter_passed_last DAMOS stat", v3.
 
-Add a kunit test for each:
+DAMOS stat sz_ops_filter_passed shows the total bytes that passed
+operations layer-handled DAMOS filters, accumulated from the beginning of
+the scheme's execution.  Users who want the amount for only the latest
+apply interval, e.g., the size of a workload's anonymous memory that is
+cold as of now, have to keep the previous value in user space and compute
+the difference.  To know how many apply intervals a difference covers,
+they have to rely on nr_snapshots.  But nr_snapshots is increased once per
+target per apply interval, so the computation is complicated for contexts
+having multiple targets.
 
-- convert region age to milliseconds, correct behavior at boundaries
-  for defined filter range
-- DAMOS_FILTER_TYPE_AGE_MS filter keeps correct behavior even when
-  aggregation interval changes
+This series introduces a new DAMOS stat, sz_ops_filter_passed_last.  It
+shows the amount of sz_ops_filter_passed increase in the last apply
+interval of the scheme.  It is updated at the end of each apply interval,
+and kept unchanged until the next apply interval is completed.  Like the
+other DAMOS stats, it is exposed under the stats/ directory of the scheme
+in the DAMON sysfs interface, and refreshed together with the other stats
+when refresh_ms expires or update_schemes_stats is written.
 
-Link: https://patch.msgid.link/20261123150929.81797-4-sj@kernel.org
-Signed-off-by: Jason Angelov <jasonangelov@ucla.edu>
+Patches sequence
+================
+
+Patch 1 introduces the stat to the DAMON core.  Patch 2 exposes it via
+the DAMON sysfs interface.  Patch 3 adds a kunit test.  Patches 4-6
+update the design, usage, and ABI documents, respectively.
+
+Tests
+=====
+
+I ran the DAMON kunit tests (all 50 pass, including the new one), built
+mm/damon/ with W=1 (no warnings), built htmldocs (no new warnings
+compared to mm-new), and ran checkpatch.pl --strict on the patches (it
+reports a warning and an error on each patch because it does not
+recognize the Assisted-by tag, and four alignment checks on patches 2
+and 3 for the continuation line alignment that the existing DAMON code
+uses).
+
+I also ran the DAMON selftests in a QEMU VM without KVM, on mm-new and
+on mm-new with this series.  On mm-new, 12 tests pass, 2 fail
+(sysfs_update_schemes_tried_regions_wss_estimation.py and
+damos_tried_regions.py), and 1 is skipped (sysfs_memcg_path_leak.sh,
+because kmemleak is not available).  With this series, 13 pass, 1 fails
+(the wss_estimation one), and the same one is skipped, so I saw no
+failure that mm-new does not also have.
+
+None of the selftests read the new stat, so I also checked it on a
+live kernel.  In the same kind of VM running this series, I started two
+Docker containers, each running a Python process that allocates 512 MiB
+and 2 GiB of anonymous memory and then holds it.  Each process was
+monitored by its own kdamond, using the vaddr operations set and a
+stat scheme with an anon operations layer filter, with refresh_ms set
+to 1000.  Output from sz_ops_filter_passed_last was correct:
+
+    # cd /sys/kernel/mm/damon/admin/kdamonds
+    # cat 0/contexts/0/schemes/0/stats/sz_ops_filter_passed_last
+    546385920
+    # cat 1/contexts/0/schemes/0/stats/sz_ops_filter_passed_last
+    2157043712
+
+Tool use
+========
+
+Claude (Anthropic) assisted with the code, kunit test, documents, and
+changelogs of this series.  I reviewed all of it and ran the tests listed
+above.
+
+
+This patch (of 6):
+
+DAMOS stat sz_ops_filter_passed shows the total bytes that passed
+operations layer-handled DAMOS filters, accumulated from the beginning of
+the scheme's execution.  Users who want the amount for only the latest
+apply interval, e.g., the size of a workload's anonymous memory that is
+cold as of now, need to keep the previous values in user space and
+compute the difference with the help of nr_snapshots.  Because
+nr_snapshots is increased once per target per apply interval, the
+computation is complicated and error-prone, especially for contexts
+having multiple targets.
+
+Introduce a new DAMOS stat, sz_ops_filter_passed_last.  It is
+updated at the end of each apply interval of the scheme with the amount
+of sz_ops_filter_passed increase in the interval.
+
+Link: https://lore.kernel.org/20261123151309.82675-1-sj@kernel.org
+Link: https://patch.msgid.link/20261123151309.82675-2-sj@kernel.org
+Signed-off-by: Mattathias Pinchover <mattathias.pinchover@uber.com>
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Aveline Noir <jm5905938@gmail.com>
 Reviewed-by: SJ Park <sj@kernel.org>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: David Gow <davidgow@davidgow.net>
 
- mm/damon/tests/core-kunit.h |   66 ++++++++++++++++++++++++++++++++++
- 1 file changed, 66 insertions(+)
+ include/linux/damon.h |    6 ++++++
+ mm/damon/core.c       |    5 +++++
+ 2 files changed, 11 insertions(+)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-test-damos_filter_type_age_ms-interval-changes
-+++ a/mm/damon/tests/core-kunit.h
-@@ -1838,6 +1838,71 @@ static void damos_test_age_ms_filter_is_
- 			damos_filter_for_ops(DAMOS_FILTER_TYPE_AGE_MS));
- }
- 
-+static void damos_test_age_ms_filter_interval_changes(struct kunit *test)
-+{
-+	struct damos_filter filter = {
-+		.type = DAMOS_FILTER_TYPE_AGE_MS,
-+		.matching = true,
-+		.range_min = 200,
-+		.range_max = 400,
-+	};
-+	struct damon_ctx *ctx;
-+	struct damon_target *t;
-+	struct damon_region *r;
-+	int err;
-+
-+	ctx = damon_new_ctx();
-+	if (!ctx)
-+		kunit_skip(test, "ctx alloc fail");
-+	t = damon_new_target();
-+	if (!t) {
-+		damon_destroy_ctx(ctx);
-+		kunit_skip(test, "target alloc fail");
-+	}
-+	damon_add_target(ctx, t);
-+	r = damon_new_region(0, DAMON_MIN_REGION_SZ);
-+	if (!r) {
-+		damon_destroy_ctx(ctx);
-+		kunit_skip(test, "region alloc fail");
-+	}
-+	damon_add_region(r, t);
-+	ctx->attrs.aggr_interval = 100000;
-+
-+	/* An age of 100 ms is below the 200 ms lower bound. */
-+	r->age = 1;
-+	KUNIT_EXPECT_FALSE(test, damos_filter_match(ctx, t, r, &filter,
-+			ctx->min_region_sz, &err));
-+
-+	/* An age of 200 ms matches the inclusive lower bound. */
-+	r->age = 2;
-+	KUNIT_EXPECT_TRUE(test, damos_filter_match(ctx, t, r, &filter,
-+			ctx->min_region_sz, &err));
-+
-+	/* At a 200 ms interval, age 1 matches the lower bound. */
-+	ctx->attrs.aggr_interval = 200000;
-+	r->age = 1;
-+	KUNIT_EXPECT_TRUE(test, damos_filter_match(ctx, t, r, &filter,
-+			ctx->min_region_sz, &err));
-+
-+	/* An age of 400 ms matches the inclusive upper bound. */
-+	r->age = 2;
-+	KUNIT_EXPECT_TRUE(test, damos_filter_match(ctx, t, r, &filter,
-+			ctx->min_region_sz, &err));
-+
-+	/* At a 50 ms interval, age 8 matches the upper bound. */
-+	ctx->attrs.aggr_interval = 50000;
-+	r->age = 8;
-+	KUNIT_EXPECT_TRUE(test, damos_filter_match(ctx, t, r, &filter,
-+			ctx->min_region_sz, &err));
-+
-+	/* An age of 450 ms exceeds the 400 ms upper bound. */
-+	r->age = 9;
-+	KUNIT_EXPECT_FALSE(test, damos_filter_match(ctx, t, r, &filter,
-+			ctx->min_region_sz, &err));
-+
-+	damon_destroy_ctx(ctx);
-+}
-+
- static void damos_test_filter_out(struct kunit *test)
- {
- 	struct damon_target *t;
-@@ -2600,6 +2665,7 @@ static struct kunit_case damon_test_case
- 	KUNIT_CASE(damon_test_commit_ctx_keeps_quota),
- 	KUNIT_CASE(damon_test_valid_probe_params),
- 	KUNIT_CASE(damos_test_age_ms_filter_is_core),
-+	KUNIT_CASE(damos_test_age_ms_filter_interval_changes),
- 	KUNIT_CASE(damos_test_filter_out),
- 	KUNIT_CASE(damos_test_apply_scheme_filtered_sz),
- 	KUNIT_CASE(damos_test_apply_scheme_filter_sz_unchanged),
+--- a/include/linux/damon.h~mm-damon-core-introduce-sz_ops_filter_passed_last-stat
++++ a/include/linux/damon.h
+@@ -351,6 +351,9 @@ struct damos_watermarks {
+  * @sz_applied:	Total size of regions that the scheme is applied.
+  * @sz_ops_filter_passed:
+  *		Total bytes that passed ops layer-handled DAMOS filters.
++ * @sz_ops_filter_passed_last:
++ *		Bytes that passed ops layer-handled DAMOS filters in the last
++ *		apply interval.
+  * @qt_exceeds: Total number of times the quota of the scheme has exceeded.
+  * @nr_snapshots:
+  *		Total number of DAMON snapshots that the scheme is completely
+@@ -379,6 +382,7 @@ struct damos_stat {
+ 	unsigned long nr_applied;
+ 	unsigned long sz_applied;
+ 	unsigned long sz_ops_filter_passed;
++	unsigned long sz_ops_filter_passed_last;
+ 	unsigned long qt_exceeds;
+ 	unsigned long nr_snapshots;
+ };
+@@ -578,6 +582,8 @@ struct damos {
+ 	 * @action
+ 	 */
+ 	unsigned long next_apply_sis;
++	/* @stat.sz_ops_filter_passed at the start of the current apply interval */
++	unsigned long sz_ops_filter_passed_at_start;
+ 	/* informs if ongoing DAMOS walk for this scheme is finished */
+ 	bool walk_completed;
+ 	/*
+--- a/mm/damon/core.c~mm-damon-core-introduce-sz_ops_filter_passed_last-stat
++++ a/mm/damon/core.c
+@@ -769,6 +769,7 @@ struct damos *damon_new_scheme(struct da
+ 	 * or damon_attrs are updated.
+ 	 */
+ 	scheme->next_apply_sis = 0;
++	scheme->sz_ops_filter_passed_at_start = 0;
+ 	scheme->walk_completed = false;
+ 	INIT_LIST_HEAD(&scheme->core_filters);
+ 	INIT_LIST_HEAD(&scheme->ops_filters);
+@@ -3532,6 +3533,10 @@ static noinline_for_stack void kdamond_a
+ 		if (time_before(c->passed_sample_intervals, s->next_apply_sis))
+ 			continue;
+ 		damos_walk_complete(c, s);
++		s->stat.sz_ops_filter_passed_last =
++			s->stat.sz_ops_filter_passed -
++			s->sz_ops_filter_passed_at_start;
++		s->sz_ops_filter_passed_at_start = s->stat.sz_ops_filter_passed;
+ 		damos_set_next_apply_sis(s, c);
+ 		s->last_applied = NULL;
+ 		damos_trace_stat(c, s);
 _
 
-Patches currently in -mm which might be from jasonangelov@ucla.edu are
+Patches currently in -mm which might be from mattathias.pinchover@uber.com are
 
-mm-damon-tests-core-kunit-test-damos_filter_type_age_ms-in-damos_test_commit_filter.patch
-mm-damon-tests-core-kunit-test-damos_filter_type_age_ms-in-damos_filter_for_ops.patch
-mm-damon-tests-core-kunit-test-damos_filter_type_age_ms-interval-changes.patch
+mm-damon-core-introduce-sz_ops_filter_passed_last-stat.patch
+mm-damon-sysfs-schemes-add-sz_ops_filter_passed_last-file.patch
+mm-damon-tests-core-kunit-test-sz_ops_filter_passed_last.patch
+docs-mm-damon-design-update-for-sz_ops_filter_passed_last.patch
+docs-admin-guide-mm-damon-usage-update-for-sz_ops_filter_passed_last.patch
+docs-abi-damon-update-for-sz_ops_filter_passed_last.patch
 
