@@ -1,52 +1,99 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795412339;
-	b=t18byZc7R+hVocKfnrckT+PvSQWkRwv7BbaY1p9mdPof6+xnTNKFlYk+EgOMVr52UcAg
-	 rzTtMyUeu+W3mbdmJTFegtmByBA8y4/4YjAqw0UFxLJLYYcmaJPNN8VLKRLL8pnJAFa9M
-	 t/UexwNa3IXErZ9CQOh5X763hickGj2OB7LooPt70T0IZ+/yIIi1jBTcpNoMaldVrbNpX
-	 2mLvyS/rNAjgI26yCB65l0FJbx+piZM7IwW+xwh0UXjcm4XSjp25o31HqdSMDKNpfge4f
-	 YoZPlpeq06PXA/YX0rS1y4w47WjgrRUVfxQZjyqpjK4N6nZqvwgAfBRlROW0lvwvGbw==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795412339;
-	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
-	 Message-Id;
-	bh=r1UVk9PC+bS6T8UlO2jjijoYg5uUF+jKP8peQ0BOBDk=;
-	b=kBoz7sblR5AsXnglcYhbZ4r8mDu5BVpSksmyGpNcgpwGkRPM4Zcf90SHcVRCoeARBPn3
-	 wb7B4tETLqxI0lwOsYqM0Xbht/nOHkFR4e+kEf8BnqkziKaUpDl3r4FyUsTgPuIZyAHci
-	 lg5IktwcuNib6P4Inc4/gmMMRvSOUSo/wraVTKX6bH6DVvnTq2AuC5dyFikSTa6hoPMdO
-	 iG5dR8RQx3WJXnX01SBOS7RHs8wT1ZsQwk3zWnOrvgiI5BLTv7aaj6nJul38/ttwcegE+
-	 cEZ2/pVpPCR0uOdqd6+46hJ7dX+MmLkKFKp4N5quKwBaMAZu9ceU5yU3NqL3gJhxJ1w==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=edivmLTB;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.48.49
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1795413144;
+	b=e6BiZtjQGDceXsGhQXqCpe2OYA9sVi1Jx+1wvn9yvlUJMPfvNwkoItcCOhv38bp/UCKj
+	 67MGpojcpyFMzYEtdn9G9RWV5VGzpr1eyQbrM1hWY1MG6K0i94cCvxW48dJAb72ClGUvJ
+	 JQNtVS1YWTQrxBgYrwgxTrUfCGuUCd3BzobrczuD7fGfw/Rci5WvV+A6jVMyAWKjQA7YZ
+	 RzZQpnQ/FaQ90cm8/vO7kM6VPuvpaMNhEulsUrxvT5dtdhdhm/GYy1r/OKT5cM8Or4UHB
+	 9kJM9NXXOg7xaHIQmtgHEiiXFiggUtfB9fuNFwMsBndTwkyBIAnPKK18G/dzsJnwzSg==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795413144;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:Date:From:To:Cc:
+	 Subject:Message-ID:References:Content-Type:Content-Disposition:
+	 In-Reply-To:X-ClientProxiedBy:MIME-Version:X-MS-PublicTrafficType:
+	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
+	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
+	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
+	 X-Forefront-Antispam-Report:
+	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
+	 X-MS-Exchange-AntiSpam-MessageData-0:
+	 X-MS-Exchange-AntiSpam-MessageData-1:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
+	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
+	 X-MS-Exchange-CrossTenant-UserPrincipalName:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=MrqRTHNK2gC+Cpux2diFWuleGl1Gko1WQhJIOUlu2bY=;
+	b=yc52u2ZYXq87g5hNZ5k2VPq7Rv9wFdVQwepS089EGnWP3HjobDVDA+D4l9tGViXRL9kz
+	 GlLsLre2XthsE8m88qPUUz5lOuTQaFlkVbJbvVPTKJ3HEADbwNoCFpQpjZbug4drScB0p
+	 OLBDT1iDU/aeTQjHpmkI7GJWI17nwo1sPLpl54GXdJqg8NV1H0MhbgQk5kW9uP0itAu7A
+	 RdEJjk+lUiyqE0iLo39tk/zC4rPomwivjJeS4QGS3I/D4rXj8/zNhE2EuQP2FGYNAKB2l
+	 NpzyZjrPqoZgVTGq/1UUtTTTxuXpkVvjFu2aTMRxuXLezS6owcug7d6YG9r7Z02TsYg==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=nvidia.com;
+	spf=fail smtp.mailfrom=nvidia.com;
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=ubRqVjdo;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.48.49
+Received: from MW6PR02CU001.outbound.protection.outlook.com (mail-westus2azon11012049.outbound.protection.outlook.com [52.101.48.49])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EA28606A31A
-	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 05:38:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2144606A32E;
+	Mon, 23 Nov 2026 05:52:23 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org F2144606A32E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=edivmLTB
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC7241F000CF;
-	Mon, 23 Nov 2026 05:38:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795412338;
-	bh=r1UVk9PC+bS6T8UlO2jjijoYg5uUF+jKP8peQ0BOBDk=;
-	h=Date:To:From:In-Reply-To:References:Subject;
-	b=edivmLTBE1Q6cE1SwWS390xgJNPIqFO4765HYGjPpna0Kvw5cDLPKB8RLHFQE2Tqv
-	 rPTtTdmN0VY4ABUyUoUSDs31LVqAPVlL6DMlp0fc6+qrF73eriCu1U+3Zu4w6m0eQM
-	 QbLUwoRDSEw7SuyBb9VhdBUHaCfnNaTXvb1znAfk=
-Date: Sun, 22 Nov 2026 21:38:58 -0800
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
-	skhan@linuxfoundation.org,shakeel.butt@linux.dev,rppt@kernel.org,
-	rmk+kernel@armlinux.org.uk,rdunlap@infradead.org,qi.zheng@linux.dev,
-	mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,
-	corbet@lwn.net,zhaozhengzhuo@uniontech.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <6E11B4A6A6E0DCF9+20261123030904.57369-1-zhaozhengzhuo@uniontech.com>
-References: <6E11B4A6A6E0DCF9+20261123030904.57369-1-zhaozhengzhuo@uniontech.com>
-Subject: + docs-mm-fix-stale-split-page-table-lock-references.patch added to mm-unstable branch
-Message-Id: <20261123053858.BC7241F000CF@smtp.kernel.org>
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=ubRqVjdo
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=T1n2fGlgOtQsEszQrmh9cUR+98GLJnj71Ub3DJiThqAi7Pgh3q6SOtRgzgycJFGtJz0J0xvA6m6iYj6bQW9827z/oYbVMCXSPUjUju68sa1UeohjUoxwnqeHxMzG3dhVsz2CvpEDZyboY3RBDbcFQKPwgYrr9EZ7zIrZz3/5/r8xb371kZtSi02yqkxGbuA8o5DhimW3Xzkgjh5ALSKxAjRbdnwMPa2LWCcjq0ILAYc2SIPp1/bwaKHGUTYLZDwTBa1lp9AsSrkjU9MOZvBVIjBhf6hQqr/llUQ9m+DyXgVFhpjTSr62i56++xg0PKDsZxyNlQhB+/Y3ffvm4/TvAQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=MrqRTHNK2gC+Cpux2diFWuleGl1Gko1WQhJIOUlu2bY=;
+ b=j2B3dQIMNlL/wdiD6jwSTAfmC1b52Fi/+EUlgvM4Hv8ZrIB/N1xsIc2R/PiBaUOSCKJPsg+ad3m9Y668n/WBhSmHVyDrztKMk524tT6GIAmeP0JwZapItyXUDKOJYQ9iI/CmJ8VEGI+pi9V45t5ZuD/ERM+WZ4yQFWyLor5BeW5dZwyqFSMpngiOur5u+t3sxeqLjUvEr3YFskm4oTql0QwwQK18pcQDw8WhrgKuUEn3Kv0t6KlKqDxHIyweX+FrxkQckszVu0Tc9RM6EbIwCikhuWhOrYbm9NfxbIIm0IVDCOOVXpvuvwZ7d3DDtxx1nQBNDAovvGbZcBeYGqHCDA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=MrqRTHNK2gC+Cpux2diFWuleGl1Gko1WQhJIOUlu2bY=;
+ b=ubRqVjdoo3J9fTuGm5zosNiKdgTkhWzxGnKoqcq58NfJNuri82M9ViUGt97NvIMdBswIeTCzHTefbZzvzNiYxAsQwIZB7YrZDZTvgagbvc+Z0gLR7nDO1keVZio0YAYxkxIP6oLBJi111wW/7PC38FqsWH31HFQmRMx5aQyu3w+FVWPMZjkLUnt4kgZj83/CDxCnSJawJ8qroozpSwO+MLMB1P8Ey4l9JYos8hqrwdrkoCTak2Gs3j1uWoA5eWb8/3hnUyzV3O7C7e6r+9AAXRsgXnfMUB6AVgsxTlZi0+3vpDqtpCsZq16TxTwGfBcCoJS4vg/2CU96gxexAKwJ3w==
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from CH3PR12MB9730.namprd12.prod.outlook.com (2603:10b6:610:253::9)
+ by DS7PR12MB6238.namprd12.prod.outlook.com (2603:10b6:8:96::11) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.639.13; Mon, 23 Nov
+ 2026 05:52:16 +0000
+Received: from CH3PR12MB9730.namprd12.prod.outlook.com
+ ([fe80::843d:c1f0:b2ed:4128]) by CH3PR12MB9730.namprd12.prod.outlook.com
+ ([fe80::843d:c1f0:b2ed:4128%4]) with mapi id 15.21.0639.012; Mon, 23 Nov 2026
+ 05:52:15 +0000
+Date: Mon, 23 Nov 2026 16:52:10 +1100
+From: Balbir Singh <balbirs@nvidia.com>
+To: Aveline Noir <jm5905938@gmail.com>
+Cc: jgg@nvidia.com, leonro@nvidia.com, akpm@linux-foundation.org, 
+	airlied@gmail.com, apopple@nvidia.com, christian.koenig@amd.com, 
+	dri-devel@lists.freedesktop.org, Francois Dugast <francois.dugast@intel.com>, 
+	intel-xe@lists.freedesktop.org, jgg@ziepe.ca, leon@kernel.org, linux-kernel@vger.kernel.org, 
+	linux-mm@kvack.org, Lorenzo Stoakes <lorenzo.stoakes@oracle.com>, 
+	Matthew Brost <matthew.brost@intel.com>, mm-commits@vger.kernel.org, mpenttil@redhat.com, 
+	Patchwork <patchwork@emeril.freedesktop.org>, SeongJae Park <sj@kernel.org>, thomas.hellstrom@linux.intel.com, 
+	Vlastimil Babka <vbabka@suse.cz>, ziy@nvidia.com
+Subject: Re: [PATCH] mm/hmm: account for subpage offsets in device-private
+ PMDs
+Message-ID: <awObsp2ugvQZ1JQV@parvat>
+References: <179342234355.4.16705453209886955762@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <179342234355.4.16705453209886955762@gmail.com>
+X-ClientProxiedBy: MEVP282CA0075.AUSP282.PROD.OUTLOOK.COM
+ (2603:10c6:220:202::15) To CH3PR12MB9730.namprd12.prod.outlook.com
+ (2603:10b6:610:253::9)
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,92 +102,111 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CH3PR12MB9730:EE_|DS7PR12MB6238:EE_
+X-MS-Office365-Filtering-Correlation-Id: de5e7853-6e43-4473-a3af-08df4925ed60
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|366016|7416014|376014|10070799003|1800799024|23010399003|6133799003|22082099003|18002099003|11063799006|56012099006|261028144727099003|261026121527099003|261026140227099003|261102123227099003|261022075727099003|261022105027099003|261021123027099003|261021121427099003|261009223027099003|10067099003;
+X-Microsoft-Antispam-Message-Info:
+	QpiQoDrXu5FqpZCcFbs71ZJDka7HDyCHkU/2wVusAIG45zHOdR6nNYRsThgpBjRQjED1DgiR6jo4Sqw9LEFh06v/GR5tCtKjRhZL2K0mQ7f93ER4hvMhZe1ffsf1ahVw7x2YQmfZbLT8SSqA9v3X/ys9DaUhcWs0EhA9/BZKMmLdEm8S71IAIlP+QO52uf9HFah4fma1BMxH3TYDu28TSGi03ozeKorMu5nsI+RiLqsEY0MznUnuMd9kVNfIZbi/l0UXstBTK3dlcWWO29C4JmXZLUlGF1JXi0u4RknnzVaawb7AkSkyYdIQ99xuAprRm1SLrkqTfz6D98ma/WZCyKste1kGYG4KFClOjBmrZerEhucv0GIiFhb0fQGi4qwcKIyIgOe/1i/npmqJIDmigWxODZnk/WFZlVJ91sUuRLYSq3RPJo8uqDaaJkIBxyGvtpNPTvKzkTW7qBYm6hNycBkUvmm+GnSLAuUjeYrB02zRCDFdqXjxDX14Igntq+ZpuRYxqFflGjvImSw4tNOGMmmZ+8ROC3teXSQBbpN8FhU7vt6lm9k65Bjx1qbsSgrE7L7ZzlwyIZFXOebT+tMdo1m7K7dS7yNup+DAO9N085RI75eQ83KR+WtlHAZlwWYYzj0weB2pGzaZGIvvtjjhaaXMZ/I7Yj/5wZhlwUsY9AY=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH3PR12MB9730.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(7416014)(376014)(10070799003)(1800799024)(23010399003)(6133799003)(22082099003)(18002099003)(11063799006)(56012099006)(261028144727099003)(261026121527099003)(261026140227099003)(261102123227099003)(261022075727099003)(261022105027099003)(261021123027099003)(261021121427099003)(261009223027099003)(10067099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 2
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?aWc0UWJWMjltT016SDVxT1dVQlpZMFJxVHZQQndtU0NqckJreUNMeUFQK0FD?=
+ =?utf-8?B?bHh2Mzd4RWFVUDVFQ0N1R3NUTDl5bzNBbkc3TkhDSHBKS1l1aWZpbDBuaEt5?=
+ =?utf-8?B?bVZkR0JzQWJuMm5WVlVFdmZhSDFScDBod25OK2gwUEJXNzJoa2wrb2hWVWlB?=
+ =?utf-8?B?MHJ6UUhyK2czd1NOVlBKM2Jobjh1UE0rV3JxTUFpekEwRWxjbis2OGlaWTE4?=
+ =?utf-8?B?SllJeUJpNkdVS1RPWnltTXdHV0pOVmJ1RmxlZlRFQTF2ODZKRHV2YVNyMEty?=
+ =?utf-8?B?N3VCdmRINDFpOXVKcnZFdlQ3bXk2eU9QMENrMk42K0pWaEJ3ekd4amxndDRL?=
+ =?utf-8?B?T0NkMFRuVUlxL1JsblNoeHJUVkxFOEg4ZFdMU1FCRzJOalFHMjR0clpXMnZh?=
+ =?utf-8?B?QVpHTjY0OEUvMEY1Rkg4bzl0OERrVFZJRTFyaDNDNmlLUU1BK0ZmT3FlMENj?=
+ =?utf-8?B?QnVTMkpRQzlNbFhuQ1laaG5aVHpMeWJNbkRWR2hzK0dQSEtBN1ZQWk90MUlW?=
+ =?utf-8?B?NS9xN1ZuQytYOEVkYWpoSnR0MmU5eXZnVVVwRVF3OFoybUN3THRzT29RdUtu?=
+ =?utf-8?B?N1JpWTJhd1Rtc2hZUkRTb0NFZXVaQ21DcXNqK0JTVDNWVERFdzFnTTNDUXM3?=
+ =?utf-8?B?Ly9ZUEFEcmlyVXFJRjZPS2kvUVljcUZUT3ArL1AyOFVhSlNzRUhuVk1Yamo0?=
+ =?utf-8?B?T0lrcG54c2dORCtoTzNiSG9FMjNHV3NtOVd5cU1oQjkzQ0NDTmdnK0RQVkt2?=
+ =?utf-8?B?RFhtSWs0Y3kyTmFaUHA4UVVqN2JKaHlETVhFRzRNWWovZmp2b0tDNFkvSjVP?=
+ =?utf-8?B?VmxmK0tDV0lOVVhBdW16eW5JcHNjNnBlUjlBdjg2NkJpaU5rbzZXZ2d0Rm9i?=
+ =?utf-8?B?c2sxNGJ6V2NkSE5xUTJuZTNUK3V0emFVQzd2L1o1b3A5Z3BaK3ZmcjZOdktW?=
+ =?utf-8?B?bU4xZGZXMXo3bWh6V0FHbmVXbkxJVjJtRmRTVlhGRm9UbmZ1UGg1dUlLOG1T?=
+ =?utf-8?B?cmRicmtlWTRURVVQVHlQc0NNNkU3SWdhRnVadHRvUzhmSzJuQkNRUEZJWC9I?=
+ =?utf-8?B?Ykt1bWlXV1l0YmNEenhFaXpJZ2FEUE5KZ3MyZU8vaFZFS3h1UVgya3VQejBW?=
+ =?utf-8?B?cEFrekJvTFdxaDlWNTBacjVsVkZOSEhSUWpSM3dOdnRlaEo3enhWWEt2akRx?=
+ =?utf-8?B?UldqUFZNYlJsOTI1SGdlQUJqT0d5YmJPRGozalVhQ3hpNlRqd0trNEhPb0Fl?=
+ =?utf-8?B?ODlqUm1DVjQzYTJuazJ1T2MyTmpCR1dBM2ROMmllQzdWTmZOU2s1Q0hYWnBw?=
+ =?utf-8?B?dk5NWTFhWmxoR0grU0RVd2ljVyt4UG0xV2xhaGdXekVXL09qWGt1ZnBYQUxH?=
+ =?utf-8?B?Q055cFhRV043NWx6SFJ6MTVpMVlZV2hCTHpmd0prNVh5cERlS01QaGg4c2c4?=
+ =?utf-8?B?cE05Y0Fxc3JXUlFCdHBjcC9KT2VWdUVuK2dOSGhnVEVhMGV1Z24yUVJvR25H?=
+ =?utf-8?B?b20yK2VSSGsxeDVXcmR0UGpvbURpV3l4REVpVDZndkxBbU5vL2t2WENWSGtV?=
+ =?utf-8?B?WEpZRWUxLzNTMGljMU5vaG5sMFdHR2ZmeDlPZjdjRnlWd0NuTVYxbVRKQ3Rq?=
+ =?utf-8?B?VHppSUZsd3JocG1BUWs1TkczdUQreEhNTjhkNDVONGllL2VSMnFlbVJ3OVZz?=
+ =?utf-8?B?TVk5b3Yxcy82SjEzZkZtYkFkS0JMbXlaamVaclQvQ3Z5WTRScEJoMkw5Mk1m?=
+ =?utf-8?B?dnlINmUrR3gwMEE3bHZkbC9MRm4vQmxHeGkzK3hqZiszdnk1U0ZleFdwRE9W?=
+ =?utf-8?B?RUVtZ2xVdWdoUTd0N2E1K2hrekFlZm9CNHVhc3pnTytjMThySXJZQUVIWlJv?=
+ =?utf-8?B?YnQ1anNuTFZxc1dtTXZheUtyb09rNlRwYWxqY01UNnBOeEwrU0llL3VYRFl2?=
+ =?utf-8?B?RFFQYlNCMTF0ZFRLQWJNL3cvQlBvL0FrNHZIK1VsZWNyaWZTbHNENXpwYm00?=
+ =?utf-8?B?TGFTREhWbUVHMnp3dFZtNUNPQnBYa0VyNUVqaHZqY1BORUdnNVZ1M0dvQ2c2?=
+ =?utf-8?B?am1DMXRQZ3I3bTNWMUZsb3ZwUU9taWl0UjYycVRLRjlMVTJXMHlzeGxMK05v?=
+ =?utf-8?B?Y1Nxcy9SMU5CTDJ2elRONHVYU1oyL29PNVluZHRIR1Z0dVBFRXR6UkxmeTRM?=
+ =?utf-8?B?YjZqYW5MeDBNMFpEOWtxRXI2UGVrYjNVUG9SbUM0M1o5MGhKaWJYQ1BWVExL?=
+ =?utf-8?B?YjhrSVc0N0crS0t3cG14OEJ6dnhycis2Yk9BZlRrQWI5eGlxdFQ5dmFuZFBv?=
+ =?utf-8?B?UDhkaUsvVjFwMitNeUR1KzZGMEdzQUxuelFqWTFIWWdVbnhMREhIeGV2aHNQ?=
+ =?utf-8?Q?k0DAw4G0agMfotAtUBfComQfgo6lWj+84VQcBy09yD/lE?=
+X-MS-Exchange-AntiSpam-MessageData-1: bMurxbR3w5vFpA==
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: de5e7853-6e43-4473-a3af-08df4925ed60
+X-MS-Exchange-CrossTenant-AuthSource: CH3PR12MB9730.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Nov 2026 05:52:15.8116
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: Ovv1snhNfZJW7St6ni4xDtp/QbG3dmr7PBr+l/zQTvW7lNc04U3hcnf6FcyWVhccXJ2D+5gNQbZQoJCBi+4rsA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR12MB6238
 
+On Sat, Oct 31, 2026 at 03:07:58PM +1100, Aveline Noir wrote:
+> When a query starts inside a device-private PMD owned by
+> range->dev_private_owner, hmm_vma_handle_absent_pmd() still fills the PFN
+> array from the folio's first page. The returned PFNs therefore refer to
+> earlier pages rather than the requested subrange.
+> 
+> Add the query's PMD-relative page offset to the initial PFN, as the
+> present PMD path already does.
+> 
+> Fixes: 10b9feee2d0d ("mm/hmm: populate PFNs from PMD swap entry")
+> Signed-off-by: Aveline Noir <jm5905938@gmail.com>
+> 
+> ---
+> Found during a synthetic test_hmm check of device-private THP handling.
+> Tested PMD-aligned and non-aligned subranges, PMD boundaries, split
+> PTEs and fake-device data accesses with test_hmm in QEMU TCG; all
+> executed tests passed with the fix. No real GPU testing was performed.
+> ---
+>  mm/hmm.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/mm/hmm.c b/mm/hmm.c
+> index 2f1e98c6b644..e89f140d3e5c 100644
+> --- a/mm/hmm.c
+> +++ b/mm/hmm.c
+> @@ -355,7 +355,8 @@ static int hmm_vma_handle_absent_pmd(struct mm_walk *walk, unsigned long start,
+>  	    range->dev_private_owner) {
+>  		unsigned long cpu_flags = HMM_PFN_VALID |
+>  			hmm_pfn_flags_order(PMD_SHIFT - PAGE_SHIFT);
+> -		unsigned long pfn = softleaf_to_pfn(entry);
+> +		unsigned long pfn = softleaf_to_pfn(entry) +
+> +			((start & ~PMD_MASK) >> PAGE_SHIFT);
+>  		unsigned long i;
+>  
+>  		if (softleaf_is_device_private_write(entry))
+>
 
-The patch titled
-     Subject: Docs/mm: fix stale split page table lock references
-has been added to the -mm mm-unstable branch.  Its filename is
-     docs-mm-fix-stale-split-page-table-lock-references.patch
+Looks good to me!
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-fix-stale-split-page-table-lock-references.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: zhaozhengzhuo <zhaozhengzhuo@uniontech.com>
-Subject: Docs/mm: fix stale split page table lock references
-Date: Mon, 23 Nov 2026 11:09:03 +0800
-
-The USE_SPLIT_PTE_PTLOCKS and USE_SPLIT_PMD_PTLOCKS macros were turned
-into Kconfig options, and CONFIG_SPLIT_PTLOCK_CPUS was replaced, but two
-Documentation/mm files still refer to the old names.
-
-Update both references.  Point readers to mm/Kconfig for the dependencies
-instead of restating information that can become stale.
-
-Link: https://patch.msgid.link/6E11B4A6A6E0DCF9%2B20261123030904.57369-1-zhaozhengzhuo@uniontech.com
-Fixes: 394290cba966 ("mm: turn USE_SPLIT_PTE_PTLOCKS / USE_SPLIT_PTE_PTLOCKS into Kconfig options")
-Signed-off-by: zhaozhengzhuo <zhaozhengzhuo@uniontech.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Russell King <rmk+kernel@armlinux.org.uk>
-
- Documentation/mm/process_addrs.rst         |    2 +-
- Documentation/mm/split_page_table_lock.rst |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
-
---- a/Documentation/mm/process_addrs.rst~docs-mm-fix-stale-split-page-table-lock-references
-+++ a/Documentation/mm/process_addrs.rst
-@@ -659,7 +659,7 @@ acquired in :c:func:`!__p4d_alloc`, :c:f
-    references the :c:member:`!mm->page_table_lock`.
- 
- Allocating a PTE will either use the :c:member:`!mm->page_table_lock` or, if
--:c:macro:`!USE_SPLIT_PMD_PTLOCKS` is defined, a lock embedded in the PMD
-+:c:macro:`!CONFIG_SPLIT_PMD_PTLOCKS` is enabled, a lock embedded in the PMD
- physical page metadata in the form of a :c:struct:`!struct ptdesc`, acquired by
- :c:func:`!pmd_ptdesc` called from :c:func:`!pmd_lock` and ultimately
- :c:func:`!__pte_alloc`.
---- a/Documentation/mm/split_page_table_lock.rst~docs-mm-fix-stale-split-page-table-lock-references
-+++ a/Documentation/mm/split_page_table_lock.rst
-@@ -37,8 +37,8 @@ There are helpers to lock/unlock a table
-  - pmd_lockptr()
- 	returns pointer to PMD table lock;
- 
--Split page table lock for PTE tables is enabled compile-time if
--CONFIG_SPLIT_PTLOCK_CPUS (usually 4) is less or equal to NR_CPUS.
-+Split page table lock for PTE tables is enabled at compile time when
-+CONFIG_SPLIT_PTE_PTLOCKS is enabled; see mm/Kconfig for its dependencies.
- If split lock is disabled, all tables are guarded by mm->page_table_lock.
- 
- Split page table lock for PMD tables is enabled, if it's enabled for PTE
-_
-
-Patches currently in -mm which might be from zhaozhengzhuo@uniontech.com are
-
-docs-mm-fix-stale-split-page-table-lock-references.patch
+Reviewed-by: Balbir Singh <balbirs@nvidia.com>
 
