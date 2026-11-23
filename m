@@ -1,49 +1,53 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795456105;
-	b=IRGcIXIh7HpEgd4YOmmLsCxVbqGV3iZsowzvulvW8s/rkCT/yjsY6o+BgnBhwLjUCe2f
-	 OugrNMcIQvo4eQCgnFq+6dh3iI0qwZ7SXTsdV3w2LavRVlj67le9XN/PLYfyadWkBZQMa
-	 GIMfnJfD5Rh+itXX2hkvyrwnJD4vDHt/Rf3aAktaOxqB9SBXdTgsLKGdaRZkcl2ZVKjog
-	 nhg+mmbbtlsSsTChDpWjxIuyc7x2yWVEyDeJm42OIE5VaKpUyriU0WzS82hLr6mJ3U7E5
-	 WN3HodI1baZIFpWorS8Su/FeKgWjv+WwI1DtBuVaQIcHGtxOPkFhuow7mF3XOSGlm3g==
+	t=1795458894;
+	b=JfItq5UC4XiUhNcTJvu4BT/xjYkEaluA4zo9ZPHQ/Yz9yy72yw0K47zD2R0jatponiMS
+	 aPR8sxnah+sOSFFPsZPfbDElx9crJolGJd+ccSCJKQQb0NrWszSW4OcFYDOLAYRrOVV7l
+	 oQAg6VChYJDC2qLWRWXSvzC70bZKuOTqwRHYsfWNYX3uWC/26BtzevdhUeUgy75gJnqgb
+	 3/6EnCjjVUH+C6FOuOhAiPW/VpP5871FZJAlcrzYVYYe13fFJwEoyuYvIBdQhwJNwWamP
+	 S6qA21+F+IhLH6JhkYPWy+4cYO0fwWp+dHWFXxOFc/zH21aqkXqs2wa0qSixsdAkDNQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795456105;
-	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
-	 Message-Id;
-	bh=PfvI/Ha4XLTEm2qt9fqOBcUIC9/JenMBQwrwWJkF5vo=;
-	b=qMg7RTd1NKH2WqE/Wyh6PAz+5A1peedCw9UEXFCLDMla5+AAR23ZX1UYbswXAvbOQOL2
-	 t9b0c7Qk77J+XjnW4+MHZRB4mHSdbNY4ANcgEJxSbtDuZ80ffJxTN9uhlWVLjqdUmkt5x
-	 FMvcC2TaMHwoj1vKb8Ytoy/C+nhs0ZNbY5N9QygGpQQghAdtFpHPLM7vrHekWNqEmEh+E
-	 ajc5RVkOXic/gYDLX9ys6ZTWCIBNpepcgYE2uceMwVzFFP6f8143RWVjCRHamaOyW2qLg
-	 MPyyfNo70eDsOpFiIuOnErIgl4kBi2Y02679/qCnAc29wjO3SdCD1FujAJ7x483Hqxw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795458894;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-Id:
+	 In-Reply-To:References:X-Mailer:Mime-Version:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=Gbt4OJAiwywPMAoiP2A8ZUA5wRNzJGa/J32O/0Hj4uk=;
+	b=z9U1dA8sqFFLRCw8IRr4pNioSvAlKEGRfwLNVmowNk8qbp0YjN/cVicaSrPGY3Lym4EQ
+	 gxO6slqzTAg8NHyQWoCfqQIOmGRN+rJ1UGZk5eNPzE6kBumHFsvK8585vGbt8AUFR8VoV
+	 xSJGViuZamRJH+yobbVofgsJUxrpqongoHeu2V7yLs2YW7uDD3ioHxT7ZL5e/rhijnmJ4
+	 4V5xLnxCqNaNyZSEBeb4+NZBueDZnXOYATGn4XgM0/Jp5EkHmdN85c7/Sy6TkRWYXQ3bo
+	 nfuR6SRo3o1TtnxgfWgsflVi2sT/l7fVt6KcLU2kvHaVBI8Mbm8CMs6RoI0oVeyALdQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="v/NThj/T";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Gqtd14rf;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBAA7606A31A;
-	Mon, 23 Nov 2026 17:48:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81351606A31E
+	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 18:34:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=v/NThj/T
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4CE01F000C0;
-	Mon, 23 Nov 2026 17:48:23 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Gqtd14rf
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6C6C1F000E1;
+	Mon, 23 Nov 2026 18:34:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795456104;
-	bh=PfvI/Ha4XLTEm2qt9fqOBcUIC9/JenMBQwrwWJkF5vo=;
-	h=Date:To:From:In-Reply-To:References:Subject;
-	b=v/NThj/TitftNtrPusPd4SHJ/UAhDd2tmYeK6XWts6onYuDJDpL9IrXHvG618pQnm
-	 QIXD4AI+387U8UTzc9eLVYHlJ8S7V5ArHG5oQFdzIxYRJXzCm4xoplZgUM/YHf46I2
-	 R5JtCaqIMkAWXd80xqfVxp7Gm4f3b9vI5mzrmC5M=
-Date: Mon, 23 Nov 2026 09:48:23 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,
-	devnexen@gmail.com,evanfengff@gmail.com,akpm@linux-foundation.org
+	d=linux-foundation.org; s=korg; t=1795458894;
+	bh=Gbt4OJAiwywPMAoiP2A8ZUA5wRNzJGa/J32O/0Hj4uk=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=Gqtd14rfevzvan37gQzyqLRw3eYU0w7g+mqlCKNm3xH7Zc8h2axaQLEv55KufBIVy
+	 MTxPTvahFtnhqdKmq6T75KTTJhsC2nql6lBtO6+ZeNJa49Ol1aLXIL7NvpXLz6M6mY
+	 Ve+iwIXIP7kX+NNvogJJB+jBobQ1uIGKyWh9z/B8=
+Date: Mon, 23 Nov 2026 10:34:53 -0800
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261123150049.81317-3-sj@kernel.org>
-References: <20261123150049.81317-3-sj@kernel.org>
-Subject: + mm-damon-core-fix-damos_walk-hang-with-zero-watermarks-interval.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261123174823.E4CE01F000C0@smtp.kernel.org>
+To: "David Hildenbrand (Arm)" <david@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>, Johannes Weiner <hannes@cmpxchg.org>,
+ "mm-commits@vger.kernel.org" <mm-commits@vger.kernel.org>, Ridong Chen
+ <chenridong@xiaomi.com>
+Subject: Re: mm-next: manual merge of the akpm/mm-unstable branch
+Message-Id: <20261123103453.953259f94d3c5a0fae1c50c6@linux-foundation.org>
+In-Reply-To: <a2b9c99e-b5d3-428a-9b9f-0761b352dbfd@kernel.org>
+References: <a2b9c99e-b5d3-428a-9b9f-0761b352dbfd@kernel.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,104 +56,34 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
+On Mon, 23 Nov 2026 18:33:36 +0100 "David Hildenbrand (Arm)" <david@kernel.org> wrote:
 
-The patch titled
-     Subject: mm/damon/core: fix damos_walk() hang with zero watermarks interval
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-core-fix-damos_walk-hang-with-zero-watermarks-interval.patch
+> today's mm-next merge of the akpm/mm-unstable branch tree got a conflict in:
+> 
+>   include/linux/alloc_tag.h
+> 
+> between the commit:
+> 
+>   dbbc5a3d50f9 mm: vmscan: tell direct reclaim the allocation is ALLOC_NOFRAGMENT
+> 
+> from the page_alloc/page_alloc/for-next branch and the commit:
+> 
+>   2cc623f19566 mm/vmscan: move vmscan tracepoints to a local header
+> 
+> from the akpm/mm-unstable branch.
+> 
+> The conflict doesn't make any sense, because we're really touching something very unrelated.
+> It's likely a merge config problem on my end.
+> 
+> I resolved the conflicts manually for now and shall investigate:
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-fix-damos_walk-hang-with-zero-watermarks-interval.patch
+Ridong's series "mm/vmscan: move tracepoints to mm/ and add MGLRU
+tracepoints" is large and contains a lot of optional code movement.
 
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Yifan Feng <evanfengff@gmail.com>
-Subject: mm/damon/core: fix damos_walk() hang with zero watermarks interval
-Date: Mon, 23 Nov 2026 07:00:47 -0800
-
-kdamond_wait_activation() cancels damos_walk() requests while all
-schemes are deactivated by their watermarks.  But it returns without
-waiting when the watermarks check interval of a deactivated scheme is
-zero, which is the default of the DAMON sysfs interface.  The kdamond
-main loop then runs with all schemes deactivated.
-
-In that state, kdamond_apply_schemes() finds no scheme to apply and
-returns before it calls damos_walk_complete().  The walk request is
-neither completed nor cancelled, so damos_walk() waits until the
-watermarks activate a scheme again, possibly forever.
-
-For example, with a scheme that has the free_mem_rate metric, zero
-interval_us and a high watermark below the current free memory rate,
-writing update_schemes_tried_regions to the kdamond state file never
-returns and cannot be killed.  The writer holds damon_sysfs_lock, so all
-other DAMON sysfs writes including "off" fail with -EBUSY meanwhile.
-
-Cancel the walk request in kdamond_apply_schemes() when no scheme is
-activated, as kdamond_wait_activation() does for a non-zero interval.
-
-Link: https://patch.msgid.link/20261123150049.81317-3-sj@kernel.org
-Link: https://lore.kernel.org/20261121025626.75981-1-evanfengff@gmail.com
-Fixes: bf0eaba0ff9c ("mm/damon/core: implement damos_walk()")
-Signed-off-by: Yifan Feng <evanfengff@gmail.com>
-Signed-off-by: SJ Park <sj@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: SJ Park <sj@kernel.org>
-Reviewed-by: SJ Park <sj@kernel.org>
-Cc: David Carlier <devnexen@gmail.com>
-Cc: <stable@vger.kernel.org> # 6.14.x
-
- mm/damon/core.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
-
---- a/mm/damon/core.c~mm-damon-core-fix-damos_walk-hang-with-zero-watermarks-interval
-+++ a/mm/damon/core.c
-@@ -3492,9 +3492,13 @@ static noinline_for_stack void kdamond_a
- 	struct damon_target *t;
- 	struct damos *s;
- 	bool has_schemes_to_apply = false;
-+	bool has_activated_schemes = false;
- 	unsigned long max_region_sz;
- 
- 	damon_for_each_scheme(s, c) {
-+		if (s->wmarks.activated)
-+			has_activated_schemes = true;
-+
- 		if (time_before(c->passed_sample_intervals, s->next_apply_sis))
- 			continue;
- 
-@@ -3506,8 +3510,12 @@ static noinline_for_stack void kdamond_a
- 		damos_adjust_quota(c, s);
- 	}
- 
--	if (!has_schemes_to_apply)
-+	if (!has_schemes_to_apply) {
-+		/* The walk cannot be completed while no scheme is activated */
-+		if (!has_activated_schemes)
-+			damos_walk_cancel(c);
- 		return;
-+	}
- 
- 	max_region_sz = damon_region_sz_limit(c);
- 	mutex_lock(&c->walk_control_lock);
-_
-
-Patches currently in -mm which might be from evanfengff@gmail.com are
-
-mm-damon-core-fix-damos_walk-hang-with-zero-watermarks-interval.patch
-mm-damon-core-do-not-overwrite-wmarksactivated-in-damos_commit.patch
-
+So I think at this time we should drop it and ask Ridong for a much
+smaller and tighter patch[set] which just adds those MGLRU tracepoints.
+wdyt?
