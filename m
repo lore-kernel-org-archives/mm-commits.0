@@ -1,49 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795415118;
-	b=rSaOjKAp7g76cc/XJbBOXi6+LLyEO9/dcqx0S7RLq9N55jRVc9nUbiyJkEtQ+nZEsu+G
-	 XxpIFnrKEkJjR3znu8X7bIbBu1lNxQlJGVc2nDtIcjNiYT+cK52tcfHKmnKBD9vclb8Rj
-	 q1qoNFollgFmBUXa/Kr2YhzzqwAXnTgRLwlaGogyc5m5wAc2Vc3LG4q9Cl1e+Fu2Tem1k
-	 kP/Z6r44ZtoctVrPtNjaBo/mS6JIpAYBjwvQDbKGeftKPmgwr/nEU7MEwPY/og3e/yKM0
-	 3MNIxyLzA3LkJnoW/VpIfA8zBWjcU031Uygc5am0D0s/XQ04rIAZedg6w14PSX2YKIg==
+	t=1795415120;
+	b=ZOVUsTGyurMl58q2OfoGtUlVA/MXS9YNk0I84EolwDPrvk2GATlD9mc7SO75Y3Vro/Mh
+	 aPskEWDpQ0SgqG7LWkSHHHMogG8VEfSRVVBsxb35Jjp6+UGsB2x9k13esTHJnci6k0wla
+	 IyPzpbiIv9tgv5BdGdIVMs5RS5fU3+uotbJTIdtfzVHnDj+LqydpBE/PeRZ1S3FOs4jAw
+	 oiPHeYbaW3v4UO+eQL2YX9gMdQggnpyJ/xZgckYZu+vaSHnEYRvU3klYuOvcMVwm7H7Ld
+	 SE1ASNhYrq6G53K9XFmcXrpsqolq39GJKnuHR4qbPiGIdbuGnIMzdoWm3ccaQ5SLx6Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795415118;
-	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=SS+oosl80XdyL0Z9mmC1t2YRkv0wru6lPfW23UT6QMY=;
-	b=xzgCfr/RjUeqfuag3ULR6Vco5epTDmkZTQFQ7BDUC5mvVp4ymugx1EtEwoJoEeNgemPs
-	 EuagIkuBWiZsdr9xLYOlGcdNeOB7gDT2SZdeAA4Ry3I7MletUN5Rka/67iZvb8qnG22qi
-	 8bSnwKCbg/aRLgs0Y6rFhHioDlibzQ7vDXpzCfSA3MRnUaR1v8f2aqlR3IWnwNfjNOn7L
-	 1T4nknHVUI0dVObdzRKtBKTDRIEdouSYhRkiE6VDBQwY6I0ekN7Rdl9KJhwbrS3t84per
-	 GtE3TpSlXX6QQhXXq8b43fiHteKQ2/FjZgyVrpk7sW/vqzvjcBdmwfZoosMijG2jrng==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795415120;
+	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
+	 Message-Id;
+	bh=KEWB1bPj4Lxhrg8yrNzYVE5Gbaq1Z3832SVQQ7O0i4E=;
+	b=py9EFRoyXCChaxECIvvahxjmbV0b/cRnxSG3InAXpIrIP/AOBupcXyKVJ6ki3wAZnrJ7
+	 qpvj0QwgC+5mJaZdWNWNCnEyALSRJTBJrozakp+5297iDlO32GCwF/49aN5Oo4K1HlH6V
+	 0rBuAb8LFMw6r04L1c4zO6WtEM3npSPaY6z1Jid56uFHss1pL+itx40FQWzD9bFdiaH5Q
+	 I39IpbPv7EreGWPuyeu+WiphUHddAIKBW09EN/GqY50AefeZ455gDWuUqWt9jzqHCfH9/
+	 Gj7IvaniKc+AGYf6xUsJGH57A3Uzg6ZcyPSp9QsynGSz5NE47oMa9iZyye5hXWbv/0A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=NqCDXcii;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=NekzyAWH;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47503606A327;
-	Mon, 23 Nov 2026 06:25:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD54F606A31A
+	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 06:25:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=NqCDXcii
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A05F41F000CF;
-	Mon, 23 Nov 2026 06:25:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=NekzyAWH
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D611D1F000C0;
+	Mon, 23 Nov 2026 06:25:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795415117;
-	bh=SS+oosl80XdyL0Z9mmC1t2YRkv0wru6lPfW23UT6QMY=;
-	h=Date:To:From:Subject;
-	b=NqCDXciiD1MZ6od2VBAB6qyODde/9eko/R0o5oLMlL6txXQjk8ZN7KTVBU83Wi1V2
-	 DsZ+2CN56r6Iv8pRDQjw5Ie/qN3mdV2aGIhX8qWti9GpnbHIQIVM/S3PK2Te7lXojt
-	 9RRb59/poe0kmcViAx06hnv3U5EHoTT1dgr/xRsk=
-Date: Sun, 22 Nov 2026 22:25:17 -0800
+	d=linux-foundation.org; s=korg; t=1795415120;
+	bh=KEWB1bPj4Lxhrg8yrNzYVE5Gbaq1Z3832SVQQ7O0i4E=;
+	h=Date:To:From:In-Reply-To:References:Subject;
+	b=NekzyAWH0UCFJfYU2geDbGAXq4slUq33PTJE1W8yYs+Gh7QoMoRPrYMjy6pRLUuUh
+	 1wO18fOjv0gq0mkcr+t/sXFsJNjy2A9t3xxZL/t+uZcI0vo86Glylm7f5CWULSwjm/
+	 UUKZjx6t0Y+g4gwA/PjN3lGz07rvFYgJeeQjk1D8=
+Date: Sun, 22 Nov 2026 22:25:19 -0800
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
-	stable@vger.kernel.org,shuah@kernel.org,rppt@kernel.org,peterx@redhat.com,
-	mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kas@kernel.org,
-	david@kernel.org,aarcange@redhat.com,donggeunyoo.kernel@gmail.com,
-	akpm@linux-foundation.org
+	sj@kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,pfalcato@suse.de,
+	mhocko@suse.com,liam@infradead.org,jannh@google.com,david@kernel.org,
+	ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] userfaultfd-clear-the-inherited-uffd-bit-in-move_swap_pte.patch removed from -mm tree
-Message-Id: <20261123062517.A05F41F000CF@smtp.kernel.org>
+In-Reply-To: <20261118-maintainers-consolidate-vma-entry-v1-1-8019b0e9928f@kernel.org>
+References: <20261118-maintainers-consolidate-vma-entry-v1-1-8019b0e9928f@kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-consolidate-the-memory-mapping-entries-into-a-vma-entry.patch removed from -mm tree
+Message-Id: <20261123062519.D611D1F000C0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,86 +57,170 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: userfaultfd: clear the inherited uffd bit in move_swap_pte()
+     Subject: MAINTAINERS: consolidate the memory mapping entries into a VMA entry
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-clear-the-inherited-uffd-bit-in-move_swap_pte.patch
+     maintainers-consolidate-the-memory-mapping-entries-into-a-vma-entry.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Donggeun Yoo <donggeunyoo.kernel@gmail.com>
-Subject: userfaultfd: clear the inherited uffd bit in move_swap_pte()
-Date: Sat,  3 Oct 2026 19:30:29 +0900
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: MAINTAINERS: consolidate the memory mapping entries into a VMA entry
+Date: Wed, 18 Nov 2026 18:22:10 +0000
 
-UFFDIO_MOVE on a swapped-out page installs the source PTE at the
-destination unchanged, so a uffd bit set on a write-protected or
-RWP-protected source lands in a destination VMA that was never
-registered for either.  Nothing clears it there, and userspace sees:
+Memory mapping entries were kept in three different sections in order that
+those maintaining/reviewing each distinct part would be made responsible
+for/cc'd on only those parts.
 
- - /proc/<pid>/pagemap reports the page as uffd-tracked (bit 57), both
-   while it is swapped out and after it is faulted back in.
- - MADV_COLLAPSE fails with EINVAL on a range containing it, because the
-   collapse scan bails on a swap entry with the uffd bit set.
- - With CONFIG_PAGE_TABLE_CHECK, faulting the page in warns.
-   do_swap_page() carries the bit into the present PTE and, since the
-   destination isn't WP-registered, also makes it writable:
+However this creates confusion as to what files belong to which component,
+so simplify things by consolidating them into one.
 
-   WARNING: mm/page_table_check.c:202 at __page_table_check_ptes_set+0x185/0x1e0
-   Call Trace:
-    set_ptes+0x67/0xc0
-    do_swap_page+0x990/0xfe0
-    __handle_mm_fault+0x7d0/0xeb0
-    handle_mm_fault+0x9c/0x250
-    do_user_addr_fault+0x207/0x650
-    exc_page_fault+0x65/0x150
-    asm_exc_page_fault+0x26/0x30
+Expand Suren's maintainership to the entire component, as he is a trusted
+and valued member of the VMA kernel team and very much deserving of the
+position.
 
-Reaching it takes UFFDIO_MOVE out of a WP- or RWP-protected area into
-one that isn't, on a page that is swapped out at the time.  It hasn't
-been seen in practice.
+Additionally, drop Suren's core and misc reviewerships in order to focus
+upon VMA.
 
-A resident page doesn't carry the bit, because move_present_ptes() builds
-the destination PTE from dst_vma->vm_page_prot.  Clear it on the moved
-swap entry as well, then re-arm it if the destination is RWP-registered.
+As David is receiving pull requests directly, make him a reviewer, purely
+as an administrative change.
 
-The WP case has been there since v6.8, where UFFDIO_MOVE was added.
+Also specify the new tree location in preparation for the tree being
+established for next cycle, and remove the link to the not so regularly
+updated linux-mm website.
 
-Link: https://lore.kernel.org/20261003103030.63380-1-donggeunyoo.kernel@gmail.com
-Link: https://lore.kernel.org/20261003103030.63380-2-donggeunyoo.kernel@gmail.com
-Fixes: adef440691ba ("userfaultfd: UFFDIO_MOVE uABI")
-Signed-off-by: Donggeun Yoo <donggeunyoo.kernel@gmail.com>
+Given that, from next cycle, the tree will sit outside of Andrew's current
+process, remove his entry, also purely as an administrative change.
+
+With that said, I'd like to take the opportunity to express gratitude for
+Andrew's huge contribution to mm, and for his being both generous and
+gracious throughout this period of change in the subsystem.
+
+Link: https://patch.msgid.link/20261118-maintainers-consolidate-vma-entry-v1-1-8019b0e9928f@kernel.org
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Co-developed-by: Suren Baghdasaryan <surenb@google.com>
+Acked-by: Liam R. Howlett (Google) <liam@infradead.org>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Acked-by: SJ Park <sj@kernel.org>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Assisted-by: LLM
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Jann Horn <jannh@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: <stable@vger.kernel.org>
 
- mm/userfaultfd.c |    1 +
- 1 file changed, 1 insertion(+)
+ MAINTAINERS |   51 ++++++++++++--------------------------------------
+ 1 file changed, 13 insertions(+), 38 deletions(-)
 
---- a/mm/userfaultfd.c~userfaultfd-clear-the-inherited-uffd-bit-in-move_swap_pte
-+++ a/mm/userfaultfd.c
-@@ -1403,6 +1403,7 @@ static int move_swap_pte(struct mm_struc
- 	orig_src_pte = ptep_get_and_clear(mm, src_addr, src_pte);
- 	if (pgtable_supports_soft_dirty())
- 		orig_src_pte = pte_swp_mksoft_dirty(orig_src_pte);
-+	orig_src_pte = pte_swp_clear_uffd(orig_src_pte);
- 	/* Re-arm RWP on the moved swap entry if dst_vma is RWP-registered. */
- 	if (userfaultfd_rwp(dst_vma))
- 		orig_src_pte = pte_swp_mkuffd(orig_src_pte);
+--- a/MAINTAINERS~maintainers-consolidate-the-memory-mapping-entries-into-a-vma-entry
++++ a/MAINTAINERS
+@@ -17507,7 +17507,6 @@ M:	David Hildenbrand <david@kernel.org>
+ R:	Liam R. Howlett <liam@infradead.org>
+ R:	Vlastimil Babka <vbabka@kernel.org>
+ R:	Mike Rapoport <rppt@kernel.org>
+-R:	Suren Baghdasaryan <surenb@google.com>
+ R:	Michal Hocko <mhocko@suse.com>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+@@ -17677,7 +17676,6 @@ M:	David Hildenbrand <david@kernel.org>
+ R:	Liam R. Howlett <liam@infradead.org>
+ R:	Vlastimil Babka <vbabka@kernel.org>
+ R:	Mike Rapoport <rppt@kernel.org>
+-R:	Suren Baghdasaryan <surenb@google.com>
+ R:	Michal Hocko <mhocko@suse.com>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+@@ -17969,30 +17967,37 @@ F:	rust/kernel/mm.rs
+ F:	rust/kernel/mm/
+ F:	rust/kernel/page.rs
+ 
+-MEMORY MAPPING
+-M:	Andrew Morton <akpm@linux-foundation.org>
+-M:	Liam R. Howlett <liam@infradead.org>
++MEMORY MANAGEMENT - VMA
+ M:	Lorenzo Stoakes <ljs@kernel.org>
++M:	Liam R. Howlett <liam@infradead.org>
++M:	Suren Baghdasaryan <surenb@google.com>
+ R:	Vlastimil Babka <vbabka@kernel.org>
+-R:	Jann Horn <jannh@google.com>
++R:	Shakeel Butt <shakeel.butt@linux.dev>
+ R:	Pedro Falcato <pfalcato@suse.de>
++R:	David Hildenbrand <david@kernel.org>
++R:	Jann Horn <jannh@google.com>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+-W:	http://www.linux-mm.org
+-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mm/vma.git for-next
+ F:	Documentation/core-api/protection-keys.rst
+ F:	Documentation/filesystems/mmap_prepare.rst
++F:	Documentation/mm/process_addrs.rst
+ F:	Documentation/userspace-api/mseal.rst
+ F:	fs/proc/task_mmu.c
+ F:	fs/proc/task_nommu.c
+ F:	include/linux/mman.h
++F:	include/linux/mmap_lock.h
+ F:	include/linux/pkeys.h
+ F:	include/trace/events/mmap.h
++F:	include/trace/events/mmap_lock.h
++F:	include/uapi/asm-generic/mman-common.h
+ F:	include/uapi/linux/mman.h
+ F:	mm/char-mem.c
++F:	mm/madvise.c
+ F:	mm/mincore.c
+ F:	mm/mlock.c
+ F:	mm/mmap.c
++F:	mm/mmap_lock.c
+ F:	mm/mprotect.c
+ F:	mm/mremap.c
+ F:	mm/mseal.c
+@@ -18006,36 +18011,6 @@ F:	mm/vma_internal.h
+ F:	tools/testing/selftests/mm/merge.c
+ F:	tools/testing/vma/
+ 
+-MEMORY MAPPING - LOCKING
+-M:	Andrew Morton <akpm@linux-foundation.org>
+-M:	Suren Baghdasaryan <surenb@google.com>
+-M:	Liam R. Howlett <liam@infradead.org>
+-M:	Lorenzo Stoakes <ljs@kernel.org>
+-R:	Vlastimil Babka <vbabka@kernel.org>
+-R:	Shakeel Butt <shakeel.butt@linux.dev>
+-L:	linux-mm@kvack.org
+-S:	Maintained
+-W:	http://www.linux-mm.org
+-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+-F:	Documentation/mm/process_addrs.rst
+-F:	include/linux/mmap_lock.h
+-F:	include/trace/events/mmap_lock.h
+-F:	mm/mmap_lock.c
+-
+-MEMORY MAPPING - MADVISE (MEMORY ADVICE)
+-M:	Andrew Morton <akpm@linux-foundation.org>
+-M:	Liam R. Howlett <liam@infradead.org>
+-M:	Lorenzo Stoakes <ljs@kernel.org>
+-M:	David Hildenbrand <david@kernel.org>
+-R:	Vlastimil Babka <vbabka@kernel.org>
+-R:	Jann Horn <jannh@google.com>
+-L:	linux-mm@kvack.org
+-S:	Maintained
+-W:	http://www.linux-mm.org
+-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+-F:	include/uapi/asm-generic/mman-common.h
+-F:	mm/madvise.c
+-
+ MEMORY TECHNOLOGY DEVICES (MTD)
+ M:	Miquel Raynal <miquel.raynal@bootlin.com>
+ M:	Richard Weinberger <richard@nod.at>
 _
 
-Patches currently in -mm which might be from donggeunyoo.kernel@gmail.com are
+Patches currently in -mm which might be from ljs@kernel.org are
 
-selftests-mm-add-tests-for-uffdio_move-of-a-uffd-protected-swap-entry.patch
+mm-vma-predicate-vma_assert_stabilised-on-config_debug_vm.patch
+mm-only-assert-mmap-locks-if-config_debug_vm-or-lockdep-is-set.patch
+mm-only-assert-vma-locks-if-config_debug_vm-is-set.patch
+mm-convert-warn_on_onces-to-vm_warn_on_once-in-vma-lock-code.patch
+mm-madvise-zap-markers-from-guard-regions.patch
 
