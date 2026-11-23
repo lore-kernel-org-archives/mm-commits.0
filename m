@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795465395;
-	b=zrkZGDE7XP2SBw06BjL8CKUkl2AfsYZwjs5LN7x30GiqSzpvWwZn1Mn99UHLjSdATbsp
-	 cjuBJvKPejo2p0SAmWT9sVK5RnpGQsEn6JEkMeLQLVYlcpit8iua6c4O+APWjSlVFzgKp
-	 rQRTnyXOTOfytk3O9aJsHy7HRJgSSIfIB2wCFE656F0kXPhmUlG+qc2nFMhGn87ipGIcp
-	 3Czng30afFrus7rH5QCxL8O8qoWh/gsgEwBT+n3ke83YTzRI6oE7da+CtBeQhCf7LkgHA
-	 l3KPczWLpCpjD4+k2dYyIqGIUqjmG9xydkEQf9wL0EejUbuh8ej0+CI/+8tOTM8oosA==
+	t=1795465398;
+	b=jM3xLll3LQ6yUvFRnFkpzg46vc2XxPYg78XBcYN2pDMR7v11NdNEqYULXQ6kgm5YXOQX
+	 DwPccBmj8a4VZMz6pGkFWsi3EwtnPtKP54U5JOdZqkoPJ/7oVDjeB8su+eug2bLTZ5h+h
+	 lUPMT1fqAnsD+eGFp8EeqsePs8dPlrSE+kyoqMKDValViFioFI6NCxr7m6TdsWB87kvdF
+	 qz3tJzLCQ+N8VIHNgO5I20R54ZGTQrFkn/aq52f+FnBg5/N3/fF3ghgtXJhmeYYVNTmIC
+	 AdbmA+W1Sp8T65KjKw8QDyMLAq5sTToVxIkrEMOX/mH96FwrGbyTdrU4KA7jpjio11A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795465395;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795465398;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=wOB3ZntQJJU9OIMfagvnf+IaY5V1r+s3m6SfP5Vkkjw=;
-	b=z+1AK7E8nKZCxxQgtrNJdzELTWxVNX8cGW3nMWjV/5baB8NQ+1tVr4Euk6vozPWZMVCW
-	 ci2FkWZX040p88UEMYm4ZlBPKl6Xdv6CMRCjxgtap6xS+Ame5D+DgWz5LoY8h1SEcBU8D
-	 TMPorX7CEmm3RpqG/8Nu0AvQVk4266wWQPMWPUk5LKsx0Qm4fwibHIes6uOBKStEdYCTc
-	 5jbSx8V5AUmtQ2saC0yahEKbr7ewfSrew+OL1nG28tfpCFvwSn4zHv1rS3wp95Iq1Bnxr
-	 o1Uobiq+zakf021Zout+SKeTfWXtgvMQPn0jBmHXCo0AiPVagX9P3CrnNdkdqqM7O1g==
+	bh=aaK2750YEWe1vnJb4HSlZEojcDlAWEDnSeyF3AdscLM=;
+	b=YP2GrUhjWpMyQfgBgCz9i6l1m1UlcD8HcxZ5DU7a3NneWPK3U2Ztd0SPdGFOZJhw4Jbm
+	 K+Toz4Iq+FA+A9308x7f5cuXo2KeM7/uRdKSJjQO48836peq2HpK0ZUkF62fNAHnHGt8x
+	 SivfcKsCnkH8xf503zgoCNEXbX4LXVIvyRZ/KA7r16TjxfILAgrX3LQsx72G8RJH57EcO
+	 tJU4/Tt6FVXcdWuDcO5FZ2UU0AYmUusaisM2lJPH2sSTwqXhXt2Xj3FCXXS/9o0vGGiP9
+	 0IcTnNZLnvePxf/APv2D9gfsnXHF0JeynU7nkwuNKauDkqBV4ro54XiUusH5ilx7BzQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=RM6Pjt3R;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LRjYSTz6;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04742606A31E
-	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 20:23:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 242AA606A327
+	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2026 20:23:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=RM6Pjt3R
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 335201F000C6;
-	Mon, 23 Nov 2026 20:23:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LRjYSTz6
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A8601F000CA;
+	Mon, 23 Nov 2026 20:23:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795465394;
-	bh=wOB3ZntQJJU9OIMfagvnf+IaY5V1r+s3m6SfP5Vkkjw=;
+	d=linux-foundation.org; s=korg; t=1795465397;
+	bh=aaK2750YEWe1vnJb4HSlZEojcDlAWEDnSeyF3AdscLM=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=RM6Pjt3R3KjXK474qIPJqHNA60krkFJ++FEIdy7DV1tZ32PS1D6NA5lv7oQzviwHj
-	 7yIL7VOSXKm5WkEiO/V9Wwbyg7qwSSfGFsZdjh5/f13mE+L4C76t1Za9KH05OWyLQb
-	 9I6Ooh1p4D52GYwRtCCWwuaeIHy3tVuv/6p0+z2o=
-Date: Mon, 23 Nov 2026 12:23:13 -0800
+	b=LRjYSTz6NyHwnxAeQ5mQ0fHIhxAXdyUL+LmFTgxf0sXLY6V7JgjcneOYLkwpeiR0u
+	 XaWk7LlhcdZ3Ao0WFdAUPJT+44BlUPf3c4WVCqVh/KZ7Sco1Y06GmeFfXHC0574XGU
+	 SqyONWszHV98AC6Cgy6kjECbU9T9xahPHCGRau9o=
+Date: Mon, 23 Nov 2026 12:23:17 -0800
 To: mm-commits@vger.kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124-mglru-fg-v6-8-8ffea39934a6@tencent.com>
-References: <20261124-mglru-fg-v6-8-8ffea39934a6@tencent.com>
-Subject: + mm-mglru-make-folio-lru-referenced-times-count-a-generic-api.patch added to mm-new branch
-Message-Id: <20261123202314.335201F000C6@smtp.kernel.org>
+In-Reply-To: <20261124-mglru-fg-v6-9-8ffea39934a6@tencent.com>
+References: <20261124-mglru-fg-v6-9-8ffea39934a6@tencent.com>
+Subject: + mm-mglru-move-add-del-lru-size-accounting-out-of-lru_gen_update_size.patch added to mm-new branch
+Message-Id: <20261123202317.9A8601F000CA@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +54,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/mglru: make folio lru referenced times count a generic API
+     Subject: mm/mglru: move add/del LRU size accounting out of lru_gen_update_size()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mglru-make-folio-lru-referenced-times-count-a-generic-api.patch
+     mm-mglru-move-add-del-lru-size-accounting-out-of-lru_gen_update_size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-make-folio-lru-referenced-times-count-a-generic-api.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-move-add-del-lru-size-accounting-out-of-lru_gen_update_size.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -89,25 +89,20 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm/mglru: make folio lru referenced times count a generic API
-Date: Tue, 24 Nov 2026 02:53:00 +0800
+Subject: mm/mglru: move add/del LRU size accounting out of lru_gen_update_size()
+Date: Tue, 24 Nov 2026 02:53:01 +0800
 
-Pure code shuffle, no behavior change.
+Pure code shuffle, no behavior change.  lru_gen_update_size() now only
+updates the per-generation counters plus the promotion move; the
+addition and deletion active/inactive accounting move to
+lru_gen_add_folio() and lru_gen_del_folio(), which know the generation
+and can apply the active-window test directly.
 
-Make the folio LRU refs helpers available regardless of CONFIG_LRU_GEN.
-Without MGLRU the extra bits are never set, so they are inert. Move the
-lru_gen_* helpers into the CONFIG_LRU_GEN section.  This prepares for
-unifying the API for checking folio referenced and workingset status.
+The unevictable case is untouched: unevictable folios never enter
+lru_gen_add_folio() and keep being accounted by lruvec_add_folio() as
+before.
 
-folio_migrate_lru_refs() now migrates the complete refs count,
-including PG_workingset (bit 1 of the encoding), bitwise identical to
-the direct copy dropped from folio_migrate_flags().
-
-lru_set_refs_flags() skips the nonexistent mask bits when
-LRU_REFS_WIDTH collapses to 0, preserving the two independent flags for
-!CONFIG_LRU_GEN builds.
-
-Link: https://patch.msgid.link/20261124-mglru-fg-v6-8-8ffea39934a6@tencent.com
+Link: https://patch.msgid.link/20261124-mglru-fg-v6-9-8ffea39934a6@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Tested-by: Zhao Zhenzhuo <zhaozhengzhuo@uniontech.com>
@@ -160,118 +155,75 @@ Cc: Tianyi Chen <hi@tychen.cc>
 Cc: Ridong Chen <ridong.chen@linux.dev>
 Cc: Harry Yoo <harry@kernel.org>
 
- include/linux/mm_inline.h |   55 ++++++++++++++++++------------------
- mm/migrate.c              |    2 -
- 2 files changed, 28 insertions(+), 29 deletions(-)
+ include/linux/mm_inline.h |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
---- a/include/linux/mm_inline.h~mm-mglru-make-folio-lru-referenced-times-count-a-generic-api
+--- a/include/linux/mm_inline.h~mm-mglru-move-add-del-lru-size-accounting-out-of-lru_gen_update_size
 +++ a/include/linux/mm_inline.h
-@@ -184,6 +184,12 @@ static inline int lru_get_gen_flags(unsi
- 	return gen;
- }
+@@ -322,21 +322,9 @@ static inline void lru_gen_update_size(s
+ 	if (new_gen >= 0)
+ 		atomic_long_add(delta, &lrugen->nr_pages[new_gen][type][zone]);
  
-+static inline int folio_lru_gen(const struct folio *folio)
-+{
-+	return lru_get_gen_flags(READ_ONCE(*const_folio_flags(folio, 0)));
-+}
-+#endif
+-	/* addition */
+-	if (old_gen < 0) {
+-		if (lru_gen_is_active(lruvec, new_gen))
+-			lru += LRU_ACTIVE;
+-		__update_lru_size(lruvec, lru, zone, delta);
++	/* return now if not a promotion */
++	if (old_gen < 0 || new_gen < 0)
+ 		return;
+-	}
+-
+-	/* deletion */
+-	if (new_gen < 0) {
+-		if (lru_gen_is_active(lruvec, old_gen))
+-			lru += LRU_ACTIVE;
+-		__update_lru_size(lruvec, lru, zone, -delta);
+-		return;
+-	}
+ 
+ 	/* promotion */
+ 	if (!lru_gen_is_active(lruvec, old_gen) && lru_gen_is_active(lruvec, new_gen)) {
+@@ -391,6 +379,8 @@ static inline bool __lru_gen_add_folio(s
+ 	int gen = folio_lru_gen(folio);
+ 	int type = folio_is_file_lru(folio);
+ 	int zone = folio_zonenum(folio);
++	int delta = folio_nr_pages(folio);
++	enum lru_list lru = type * LRU_INACTIVE_FILE;
+ 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 
+ 	BUILD_BUG_ON(BIT(LRU_GEN_WIDTH - 1) != MAX_NR_GENS);
+@@ -408,6 +398,10 @@ static inline bool __lru_gen_add_folio(s
+ 	set_mask_bits(folio_flags(folio, 0), LRU_GEN_MASK | BIT(PG_active), flags);
+ 
+ 	lru_gen_update_size(lruvec, folio, -1, gen);
++	if (lru_gen_is_active(lruvec, gen))
++		lru += LRU_ACTIVE;
++	__update_lru_size(lruvec, lru, zone, delta);
 +
- /**
-  * lru_set_refs_flags - Set the LRU referenced count to folio flags.
-  * @flags: pointer to the folio flags
-@@ -206,7 +212,8 @@ static inline void lru_set_refs_flags(un
- 		*flags |= BIT(PG_referenced);
- 	if (refs & BIT(1))
- 		*flags |= BIT(PG_workingset);
--	*flags |= ((unsigned long)refs >> 2) << LRU_REFS_PGOFF;
-+	if (LRU_REFS_WIDTH)
-+		*flags |= ((unsigned long)refs >> 2) << LRU_REFS_PGOFF;
- }
- 
- /**
-@@ -252,13 +259,31 @@ static inline void folio_set_lru_refs(st
- 	} while (!try_cmpxchg(folio_flags(folio, 0), &old_flags, new_flags));
- }
- 
-+#ifdef CONFIG_LRU_GEN
- void folio_inc_lru_refs(struct folio *folio, unsigned int flags);
-+#else
-+static inline void folio_inc_lru_refs(struct folio *folio, unsigned int flags)
-+{
-+	/* Should not be called with !CONFIG_LRU_GEN */
-+	WARN_ON_ONCE(1);
-+}
-+#endif
- 
--static inline int folio_lru_gen(const struct folio *folio)
-+/**
-+ * folio_migrate_lru_refs - copy the reference state to a new folio
-+ * @new: the destination folio
-+ * @old: the source folio
-+ *
-+ * Transfer the reference state to @new during migration: the MGLRU
-+ * refs count, or PG_referenced and PG_workingset (bits 0-1 of the
-+ * encoding) for the active/inactive LRU.
-+ */
-+static inline void folio_migrate_lru_refs(struct folio *new, const struct folio *old)
+ 	/* for folio_rotate_reclaimable() */
+ 	if (reclaiming)
+ 		list_add_tail(&folio->lru, &lrugen->folios[gen][type][zone]);
+@@ -432,6 +426,9 @@ static inline bool lru_gen_del_folio(str
  {
--	return lru_get_gen_flags(READ_ONCE(*const_folio_flags(folio, 0)));
-+	folio_set_lru_refs(new, folio_lru_refs(old));
- }
+ 	unsigned long flags;
+ 	int gen = folio_lru_gen(folio);
++	int zone = folio_zonenum(folio);
++	int delta = folio_nr_pages(folio);
++	enum lru_list lru = folio_is_file_lru(folio) * LRU_INACTIVE_FILE;
  
-+#ifdef CONFIG_LRU_GEN
- static inline bool lru_gen_is_old(struct lruvec *lruvec, int type, int gen)
- {
- 	unsigned long min_seq = READ_ONCE(lruvec->lrugen.min_seq[type]);
-@@ -424,20 +449,6 @@ static inline bool lru_gen_del_folio(str
+ 	if (gen < 0)
+ 		return false;
+@@ -445,6 +442,9 @@ static inline bool lru_gen_del_folio(str
+ 	gen = ((flags & LRU_GEN_MASK) >> LRU_GEN_PGOFF) - 1;
+ 
+ 	lru_gen_update_size(lruvec, folio, gen, -1);
++	if (lru_gen_is_active(lruvec, gen))
++		lru += LRU_ACTIVE;
++	__update_lru_size(lruvec, lru, zone, -delta);
+ 	list_del(&folio->lru);
  
  	return true;
- }
--
--/**
-- * folio_migrate_lru_refs - copy the reference state to a new folio
-- * @new: the destination folio
-- * @old: the source folio
-- *
-- * Transfer the reference state to @new during migration: the MGLRU
-- * refs count, including PG_referenced, or just PG_referenced for the
-- * active/inactive LRU.
-- */
--static inline void folio_migrate_lru_refs(struct folio *new, const struct folio *old)
--{
--	folio_set_lru_refs(new, folio_lru_refs(old));
--}
- #else /* !CONFIG_LRU_GEN */
- 
- static inline bool lru_gen_enabled(void)
-@@ -470,16 +481,6 @@ static inline bool lru_gen_del_folio(str
- {
- 	return false;
- }
--
--static inline void folio_inc_lru_refs(struct folio *folio, unsigned int flags)
--{
--}
--
--static inline void folio_migrate_lru_refs(struct folio *new, const struct folio *old)
--{
--	if (folio_test_referenced(old))
--		folio_set_referenced(new);
--}
- #endif /* CONFIG_LRU_GEN */
- 
- static __always_inline
---- a/mm/migrate.c~mm-mglru-make-folio-lru-referenced-times-count-a-generic-api
-+++ a/mm/migrate.c
-@@ -807,8 +807,6 @@ void folio_migrate_flags(struct folio *n
- 		folio_set_active(newfolio);
- 	} else if (folio_test_clear_unevictable(folio))
- 		folio_set_unevictable(newfolio);
--	if (folio_test_workingset(folio))
--		folio_set_workingset(newfolio);
- 	if (folio_test_checked(folio))
- 		folio_set_checked(newfolio);
- 	/*
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
