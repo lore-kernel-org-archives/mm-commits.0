@@ -1,49 +1,50 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795497696;
-	b=E35rsQ85o18kl6dRIuQKeREMEcbksEnxLPDfrX496KcefyfGRsffJrUjAiR8nTEEqgNf
-	 b3Fl/EOqzFbBry6t2CXAmR7wv2cEDT2giBfTOzYC7SLp0sH1NT/ZembOTlA3vxvt9jbuj
-	 yHzYzQUYhh/Hy+VuQfCAZ27MxnJeGKxeHtdBmcynUJv+rJTPDXIGLygMQdoC3JyyO8DT2
-	 S7wVViQWl/db4OclLB4FDCHnnCJ6OH84ZzLrqssO3ac/GTn9u1cEsggkOo6tH0jOKnICg
-	 zm8P8CYsoPSYwc0TZErAlKsHCy/aqhROn8PluJo7eZTsRvUl8+GNGT0EQeXMEL1ZP5A==
+	t=1795500200;
+	b=dHdgXaJ1WM5hjkLAV5KxS67/THj9BO4Za1P2u9g4VDloLq3sWl1Dr2BOPiwvwZI09FWv
+	 O/n2KW/jXjF7JvycVCfGTgNQiCW4b1iuOcW5yMlecLmD5pRFpydn2QEpojvZvujE1qg03
+	 Exs1JiFCak7kTpfLS2KCQJPq7BzvzvLZ4U+kxun4zMlglfHflrlq9VKw8daV1aEZUe4Ni
+	 OuhMInbJnyluZh7dGg0sOl1E0tu0swr+FHpTWbjWQoEqkg6Qwymr6+LTbDWJbhJGNxMxc
+	 QvGvI1oFLJp8JDCDckd2d/RT4WuTa5OcZKCkiINx9xiOWTPG5m2FYu7sj69t7+a9mLw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795497696;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795500200;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=9xQqiKKOqpe8NYoFkh19kBq35dfonM2FubbicrLc7sw=;
-	b=jshti0Lgk+ilR+y2TBnxCtInJDVBgYOWMp9hVcMmVwQvarn14DivqveP9tmcJR7rH9zo
-	 8lKV6fdLcI+/z4J7h4B2up3NA+zJzER5hsy8jiY9a+bXpILYKgrmnETWlkavtfXN4sNL6
-	 J3jtaBBfHaDdk6LVEshJCQBVhJpJXvA58L9GpVJPSHqTI+uq+rHPSQg0/PNxhGKInl58u
-	 twTgIi+6PGYzRGvgaTFWRsPYdqsUmbsf7EiS5mChxY01RqvuHkcj5med/CKB3AQzHtWZP
-	 fOERK3XDYY3VhqXfOVA1MmiPSeqn4XhDR6GYhnFte871nyz7lOX5Bk1CpP+y+Wdnhlw==
+	bh=M9jL5IiALvmK/ea8xnsBuKnxJ95RqHSo/nmekJvDzoA=;
+	b=jTTffIWFRLL4DwfTLks5Xw47l05LQYTO/uhLfrXySGL/ajIANlQFMy+wgamJAfwOjsU/
+	 7AcNyFSSXYTivgfhEC6jVl3aBi2HoGke6Uzf2rE2Lgnnhjj9Y1lpXvBzfnbBXw8GtHQEQ
+	 oCMHglE41mqbQuhLWTbF+ffQhaFQNLzyDC+Efm5FoTdyfGaG62A/sVwWiX98k6mCZWgSP
+	 D9Cm2hxU1jWlYuutzYESWjhqNSHCCbKJqhCj6jzP+BVsjlvzXAPkv1k8XisZ2JxQByHJw
+	 r/TjUFoAlhIYCT0NnehokOJEHUItt8wNmsZOVF5o6YEw/OAPMeMhjEfpu3f+Zv7d3uA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=UZzFunOa;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=lhjG5B+m;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1877606A31E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 05:21:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DE6D606A326
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 06:03:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=UZzFunOa
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78B1A1F000C0;
-	Tue, 24 Nov 2026 05:21:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=lhjG5B+m
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 791E51F000CA;
+	Tue, 24 Nov 2026 06:03:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795497695;
-	bh=9xQqiKKOqpe8NYoFkh19kBq35dfonM2FubbicrLc7sw=;
+	d=linux-foundation.org; s=korg; t=1795500199;
+	bh=M9jL5IiALvmK/ea8xnsBuKnxJ95RqHSo/nmekJvDzoA=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=UZzFunOaDO5cbKhTZuex4wASmcsJPmUkLfyOTg+Xmn9K9bFztymk/RoZ8TbsODh2W
-	 2AAphz+VPTP0K+ddlLvpQ2NRe5mw0i3DtiWMAztFuDw8PEsu5gwVs/QrVQA+I9R3Eo
-	 31P9OJIvQ2bZ6d7rp+5WHWdH/sulzBIQcOmKJjGs=
-Date: Mon, 23 Nov 2026 21:21:34 -0800
-To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,
-	david@kernel.org,lihongfu@kylinos.cn,akpm@linux-foundation.org
+	b=lhjG5B+mrecEgauDy64nQicoYl7xk9UJsVkar546NkAJ8k+NAOg6jjPwiA8WBwbiD
+	 siz75LFa888Gh1Afnc895Byhjk0xTuuN6WggpVfrWo1ZJHb8b3SHIkBR7kNhutaYxf
+	 mvxOuAOd7HGceGvH751dRxQGxBKb718Y53BA6Xs8=
+Date: Mon, 23 Nov 2026 22:03:18 -0800
+To: mm-commits@vger.kernel.org,jarkko@kernel.org,
+	james.bottomley@hansenpartnership.com,dhowells@redhat.com,abc0eichs@qq.com,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124-for-gather-surplus-v1-1-231e5660f3d8@kylinos.cn>
-References: <20261124-for-gather-surplus-v1-1-231e5660f3d8@kylinos.cn>
-Subject: + mm-hugetlb-fix-nr_hugetlb-accounting-for-kept-surplus-folios.patch added to mm-new branch
-Message-Id: <20261124052135.78B1A1F000C0@smtp.kernel.org>
+In-Reply-To: <tencent_AFE15D698FFD4F18E16A6EF7CDA002D69806@qq.com>
+References: <tencent_AFE15D698FFD4F18E16A6EF7CDA002D69806@qq.com>
+Subject: + lib-asn1_encoder-fix-encoding-of-zero-oid-components.patch added to mm-nonmm-unstable branch
+Message-Id: <20261124060319.791E51F000CA@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,26 +56,15 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/hugetlb: fix NR_HUGETLB accounting for kept surplus folios
-has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb-fix-nr_hugetlb-accounting-for-kept-surplus-folios.patch
+     Subject: lib/asn1_encoder: fix encoding of zero OID components
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-asn1_encoder-fix-encoding-of-zero-oid-components.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-nr_hugetlb-accounting-for-kept-surplus-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-asn1_encoder-fix-encoding-of-zero-oid-components.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -89,55 +79,79 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Hongfu Li <lihongfu@kylinos.cn>
-Subject: mm/hugetlb: fix NR_HUGETLB accounting for kept surplus folios
-Date: Tue, 24 Nov 2026 12:41:02 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib/asn1_encoder: fix encoding of zero OID components
+Date: Fri, 20 Nov 2026 21:00:55 +0800
 
-Commit a11a13ebbc5d ("mm/hugetlb: account restored reservations before
-freeing folios") reworked the free path of gather_surplus_pages(): when
-the pool was resized concurrently, folios that are no longer surplus are
-kept and enqueued directly instead of being freed.
+asn1_encode_oid_digit() encodes a zero component as 0x80, which says
+another octet belongs to the same subidentifier.  If zero is the last
+component, the encoding ends with an unterminated subidentifier.  If
+another component follows, a decoder may consume its octets as part of the
+zero component instead.  For example, 1.2.0.1 becomes 06 03 2a 80 01: DER
+rejects it, while a permissive decoder may read it as 1.2.1.
 
-However, folios on the surplus list are accounted in NR_HUGETLB when
-allocated in alloc_surplus_hugetlb_folio(), and every other path that
-returns an already accounted folio to the free list decrements NR_HUGETLB
-first, as folios on the free list must not be counted.  The new enqueue
-branch skips that decrement, so the folio remains counted while on the
-free list, leaving NR_HUGETLB permanently overcounted by
-pages_per_huge_page for each kept folio.  Nothing corrects that later,
-whichever path the folio takes next.
+Encode zero as 0x00, the complete one-octet representation of a zero
+subidentifier.
 
-Fix this by decrementing NR_HUGETLB before enqueueing the folio, as done
-in the other enqueue paths.
-
-Link: https://patch.msgid.link/20261124-for-gather-surplus-v1-1-231e5660f3d8@kylinos.cn
-Fixes: a11a13ebbc5d ("mm/hugetlb: account restored reservations before freeing folios")
-Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
+Link: https://patch.msgid.link/tencent_AFE15D698FFD4F18E16A6EF7CDA002D69806@qq.com
+Fixes: b07067627cd5 ("lib: Add ASN.1 encoder")
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Muchun Song (ByteDance) <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: David Hildenbrand <david@kernel.org>
+Reported-by: zzz <abc0eichs@qq.com>
+Cc: James Bottomley <james.bottomley@hansenpartnership.com>
+Cc: Jarkko Sakkinen <jarkko@kernel.org>
+Cc: David Howells <dhowells@redhat.com>
 
- mm/hugetlb.c |    2 ++
- 1 file changed, 2 insertions(+)
+ lib/asn1_encoder.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-nr_hugetlb-accounting-for-kept-surplus-folios
-+++ a/mm/hugetlb.c
-@@ -2489,6 +2489,8 @@ free:
- 		 * count as persistent and we must keep them.
- 		 */
- 		if (!h->surplus_huge_pages_node[folio_nid(folio)]) {
-+			mod_node_page_state(folio_pgdat(folio), NR_HUGETLB,
-+					    -(long)pages_per_huge_page(h));
- 			enqueue_hugetlb_folio(h, folio);
- 			continue;
- 		}
+--- a/lib/asn1_encoder.c~lib-asn1_encoder-fix-encoding-of-zero-oid-components
++++ a/lib/asn1_encoder.c
+@@ -97,7 +97,7 @@ static int asn1_encode_oid_digit(unsigne
+ 
+ 	/* quick case */
+ 	if (oid == 0) {
+-		*data++ = 0x80;
++		*data++ = 0;
+ 		(*data_len)--;
+ 		goto out;
+ 	}
 _
 
-Patches currently in -mm which might be from lihongfu@kylinos.cn are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-hugetlb-charge-hugetlb-cgroup-and-memcg-in-alloc_hugetlb_folio_reserve.patch
-selftests-mm-mlock2-tests-fix-fclosenull-in-is_vmflag_set.patch
-selftests-mm-protection_keys-use-_exit-in-aarch64-ptrace-tracee.patch
-mm-hugetlb-fix-nr_hugetlb-accounting-for-kept-surplus-folios.patch
+kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize-fix.patch
+selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
+alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
+alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
+selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
+selftests-mm-allocate-nr_pages-based-on-pmd-size-for-uffd-pmd_move-tests-fix.patch
+selftests-mm-retain-move-pmd-coverage-and-verify-huge-pmds.patch
+lib-test_xarray-check-unused-spare-node-after-range-creation.patch
+mm-memory-failure-dont-unpoison-a-leaked-raw_hwp_unreliable-folio-fix.patch
+mm-vmstat_kunit-add-synthetic-benchmark-for-mm-stats-fix.patch
+lib-test_hmm-invalidate-all-mirrors-on-device-private-migration.patch
+lib-test_hmm-invalidate-all-mirrors-on-device-private-migration-fix.patch
+mm-prevent-pre-content-bypass-through-mremap-and-remap_file_pages.patch
+mm-madvise-notify-userfaultfd-when-installing-guard-regions.patch
+afs-do-not-put-error-pointer-after-address-lookup-failure.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-2.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-3.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-4.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-5.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-6.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-7.patch
+fuse-let-memory-failure-remove-poisoned-page-cache-folios.patch
+nilfs2-report-mapping-errors-from-fsync.patch
+ceph-preserve-data-writeback-errors-in-fsync.patch
+ocfs2-unregister-the-jbd2-shrinker-before-journal-shutdown.patch
+ipc-msg-clamp-negative-msg_info-usage-counts.patch
+squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix.patch
+squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index-fix.patch
+ocfs2-skip-network-flush-when-no-domain-handlers-are-registered.patch
+selftests-ptrace-check-that-ptrace_set_syscall_info-rejects-invalid-error-values-fix.patch
+jfs-validate-xattr-entry-bounds-before-replacing-an-attribute.patch
+proc-serialize-task-owner-updates.patch
+lib-asn1_encoder-fix-encoding-of-zero-oid-components.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
