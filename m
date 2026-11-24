@@ -1,50 +1,50 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795540999;
-	b=hz9ZcTNGegLSijDOYLyhGSz0J8cvJ27rj4nlUqG8hej7IA3qPFo1XNNQow6RIFhN3+D4
-	 A53FPvxlabRlFr9tUgN/m0HX35vx6duGqnCXdanp6ozP/Z+OCSQGedAE5isl4I0J49BOH
-	 V1THE1rMqI8tduKP8p/++s6n7G1NC+NJGfhO7DmC6eziVZ7XKvUDf76SzFZJl7L/0uoel
-	 24Z+RN+X0u3WB9mZZqzufQ4GqX6A5VYTvchyOMYHPws7uons+tuYjSpw0PhHRtXxlRx9Q
-	 dDS/5qub1GwCMQ3WudKTOMGk73AcXhNzLP+KKF9fZPpmwXCRsKMJycfkPNoJaCQnEKg==
+	t=1795541001;
+	b=oArO7BwlDkavUAvOe/Ewe4DKzfjoD6lYrZQkw3/zGtRsfb2cK/aGnFh7ZXbAELxeel++
+	 JI6EvnQxNK3shKOMJkNRikliPe4DV3QBv55GKO/BmrzUhQ3gsQOUuU88XhyXi5wrYYiSm
+	 vtOA6GZCxKw0WvrGBkzuhfiUXf7LJm2i09N2VqHCDs5/CBbXIKOzMYGZc08bZ0jagyB6O
+	 GaB/NID9qrIOz1fy33Difm8a6aeOJfI18gdau8lExJznxL7sR0dK2p4FdyWJQpZVEjPDE
+	 tMw9LtNHRqGoQotIcGizQvpWoRM9WdeJ5+J0DY815+o4DGnq8ztWhr29xkBHtPSz3pw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795540999;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795541001;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=0sF6w2sasLdpNesEoG3Yv51HjwkPgIFS5sSdL6yIBs4=;
-	b=2xMTN6ooUFojEs9rLfD8tHVCnH9sVqI6UOO26UIFYKUspaKvW/vsWiI8f2Gbm/7uNuKf
-	 0faZqNc8l0OghgTdh4pFgQrSPbRauD92lQzKV5kCzMkOpI8/eHW/8EomK0Euky9ukePEi
-	 591ZUNXQMDA2GnO1uTHTwpIMa52P6VQhVnY6Bhr9LJ6FccstGZx2ttFdnrN2gTfcLEm7A
-	 sq8WJ+XKjWZToWU/+sLVaF4G+JgwhJjdA3Tp1dxhGrt8MotWBHLy5tHn5FMd1QosSsyci
-	 xfTjL84rp8iZraBNw7AbsRNPNX/7mg5RpvOqkwMzttZ6aT475hpjcJW8gvZFWPDvjTw==
+	bh=XzaSqdq5YAujlo+HYojox1+GWaWmU0jt2k8AfgpCNXo=;
+	b=yx9oM6+o5nW+wSJGCfAYaYHkhhHmIM7qK5ep/2NqSePtcvq/Cwmc50DCFlUkatw++oL8
+	 2Az27ft4adNaaC0H7lEZ/RupQgv5Trw9MOTDAKVfl5+HY3tzRBWgN/+hHWtDLfIB4cPje
+	 WOxCb7p6AAGFK20sU2dakomfM1E0OG5m3m4OT8yc3Br1qlaJPq6vH8Gtuk6SYWKLEdviU
+	 kZbtOPLlNu5D088LkARYjx8V/vAAMy/zSbPgAyTNDyoCfDqC37kRyJ+2CPoCjztkchSLp
+	 wJyXiamn7jUGQBHs5TyzyD1apL6BSnNSFCxTbZY2wCH//m18HRA5HTzt7FSabfWPj+g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=afkSJQoC;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=UWgJbW8Y;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69412606A32A
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:23:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96654606A330
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:23:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=afkSJQoC
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0B161F008B2;
-	Tue, 24 Nov 2026 17:23:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=UWgJbW8Y
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43D931F000D1;
+	Tue, 24 Nov 2026 17:23:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795540998;
-	bh=0sF6w2sasLdpNesEoG3Yv51HjwkPgIFS5sSdL6yIBs4=;
+	d=linux-foundation.org; s=korg; t=1795541001;
+	bh=XzaSqdq5YAujlo+HYojox1+GWaWmU0jt2k8AfgpCNXo=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=afkSJQoCWkAnbpxjyQSqtFuSHXUjf9LkrJzNvV70XB86o1imVJdMmifEy9o6jY7/m
-	 dzqNOMHhSQo7iTE3P6cnw0XWvEGYvkSE280/7rOqB4E2G1N3/T7etnNnTx8FJX0clC
-	 DtuYqkV97/6FNY2nUpTAY9qzAOhFRFrN+0yINvgs=
-Date: Tue, 24 Nov 2026 09:23:18 -0800
+	b=UWgJbW8Ydk3d2ZnsQXljYnBEt1SgWeDzNBNrTPjGSEcrbzj6VST1zhcrCMrRWasiS
+	 EmaMnGPlw/eTUkw5M9R1szeRloywaCGuyRmhAWNBTht/FYFk3dF5+lpx9ozTwLL3FM
+	 NrObFohFYUcvDVlwCbsh10SHc9/RQlhvKPw8z4Mg=
+Date: Tue, 24 Nov 2026 09:23:20 -0800
 To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,
 	rdunlap@infradead.org,lianux.mm@gmail.com,jm5905938@gmail.com,corbet@lwn.net,
 	sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124153636.91854-10-sj@kernel.org>
-References: <20261124153636.91854-10-sj@kernel.org>
-Subject: + docs-mm-damon-design-update-for-report-system.patch added to mm-new branch
-Message-Id: <20261124172318.A0B161F008B2@smtp.kernel.org>
+In-Reply-To: <20261124153636.91854-11-sj@kernel.org>
+References: <20261124153636.91854-11-sj@kernel.org>
+Subject: + docs-admin-guide-mm-damon-usage-update-for-report-producer-sysfs.patch added to mm-new branch
+Message-Id: <20261124172321.43D931F000D1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,12 +56,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: Docs/mm/damon/design: update for report system
+     Subject: Docs/admin-guide/mm/damon/usage: update for report producer sysfs
 has been added to the -mm mm-new branch.  Its filename is
-     docs-mm-damon-design-update-for-report-system.patch
+     docs-admin-guide-mm-damon-usage-update-for-report-producer-sysfs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-update-for-report-system.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-update-for-report-producer-sysfs.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -91,12 +91,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: update for report system
-Date: Tue, 24 Nov 2026 07:36:15 -0800
+Subject: Docs/admin-guide/mm/damon/usage: update for report producer sysfs
+Date: Tue, 24 Nov 2026 07:36:16 -0800
 
-Update DAMON design for the data attribute report system.
+Update DAMON usage document for the newly added report producer control
+sysfs files.
 
-Link: https://patch.msgid.link/20261124153636.91854-10-sj@kernel.org
+Link: https://patch.msgid.link/20261124153636.91854-11-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Aveline Noir <jm5905938@gmail.com>
@@ -105,44 +106,60 @@ Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Shuah Khan <skhan@linuxfoundation.org>
 
- Documentation/mm/damon/design.rst |   26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ Documentation/admin-guide/mm/damon/usage.rst |   35 +++++++++++++++++
+ 1 file changed, 35 insertions(+)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-update-for-report-system
-+++ a/Documentation/mm/damon/design.rst
-@@ -356,6 +356,32 @@ monitoring.
- Refer to the :ref:`admin guide <damon_usage_sysfs_probes>` to know how users
- can use the mode.
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-update-for-report-producer-sysfs
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -118,6 +118,10 @@ comma (",").
+     │ │ │ │ │ │ ...
+     │ │ │ │ ...
+     │ │ ...
++    │ reports/
++    │ │ producers/nr_producers
++    │ │ │ 0/report_type,producer_state
++    │ │ │ ...
  
-+.. _damon_design_attr_reporting:
-+
-+Data Attributes Reporting
-+~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+DAMON-external entities such as other kernel components and users may have
-+special data attribute information.  DAMON provides a system that let them
-+report such information to DAMON.
-+
-+DAMON provides the kernel API for submitting a report of data attribute
-+information to DAMON.  A report describes what type of the report is,
-+representing the reporting data attribute type.  A report also describes the
-+address range of the memory that the report is made for.  Depending on the
-+report type, the report can have additional information.  The report is saved
-+in DAMON's internal queue.  The queue is automatically managed by DAMON with
-+its best effort.
-+
-+DAMON provides the user :ref:`ABI <damon_usage_sysfs_reports_producers>` for
-+configuring report producers.  Each producer is configured for a specific
-+report type.  Users can dynamically enable and disable those.  When enabled, it
-+can generate and submit reports of the given type.  The generations and
-+submissions could be done automatically by the kernel or manually by the user,
-+depending on the type of the report.
-+
-+For now, no report type is supported.
-+
- Dynamic Target Space Updates Handling
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ .. _sysfs_root:
  
+@@ -732,6 +736,37 @@ Please note that it's highly recommended
+ <https://github.com/damonitor/damo>`_ rather than manually reading and writing
+ the files as above.  Above is only for an example.
+ 
++.. _damon_usage_sysfs_reports_producers:
++
++reports/producers/
++------------------
++
++Under the `admin/` directory, ``reports/producers/`` directory exists.  This
++directory is for configuring :ref:`DAMON report producers
++<damon_design_attr_reporting>`.  The file below exists in the directory.
++
++``nr_producers`` file is for generating report producers setup files.  Writing
++an integer ``N`` to the file creates the number of directories named ``0`` to
++``N-1``.  Each number-named directory is for configuring each report producer
++and called "producer directory".
++
++reports/producers/<N>/
++----------------------
++
++Files below exist in each producer directory.
++
++``report_type`` file is for setting the type of the report to produce.  Users
++can set the type by writing the type name to the file.  Reading the file shows
++the last successfully written input.  Refer to the :ref:`design document
++<damon_design_attr_reporting>` for the list of supported report types.
++
++``producer_state`` file is for reading and updating the state.  Reading it
++shows ``on`` or ``off`` if the producer is enabled or disabled, respectively.
++Users can write below keywords for the producer to the file.
++
++- ``on``: Enable the producer.
++- ``off``: Disable the producer.
++
+ .. _tracepoint:
+ 
+ Tracepoints for Monitoring Results
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
