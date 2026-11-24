@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795481708;
-	b=MmQ9V5cHmvxO0b2QWuujEJVtXQl+Vfwh/RbxamFdOeSLDy0b/3dkbrLmEiwW6aR23ajY
-	 xDoHjW3t4Z02h6FWLSlA01Q46N17dzjxFGf/9aRqvmovrOJkT3sohZQa5atcNDsEWD+c6
-	 qnceFb8PyJpavankE2qmsvA8BI2IcPrSUQIAc5HuYsNXg1u6nkyi2oi7MumlVu4FRzyiI
-	 907jtMmxSW1Leegrf85y8Vm4Bgj91Wio3icLWSbYqB3DnA3Ba+dqAIiIuuj/D6lRx+wDD
-	 qGjT0H7o3yvx515MDl0XimPhx44/nhb1wVDS3ocTOL8MppHxtDVEeDWPCaK8fnLsYtw==
+	t=1795481818;
+	b=HKjpBQbS0URRFOpMnkQZt22XiYMjv6EYox1+Jf9vmT4LVtSDTsSvZItgnJwBAam0j7c9
+	 v0/IEBK07bglygwU7MMgpiai3rJYKignTiMOv6NL/3meXRXJC7XJaajGvA4bnpX/kPrqA
+	 pwztEqalDSDMl3rmWXsD8WFtDwjSH1UK/qKAUZJOqsZi+MULskdYM/yrU4Rvi/HNmpr2h
+	 Qed0nsgs4Vecafli5AXUp0DEKUpJnl1z2EY7ntpYH0YOsBiBTqubqSUJH5iZmLyWqAK7P
+	 6JJjT4gPEZDgn82XkiIEQoYDDNQvGSSIuN3a7041TESGXzb/smta12f3zCJ6RfcRMmA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795481708;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795481818;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=RD08CzD2D1Kj9R+1/GI4+mYhloBcDBB3THxi6rLVnCQ=;
-	b=tLbxHL+Dg9teiNxx+daP/KJuuS5FPI44KyVum4y0aqm4fIuEqQ7poA+0PRAQrfZkKrYn
-	 jOHBiq1ONnv0RT2PN6RoqC9TbVOgLnOUGEE9cJKs6rmwjvI66rvXdypduJghGlp/1rQae
-	 adHt5wPLivhJDh24wtLTz68KU+J8LV0Br75cO27tIz/sYKq8Ul2gnWkcG9opulmf2kURQ
-	 7BCkex1Xel82iQyb8EH1Z74NIsVpdvWgEyAy3HeNHP5AgBMkFEiVBhSkI9K+9NqaSeyZI
-	 owvmQoIHMXx64oBozd9P+tiJ7J+yhUZycR2Mp/M0HkqE7Ja5khRHwX3RfOn3umlMp9Q==
+	bh=xwavzPqBlYOEGbind+t7fNwhd7VGlp6kvnLrYr/3288=;
+	b=zN0p+IYzKZ3QhVBEyKLvs2MrB8bV0sJa3jW1yE3xINvUQUT+Uz1Ci8t0lwEKavdMeXDb
+	 tUfXkkFEXemgmd2+xiK8LSZPicomCR+eT3eQ8CyoBpJqhb+D6xVQiPDiN1k1kPRbAE2M7
+	 /5r2JWbfnAVUmX6YmZcCElWYEvJgVUOIh1dG2Q6BpYTrdJCl7q9DubIEYjJDmgGF3Wp0N
+	 7U2zLdhHuM8VC9QqewmDLSXr1+/zZLmECiFJ5mdoDwpfIeVAgf1CU/6bxCgG7Vwngdqiq
+	 wX/uHqDguyCgDpki5Jeg3E8jnJwR7VB7/N0B+YEnnxt0bEVzxU0ZyFeJ6/pjyzM+UAw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="0iqtgdz/";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=BayJwELy;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0A24606A321;
-	Tue, 24 Nov 2026 00:55:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FC5A606A321
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 00:56:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=0iqtgdz/
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE2611F000C4;
-	Tue, 24 Nov 2026 00:55:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=BayJwELy
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D22ED1F000C0;
+	Tue, 24 Nov 2026 00:56:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795481708;
-	bh=RD08CzD2D1Kj9R+1/GI4+mYhloBcDBB3THxi6rLVnCQ=;
+	d=linux-foundation.org; s=korg; t=1795481818;
+	bh=xwavzPqBlYOEGbind+t7fNwhd7VGlp6kvnLrYr/3288=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=0iqtgdz/9bxcQmJXY5MQ2rB1CJcM/64a4i7CS2xCM57nosoCbJbRwoUK6vjnt5YNg
-	 QXDbei/GiAvU55UzeInlBZIKAzr8Bb5QdixZ8DHj9n3XIPPYCzRO5icAF2VVVsQ6JM
-	 UfYUy0ByotQwKWG7TxFSogQof9YaIg779aOVaZzI=
-Date: Mon, 23 Nov 2026 16:55:07 -0800
-To: mm-commits@vger.kernel.org,tj@kernel.org,stable@vger.kernel.org,
-	roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,
-	mhocko@kernel.org,hannes@cmpxchg.org,shakeel.butt@linux.dev,
-	akpm@linux-foundation.org
+	b=BayJwELyOuLqSmzkHlqCYt2StNuKbfxDHb6zCfKEUedljInGgOHzRXIBgcjcRrm1b
+	 CXbA0UCXWbX1r/thko5l4Innd1OFynZOeEnRczlAKCSLja1lgQyzq3M9jBtSnBB8Ty
+	 zFz/JjV03k3R8AowCxfYocLZQ6HIOiIyQ/FriwIg=
+Date: Mon, 23 Nov 2026 16:56:57 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
+	sj@kernel.org,shakeel.butt@linux.dev,pfalcato@suse.de,mawupeng1@huawei.com,
+	liam@infradead.org,jannh@google.com,dingf3ng@gmail.com,david@kernel.org,
+	ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124000439.967403-1-shakeel.butt@linux.dev>
-References: <20261124000439.967403-1-shakeel.butt@linux.dev>
-Subject: + memcg-free-the-private-id-of-a-memcg-that-never-comes-online.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261124005507.EE2611F000C4@smtp.kernel.org>
+In-Reply-To: <20261120-msync-enomem-fix-v1-1-80282c8c5beb@kernel.org>
+References: <20261120-msync-enomem-fix-v1-1-80282c8c5beb@kernel.org>
+Subject: + mm-msync-return-enomem-if-page-aligned-length-overflows.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261124005657.D22ED1F000C0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -57,12 +57,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: memcg: free the private ID of a memcg that never comes online
+     Subject: mm/msync: return -ENOMEM if page-aligned length overflows
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     memcg-free-the-private-id-of-a-memcg-that-never-comes-online.patch
+     mm-msync-return-enomem-if-page-aligned-length-overflows.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-free-the-private-id-of-a-memcg-that-never-comes-online.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-msync-return-enomem-if-page-aligned-length-overflows.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -80,82 +80,68 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: free the private ID of a memcg that never comes online
-Date: Mon, 23 Nov 2026 16:04:39 -0800
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: mm/msync: return -ENOMEM if page-aligned length overflows
+Date: Fri, 20 Nov 2026 10:59:56 +0000
 
-mem_cgroup_alloc() reserves the private ID of a memcg when its css is
-allocated.  The ID is erased when the last reference to it is put, and
-that reference is first taken in mem_cgroup_css_online().  The failure
-paths of mem_cgroup_alloc() and mem_cgroup_css_online() erase the ID
-themselves.
+Currently the msync() system call will simply return 0 if you provide a
+length parameter which, when page-aligned (rounding up) overflows (i.e.
+SIZE_MAX - n, where n is in the range [0, PAGE_SIZE - 1).)
 
-But css_create() can also fail after css_alloc() and before online_css():
-in percpu_ref_init(), cgroup_idr_alloc() or css_rstat_init().  The memcg
-is then freed through mem_cgroup_css_free() without ever coming online,
-and nothing erases its ID.  The reserved entry stays in
-mem_cgroup_private_ids for good, and each such failure takes one of the
-65,535 IDs away.  With failslab failing radix tree node allocations during
-mkdir, 1,500 mkdirs leaked 6 IDs this way.
+This requires broken input, and nobody has complained about this, but for
+correctness this should really return -ENOMEM, so do so.
 
-Erase the ID in mem_cgroup_css_free() if the memcg never came online,
-which is when (memcg->css.flags & CSS_RELEASED) will be false: it is only
-set when an fully onlined memcg is released.
+Also, since error is assigned within the following loop, remove the
+unnecessary assignments prior to it.
 
-Link: https://patch.msgid.link/20261124000439.967403-1-shakeel.butt@linux.dev
-Fixes: 73f576c04b94 ("mm: memcontrol: fix cgroup creation failure after many small jobs")
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Link: https://patch.msgid.link/20261120-msync-enomem-fix-v1-1-80282c8c5beb@kernel.org
+Link: https://lore.kernel.org/linux-mm/20230321074035.1526157-5-mawupeng1@huawei.com/
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: <stable@vger.kernel.org>
+Reported-by: Ding Feng <dingf3ng@gmail.com>
+Closes: https://lore.kernel.org/linux-mm/20261120051413.46167-1-dingf3ng@gmail.com/
+Reviewed-by: SJ Park <sj@kernel.org>
+Reviewed-by: Wupeng Ma <mawupeng1@huawei.com>
+Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Jann Horn <jannh@google.com>
 
- include/linux/cgroup.h |    5 +++++
- mm/memcontrol.c        |    7 +++++++
- 2 files changed, 12 insertions(+)
+ mm/msync.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
---- a/include/linux/cgroup.h~memcg-free-the-private-id-of-a-memcg-that-never-comes-online
-+++ a/include/linux/cgroup.h
-@@ -449,6 +449,11 @@ static inline bool css_is_online(struct
- 	return css->flags & CSS_ONLINE;
- }
- 
-+static inline bool css_is_released(struct cgroup_subsys_state *css)
-+{
-+	return css->flags & CSS_RELEASED;
-+}
-+
- static inline bool css_is_self(struct cgroup_subsys_state *css)
- {
- 	if (css == &css->cgroup->self) {
---- a/mm/memcontrol.c~memcg-free-the-private-id-of-a-memcg-that-never-comes-online
-+++ a/mm/memcontrol.c
-@@ -4525,6 +4525,13 @@ static void mem_cgroup_css_free(struct c
- 	irq_work_sync(&memcg->high_irq_work);
- 	cancel_work_sync(&memcg->high_work);
- 	free_shrinker_info(memcg);
-+
-+	/*
-+	 * The css_create() error path bypasses normal CSS release, leaving
-+	 * CSS_RELEASED clear. Drop any private ID that is still reserved.
-+	 */
-+	if (!css_is_released(css))
-+		mem_cgroup_private_id_remove(memcg);
- 	mem_cgroup_free(memcg);
- }
- 
+--- a/mm/msync.c~mm-msync-return-enomem-if-page-aligned-length-overflows
++++ a/mm/msync.c
+@@ -46,14 +46,12 @@ SYSCALL_DEFINE3(msync, unsigned long, st
+ 		goto out;
+ 	if ((flags & MS_ASYNC) && (flags & MS_SYNC))
+ 		goto out;
+-	error = -ENOMEM;
++	if (!len)
++		return 0;
+ 	len = (len + ~PAGE_MASK) & PAGE_MASK;
+ 	end = start + len;
+-	if (end < start)
+-		goto out;
+-	error = 0;
+-	if (end == start)
+-		goto out;
++	if (end <= start)
++		return -ENOMEM;
+ 	/*
+ 	 * If the interval [start,end) covers some unmapped address ranges,
+ 	 * just ignore them, but return -ENOMEM at the end. Besides, if the
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from ljs@kernel.org are
 
-memcg-free-the-private-id-of-a-memcg-that-never-comes-online.patch
-memcg-move-memoryhigh-enforcement-out-of-try_charge_memcg.patch
-memcg-force-charges-from-reclaim-before-trying-the-limits.patch
-memcg-use-high_work-for-kernel-threads.patch
-memcg-use-high_work-for-remote-charges.patch
-memcg-simplify-high-limit-handling-after-a-charge.patch
+mm-msync-return-enomem-if-page-aligned-length-overflows.patch
+mm-vma-predicate-vma_assert_stabilised-on-config_debug_vm.patch
+mm-only-assert-mmap-locks-if-config_debug_vm-or-lockdep-is-set.patch
+mm-only-assert-vma-locks-if-config_debug_vm-is-set.patch
+mm-convert-warn_on_onces-to-vm_warn_on_once-in-vma-lock-code.patch
+mm-madvise-zap-markers-from-guard-regions.patch
 
