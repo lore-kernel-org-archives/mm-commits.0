@@ -1,49 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795541016;
-	b=3TeOPlV06Ye914XJ9n5IGVsKjIUxcakz4J+GeSYmG3LU7cGHVXtru4pl1PpPD19tJYMj
-	 rDUmIWv4rn8ODfFWM6a78P7XzM3iu8kzWxOoNW9zPSyJyqfIbRfZ1FR9m8OD0E6FPScVO
-	 pLwqJN7MxnXGWknNfMhUrkLbCGA1GL7In5K3zv0QTPiKTE2AkS28go6dnPZNQZMIt7B88
-	 UpsOiJdrMKwPomBTWvxq7MSxlD0ZLaNZmiEPxZIOZkfkA0LgPQRln9KbOQFwYKyZzWT+B
-	 xzPpoRyIHhsn+YESKYxMv9lDTB7+0y+Tg6ip6W1BTYbrn0fRtyLXX6O3sk69j+89AHQ==
+	t=1795541019;
+	b=jRCcirEeUqUZ3fbCLH4LI7Yk3FjEPRE2nNPCLX3RcdVlsodJ5gkHdeUHgDvj9yZncEN6
+	 3SBViAnAbkce/UrmekVlMKNWhYqCjEk1V8SXmpp2vIS6c21na+iKQtn5ch7DRM1zp3set
+	 Y/0CFEnCk6DqPXyzoMmdb+et9U2BgSNbK0+cCjbD0Sd7gax77kN0oNKooEqJddwkCRUxw
+	 GK6Xlm5qY4YI7EpKOgMQEQqlCRq+pxcmRAR/BPQVhv7bmRwpHXiz5puZqHRJK/JJn4uhF
+	 shhWnBbILW8PMv9JA4IpT1wZDSJesbZ8YbRXvIribXNCvZgPMXE41b7TNEEWUAfAaRg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795541016;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795541019;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=UsW0cPC/qK+H+KE6UowOWycQb9Nbq4d6mTTmo5kNKTw=;
-	b=VjpmZA3L8EYg++bxbKU+gO5c5mZ4PzBPaqgKScUoEP8MQzHdDEgfMyJkPpfZSkqM8C9o
-	 iR0trVxCv6jnMYeGJjBm/ORfY5q8cWqlyjBSf0fgdPj+0nwxUeePW5Jk2GAat93r4wOWh
-	 w516LNm8VCMlucMlCNrh9RZW7p39ArNIIfdhlZnSMqk9DwbYUc/KKAqJ0I8t5zad02kAi
-	 U/F2tYqH9rP0oPztMaeXsNzuQ6VO8oF7Dl1QmMVFDG9PJn/slAeY4fYR8sc7RM3DEdIaB
-	 0w0yR0o6jXmDh9DPTDPCqCbEv1LW8E2p2KAG2eHih/AFzXl3s6ySvGx4RG79T/SoIxw==
+	bh=5PatFB8u+t9EsFRRTIFFtcl0TPmRz7GpaN4sxpKdhlw=;
+	b=INDhbj8sNOU579fuVQZd3TpxR8csh/mHxT0uC+MA5SKXNNRhXvr6v3IM6wqzF8OiQant
+	 aaqzP6FKvGTvD9Rc5Amr9lt+Wjd9BM4GVPyx7aFBBG2M7yPzx3t3iWSjZfqxlSnyPSI5Z
+	 1m9f1G3Kf9ob/MdtfnsUth06xNKDv63rXZS5XfAid5//Lc4eevJZODMGlWlvMYa36Im05
+	 EJSe3uUYiN1p5/iIkErCVWuAjvdUW8vrTTZPY73FTJFuR2fbFvWY/bqyGVHYM4weFXzeS
+	 I8TypKGQswOC7BaU3kAMeNkRHr282cQtMSA0C+JkF6V6HH+2c8SmeOzggWNTswt68zQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2kEJD6JL;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=sib2EM7L;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE056606A31E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:23:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A151606A321
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:23:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2kEJD6JL
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 460BD1F000C4;
-	Tue, 24 Nov 2026 17:23:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=sib2EM7L
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DE111F000CF;
+	Tue, 24 Nov 2026 17:23:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795541016;
-	bh=UsW0cPC/qK+H+KE6UowOWycQb9Nbq4d6mTTmo5kNKTw=;
+	d=linux-foundation.org; s=korg; t=1795541019;
+	bh=5PatFB8u+t9EsFRRTIFFtcl0TPmRz7GpaN4sxpKdhlw=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=2kEJD6JLl9lXzx/C8KYCo2Mkg53kcMXJVswUxDYMD/KT9cjkDT+PFmykOeI/I53L1
-	 e0+L8rBxvim+fJkyCW5fCWnPN3IRPyybEL+6XFwnu6FvxOaQm8J5YNDqv8MmRXZ6mZ
-	 HP++2MXwGkzn3k9WRHw4HLSxX/owAj82zsFoLOm0=
-Date: Tue, 24 Nov 2026 09:23:35 -0800
+	b=sib2EM7LlD0uGmgGFEmyJGyW1cE79lEuwPheXvCnOlP5stEHydV31NWKKrzs7H/Bx
+	 QAvFHjrsURPm/EbRkSSEwxH16tTiILxd9gy1WPNueKImwfpSuZGjJngEoKbwk1D/kw
+	 k0KwnnQu1LTWZalbCb+u+NBoqdI5OXpgde9H8Fzg=
+Date: Tue, 24 Nov 2026 09:23:38 -0800
 To: mm-commits@vger.kernel.org,lianux.mm@gmail.com,jm5905938@gmail.com,
 	sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124153636.91854-16-sj@kernel.org>
-References: <20261124153636.91854-16-sj@kernel.org>
-Subject: + mm-damon-sysfs-add-filter_report_type-file-under-probe-filter-directory.patch added to mm-new branch
-Message-Id: <20261124172336.460BD1F000C4@smtp.kernel.org>
+In-Reply-To: <20261124153636.91854-17-sj@kernel.org>
+References: <20261124153636.91854-17-sj@kernel.org>
+Subject: + mm-damon-sysfs-support-report_made-type-probe-filter-setup.patch added to mm-new branch
+Message-Id: <20261124172339.2DE111F000CF@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/damon/sysfs: add filter_report_type file under probe filter directory
+     Subject: mm/damon/sysfs: support REPORT_MADE type probe filter setup
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-add-filter_report_type-file-under-probe-filter-directory.patch
+     mm-damon-sysfs-support-report_made-type-probe-filter-setup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-add-filter_report_type-file-under-probe-filter-directory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-support-report_made-type-probe-filter-setup.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -90,122 +90,44 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs: add filter_report_type file under probe filter directory
-Date: Tue, 24 Nov 2026 07:36:21 -0800
+Subject: mm/damon/sysfs: support REPORT_MADE type probe filter setup
+Date: Tue, 24 Nov 2026 07:36:22 -0800
 
-Add a sysfs file, filter_report_type, under probe filter directory.  It
-receives damon_report_type from the user.  Reuse
-damon_sysfs_report_type_name struct for user keyword matching.  Move the
-definition instead of forward declaration, as the code change is small
-enough at this stage.
+Accept user keyword "report_made" to probe filter type file.  Set the
+damon_filter->type as REPORT_MADE for the input.  Setup
+damon_filter->report_type with the filter_report_type user input.
 
-Link: https://patch.msgid.link/20261124153636.91854-16-sj@kernel.org
+Link: https://patch.msgid.link/20261124153636.91854-17-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Aveline Noir <jm5905938@gmail.com>
 Reviewed-by: Lian Wang <lianux.mm@gmail.com>
 
- mm/damon/sysfs.c |   61 ++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 52 insertions(+), 9 deletions(-)
+ mm/damon/sysfs.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-add-filter_report_type-file-under-probe-filter-directory
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-support-report_made-type-probe-filter-setup
 +++ a/mm/damon/sysfs.c
-@@ -977,6 +977,7 @@ struct damon_sysfs_filter {
- 	char *path;
- 	unsigned long range_min;
- 	unsigned long range_max;
-+	enum damon_report_type report_type;
+@@ -1016,6 +1016,10 @@ damon_sysfs_filter_type_names[] = {
+ 		.type = DAMON_FILTER_TYPE_ACTIVE,
+ 		.name = "active",
+ 	},
++	{
++		.type = DAMON_FILTER_TYPE_REPORT_MADE,
++		.name = "report_made",
++	},
  };
  
- static struct damon_sysfs_filter *damon_sysfs_filter_alloc(void)
-@@ -1175,6 +1176,53 @@ static ssize_t max_store(struct kobject
- 	return err ? err : count;
- }
- 
-+struct damon_sysfs_report_type_name {
-+	enum damon_report_type type;
-+	char *name;
-+};
-+
-+static const struct damon_sysfs_report_type_name
-+damon_sysfs_report_type_names[] = {
-+};
-+
-+static ssize_t filter_report_type_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
-+{
-+	struct damon_sysfs_filter *filter = container_of(kobj,
-+			struct damon_sysfs_filter, kobj);
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(damon_sysfs_report_type_names); i++) {
-+		const struct damon_sysfs_report_type_name *type_name;
-+
-+		type_name = &damon_sysfs_report_type_names[i];
-+		if (type_name->type == filter->report_type)
-+			return sysfs_emit(buf, "%s\n", type_name->name);
-+	}
-+	return -EINVAL;
-+}
-+
-+static ssize_t filter_report_type_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
-+{
-+	struct damon_sysfs_filter *filter = container_of(kobj,
-+			struct damon_sysfs_filter, kobj);
-+	ssize_t ret = -EINVAL;
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(damon_sysfs_report_type_names); i++) {
-+		const struct damon_sysfs_report_type_name *type_name;
-+
-+		type_name = &damon_sysfs_report_type_names[i];
-+		if (sysfs_streq(buf, type_name->name)) {
-+			filter->report_type = type_name->type;
-+			ret = count;
-+			break;
-+		}
-+	}
-+	return ret;
-+}
-+
- static void damon_sysfs_filter_release(struct kobject *kobj)
- {
- 	struct damon_sysfs_filter *filter = container_of(kobj,
-@@ -1202,6 +1250,9 @@ static struct kobj_attribute damon_sysfs
- static struct kobj_attribute damon_sysfs_filter_max_attr =
- 		__ATTR_RW_MODE(max, 0600);
- 
-+static struct kobj_attribute damon_sysfs_filter_filter_report_type_attr =
-+		__ATTR_RW_MODE(filter_report_type, 0600);
-+
- static struct attribute *damon_sysfs_filter_attrs[] = {
- 	&damon_sysfs_filter_type_attr.attr,
- 	&damon_sysfs_filter_matching_attr.attr,
-@@ -1209,6 +1260,7 @@ static struct attribute *damon_sysfs_fil
- 	&damon_sysfs_filter_path_attr.attr,
- 	&damon_sysfs_filter_min_attr.attr,
- 	&damon_sysfs_filter_max_attr.attr,
-+	&damon_sysfs_filter_filter_report_type_attr.attr,
- 	NULL,
- };
- ATTRIBUTE_GROUPS(damon_sysfs_filter);
-@@ -2992,15 +3044,6 @@ static struct damon_sysfs_producer *damo
- 	return kzalloc_obj(struct damon_sysfs_producer);
- }
- 
--struct damon_sysfs_report_type_name {
--	enum damon_report_type type;
--	char *name;
--};
--
--static const struct damon_sysfs_report_type_name
--damon_sysfs_report_type_names[] = {
--};
--
- static ssize_t report_type_show(struct kobject *kobj,
- 		struct kobj_attribute *attr, char *buf)
- {
+ static ssize_t type_show(struct kobject *kobj,
+@@ -2336,6 +2340,8 @@ static int damon_sysfs_set_filters(struc
+ 		} else if (filter->type == DAMON_FILTER_TYPE_HUGEPAGE_SIZE) {
+ 			filter->range_min = sys_filter->range_min;
+ 			filter->range_max = sys_filter->range_max;
++		} else if (filter->type == DAMON_FILTER_TYPE_REPORT_MADE) {
++			filter->report_type = sys_filter->report_type;
+ 		}
+ 		damon_add_filter(probe, filter);
+ 	}
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
