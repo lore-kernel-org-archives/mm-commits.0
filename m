@@ -1,42 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795559255;
-	b=BKrbBenPeCH9MRNf+dE9s/B7Y6FFxgnx0bqdS48ARe8+UmKxHzl4gupJTsnCbEUzhL2z
-	 5JS5w2nepWX7lLiIysVHx7mkhXIYqrLTtpDce5St1EvHt//s2Op2Wa1kp9dj9NiUgNkJg
-	 S9kXPsSr4HbvuSby3dQxu/5QV8WpkvaEWxTLzoEguFcwBsFL8YJxa0jPiLgvLl6qIXBns
-	 +0O3/LMCemXgFum4tSFP8CpbInKXKgZFscUfmVk/M4JOXm9r1Yne9GlgX1RTP4AlaDnfl
-	 JcBZ/6XYH5yMG2mWVl0vfkO3AQCxl+Lbb85Fk0N8LSjLJc2rGHnIMaTOJoH4QkpLr9A==
+	t=1795559258;
+	b=inKYhYsGya+YMEt6ReYW0McYKiWpuMptwHgpH/EPXFMrzB35OLG6OvQBXRg8b7PC0r26
+	 oLEYGA5khUaBkj2OMkOvn4RM7+UHj56/Im6gVeaITvPfUq8obdVH9bQf4JD9AbkJK5K/K
+	 j9PbLtjg5RbEcPVSfxqB9Ucp7DCBrE2Fldd6e6WjsEoiOJdyxRAE6W0Lz/O660+JK01gt
+	 2Q77JZnmfp6n+dx8gcqQ6DqpKTa7DL7gB8rQgDhC/KU93+6QZmgKpEweUqB9kMx9hAhrv
+	 IQVQdHAuFlqfsGZ4KlhF8lq7w18zC/NtJiyIN7UG4AVnDOIEDJEbNazXauhgYSwvJyw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795559255;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795559258;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=9Q9tX/iVFPf/zzeK2ZxDcjtBdnywZAGjNA8dKM0Xqg8=;
-	b=3ykZ6+b9H6acaUAD2PC/Mm4Z8yfcBUMdELtewrW0dBV2Ibd145U1lp0LQbEGJJM2mJMn
-	 1+VGNRZJgkMfnxFQR6LcL6/i3YjW3qn6TdqpZo+X6Wh+TS9clR/Q0joKHKU3844So/Vpn
-	 iNRXdjy3VF2j6UfF0qxlALLw4n6ugFF/uAloUaA3/Z31qK3S0lZ0VvV768NtL727kXVhw
-	 9MfSCEQeL+tNii8ORoZAW6DQScCx17F7NdO/egTuE32QNlz5ezmiPCECQMYFDSQvHLylp
-	 mXbSNWxc+UAsA42JcgmEsTMOf90GQGPWl66o6+kgYghaszfyN72cwRK2GWKH+HNwzhw==
+	bh=iSpXgOY/BIhvtTEIjqhLCM37YAdDqV/wb3xXa6ugtJg=;
+	b=Np7ucRnPeHlDQp2J6loNWvfEnKPwoPfkmTOtXJXNXWmXwRKdTNwczvhfISlnwkA5CLz0
+	 Gi2Pg78bNi4Yr1KubOj9GD/3t38gV9Os0RsX8JRdaID/WVJ+LnaJPtSeO1r3mrK2zWBpg
+	 FZrnqsIoydDUOuM49JQ8aCIWiOfDkDrWK7XjRi1dGYI7sHOeqGGXU4wMmshl4R47GriXl
+	 C91K24TsyF3dUulz9B1OUE8yriegqfTeV47n+grlHdn5nYhs0hljJtnCSw6w08Fg4zI+D
+	 WztO2NFEnWCmKVCK3ArABW6BoXiqOyUasBCulfru3RHv1qoAYgWx2NUZ2r1Yn6uqgpw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="k/Coo9bS";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SAnCHx52;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 359B7606A31E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 22:27:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB7DB606A31E
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 22:27:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=k/Coo9bS
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58EE41F000CF;
-	Tue, 24 Nov 2026 22:27:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SAnCHx52
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3437C1F000C0;
+	Tue, 24 Nov 2026 22:27:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795559254;
-	bh=9Q9tX/iVFPf/zzeK2ZxDcjtBdnywZAGjNA8dKM0Xqg8=;
+	d=linux-foundation.org; s=korg; t=1795559257;
+	bh=iSpXgOY/BIhvtTEIjqhLCM37YAdDqV/wb3xXa6ugtJg=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=k/Coo9bS41b6ZIjIBQuOFwiAaX/YIh9Nb72nBTo8ot544jHwgH2409+StyFkJo26i
-	 t3XsWiJwuhVn4QxcJQihJAFVrnxmX6A6O2tgUFEI50ik7MDrdn8NL1FzwZb3f1OHuR
-	 Q3hYb+S2QzVsj/PuGD0gf3TYfnsMquCxpLgmwbkI=
-Date: Tue, 24 Nov 2026 14:27:33 -0800
+	b=SAnCHx52j8CN9MHutGAfHN2ZifLn4DAg9NfOgz2J65cO1PeDGrUerRbPPbRZzT3Sf
+	 NFuOCAQTyJqX33R6YWQ4Rs8IQwEo/mAjR/16hTVK/Umnz2lqcO8p/1CytxPGDy20O2
+	 QswSNpgS8A4Dhj1NlRAIYFk8MF1BeYsykRiDW6C8=
+Date: Tue, 24 Nov 2026 14:27:36 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
 	vbabka@kernel.org,usama.arif@linux.dev,usama.anjum@arm.com,surenb@google.com,
 	sfr@canb.auug.org.au,ryan.roberts@arm.com,rppt@kernel.org,pfalcato@suse.de,
@@ -50,10 +50,10 @@ To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
 	apopple@nvidia.com,aarcange@redhat.com,tz2294@columbia.edu,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261117-uffd-state-fixes-v3-5-b617009d1a4a@columbia.edu>
-References: <20261117-uffd-state-fixes-v3-5-b617009d1a4a@columbia.edu>
-Subject: + fs-proc-task_mmu-write-protect-device-private-thps-in-pagemap_scan.patch added to mm-new branch
-Message-Id: <20261124222734.58EE41F000CF@smtp.kernel.org>
+In-Reply-To: <20261117-uffd-state-fixes-v3-6-b617009d1a4a@columbia.edu>
+References: <20261117-uffd-state-fixes-v3-6-b617009d1a4a@columbia.edu>
+Subject: + mm-huge_memory-build-the-moved-huge-zero-pmd-from-the-destination-vma.patch added to mm-new branch
+Message-Id: <20261124222737.3437C1F000C0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -65,12 +65,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: fs/proc/task_mmu: write-protect device-private THPs in PAGEMAP_SCAN
+     Subject: mm/huge_memory: build the moved huge zero PMD from the destination VMA
 has been added to the -mm mm-new branch.  Its filename is
-     fs-proc-task_mmu-write-protect-device-private-thps-in-pagemap_scan.patch
+     mm-huge_memory-build-the-moved-huge-zero-pmd-from-the-destination-vma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-write-protect-device-private-thps-in-pagemap_scan.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-build-the-moved-huge-zero-pmd-from-the-destination-vma.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -100,32 +100,35 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: fs/proc/task_mmu: write-protect device-private THPs in PAGEMAP_SCAN
-Date: Tue, 17 Nov 2026 23:28:45 -0500
+Subject: mm/huge_memory: build the moved huge zero PMD from the destination VMA
+Date: Tue, 17 Nov 2026 23:28:46 -0500
 
-PAGEMAP_SCAN with PM_SCAN_WP_MATCHING write-protects a huge PMD through
-make_uffd_wp_pmd(), which handles a present THP and a migration entry
-but does nothing for a device-private THP. The PMD never gets the uffd
-bit.
+move_pages_huge_pmd() builds the destination PMD for the huge zero page
+by copying the source PMD and clearing its uffd bit, so the destination
+keeps the protection of the source.
 
-pagemap_thp_category() reports a non-present PMD without the uffd bit as
-written. A user tracking writes with async uffd-wp therefore sees every
-page of a device-private THP as written on every scan, whether it was
-written to or not. This requires a driver that migrates THPs to device
-memory.
+A source VMA registered for RWP can map the huge zero page with a
+PAGE_NONE PMD, and UFFDIO_MOVE does not check how the source is
+registered. The destination then gets a PAGE_NONE PMD without the uffd
+bit, although nothing asked for that in the destination VMA.
 
-A device-private PMD must be write-protected like any other huge PMD. To
-fix it, pass any valid PMD softleaf entry to set_uffd_wp_softleaf_pmd(),
-not only a migration entry. It downgrades a writable entry and sets the
-uffd bit. When the THP migrates back, set_pmd_migration_entry() carries
-the uffd bit over to the migration entry, so the write protection is
-kept.
+The next access fixes it up through the NUMA hinting fault path. Until
+then, the first access to the destination takes a spurious fault and GUP
+has to take the fault path. The impact on userspace is small.
 
-Link: https://patch.msgid.link/20261117-uffd-state-fixes-v3-5-b617009d1a4a@columbia.edu
-Fixes: a30b48bf1b24 ("mm/migrate_device: implement THP migration of zone device pages")
+The moved entry must have the protection of the destination VMA. To fix
+it, build the entry from the vm_page_prot of the destination VMA, as
+move_zeropage_pte() does for the small zero page, and keep marking it
+soft-dirty. A destination VMA registered for RWP still gets its PMD
+re-armed afterwards.
+
+Link: https://patch.msgid.link/20261117-uffd-state-fixes-v3-6-b617009d1a4a@columbia.edu
+Fixes: 763f43865fc4 ("mm: preserve RWP marker across PTE rewrites")
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Tested-by: Gregory Price (Meta) <gourry@gourry.net>
+Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Peter Xu <peterx@redhat.com>
@@ -157,26 +160,29 @@ Cc: Dev Jain <dev.jain@arm.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Usama Arif <usama.arif@linux.dev>
-Cc: Kiryl Shutsemau <kas@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Mikołaj Lenczewski <miko.lenczewski@arm.com>
 Cc: Breno Leitao <leitao@debian.org>
 
- fs/proc/task_mmu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/fs/proc/task_mmu.c~fs-proc-task_mmu-write-protect-device-private-thps-in-pagemap_scan
-+++ a/fs/proc/task_mmu.c
-@@ -2515,7 +2515,7 @@ static void make_uffd_wp_pmd(struct vm_a
- 		old = pmdp_invalidate_ad(vma, addr, pmdp);
- 		pmd = pmd_mkuffd(old);
- 		set_pmd_at(vma->vm_mm, addr, pmdp, pmd);
--	} else if (pmd_is_migration_entry(pmd)) {
-+	} else if (pmd_is_valid_softleaf(pmd)) {
- 		pmd = set_uffd_wp_softleaf_pmd(pmd);
- 		set_pmd_at(vma->vm_mm, addr, pmdp, pmd);
+--- a/mm/huge_memory.c~mm-huge_memory-build-the-moved-huge-zero-pmd-from-the-destination-vma
++++ a/mm/huge_memory.c
+@@ -2999,9 +2999,9 @@ int move_pages_huge_pmd(struct mm_struct
+ 		/* Follow mremap() behavior and treat the entry dirty after the move */
+ 		_dst_pmd = pmd_mkwrite(pmd_mkdirty(_dst_pmd), dst_vma);
+ 	} else {
+-		src_pmdval = pmdp_huge_clear_flush(src_vma, src_addr, src_pmd);
+-		_dst_pmd = move_soft_dirty_pmd(src_pmdval);
+-		_dst_pmd = clear_uffd_wp_pmd(_dst_pmd);
++		pmdp_huge_clear_flush(src_vma, src_addr, src_pmd);
++		_dst_pmd = folio_mk_pmd(huge_zero_folio, dst_vma->vm_page_prot);
++		_dst_pmd = move_soft_dirty_pmd(pmd_mkspecial(_dst_pmd));
  	}
+ 
+ 	/* Re-arm RWP on the moved PMD if dst_vma is RWP-registered. */
 _
 
 Patches currently in -mm which might be from tz2294@columbia.edu are
