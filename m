@@ -1,50 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795513842;
-	b=DTiF0VPyxbYxEZ0rcSZvpJO7QSJr12bP1pPyPSwDJSse8kMwDFzmwbKNpqL0P880H3uE
-	 iTh2qv4fNvXGZLsmsMsbyTLYG1/GPVKWbVK21CwmZIVIesRvK2pcAUSEo/O/ENlcfxYD7
-	 +9/qp3UNojxSSEgeV3giiTyLAtviahuSEmp3aBkV6+Ailx8CmoYs3tH2lyAh01XsXK9L8
-	 ZJbkBpXWZ/b3yw7SZ9Eud+YtvuxLLLnnNFa7bQtFRJk/zicgDQpRluo89KX/9QkS48bht
-	 mURJ1aj9YocV1GCzKBOlmDPtP46413Dc1U3zWcyN70sOwoV4zuPSzUtWnK22qzOdPLw==
+	t=1795514049;
+	b=4ccvmPrJvU7+vTMCStnfFnAR73weZs796KHEqkBett30jkrdHvclNHkVJKL/HWlaDIth
+	 AsDnZfYQBCoAji3IalOcTqN8ROt3BFB3dfwKeA5gh71pW8A8KVy5IewsFSZ2KthD0qR4i
+	 h/4TkeToyumXjbvscmClmaIGZW4x1kYzbz6q7VP5ZiS/bAHWVIMG2frbM7+IZHPcbraW8
+	 VpQi7swK69RZhI84qdvmkEGt7KDnxG/gQYpBpZr71ibTE/TO5jecbUM7m6f/cDoHa5Grg
+	 6ap4cApaN7gTj/mbpfaqZYXHAeaEd1OBnJ8viG9zIbn5jWRdWzdpLKItuwojwnTZuVA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795513842;
-	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
-	 Message-Id;
-	bh=2N9vqFRdS7BHpDt2dFjb+fbudP9W7Ms9agH4ALz0www=;
-	b=3KwzhBfjIGxwT1hS/GMsX7KdMAnFaY7+7uT4xAGCM9VAmikNHYmG2gK8PwcSMIc9c93r
-	 B+czvkudDjBsrDdd7i8/PEHEwRgdHfIqbI/0Im41PYy6YG5jrsrmU8zifxZRuOuS6D2vd
-	 gjIvsajOtCqzCfbQPy26NE4FHLc+lxmTB26HK7QxzMS/XYeqPLJtRuv2iyCHLqlja+xD5
-	 shYpFXpp2lztzaSkNpztnhWY9z1BJ8okxM5wg/M72U4nFAZS2ex2X85Rb7xF5v0N6s56B
-	 3hXzY2HFxDBAAfBd2QM12aWdBq7nju/MluWjFgxxmFcmcUdX5sr1BOtrgTMxrQEHOpg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795514049;
+	h=Received:DKIM-Signature:Message-ID:Date:MIME-Version:User-Agent:
+	 Subject:To:Cc:References:From:Content-Language:Autocrypt:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding;
+	bh=45P2RZGr/NNLYBc6XWk0C9YyD+ZiYFFlT4rbeHN0ego=;
+	b=oKfOIFx2mZ8GVdZi6770iG0wgMi9KNU5KW+2RsbFwjoK4v7yeFJ7IwPKarb19r26t1F9
+	 R1AdjHKKIrnJ7sqXkq9wv3Ih/3G6kVv0aOwt2ayb5zmoIY0/K7So8wNmZtadit4d1Y+ZC
+	 QLpwEBAoMT5zmwzUtjGrDRPRxgypa4d84tywWB1/mBOqSpVQlE8XDBUabET/9C5bUygDa
+	 lkhCa7jSAHN+gDSOQRQJ+I0YghEOob0XPLwdLFMgUcttRDnn9CVD3b/BKcEXrQ9oiEB4I
+	 GbPvmPcDinHFmq0zyJMpCPzK7x5o9ENlhiXPWfyJzWXEToYZn0Klzrkw6iR/YcS0Omg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=l+XyvkM9;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dqqlTEQh;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE68E606A68E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 09:50:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30907606A31E
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 09:54:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=l+XyvkM9
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24EE51F000E6;
-	Tue, 24 Nov 2026 09:50:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795513842;
-	bh=2N9vqFRdS7BHpDt2dFjb+fbudP9W7Ms9agH4ALz0www=;
-	h=Date:To:From:In-Reply-To:References:Subject;
-	b=l+XyvkM9B9RAC3mfXB3HL1ENvPdHEcDZK8nJGtxitV21RfstVqn4CK5H5mCrypfmx
-	 XuydtHHxXNOKYVEamyFJIWraA6vkRtq92DvAc0+wqpVhyR/yjrPEaB7RuV26OT4uK4
-	 nqHbuGUK793rDj4UrXVwfurIvtuaXXPHfHxWS+K8=
-Date: Tue, 24 Nov 2026 01:50:41 -0800
-To: mm-commits@vger.kernel.org,usama.anjum@arm.com,rppt@kernel.org,
-	peterx@redhat.com,pankaj.gupta@amd.com,mason@kernel.org,gourry@gourry.net,
-	azpijr@gmail.com,1045704958@qq.com,david@kernel.org,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261118-dax_uffd-v1-1-d776cca1ae17@kernel.org>
-References: <20261118-dax_uffd-v1-1-d776cca1ae17@kernel.org>
-Subject: + mm-userfaultfd-reject-dax-mappings.patch added to mm-new branch
-Message-Id: <20261124095042.24EE51F000E6@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dqqlTEQh
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 626B61F000D0;
+	Tue, 24 Nov 2026 09:54:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795514048;
+	bh=45P2RZGr/NNLYBc6XWk0C9YyD+ZiYFFlT4rbeHN0ego=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=dqqlTEQhjdS39JHAK9oA/ErZz7HSUQ7ANm1iBXa7V3UMUk+2KbXMLWGopvlBceV8Y
+	 BbvJnkfsoXcnURF+8uwKbOxPTg+YiIviIBsOhdWkY+BW47QuN9g6Qkintlfi56/kgc
+	 DIoUnjlzj7h/Iuyy3BZjovX9jL48oBHE2mdtCiK+F6vHlgm/owZPgWhu6UvDo6brFp
+	 gT98Lu/+qoYFdEznNQyZ1PnDTqhNe6pDZT4+CeNY1aNdfV+GVrHK3BcANgMKVnqFBe
+	 Wu2l6yjnrsbIwDnIeCYgBjmbI7/uSQjUYaYzAC1rTF1Tubw+Kref+8rvc1LdbsF4yA
+	 RRWVpfV/b5iZg==
+Message-ID: <f2dc7958-638d-45f8-845b-a35b50355988@kernel.org>
+Date: Tue, 24 Nov 2026 10:54:04 +0100
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,111 +50,89 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
-
-
-The patch titled
-     Subject: mm/userfaultfd: reject DAX mappings
-has been added to the -mm mm-new branch.  Its filename is
-     mm-userfaultfd-reject-dax-mappings.patch
-
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-reject-dax-mappings.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: Using In-reply-to: <patch posting> in mm-commits mails?
+To: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>, Mike Rapoport <rppt@kernel.org>,
+ "linux-mm@kvack.org" <linux-mm@kvack.org>, mm-commits@vger.kernel.org
+References: <9ba54069-3dc4-422f-8cf6-f81cb806e999@kernel.org>
+ <20261118212538.7e6f11f0553d548a03c9c456@linux-foundation.org>
+ <b7474fd4-eb88-4472-9e8f-26ef6c646694@kernel.org>
+ <8691815d-1c62-4519-907a-110b2d12b9b5@kernel.org>
+ <7ebcd1fe-8a98-4c12-9508-0399570e6a6d@kernel.org>
 From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm/userfaultfd: reject DAX mappings
-Date: Wed, 18 Nov 2026 11:03:00 +0100
+Content-Language: en-US
+Autocrypt: addr=david@kernel.org; keydata=
+ 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
+ qIws/H2t
+In-Reply-To: <7ebcd1fe-8a98-4c12-9508-0399570e6a6d@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-UFFD_FEATURE_WP_ASYNC made DAX mappings eligible for userfaultfd
-write-protection, but the DAX fault paths have never fully supported it.
+On 11/24/26 10:49, Vlastimil Babka (SUSE) wrote:
+> On 11/24/26 09:22, David Hildenbrand (Arm) wrote:
+>> On 11/19/26 11:07, Vlastimil Babka (SUSE) wrote:
+>>>
+>>> Seems it is, thanks a lot!
+>>>
+>>>
+>>> Yes "just to the original" is what I meant.
+>>>
+>>>
+>>> Yeah. After all, the same is true for lore.kernel.org :)
+>>
+>> I works but it makes b4 go nuts when I try to pick something that Andrew picked (too ;) ) early.
+> 
+> Hmm wonder if there's a way to make b4 filter those out, or we ask
+> Konstantin to add that way.
 
-DAX faults use vmf_insert_mixed() and vmf_insert_mixed_mkwrite(), which
-treats any non-empty PTE, including uffd-wp markers, as an existing
-mapping.  A read fault on an uffd-wp marker therefore returns
-VM_FAULT_NOPAGE without replacing the marker, causing the fault to repeat
-indefinitely.
+One has to use --single-message, but that won't work on multi-patch series.
+Maybe "-P 1-3" etc will work.
 
-PAGEMAP_SCAN can also write-protect a DAX PMD, but the huge DAX
-write-fault path can make it writable without clearing its uffd-wp bit,
-breaking async write tracking.
+-- 
+Cheers,
 
-Device DAX mappings requiring huge-page alignment and cannot serve PTE
-faults after UFFDIO_WRITEPROTECT has split their huge mappings.
-
-So let's just disallow DAX mappings in vma_can_userfault() entirely,
-making UFFDIO_REGISTER fail with EINVAL.
-
-Link: https://patch.msgid.link/20261118-dax_uffd-v1-1-d776cca1ae17@kernel.org
-Fixes: d61ea1cb0095 ("userfaultfd: UFFD_FEATURE_WP_ASYNC")
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Chris Mason <mason@kernel.org>
-Reported-by: Jingyi Sun <1045704958@qq.com>
-Closes: https://lore.kernel.org/all/tencent_1874C71D4177A1624528043E008DB1A5EF05@qq.com
-Reviewed-by: Pankaj Gupta <pankaj.gupta@amd.com>
-Reviewed-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
-Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Muhammad Usama Anjum <usama.anjum@arm.com>
-
- mm/userfaultfd.c |    3 +++
- 1 file changed, 3 insertions(+)
-
---- a/mm/userfaultfd.c~mm-userfaultfd-reject-dax-mappings
-+++ a/mm/userfaultfd.c
-@@ -2156,6 +2156,9 @@ static bool vma_can_userfault(struct vm_
- 	/* Only mm-backed memory can have its faults handled by userspace. */
- 	if (!vma_is_mm_backed(vma))
- 		return false;
-+	/* DAX fault handlers do not support uffd-wp. */
-+	if (vma_is_dax(vma))
-+		return false;
- 	/* Core mm may discard droppable memory at any time. */
- 	if (vma_test_single_mask(vma, VMA_DROPPABLE))
- 		return false;
-_
-
-Patches currently in -mm which might be from david@kernel.org are
-
-mm-mprotect-dont-skip-uffd-marker-install-when-racing-with-pte-table-reclaim.patch
-mm-khugepaged-free-unused-page-table-when-setting-a-huge-pmd-fails.patch
-mm-userfaultfd-prevent-poison-marker-loss.patch
-mm-hugetlb-compare-against-persistent-count-when-freeing-lowmem-folios.patch
-mm-hugetlb-preserve-reservations-when-shrinking-on-highmem.patch
-mm-hugetlb-account-temporary-folios-separately.patch
-mm-hugetlb-account-temporary-folios-separately-fix.patch
-mm-hugetlb-serialize-page-cache-allocations-with-truncation.patch
-mm-hugetlb-serialize-page-cache-allocations-with-truncation-fix.patch
-mm-memfd-recheck-the-page-cache-before-allocating-a-hugetlb-folio.patch
-mm-hugetlb-count-again-if-the-reserve-map-shrank.patch
-mm-hugetlb-account-restored-reservations-before-freeing-folios.patch
-mm-hugetlb-delay-anon-folio-rmap-removal-until-after-the-tlb-flush.patch
-mm-userfaultfd-reject-dax-mappings.patch
-
+David
