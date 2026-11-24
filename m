@@ -1,49 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795541038;
-	b=5ZAqnCkEnSBltkbx3rPnPkqa+jIuO8txn4SC8N4fhqQfAvDICSnuVDdVlZG6JTwQXj8s
-	 y1ZWzlku9O77bAz5I1+utaT+M/ycNGCqikG9XIC9SzVrE5ZITMYIPYKd1cjwJnc1ozuC6
-	 y0MLMLs5PAp3QAG6In3IakwrRED3UdpJPS3BuL623cI+vUk3PhoT/elWel3m5qtb5xHFV
-	 Qirb1ql4P1eXxQTb5m+pWmyQLWT2JP44X9ZLL2b+IsQTLhcpZqb+RdZ91Ho7I6Q75o5KV
-	 yViuyM738SE7b8vUzD8KkfGkQrlAbXfaaDQsqre3ofMbL3dMaeWELZgzfYVYgIOUqVg==
+	t=1795541041;
+	b=T7jBli3f1Tod7HbcwHNNx84mcYAtvIIDYN5Kzd7vH4L/nfeWov89l+0mUZ9rLEQev4sA
+	 +vdlDwKqTLkoTid3jgQmdlHpoFgFKrCdsAvzvAyMNkgIJ2U835qyXR9oRQtPUWhSy7ZFY
+	 o0WGKrtZ+rcKlz0Sgeionnzwz3WjbasTJbWWHd2Eqp/V0JINx5DNi1FY17lmRQlKaixMo
+	 vrz6Ht/swnbEWzEAV6u8cRWlzRbsJN2uWwDhBE4T8tLxZRldQQ+4+gE+aXViMVdy0yTQZ
+	 Fmf/d6wMg84QardLCc7KzPa3HpmuRh+oe9TTlmFTJJbID38pYD411N+AGaPMLIghfGw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795541038;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795541041;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=XkG22w1Jnfxbfcwv+dWYm+0wTy/2nyYFwh5Hpyy6JRo=;
-	b=g6UJkyi7EM4VYo5cFoIcnfh1uR0SQioH+4mAsJu+UwIK0blkFFJurLyXy85NmIYz6mru
-	 UyyhDiveXMtbqM8diDlEXotgTpUmoFLbThCiSwCerQ+ru9qRtAyM1rqSY1LNoZFkDtr2m
-	 v8ClN8qcqKF3jdlt+4HKwSE5AjPGc+LtBbIk/pGGpTdzOYy3ZNg9vKknFLVSBZV4ZuF/a
-	 345x8FJXcwiWH4whpJ6ouNYTThTfJ72akY7cpN6TaIokiBftb/YxhMkiKlJDd1jxBEuCk
-	 hMx/eXISiWdPIzIE/U02T+mYzduLsN/LwyxdeV3fDxsqo7A8QitsBHhG8ijhhiNhdfQ==
+	bh=V/LpG+QurkK2SyZN0SASAnrejDJM2ioF/p6Uo5ElLHw=;
+	b=VfMKSxJigAqp3jllSVCsGm3DqoAmeuWHYaVdFJ2hzp+SNPCkPoAtwqbPddinIq5Wr31l
+	 dw5q2Q4hG05AVQyQhGcfu3ZJ669W/GfNC+bqTD+IKo8p9+F4XhM/ov8byLNGn4vYvxCSb
+	 JZ5pykwgBUAs/WJJOuFep6644KHzVR5P6j/zgMEI0qNnKDzElKqo6m1sNgagQLUtNElH9
+	 pWjkSlBVhRkTq53V+5WbojQQdYEcs9c41SSs+4NDFtyU6ezXp4agrFqwHD0fbvX/7JBVI
+	 sy8j591wKioZNAmgX672yKI6MylIZuFLpQS0A7TjpmtOHgQt7WvnObpMZvu9DlLAi4g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2XZcoj4d;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=gGbUxq4Y;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2560606A31E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:23:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FCE2606A321
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:24:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2XZcoj4d
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10F141F000C0;
-	Tue, 24 Nov 2026 17:23:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=gGbUxq4Y
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E345F1F000EB;
+	Tue, 24 Nov 2026 17:24:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795541038;
-	bh=XkG22w1Jnfxbfcwv+dWYm+0wTy/2nyYFwh5Hpyy6JRo=;
+	d=linux-foundation.org; s=korg; t=1795541041;
+	bh=V/LpG+QurkK2SyZN0SASAnrejDJM2ioF/p6Uo5ElLHw=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=2XZcoj4duebvOyDYdup6Lh6snmsey44I+FJLbI7UCcGVzVEC0I6sq8DWTV/NQYTR+
-	 StehJteZ0+3tB1rj9m2Vu7plZm/vlrV72VjmcWEqeOis8mCMpiv9RZvi55t5rI9eOb
-	 jjvGboxkB6DAfyU2rqBfArP91A1XHW025O9KAxrI=
-Date: Tue, 24 Nov 2026 09:23:57 -0800
-To: mm-commits@vger.kernel.org,lianux.mm@gmail.com,jm5905938@gmail.com,
-	sj@kernel.org,akpm@linux-foundation.org
+	b=gGbUxq4YxsTK25mjo3tcLfeXY84e7038NpK9sM2scx7BYAi021O4HAxZ3utn72Xw9
+	 8198l8GxyK8UU0IS43UY+2CfaIbvjpAU/fDRRC86SfC1LjuQwXtdypTTDf40sBx2rS
+	 OSs9xoP/wU1DkFIc2TAh3vhkt1p7gwpjjwfv5BSs=
+Date: Tue, 24 Nov 2026 09:24:00 -0800
+To: mm-commits@vger.kernel.org,shuah@kernel.org,lianux.mm@gmail.com,
+	jm5905938@gmail.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124153636.91854-24-sj@kernel.org>
-References: <20261124153636.91854-24-sj@kernel.org>
-Subject: + mm-damon-sysfs-implement-submit-command-for-report-producer.patch added to mm-new branch
-Message-Id: <20261124172358.10F141F000C0@smtp.kernel.org>
+In-Reply-To: <20261124153636.91854-25-sj@kernel.org>
+References: <20261124153636.91854-25-sj@kernel.org>
+Subject: + selftests-damon-sysfssh-add-basic-tests-for-admin-reports.patch added to mm-new branch
+Message-Id: <20261124172400.E345F1F000EB@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/damon/sysfs: implement submit command for report producer
+     Subject: selftests/damon/sysfs.sh: add basic tests for admin/reports/
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-implement-submit-command-for-report-producer.patch
+     selftests-damon-sysfssh-add-basic-tests-for-admin-reports.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-implement-submit-command-for-report-producer.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfssh-add-basic-tests-for-admin-reports.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -90,56 +90,90 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs: implement submit command for report producer
-Date: Tue, 24 Nov 2026 07:36:29 -0800
+Subject: selftests/damon/sysfs.sh: add basic tests for admin/reports/
+Date: Tue, 24 Nov 2026 07:36:30 -0800
 
-Let users manually submit a report of a data attribute for a given
-address range of memory.  Let producer_state receive "submit" input for
-that.  For the input, generate the report based on user inputs that are
-written to the appropriate sysfs files and submit to DAMON using the
-core API, damon_submit_report().
+Update sysfs.sh DAMON selftest to cover basic file operations for the
+sysfs files under the admin/reports/ directory.
 
-Link: https://patch.msgid.link/20261124153636.91854-24-sj@kernel.org
+Link: https://patch.msgid.link/20261124153636.91854-25-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Aveline Noir <jm5905938@gmail.com>
-Cc: Lian Wang <lianux.mm@gmail.com>
+Reviewed-by: Lian Wang <lianux.mm@gmail.com>
+Cc: Shuah Khan <shuah@kernel.org>
 
- mm/damon/sysfs.c |   19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ tools/testing/selftests/damon/sysfs.sh |   52 +++++++++++++++++++++++
+ 1 file changed, 52 insertions(+)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-implement-submit-command-for-report-producer
-+++ a/mm/damon/sysfs.c
-@@ -3107,13 +3107,26 @@ static ssize_t producer_state_store(stru
- {
- 	struct damon_sysfs_producer *producer = container_of(kobj,
- 			struct damon_sysfs_producer, kobj);
-+	struct damon_report report;
-+	int err;
- 
--	if (sysfs_streq(buf, "on"))
-+	if (sysfs_streq(buf, "on")) {
- 		producer->enabled = true;
--	else if (sysfs_streq(buf, "off"))
-+	} else if (sysfs_streq(buf, "off")) {
- 		producer->enabled = false;
--	else
-+	} else if (sysfs_streq(buf, "submit")) {
-+		if (!producer->enabled)
-+			return -EINVAL;
-+		if (producer->report_type != DAMON_REPORT_TYPE_USER_REPORT)
-+			return -EINVAL;
-+		report.type = DAMON_REPORT_TYPE_USER_REPORT;
-+		report.addr_range = producer->addr_range;
-+		err = damon_submit_report(&report);
-+		if (err)
-+			return err;
-+	} else {
- 		return -EINVAL;
-+	}
- 	return count;
+--- a/tools/testing/selftests/damon/sysfs.sh~selftests-damon-sysfssh-add-basic-tests-for-admin-reports
++++ a/tools/testing/selftests/damon/sysfs.sh
+@@ -510,6 +510,57 @@ test_kdamonds()
+ 	ensure_dir "$kdamonds_dir/1" "not_exist"
  }
  
++test_producer()
++{
++	producer_dir=$1
++	ensure_file "$producer_dir/report_type" "exist" "600"
++	ensure_write_succ "$producer_dir/report_type" "user_report" \
++		"valid input"
++	ensure_write_fail "$producer_dir/report_type" "foo" "invlid input"
++
++	ensure_file "$producer_dir/producer_state" "exist" "600"
++	ensure_write_succ "$producer_dir/producer_state" "on" "valid input"
++	ensure_write_succ "$producer_dir/producer_state" "submit" "valid input"
++	ensure_write_succ "$producer_dir/producer_state" "off" "valid input"
++	ensure_write_fail "$producer_dir/producer_state" "foo" "invalid input"
++
++	ensure_file "$producer_dir/addr_start" "exist" "600"
++	ensure_write_succ "$producer_dir/addr_start" 123 "valid input"
++	ensure_write_fail "$producer_dir/addr_start" foo "uinvalid input"
++	ensure_write_fail "$producer_dir/addr_start" "1.23" "uinvalid input"
++
++	ensure_file "$producer_dir/addr_end" "exist" "600"
++	ensure_write_succ "$producer_dir/addr_end" 123 "valid input"
++	ensure_write_fail "$producer_dir/addr_end" foo "uinvalid input"
++	ensure_write_fail "$producer_dir/addr_end" "1.23" "uinvalid input"
++}
++
++test_producers()
++{
++	producers_dir=$1
++	ensure_dir "$producers_dir" "exist"
++
++	ensure_file "$producers_dir/nr_producers" "exist" "600"
++
++	ensure_write_succ "$producers_dir/nr_producers" "1" "valid input"
++	test_producer "$producers_dir/0"
++
++	ensure_write_succ "$producers_dir/nr_producers" "2" "valid input"
++	test_producer "$producers_dir/0"
++	test_producer "$producers_dir/1"
++
++	ensure_write_succ "$producers_dir/nr_producers" "0" "valid input"
++	ensure_dir "$producers_dir/0" "not_exist"
++	ensure_dir "$producers_dir/1" "not_exist"
++}
++
++test_reports()
++{
++	reports_dir=$1
++	ensure_dir "$reports_dir" "exist"
++	test_producers "$reports_dir/producers"
++}
++
+ test_damon_sysfs()
+ {
+ 	damon_sysfs=$1
+@@ -520,6 +571,7 @@ test_damon_sysfs()
+ 	fi
+ 
+ 	test_kdamonds "$damon_sysfs/kdamonds"
++	test_reports "$damon_sysfs/reports"
+ }
+ 
+ check_dependencies
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
