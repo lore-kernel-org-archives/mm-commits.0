@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795542981;
-	b=FpjV9ELG7bEHVFueJrT31FLwuaiEP5pF+UMwVWDDcfh2MEs5rwRGh5/gLeQJ6jb17PLK
-	 hQqmddcZvElGxSf64/0HUH+j7CH7JTMBYN3fELahp3+FRun5QdpDMTd5jlsmoX2UQdvqC
-	 VqDvgJ9cFq/zfo8gI6kiqLcIlmY6MdANADZwb/RGnDBtrhCLZ3Jq7Aq+Eg4LiStoj6rz0
-	 C131XVNMIxhRh5HpYZn5IUF1iWc7MFz0ioXdndj6xgu2RFApf4d0th20YctCFI7zBOKYi
-	 ACuaz4/0zmjoY6PHuXIgCMtps6PuzIsnKnH69CSdpAfCVw6defADZ/a/1ZpAJ2Y+WUQ==
+	t=1795542983;
+	b=cg/reoo2KSsXn5d30Cgi5dFDoFj8hT8+4vv75b8Sq2UZkjDEj4GTwru8QAJKUjmWg9Rw
+	 cEbt3N58t89OAOjgNsXuSdoaWBQfwCaInll0+0UwUitI47gphlNFOEXiEAvmsKQ4ZBepL
+	 hKkyvfZP3L783j+OzJwWYdEbLxxF8/h+qpEua3HqKPd6DAlEHnRruvFFpbpKhjzFD7qtF
+	 qYNNxzKZZjqvRAFkzWPwaoUCWHZzewhTYY8w/PyZLXlllWyMuYG2e98noIc+PD0VV9m4H
+	 mJ9RMMpWIf09RjrG45dJQ8QxStk2lYG0ukg4K4vTtj9C9qumcGudR0yyT0lE2a5q/ig==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795542981;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795542983;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=yt7fJSF1RZ0mzuaa3aovGFJ6m2+F0MUsVTxZXqXhkHk=;
-	b=rYD2mcAKLSSX35bQzVirvgmiPMJRg6q32V3VyiPtFDL5Pl6Fa9Rwa6UgG3mVAhRok0Dq
-	 HWPOxvG+Ex1S4BdlxPTU8gqKpUxB6HQdb50UG1te1hiVBUHEwHFvq0Nk6qoSDXU0iJyQV
-	 u7ucx+go9dNunCoxDmvXYPtxyaKIz52qJC7DUn3EqtjcWe0X2Ud0Bz94dxXJweAozbjvp
-	 F5O4T/sznUlP6KRZbvKxBWXrPMwytc6Na+Lm8WuG0XZzLvdlY0bhSfZnKq/bP3X17b3hr
-	 5ZbIX/+Frc4Zq2AUoeElWrRjoeXx1ThMmVUU6tWAJKTzNB7gQsX2fQaPKX7f4lk85Iw==
+	bh=BsRFq2QRf0mWghD9QAHHuBEA/jvtvECOUYK98GT0SL0=;
+	b=uBFs0TUEkU6tuFmKIdbB3NbkiRVjLkimRIVUUqOeZIY5Gz0v8W9pQ01G0gjMB2x9nexN
+	 6rgwuw5d1Tga60YInuJA6WFO92Y35/ibFHep5tnRd24IOUoqXA8JgZgM9V6tyOdzvx6AR
+	 w/ZpbC3JZDXZtCO0xKWwpEdbHlXBFF7Pnj4Zc14xoVsDQGtpZra28P0Ki6xCSoOnUj0AH
+	 jmCDa5kdQqIEW+D5oZl/N4ENa+BuV7WbxjfDgNBIi9qTlqi58YLRcSLTaimnZx55e/z38
+	 Voxq629qNX73UD1GjBRGvcdUG68lTI5IsovzawpaLudP+muUmqTLDgqH0330gjKQqvg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=uof4+qi5;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=inFVmUxS;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 279EA606A323
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:56:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDB64606A321
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:56:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=uof4+qi5
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B19751F000C0;
-	Tue, 24 Nov 2026 17:56:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=inFVmUxS
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 604881F000C6;
+	Tue, 24 Nov 2026 17:56:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795542980;
-	bh=yt7fJSF1RZ0mzuaa3aovGFJ6m2+F0MUsVTxZXqXhkHk=;
+	d=linux-foundation.org; s=korg; t=1795542983;
+	bh=BsRFq2QRf0mWghD9QAHHuBEA/jvtvECOUYK98GT0SL0=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=uof4+qi5PE9ygKh3Ua+eIMvwJpEJHF1EMXM39tP0++y9Hv9A44tqlC8ffs1mu+wuX
-	 w7iPCe40f3oC7VgYNx84+OB7WZjo8JO33lTqN/Agq4Aokhup7VtwRVL0eYEUmGpg6w
-	 vWHSca4YkjtSTkBl7BXAb7ORhwW5SBg+547/bUxQ=
-Date: Tue, 24 Nov 2026 09:56:20 -0800
+	b=inFVmUxSCaBrr37ZDJAstr/NW//mKbhRVrbSXGaq8UCdPYzWmbP/CztoMWqo4RhNx
+	 6PF8pdHG7MNdBlHt8rYJiNWbeEOYMm9xo+tswWPu5oZQvL4I2ZSyXWmTi778W9eFcP
+	 rDIeUyoFF+UEwWkxfRs+QMolUL27E30SFnMFBsPE=
+Date: Tue, 24 Nov 2026 09:56:22 -0800
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124-late-2026-vma-flags-v2-8-bf3fade93064@kernel.org>
-References: <20261124-late-2026-vma-flags-v2-8-bf3fade93064@kernel.org>
-Subject: + selinux-convert-vma-flag-tests-to-use-vma_flags_t.patch added to mm-new branch
-Message-Id: <20261124175620.B19751F000C0@smtp.kernel.org>
+In-Reply-To: <20261124-late-2026-vma-flags-v2-9-bf3fade93064@kernel.org>
+References: <20261124-late-2026-vma-flags-v2-9-bf3fade93064@kernel.org>
+Subject: + apparmor-convert-vma-flag-tests-to-use-vma_flags_t.patch added to mm-new branch
+Message-Id: <20261124175623.604881F000C6@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +54,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: selinux: convert VMA flag tests to use vma_flags_t
+     Subject: apparmor: convert VMA flag tests to use vma_flags_t
 has been added to the -mm mm-new branch.  Its filename is
-     selinux-convert-vma-flag-tests-to-use-vma_flags_t.patch
+     apparmor-convert-vma-flag-tests-to-use-vma_flags_t.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selinux-convert-vma-flag-tests-to-use-vma_flags_t.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/apparmor-convert-vma-flag-tests-to-use-vma_flags_t.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -89,18 +89,17 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: selinux: convert VMA flag tests to use vma_flags_t
-Date: Tue, 24 Nov 2026 17:08:00 +0000
+Subject: apparmor: convert VMA flag tests to use vma_flags_t
+Date: Tue, 24 Nov 2026 17:08:01 +0000
 
 Replace use of the legacy vm_flags_t flags with vma_flags_t values in the
-SELinux mmap backing file and mprotect LSM hooks.
+AppArmor mprotect LSM hook.
 
 No functional change intended.
 
-Link: https://patch.msgid.link/20261124-late-2026-vma-flags-v2-8-bf3fade93064@kernel.org
+Link: https://patch.msgid.link/20261124-late-2026-vma-flags-v2-9-bf3fade93064@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Paul Moore <paul@paul-moore.com>
 Reviewed-by: Lance Yang <lance.yang@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
@@ -166,6 +165,7 @@ Cc: Masami Hiramatsu <mhiramat@kernel.org>
 Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: John Johansen <john.johansen@canonical.com>
 Cc: Georgia Garcia <georgia.garcia@canonical.com>
+Cc: Paul Moore <paul@paul-moore.com>
 Cc: James Morris <jmorris@namei.org>
 Cc: Serge E. Hallyn <serge@hallyn.com>
 Cc: Mimi Zohar <zohar@linux.ibm.com>
@@ -176,49 +176,20 @@ Cc: Fan Wu <wufan@kernel.org>
 Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
 Cc: Ondrej Mosnáček <omosnacek@gmail.com>
 
- security/selinux/hooks.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ security/apparmor/lsm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/security/selinux/hooks.c~selinux-convert-vma-flag-tests-to-use-vma_flags_t
-+++ a/security/selinux/hooks.c
-@@ -4205,16 +4205,16 @@ static int selinux_mmap_backing_file(str
+--- a/security/apparmor/lsm.c~apparmor-convert-vma-flag-tests-to-use-vma_flags_t
++++ a/security/apparmor/lsm.c
+@@ -591,7 +591,7 @@ static int apparmor_file_mprotect(struct
+ 				  unsigned long reqprot, unsigned long prot)
  {
- 	unsigned long prot = 0;
- 
--	/* translate vma->vm_flags perms into PROT perms */
--	if (vma->vm_flags & VM_READ)
-+	/* translate VMA flag perms into PROT perms */
-+	if (vma_test(vma, VMA_READ_BIT))
- 		prot |= PROT_READ;
--	if (vma->vm_flags & VM_WRITE)
-+	if (vma_test(vma, VMA_WRITE_BIT))
- 		prot |= PROT_WRITE;
--	if (vma->vm_flags & VM_EXEC)
-+	if (vma_test(vma, VMA_EXEC_BIT))
- 		prot |= PROT_EXEC;
- 
- 	return selinux_mmap_file_common(backing_file, prot,
--					vma->vm_flags & VM_SHARED,
-+					vma_test(vma, VMA_SHARED_BIT),
- 					true);
+ 	return common_mmap(OP_FMPROT, vma->vm_file, prot,
+-			   !(vma->vm_flags & VM_SHARED) ? MAP_PRIVATE : 0);
++			   !vma_test(vma, VMA_SHARED_BIT) ? MAP_PRIVATE : 0);
  }
  
-@@ -4228,13 +4228,13 @@ static int selinux_file_mprotect(struct
- 	u32 av;
- 	const struct file *file = vma->vm_file;
- 	bool backing_file;
--	bool shared = vma->vm_flags & VM_SHARED;
-+	bool shared = vma_test(vma, VMA_SHARED_BIT);
- 
- 	/* check if we need to trigger the "backing files are awful" mode */
- 	backing_file = file && (file->f_mode & FMODE_BACKING);
- 
- 	if (default_noexec &&
--	    (prot & PROT_EXEC) && !(vma->vm_flags & VM_EXEC)) {
-+	    (prot & PROT_EXEC) && !vma_test(vma, VMA_EXEC_BIT)) {
- 		/*
- 		 * We don't use the vma_is_initial_heap() helper as it has
- 		 * a history of problems and is currently broken on systems
+ #ifdef CONFIG_IO_URING
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
