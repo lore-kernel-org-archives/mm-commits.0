@@ -1,51 +1,52 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795495615;
-	b=mWxzi7oEwGBYA3WxcbR0o7Xg52q8wrMCpw+p+I/OBSTer2gVkjq6WIYi5tvf4nEqMLMC
-	 hpIU2NdsIN69IqYWqv9ZTIOQ0Wo4NvGhuWVU6gwTuyljMXC6Ia8noBAq1ri1SAZQkx1fZ
-	 k7/GpcbeYftsoqqRzs/tvS9+KebOTkr6wBXK9x5IfUb6+GT4KEucSAoNASSMsuQVcgCj5
-	 Kgdb87EPBR7QHnHKJpKaSrz+6ljAO+anwRG9GhMixtJHwTWpRXa9BZoUC1uBbevFVgYUZ
-	 3nhNoqGw8Zq0pqLabCjU1PhdqO1WFukdwASH7HCBYUpdI1y0BSckKIQU8MUuVkklpKA==
+	t=1795495616;
+	b=AT2BQ+mWAhnbQEA/Cd0WiOqFmVhduns328IxIjJULbNMv6WLDTTRKb8kxSa1sEsbVDCY
+	 Gyaf+vlKcYRxACjoksBH8rsByjjeKmH0GtaP9hF9WINALQTOi7d9VEYqkoabqeR33eS0o
+	 4n/NBw+IkMUldHfalG0VKXNFWfpJujAoJBUAywpyFbTxoqcJqYo3VQF0Pt9j1t0X1iMva
+	 L7niDEPt9lKLDI6nJfvyCJ4YOxeEfbQLCkgr8+X73LLlNZk7wH1gyD7pKedZ93dyNO/p2
+	 66+Zpm5nEriszSY+iZ5pRVoxHovt0oqv7/vTQ1GiQ3TyT2cDjukgAyNYNZwSsgkVw6w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795495615;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795495616;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=q0NFw1W3COOpyuevO6kgHroF3v4PnBlr/WcOMMqJAEQ=;
-	b=EiSskegybib1m3+rN9q3QLZIUwatSFEZndyVBtheik8qEKMP+Sm8DRopf8ejfiObhQFM
-	 5MUpYHWPLcrQg+sT/aOpOrgTDZ+awUijhAcHxkDphyYau5qaJV17WI0FjbHQ4bFEgreT0
-	 r9hhbbu8AuJujXFEe3NUAUdhYttUE/4vA8nGfKHnB9+YkyaiWWod3iy1OqYr7b1Z9eCcb
-	 sLWUI5zYG3SAwOfUveIkfys+9ZYEML2NpbAOXZbSyNi14Ufcq0THg9EKE9dnNIB03rRpw
-	 mJfZFI+kwE7fUud5STTgUPFGVRNIIhpXhfWky38GjY0aEsiSdaW82d7MniW634T5liw==
+	bh=jRjOrAvwXoKIGMft86qdM5AtBhhKEJKUEuhqeEbemkE=;
+	b=MaqqBbWquZlJF5mBocasL3M1M5HlMcZMGz33WZ1itZT8xHSkLnJ++K2Kiy2lCOhnvJiA
+	 384WVkbNsqhs0UIfZ/uEF2ViZcRRjqVlt+EjcpK4ywSTXkPR6DgtN9cWvzWYY5r+h7p0F
+	 6ObULjPVZFKNG8Zt2MLGUrfvrD24ZJs+TEQ/DC1C/+dTiNfwo4V5OKRA6glYF5kVBT7Ra
+	 Dv/VDkewnWVVL35rNEcSYWTBPoy3y0izwI+ghzCKO/1tQxbxBSQmMB5cZr99ZnOd4Vii+
+	 8jqrc+Hso48MjPuEZC0AePJ5JRHJygoYKdqOdCazD4419Qt0i3MQZaBeuSv5Wki+WWA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jeQPwFxN;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Nw+meKzI;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DA7E606A31E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 04:46:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 301F1606A31E
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 04:46:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jeQPwFxN
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CEEA1F000CA;
-	Tue, 24 Nov 2026 04:46:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Nw+meKzI
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAF4D1F000C6;
+	Tue, 24 Nov 2026 04:46:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795495614;
-	bh=q0NFw1W3COOpyuevO6kgHroF3v4PnBlr/WcOMMqJAEQ=;
+	d=linux-foundation.org; s=korg; t=1795495615;
+	bh=jRjOrAvwXoKIGMft86qdM5AtBhhKEJKUEuhqeEbemkE=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=jeQPwFxNgFICz9o5Hfu01YUQsxJUptKXDUpcGGVQI6gQGyrO5RMObHZhVkd+Z2htb
-	 GD29ndY0U5ZOnMvHwTDpUi4ul94H/d1wJ/o2CxuGxPl6k5jiQX5dYFuAFqk8UwBG/U
-	 p21tktYiCi309WdrExszdV9eOs4ehRjYA3hgAcv0=
-Date: Mon, 23 Nov 2026 20:46:54 -0800
+	b=Nw+meKzIhqbiH0E6wYBGPFqMjcYfas9zdNhNjQXqfmJyD+XNeRmrAGkacVL0acVUm
+	 puy2+B7IDoqIhH58Rdn5sNc/Qn8W+eK34U5rri785C41aM5pW9N1i4kIxAjYwEchxj
+	 Zv0irWgK/sQkXjn46vTiPtaZfp5ysqkQR43fpqTI=
+Date: Mon, 23 Nov 2026 20:46:55 -0800
 To: mm-commits@vger.kernel.org,will@kernel.org,vivek.kasireddy@intel.com,
-	skhawaja@google.com,robin.murphy@arm.com,peterx@redhat.com,
-	kevin.tian@intel.com,joro@8bytes.org,jhubbard@nvidia.com,jgg@ziepe.ca,
-	david@kernel.org,xujiahao@cmss.chinamobile.com,akpm@linux-foundation.org
+	syzbot+7666ed2c3d42196bf7e3@syzkaller.appspotmail.com,skhawaja@google.com,
+	robin.murphy@arm.com,peterx@redhat.com,kevin.tian@intel.com,joro@8bytes.org,
+	jhubbard@nvidia.com,jgg@ziepe.ca,david@kernel.org,
+	xujiahao@cmss.chinamobile.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261119163531.788514-1-xujiahao@cmss.chinamobile.com>
-References: <20261119163531.788514-1-xujiahao@cmss.chinamobile.com>
-Subject: [merged] mm-gup-add-file_is_memfd_compatible-helper.patch removed from -mm tree
-Message-Id: <20261124044654.9CEEA1F000CA@smtp.kernel.org>
+In-Reply-To: <20261119163531.315791-1-xujiahao@cmss.chinamobile.com>
+References: <20261119163531.315791-1-xujiahao@cmss.chinamobile.com>
+Subject: [merged] iommufd-only-hold-references-to-files-memfd_pin_folios-can-pin.patch removed from -mm tree
+Message-Id: <20261124044655.CAF4D1F000C6@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -57,35 +58,50 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/gup: add file_is_memfd_compatible() helper
+     Subject: iommufd: only hold references to files memfd_pin_folios() can pin
 has been removed from the -mm tree.  Its filename was
-     mm-gup-add-file_is_memfd_compatible-helper.patch
+     iommufd-only-hold-references-to-files-memfd_pin_folios-can-pin.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jiahao Xu <xujiahao@cmss.chinamobile.com>
-Subject: mm/gup: add file_is_memfd_compatible() helper
+Subject: iommufd: only hold references to files memfd_pin_folios() can pin
 Date: Thu, 19 Nov 2026 16:35:31 +0800
 
-memfd_pin_folios() accepts only shmem and file-hugetlb files and enforces
-that inline with shmem_file() and is_file_hugepages().  A caller that has
-to know up front whether a file may be handed to memfd_pin_folios() cannot
-use those predicates: since d3710111839d ("mm/shmem: make shmem_file()
-check the file's inode") shmem_file() is an out-of-line function in
-mm/shmem.c which is not exported, so modules cannot call it, and
-is_file_hugepages() on its own is not the same question.
+iopt_map_file_pages() stores a reference to the file passed to
+IOMMU_IOAS_MAP_FILE in the iopt_pages of the new mapping:
 
-Provide the check as an exported helper next to memfd_pin_folios() and use
-it inside memfd_pin_folios() itself, so that a single place decides which
-files may be pinned.
+	iopt_map_file_pages()
+	  iopt_alloc_file_pages()
+	    pages->file = get_file(file)
 
-Link: https://patch.msgid.link/20261119163531.788514-1-xujiahao@cmss.chinamobile.com
+iopt_release_pages() drops that reference only when the iopt_pages is
+destroyed, which for a file mapping happens while the iommufd file is
+being torn down.  Nothing restricts which file can be passed, so userspace
+can map the iommufd file itself, or a vfio device fd bound to the same
+iommufd, both of which own an iommufd_ctx reference.  The reference graph
+then contains a cycle and the file, the iopt_pages, the IOAS and the
+iommufd_ctx are all leaked; kmemleak reports it as "memory leak in
+path_openat" with the holder taken through iopt_map_file_pages().
+
+Reverse the test instead of trying to enumerate the files that own an
+iommufd_ctx: accept only the files that memfd_pin_folios() is able to pin,
+which is exactly the set of files the mapping can be built from. 
+file_is_memfd_compatible() reports that set, so the same test can run here
+before the reference is handed to iopt_pages.  dma-bufs are unaffected:
+they are taken by the dma_buf_get() branch above and never reach the file
+branch, and iopt_pages holds the dma_buf there, not a struct file.
+
+Link: https://patch.msgid.link/20261119163531.315791-1-xujiahao@cmss.chinamobile.com
+Fixes: f4986a72d6e4 ("iommufd: Add IOMMU_IOAS_MAP_FILE")
 Signed-off-by: Jiahao Xu <xujiahao@cmss.chinamobile.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reported-by: <syzbot+7666ed2c3d42196bf7e3@syzkaller.appspotmail.com>
+Closes: https://syzkaller.appspot.com/bug?extid=7666ed2c3d42196bf7e3
 Reviewed-by: Samiullah Khawaja <skhawaja@google.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Vivek Kasireddy <vivek.kasireddy@intel.com>
@@ -94,62 +110,32 @@ Cc: Jörg Rödel <joro@8bytes.org>
 Cc: Will Deacon <will@kernel.org>
 Cc: Robin Murphy <robin.murphy@arm.com>
 
- include/linux/mm.h |    1 +
- mm/gup.c           |   23 ++++++++++++++++++++++-
- 2 files changed, 23 insertions(+), 1 deletion(-)
+ drivers/iommu/iommufd/io_pagetable.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
---- a/include/linux/mm.h~mm-gup-add-file_is_memfd_compatible-helper
-+++ a/include/linux/mm.h
-@@ -3604,6 +3604,7 @@ long pin_user_pages_unlocked(unsigned lo
- long memfd_pin_folios(struct file *memfd, loff_t start, loff_t end,
- 		      struct folio **folios, unsigned int max_folios,
- 		      pgoff_t *offset);
-+bool file_is_memfd_compatible(struct file *file);
- int folio_add_pins(struct folio *folio, unsigned int pins);
+--- a/drivers/iommu/iommufd/io_pagetable.c~iommufd-only-hold-references-to-files-memfd_pin_folios-can-pin
++++ a/drivers/iommu/iommufd/io_pagetable.c
+@@ -515,6 +515,18 @@ int iopt_map_file_pages(struct iommufd_c
+ 		if (!file)
+ 			return -EBADF;
  
- int get_user_pages_fast(unsigned long start, int nr_pages,
---- a/mm/gup.c~mm-gup-add-file_is_memfd_compatible-helper
-+++ a/mm/gup.c
-@@ -3450,6 +3450,27 @@ long pin_user_pages_unlocked(unsigned lo
- EXPORT_SYMBOL(pin_user_pages_unlocked);
- 
- /**
-+ * file_is_memfd_compatible() - check if a file may be used with
-+ *				memfd_pin_folios()
-+ * @file: the file to check
-+ *
-+ * memfd_pin_folios() only accepts files backed by shmem or by hugetlb.
-+ * This is wider than "is a memfd": every shmem file matches, not only the
-+ * unlinked ones memfd_create() produces, and file-hugetlb files are not
-+ * memfds at all.
-+ *
-+ * Callers that have to validate a file before pinning it, or before taking
-+ * a reference to it, can use this helper instead of duplicating the check.
-+ *
-+ * Return: true if @file may be passed to memfd_pin_folios().
-+ */
-+bool file_is_memfd_compatible(struct file *file)
-+{
-+	return shmem_file(file) || is_file_hugepages(file);
-+}
-+EXPORT_SYMBOL_GPL(file_is_memfd_compatible);
++		/*
++		 * iopt_pages keeps a reference to the file until the mapping is
++		 * destroyed, so only accept the files memfd_pin_folios() is able
++		 * to pin.  Any other fd, in particular one that itself owns an
++		 * iommufd_ctx (iommufd, vfio, ...), would put the file into a
++		 * reference cycle with this iommufd and never be released.
++		 */
++		if (!file_is_memfd_compatible(file)) {
++			fput(file);
++			return -EINVAL;
++		}
 +
-+/**
-  * memfd_pin_folios() - pin folios associated with a memfd
-  * @memfd:      the memfd whose folios are to be pinned
-  * @start:      the first memfd offset
-@@ -3493,7 +3514,7 @@ long memfd_pin_folios(struct file *memfd
- 	if (!memfd)
- 		return -EINVAL;
- 
--	if (!shmem_file(memfd) && !is_file_hugepages(memfd))
-+	if (!file_is_memfd_compatible(memfd))
- 		return -EINVAL;
- 
- 	if (end >= i_size_read(file_inode(memfd)))
+ 		pages = iopt_alloc_file_pages(file, start_byte, start, length,
+ 					      iommu_prot & IOMMU_WRITE);
+ 		fput(file);
 _
 
 Patches currently in -mm which might be from xujiahao@cmss.chinamobile.com are
 
-iommufd-only-hold-references-to-files-memfd_pin_folios-can-pin.patch
 
