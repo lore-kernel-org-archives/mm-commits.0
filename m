@@ -1,42 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795514613;
-	b=JO9ziRnNINVwyEJj3w/YD8zL8PoGBji/lfCBMgvJsOTIiVYXxZ+GqiKVvshyfSDfrRVV
-	 /6lpWJB9ehR3RKSgj6xvtmLDCYz4XJVtSukZEgv5gAAHo6P7VKA5mJOQmZ2wYmUQHfl71
-	 Je1EwXWykL05Xp82COqPUyb94qm5FKPSPRYfGaXvG3Ug0c5amoxe4kNnf8Rlh4lYY1lxN
-	 2TXXKfEcW68eu0hcrEbcVYAshpKLey9en93mYSQc8pUo3Gpqu959+uu4fqMHwfvadwHn8
-	 UKyc+tVN8B7GlHHWIqS4BUyS5jN+8gJN0eJqGR1r6vfvWrogyBbMHOG9/tJzoiu1v+g==
+	t=1795514615;
+	b=doZerzftbJNWO+LRnqsjoIBmYHpZ4Pn36YYETk9tSABbREKVQMQKh23cb5T3OLnKmGbR
+	 OSMAi1uUTTcIWzB0cxRrIQpOQWEaEamfB4c8lU+zeaXe4jNTfJjShQZMjecyDdNJ95Y2E
+	 Z46BWPx+sK8KM0iTgw1UuJiwkbbfjMqedJ+8mDNkjS4/rbNHPS6FQI+n1jkEy7nVuUd9o
+	 jcSGYpyZMOiZQ2b0WmNc2CyWovV6/GwiJIa1MVElRC0oSzr/NxGv4SZnH4NXMi2gXXYBD
+	 5HrTPyYZXZENnaCWK3RIv14hqLqYCem/J2onjiSSCOy6hBdAPZKYhxIrIY0K3rEFNcQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795514613;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795514615;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=XH0ny7pIWEJd8MyL7Mg/Bambc3oS3aW2nErg9jE1hq8=;
-	b=rw0KWegKvN1G94AhtuHDTBL3W4ZO6kD3NDbvtQz5xJm3Tkc2uQ/Ff8PKTTNHiWUPuHdA
-	 AMm6KAa6wdvmO871lyWdvSkDEB1lGtzF/0t2Z8qZdM8LdriRImmsgxNmWsHqZrVWFrSyF
-	 Gcbjo0tpOtSE/cM7YYQAS7X3yyAEChrvJ0ZG9YGQZfiGK/mANsMc0g0WwBiLgEw9X1poL
-	 C8++zxHApyeaYdXtlIKG/GPohFvnjvuE4f+12YpdZaI1seuUvkj+18sNRn6UYYmpIF09Q
-	 T9DtMWME8fUrzGdh5fxpcXXSECSO3nU7lNKtkpksf/JTf6zYSFN5x4doQ+FdHdHiElw==
+	bh=wMiMVMJhMi9kWzymZXMN0T4Ky9sOHtB0p03KXvBjkN4=;
+	b=P4/ypkygnCGjUoIvEmcUHdPJfE7fkXc5092CEycQjPTqX7xkZ8Hv2tK7KQ7zzQA6IWkM
+	 POzXYKA6CecMDEKzNjukBFUoe6yD3Pv/t0Hjq8SrnsrfkRrgh3IW/dOwI3z/cQGqKSNAS
+	 IrB9ERi2pYAcVXP5/Zm3rIpImIpIzq/eimX9rLV9rC4D1oqChhJO7WXkZ0QXJEg7DaEyb
+	 zQMyOBiGvuIKMoWbkSYi+6DEFEKmqNhVfAnaPrrUd8JI1FucQbz//UUycj/1CI0vJDfdn
+	 jSyelPatBAsLN6UAGvKJjGOybbfg9KROMuVnmVEAjJo6zrvstgBGm+O1DHJ64+kVFdQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=s7rlWmNJ;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=gwDfftwY;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03D70606A327
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 10:03:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA075606A331
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 10:03:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=s7rlWmNJ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6947C1F000C6;
-	Tue, 24 Nov 2026 10:03:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=gwDfftwY
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EAF51F000C4;
+	Tue, 24 Nov 2026 10:03:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795514612;
-	bh=XH0ny7pIWEJd8MyL7Mg/Bambc3oS3aW2nErg9jE1hq8=;
+	d=linux-foundation.org; s=korg; t=1795514615;
+	bh=wMiMVMJhMi9kWzymZXMN0T4Ky9sOHtB0p03KXvBjkN4=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=s7rlWmNJKQyBpNy01vGIGBGtedm+5TITEQiJoHbQ6Uwwrx6r6Z2JRKVkPL1GSoQqp
-	 WWWAC2eSULJu2Tntbl8TE654LtV7pl8wDZxq0FsQhe5d9cDxpafmiB3j5ers1NLgJQ
-	 X+EAzzOQDTChdNJ0GJ8kYI2Hc8GChaXEzm4S5JL8=
-Date: Tue, 24 Nov 2026 02:03:31 -0800
+	b=gwDfftwY/k0MJ/HfRgvImB6HBe1LOY/mPhgw7MsFuoj0vnsAGcsifDBTQcqfixcGy
+	 kCtBNwKOICYaphJwkmyzv2TzjLj7kVIrYsELpkjpf4UTdxmsLwDIepjrxZ8uD/shvV
+	 MeP/CBN3zITh+PU3/5ckMcL75oBHtgwHrDCFjSqI=
+Date: Tue, 24 Nov 2026 02:03:34 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,
 	surenb@google.com,smostafa@google.com,skhan@linuxfoundation.org,
 	rppt@kernel.org,rdunlap@infradead.org,praan@google.com,mhocko@suse.com,
@@ -46,10 +46,10 @@ To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,
 	brendan.jackman@linux.dev,baolu.lu@linux.intel.com,songmuchun@bytedance.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261119065812.89959-4-songmuchun@bytedance.com>
-References: <20261119065812.89959-4-songmuchun@bytedance.com>
-Subject: + mm-page_ext-always-use-vmalloc-for-section-page-extensions.patch added to mm-new branch
-Message-Id: <20261124100332.6947C1F000C6@smtp.kernel.org>
+In-Reply-To: <20261119065812.89959-5-songmuchun@bytedance.com>
+References: <20261119065812.89959-5-songmuchun@bytedance.com>
+Subject: + mm-page_ext-use-common-allocation-and-initialization-entry-points.patch added to mm-new branch
+Message-Id: <20261124100335.2EAF51F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -61,12 +61,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/page_ext: always use vmalloc for section page extensions
+     Subject: mm/page_ext: use common allocation and initialization entry points
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_ext-always-use-vmalloc-for-section-page-extensions.patch
+     mm-page_ext-use-common-allocation-and-initialization-entry-points.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_ext-always-use-vmalloc-for-section-page-extensions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_ext-use-common-allocation-and-initialization-entry-points.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -96,20 +96,26 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/page_ext: always use vmalloc for section page extensions
-Date: Thu, 19 Nov 2026 14:58:08 +0800
+Subject: mm/page_ext: use common allocation and initialization entry points
+Date: Thu, 19 Nov 2026 14:58:09 +0800
 
-SPARSEMEM currently tries to allocate each section's page extensions
-from the buddy allocator before falling back to vmalloc.  Boot-time
-section allocation happens after vmalloc is available, and memory
-hotplug allocations do not require physically contiguous backing.
+FLATMEM uses separate page_ext_init_flatmem() and
+page_ext_init_flatmem_late() entry points, while SPARSEMEM performs its
+work through page_ext_init().  This exposes the memory model in the
+generic boot sequence and obscures the allocation and client
+initialization phases.
 
-Use vzalloc_node() directly and remove the buddy-specific allocation,
-free, and kmemleak bookkeeping.  This leaves one runtime backing type
-and lets a later change add memblock as the distinct boot-time path
-to simplify the code.
+Rename the early entry point to page_ext_alloc() and use
+page_ext_init() for client callbacks in both memory models.  SPARSEMEM
+keeps its existing late allocation behavior for now; its
+page_ext_alloc() remains an empty configuration stub.
 
-Link: https://patch.msgid.link/20261119065812.89959-4-songmuchun@bytedance.com
+This also moves FLATMEM client callbacks from immediately after
+kmem_cache_init() to after vmalloc_init().  The callbacks still run
+after the buddy and slab allocators are available, as required by
+page_owner.
+
+Link: https://patch.msgid.link/20261119065812.89959-5-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
@@ -136,50 +142,101 @@ Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Shuah Khan <skhan@linuxfoundation.org>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 
- mm/page_ext.c |   21 +++------------------
- 1 file changed, 3 insertions(+), 18 deletions(-)
+ include/linux/page_ext.h |   20 +++++---------------
+ mm/mm_init.c             |    7 +------
+ mm/page_ext.c            |    5 ++---
+ 3 files changed, 8 insertions(+), 24 deletions(-)
 
---- a/mm/page_ext.c~mm-page_ext-always-use-vmalloc-for-section-page-extensions
-+++ a/mm/page_ext.c
-@@ -290,15 +290,9 @@ static struct page_ext *lookup_page_ext(
- 
- static void *__meminit alloc_page_ext(size_t size, int nid)
- {
--	gfp_t flags = GFP_KERNEL | __GFP_ZERO | __GFP_NOWARN;
--	void *addr = NULL;
--
--	addr = alloc_pages_exact_nid(nid, size, flags);
--	if (addr)
--		kmemleak_alloc(addr, size, 1, flags);
--	else
--		addr = vzalloc_node(size, nid);
-+	void *addr;
- 
-+	addr = vzalloc_node(size, nid);
- 	if (addr)
- 		memmap_pages_add(DIV_ROUND_UP(size, PAGE_SIZE));
- 
-@@ -344,19 +338,10 @@ static int __meminit init_section_page_e
- static void free_page_ext(void *addr)
- {
- 	size_t table_size;
--	struct page *page;
- 
- 	table_size = page_ext_size * PAGES_PER_SECTION;
- 	memmap_pages_add(-1L * (DIV_ROUND_UP(table_size, PAGE_SIZE)));
--
--	if (is_vmalloc_addr(addr)) {
--		vfree(addr);
--	} else {
--		page = virt_to_page(addr);
--		BUG_ON(PageReserved(page));
--		kmemleak_free(addr);
--		free_pages_exact(addr, table_size);
--	}
-+	vfree(addr);
+--- a/include/linux/page_ext.h~mm-page_ext-use-common-allocation-and-initialization-entry-points
++++ a/include/linux/page_ext.h
+@@ -62,13 +62,10 @@ static inline bool early_page_ext_enable
  }
  
- static void __free_page_ext(unsigned long pfn)
+ #ifdef CONFIG_SPARSEMEM
+-static inline void page_ext_init_flatmem(void)
+-{
+-}
+-extern void page_ext_init(void);
+-static inline void page_ext_init_flatmem_late(void)
++static inline void page_ext_alloc(void)
+ {
+ }
++void page_ext_init(void);
+ 
+ static inline bool page_ext_iter_next_fast_possible(unsigned long next_pfn)
+ {
+@@ -79,11 +76,8 @@ static inline bool page_ext_iter_next_fa
+ 	return next_pfn % PAGES_PER_SECTION;
+ }
+ #else
+-extern void page_ext_init_flatmem(void);
+-extern void page_ext_init_flatmem_late(void);
+-static inline void page_ext_init(void)
+-{
+-}
++void page_ext_alloc(void);
++void page_ext_init(void);
+ 
+ static inline bool page_ext_iter_next_fast_possible(unsigned long next_pfn)
+ {
+@@ -205,11 +199,7 @@ static inline void page_ext_init(void)
+ {
+ }
+ 
+-static inline void page_ext_init_flatmem_late(void)
+-{
+-}
+-
+-static inline void page_ext_init_flatmem(void)
++static inline void page_ext_alloc(void)
+ {
+ }
+ 
+--- a/mm/mm_init.c~mm-page_ext-use-common-allocation-and-initialization-entry-points
++++ a/mm/mm_init.c
+@@ -2648,7 +2648,7 @@ void __init mm_core_init(void)
+ 	 * page_ext requires contiguous pages,
+ 	 * bigger than MAX_PAGE_ORDER unless SPARSEMEM.
+ 	 */
+-	page_ext_init_flatmem();
++	page_ext_alloc();
+ 	mem_debugging_and_hardening_init();
+ 	kfence_alloc_pool_and_metadata();
+ 	report_meminit();
+@@ -2664,11 +2664,6 @@ void __init mm_core_init(void)
+ 	memblock_free_all();
+ 	mem_init();
+ 	kmem_cache_init();
+-	/*
+-	 * page_owner must be initialized after buddy is ready, and also after
+-	 * slab is ready so that stack_depot_init() works properly
+-	 */
+-	page_ext_init_flatmem_late();
+ 	kmemleak_init();
+ 	ptlock_cache_init();
+ 	pgtable_cache_init();
+--- a/mm/page_ext.c~mm-page_ext-use-common-allocation-and-initialization-entry-points
++++ a/mm/page_ext.c
+@@ -185,7 +185,7 @@ static inline struct page_ext *get_entry
+ }
+ 
+ #ifndef CONFIG_SPARSEMEM
+-void __init page_ext_init_flatmem_late(void)
++void __init page_ext_init(void)
+ {
+ 	invoke_init_callbacks();
+ }
+@@ -243,9 +243,8 @@ static int __init alloc_node_page_ext(in
+ 	return 0;
+ }
+ 
+-void __init page_ext_init_flatmem(void)
++void __init page_ext_alloc(void)
+ {
+-
+ 	int nid, fail;
+ 
+ 	if (!invoke_need_callbacks())
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
