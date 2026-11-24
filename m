@@ -1,42 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795514610;
-	b=EF3LQtX/CT3iCXAPDlNJ4wz6YGIQfwK2LlXYRbkL1vwJi2XimLDnXdK1Uo/rNOGT0d3f
-	 V9Ni5kphlLUoQcBvEPyPJmeRJU1bZyMZkrwqrcPRM6w2alktAiacxdWeMz0oKJQqYJZ3Q
-	 xQ8RosHpLGeaKotTFRXFkU8kUovUr8tMDsCeBwOv5WzaKLP/YDCWWx9hW302HcfIvhD0/
-	 Cge6HGA3ODS/yqjcnFzyzLtnNv6VndEfNaAmmupQxccXg7It9ig26UkJ2LOBWcz4XyvE9
-	 XOucp1/YBgUa6oA4Psl9IgoYtrR9NW8Mdw+DJaVJYCHvPD8rgqLNVMXxmqlAv6LnJmA==
+	t=1795514613;
+	b=JO9ziRnNINVwyEJj3w/YD8zL8PoGBji/lfCBMgvJsOTIiVYXxZ+GqiKVvshyfSDfrRVV
+	 /6lpWJB9ehR3RKSgj6xvtmLDCYz4XJVtSukZEgv5gAAHo6P7VKA5mJOQmZ2wYmUQHfl71
+	 Je1EwXWykL05Xp82COqPUyb94qm5FKPSPRYfGaXvG3Ug0c5amoxe4kNnf8Rlh4lYY1lxN
+	 2TXXKfEcW68eu0hcrEbcVYAshpKLey9en93mYSQc8pUo3Gpqu959+uu4fqMHwfvadwHn8
+	 UKyc+tVN8B7GlHHWIqS4BUyS5jN+8gJN0eJqGR1r6vfvWrogyBbMHOG9/tJzoiu1v+g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795514610;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795514613;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=Zs4IQJdt1MUCGooQgNWHR6bq9SXtPhZkZYy5NXmYBEs=;
-	b=PN9uM9q1pfrMS64S4jD5yXOOiJ2fLhiyB+SGiK3SKQJiBBNAbh/Mmk0bhCnON9bGF7iA
-	 DYoVfbrus9LGM8mYsr/5azeVvCrMpk+3B04lllVrh1MCvPi69gypNCRcEzJ7NWLbpsqPW
-	 OJ4DftvSbeEOygoJJCy8bgyekZ7N7r4ujTpXtsczhUab+K2VtJrbOJbx79JQHiJI1EIfV
-	 08pRHLJLZtJV0Z5h9nv4ywmWyxzq/AUM7XarV2veaO38ZD4h/Xc8dwNLG3VVS2llqw3gC
-	 3apkZrCSj1+TZf5Ip53YciPxfWaBFXCjjJB0Lfkus8+TFMtfYReEk1Dlo1gsHcseT+Q==
+	bh=XH0ny7pIWEJd8MyL7Mg/Bambc3oS3aW2nErg9jE1hq8=;
+	b=rw0KWegKvN1G94AhtuHDTBL3W4ZO6kD3NDbvtQz5xJm3Tkc2uQ/Ff8PKTTNHiWUPuHdA
+	 AMm6KAa6wdvmO871lyWdvSkDEB1lGtzF/0t2Z8qZdM8LdriRImmsgxNmWsHqZrVWFrSyF
+	 Gcbjo0tpOtSE/cM7YYQAS7X3yyAEChrvJ0ZG9YGQZfiGK/mANsMc0g0WwBiLgEw9X1poL
+	 C8++zxHApyeaYdXtlIKG/GPohFvnjvuE4f+12YpdZaI1seuUvkj+18sNRn6UYYmpIF09Q
+	 T9DtMWME8fUrzGdh5fxpcXXSECSO3nU7lNKtkpksf/JTf6zYSFN5x4doQ+FdHdHiElw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mdJ2Zrcr;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=s7rlWmNJ;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C1F1606A32D
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 10:03:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03D70606A327
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 10:03:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mdJ2Zrcr
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2BAC1F000C6;
-	Tue, 24 Nov 2026 10:03:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=s7rlWmNJ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6947C1F000C6;
+	Tue, 24 Nov 2026 10:03:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795514610;
-	bh=Zs4IQJdt1MUCGooQgNWHR6bq9SXtPhZkZYy5NXmYBEs=;
+	d=linux-foundation.org; s=korg; t=1795514612;
+	bh=XH0ny7pIWEJd8MyL7Mg/Bambc3oS3aW2nErg9jE1hq8=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=mdJ2Zrcrc6GhWKfeK9yR42bTRhxm4BoP+WavYEzW/LYQzgi3J3CH7zIsi1AqimkvV
-	 bIFbus8ujby/jzOcgh0MOg6GkhLpRTDiU6UoCHe9i6RnBTRK2M9ky8tfXTXOkGe3DZ
-	 sCAOLE/R6q5ZZXgCvjV3kURVXFt35USEmrvrh2KI=
-Date: Tue, 24 Nov 2026 02:03:29 -0800
+	b=s7rlWmNJKQyBpNy01vGIGBGtedm+5TITEQiJoHbQ6Uwwrx6r6Z2JRKVkPL1GSoQqp
+	 WWWAC2eSULJu2Tntbl8TE654LtV7pl8wDZxq0FsQhe5d9cDxpafmiB3j5ers1NLgJQ
+	 X+EAzzOQDTChdNJ0GJ8kYI2Hc8GChaXEzm4S5JL8=
+Date: Tue, 24 Nov 2026 02:03:31 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,
 	surenb@google.com,smostafa@google.com,skhan@linuxfoundation.org,
 	rppt@kernel.org,rdunlap@infradead.org,praan@google.com,mhocko@suse.com,
@@ -46,10 +46,10 @@ To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,
 	brendan.jackman@linux.dev,baolu.lu@linux.intel.com,songmuchun@bytedance.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261119065812.89959-3-songmuchun@bytedance.com>
-References: <20261119065812.89959-3-songmuchun@bytedance.com>
-Subject: + mm-page_ext-fix-client-data-alignment.patch added to mm-new branch
-Message-Id: <20261124100329.E2BAC1F000C6@smtp.kernel.org>
+In-Reply-To: <20261119065812.89959-4-songmuchun@bytedance.com>
+References: <20261119065812.89959-4-songmuchun@bytedance.com>
+Subject: + mm-page_ext-always-use-vmalloc-for-section-page-extensions.patch added to mm-new branch
+Message-Id: <20261124100332.6947C1F000C6@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -61,12 +61,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/page_ext: fix client data alignment
+     Subject: mm/page_ext: always use vmalloc for section page extensions
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_ext-fix-client-data-alignment.patch
+     mm-page_ext-always-use-vmalloc-for-section-page-extensions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_ext-fix-client-data-alignment.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_ext-always-use-vmalloc-for-section-page-extensions.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -96,32 +96,25 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/page_ext: fix client data alignment
-Date: Thu, 19 Nov 2026 14:58:07 +0800
+Subject: mm/page_ext: always use vmalloc for section page extensions
+Date: Thu, 19 Nov 2026 14:58:08 +0800
 
-page_ext lays out client payloads consecutively without aligning their
-offsets or the final entry size. This happened to work while the active
-payload sizes kept the stride naturally aligned, but IOMMU debug page
-allocation added a four-byte payload after data requiring eight-byte
-alignment.
+SPARSEMEM currently tries to allocate each section's page extensions
+from the buddy allocator before falling back to vmalloc.  Boot-time
+section allocation happens after vmalloc is available, and memory
+hotplug allocations do not require physically contiguous backing.
 
-When page owner and IOMMU debug page allocation are both enabled on
-x86-64, struct page_ext, struct page_owner, and the IOMMU payload use
-8, 64, and 4 bytes respectively. This produces a 76-byte entry stride,
-leaving struct page_ext and page_owner data in every other entry only
-four-byte aligned instead of eight-byte aligned.
+Use vzalloc_node() directly and remove the buddy-specific allocation,
+free, and kmemleak bookkeeping.  This leaves one runtime backing type
+and lets a later change add memblock as the distinct boot-time path
+to simplify the code.
 
-Align each client offset and round the final entry size to the largest
-active alignment so every page_ext entry preserves the alignment
-required by all active clients.
-
-Link: https://patch.msgid.link/20261119065812.89959-3-songmuchun@bytedance.com
-Fixes: 466ae6978a5b ("iommu: Add page_ext for IOMMU_DEBUG_PAGEALLOC")
+Link: https://patch.msgid.link/20261119065812.89959-4-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Reviewed-by: Chris Down <chris@chrisdown.name>
 Tested-by: Chris Down <chris@chrisdown.name>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Marco Elver <elver@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -143,65 +136,50 @@ Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Shuah Khan <skhan@linuxfoundation.org>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 
- mm/page_ext.c |   26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ mm/page_ext.c |   21 +++------------------
+ 1 file changed, 3 insertions(+), 18 deletions(-)
 
---- a/mm/page_ext.c~mm-page_ext-fix-client-data-alignment
+--- a/mm/page_ext.c~mm-page_ext-always-use-vmalloc-for-section-page-extensions
 +++ a/mm/page_ext.c
-@@ -116,8 +116,27 @@ static int __init setup_early_page_ext(c
- }
- early_param("early_page_ext", setup_early_page_ext);
+@@ -290,15 +290,9 @@ static struct page_ext *lookup_page_ext(
  
-+static inline size_t page_ext_data_alignment(size_t size)
-+{
-+	const size_t align = __alignof__(u64);
-+
-+	if (!size)
-+		return 1;
-+
-+	/* u64 has the strictest alignment required by page_ext clients. */
-+	if (IS_ALIGNED(size, align))
-+		return align;
-+
-+	/*
-+	 * A type's size is a multiple of its natural alignment, so its
-+	 * lowest set bit is at least that alignment.
-+	 */
-+	return size & -size;
-+}
-+
- static bool __init invoke_need_callbacks(void)
+ static void *__meminit alloc_page_ext(size_t size, int nid)
  {
-+	size_t max_align = 1;
- 	int i;
- 	int entries = ARRAY_SIZE(page_ext_ops);
- 	bool need = false;
-@@ -126,6 +145,7 @@ static bool __init invoke_need_callbacks
- 		if (page_ext_ops[i]->need()) {
- 			if (page_ext_ops[i]->need_shared_flags) {
- 				page_ext_size = sizeof(struct page_ext);
-+				max_align = __alignof__(struct page_ext);
- 				break;
- 			}
- 		}
-@@ -133,11 +153,17 @@ static bool __init invoke_need_callbacks
+-	gfp_t flags = GFP_KERNEL | __GFP_ZERO | __GFP_NOWARN;
+-	void *addr = NULL;
+-
+-	addr = alloc_pages_exact_nid(nid, size, flags);
+-	if (addr)
+-		kmemleak_alloc(addr, size, 1, flags);
+-	else
+-		addr = vzalloc_node(size, nid);
++	void *addr;
  
- 	for (i = 0; i < entries; i++) {
- 		if (page_ext_ops[i]->need()) {
-+			size_t align;
-+
-+			align = page_ext_data_alignment(page_ext_ops[i]->size);
-+			page_ext_size = ALIGN(page_ext_size, align);
- 			page_ext_ops[i]->offset = page_ext_size;
- 			page_ext_size += page_ext_ops[i]->size;
-+			max_align = max(max_align, align);
- 			need = true;
- 		}
- 	}
-+	page_ext_size = ALIGN(page_ext_size, max_align);
++	addr = vzalloc_node(size, nid);
+ 	if (addr)
+ 		memmap_pages_add(DIV_ROUND_UP(size, PAGE_SIZE));
  
- 	return need;
+@@ -344,19 +338,10 @@ static int __meminit init_section_page_e
+ static void free_page_ext(void *addr)
+ {
+ 	size_t table_size;
+-	struct page *page;
+ 
+ 	table_size = page_ext_size * PAGES_PER_SECTION;
+ 	memmap_pages_add(-1L * (DIV_ROUND_UP(table_size, PAGE_SIZE)));
+-
+-	if (is_vmalloc_addr(addr)) {
+-		vfree(addr);
+-	} else {
+-		page = virt_to_page(addr);
+-		BUG_ON(PageReserved(page));
+-		kmemleak_free(addr);
+-		free_pages_exact(addr, table_size);
+-	}
++	vfree(addr);
  }
+ 
+ static void __free_page_ext(unsigned long pfn)
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
