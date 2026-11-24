@@ -1,50 +1,52 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795550453;
-	b=4LEBmNHxBlnsMvrw++RQnkpLjH9CQDTOSxGJf49AxsRS3oGOGssvorpigWOmQKIeT2Em
-	 be7lx8NFeJL/rlw0Yu6mzy3cbLPt/pbGkBm3C6YopwMugChS3RNnKX+vJvr3BetbP8Ha9
-	 qTQaaC5UT70DrZXuc+FzIBjs2lXQWNv7JSLkLynDBN/1bWE61PRRxRB+cARfu/7f+fkPh
-	 hqPjQ2uWrzVnfk2UPeylKTiIePS8MNnJ/w4WmbGVR6RhmCjcXM9brOa8ayJ/wCxGO1vvL
-	 abxE0sdLviRc2FshasRNo9QASNNXF1NeyBZxS0k/GPWdVYwVE3KWaod2FT6Qwhk9vxw==
+	t=1795550454;
+	b=UcDf4KbSQRtt1hHBeJ75JTAGA63D1IEkATALZBnn08ZlzxSgRzF5O3GEWs3fTvo3JsNu
+	 OvIiTvP7TuqE5/UMEvuPLki1400qX20/dr9tjjAKERB956b2oUfHS5AkviB7EeMMHpuld
+	 WKh4G+2YENMjstapbeHFKz4r7wPgDHj+pLthJs8hbSwWRjo63Llqwy/9rcF9aQq5wXihS
+	 hjcFypgHp6nBBTmij/L3xXsfpxYJJxFbZsNJixN1udPRoXLE/8lhZh3mWiEmFp5j0yrYf
+	 UchgwOG/x77MCKkPS08O73kykMG8P+lRrNNI6T6KtLupgls05qLajxvZ6NLiuM0StRQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795550453;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795550454;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=Obzt7eYiFlPA1fqyC4bKsThd9NdppUH264CL6XsP+LE=;
-	b=tr3Aj0z/xIMj73v0VXpqgFSvCcqKpgjbdm6CIBL7uXTTWnDC2YImALkRxEfbdX+HypVH
-	 uoI00OfhWGs7Aa4wOpXz2/TvjoFI0pQofljoImxPvrbtclM8dNE8hstj4iuT2HX/PDEQM
-	 L1M0Z5ImzI4dZ3qMVfsdEiCDxBUto/TTC7GdfjzIbrXYoVKaqfZzBb59AYspgIHRKfzjk
-	 lFwpfqjgymj5tHI2Lc3vsHYAc6YzonQW7SnBJ/ugmKdXXWU+TMd80fCb/Pr2Gt+O/u+HB
-	 yR6ndJ7h61O4SmeXs1Nk4fyR8sk8j1laT76z6/pjzv/K/sBoA8zOXwwhSKKsMtSBTIw==
+	bh=7lRWmlzPyJE22IVPZSA9OFki5MY2r+pzTxqXruhBxUA=;
+	b=O0Sxixw7AtBi/P8bEBpksl8IqFMhB76D+TSEnYurymGVK4qf8niYZjUIy9syK/zCzNbL
+	 uzIlkurNPoXQNQt1u87ctc/6vXH5SrJpSVp54SWPCPYEJ4RAJxrCujb0M0wrr25X91/jn
+	 4QsBKEaCsdPi2FayIB8MuqxhXzNAMR1uq7EKydRgrKFxFF9OnKHbRQ9tcZBJ2f4RVpj7V
+	 d858OKqooh2v0P6K3Y3EnIVqwYtzqPTZ3jWhCzTJzmH7eI2oEY5a50I4vQ6MAKT2Fe7Zm
+	 Ya14Muco75JZBI0a38z1eYEnLcLMukTZ2l4fyWgIvhjK5C/7hLfCUTFSbBskkohFMQg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=YJxmcDdq;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="zxtp2/zJ";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E6F0606A31E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 20:00:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48045606A31E;
+	Tue, 24 Nov 2026 20:00:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=YJxmcDdq
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B14E71F000C6;
-	Tue, 24 Nov 2026 20:00:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=zxtp2/zJ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 018801F000C6;
+	Tue, 24 Nov 2026 20:00:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795550452;
-	bh=Obzt7eYiFlPA1fqyC4bKsThd9NdppUH264CL6XsP+LE=;
+	d=linux-foundation.org; s=korg; t=1795550454;
+	bh=7lRWmlzPyJE22IVPZSA9OFki5MY2r+pzTxqXruhBxUA=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=YJxmcDdqjjR1dvEzSj9qCzzwGomLUwVusP5NquCbLPfStZoxjZynaZVUaaWWYCz3r
-	 KcTKtsyqFL2/LlccKZhC2ik1fSck4y/wjVGQEtKKUvCzvC8w89TMEpFUuXOeho2BLa
-	 ZK7b+gHM+xef6yEyTCoW4ELvd3Yzx/vgvIU47Yyg=
-Date: Tue, 24 Nov 2026 12:00:52 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
-	weixugc@google.com,rakie.kim@sk.com,joshua.hahnjy@gmail.com,david@kernel.org,
-	aneesh.kumar@linux.ibm.com,gourry@gourry.net,akpm@linux-foundation.org
+	b=zxtp2/zJl/AlBJo206VlaVbHGF9zLL0NH2W6NRZUD7PaU/PJafknxiU4IpMRwMCnq
+	 HhaOL5vmvw8Tmfb+LNEGsoWm8ZewUZBJh1WSXbUlyjTdNbCDxymh/GuzancIyckFRV
+	 de4sc2Y7UWDalgwVTd7j1i+yaSyDW+XEnYSDjzyk=
+Date: Tue, 24 Nov 2026 12:00:53 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,usama.arif@linux.dev,
+	stable@vger.kernel.org,ryan.roberts@arm.com,qi.zheng@linux.dev,
+	nico.pache@linux.dev,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,
+	hughd@google.com,dev.jain@arm.com,baolin.wang@linux.alibaba.com,
+	baohua@kernel.org,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261021024438.1942502-1-gourry@gourry.net>
-References: <20261021024438.1942502-1-gourry@gourry.net>
-Subject: [merged mm/core.git: for-next] mm-memory-tiers-reset-demotion-targets-of-nodes-without-memory.patch removed from -mm tree
-Message-Id: <20261124200052.B14E71F000C6@smtp.kernel.org>
+In-Reply-To: <c13cdd25-7d7b-4059-a22d-af0a48fabaac@kernel.org>
+References: <c13cdd25-7d7b-4059-a22d-af0a48fabaac@kernel.org>
+Subject: [merged mm/core.git: for-next] mm-khugepaged-free-unused-page-table-when-setting-a-huge-pmd-fails.patch removed from -mm tree
+Message-Id: <20261124200054.018801F000C6@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,72 +58,101 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/memory-tiers: reset demotion targets of nodes without memory
+     Subject: mm: free unused page table allocated by do_set_pmd()
 has been removed from the -mm tree.  Its filename was
-     mm-memory-tiers-reset-demotion-targets-of-nodes-without-memory.patch
+     mm-khugepaged-free-unused-page-table-when-setting-a-huge-pmd-fails.patch
 
 This patch was dropped because it was merged into mm/core.git: for-next
 
 ------------------------------------------------------
-From: "Gregory Price (Meta)" <gourry@gourry.net>
-Subject: mm/memory-tiers: reset demotion targets of nodes without memory
-Date: Tue, 20 Oct 2026 22:44:38 -0400
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Subject: mm: free unused page table allocated by do_set_pmd()
+Date: Wed, 4 Nov 2026 20:56:37 +0100
 
-When a node loses its last memory, offline_pages() clears N_MEMORY before
-the memory-tier callback rebuilds the demotion targets. 
-disable_all_demotion_targets() resets only N_MEMORY nodes, so the node
-keeps its old node_demotion[] entry while it has no memory.  Before
-6c542ab75714, the reset covered every online node.
+do_set_pmd() can allocate vmf->prealloc_pte on architectures that need a
+deposited page table, such as PowerPC with the hash MMU.  If the PMD is no
+longer empty when it takes the PMD lock, it returns VM_FAULT_FALLBACK
+without consuming that table.
 
-A reclaimer reads the stale entry only between the node regaining memory
-and its targets being rebuilt, and it filters the entry against the
-current allowed targets, so there is no user-visible effect.  To see it,
-online and then offline a node's only DIMM: a debugger still finds the
-lower-tier node in node_demotion[nid].preferred.
+Since collapse_pte_mapped_thp() uses mmap_read_lock(), a concurrent
+userfaultfd operation can install a PTE table before taking the folio
+lock.  If that races with set_huge_pmd(), the unused preallocated table is
+lost when its local vm_fault goes out of scope.
 
-Reset the targets of every node.
+Track whether do_set_pmd() allocated the table and free it after dropping
+the PMD lock if it was not consumed.  Preserve any preallocated table
+supplied by the caller for PTE fallback.  Successful PMD installation
+consumes the table and clears the pointer.
 
-Link: https://patch.msgid.link/20261021024438.1942502-1-gourry@gourry.net
-Fixes: 6c542ab75714 ("mm/demotion: build demotion targets based on explicit memory tiers")
-Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
+Returning without a preallocated table matches the existing behavior on
+architectures that do not need a deposited table.  All callers already
+handle that case.
+
+Link: https://patch.msgid.link/c13cdd25-7d7b-4059-a22d-af0a48fabaac@kernel.org
+Fixes: 1043173eb5eb ("mm/khugepaged: collapse_pte_mapped_thp() with mmap_read_lock()")
+Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Ying Huang <ying.huang@linux.alibaba.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Nico Pache <nico.pache@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Usama Arif <usama.arif@linux.dev>
+Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>
 
- mm/memory-tiers.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/memory.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/memory-tiers.c~mm-memory-tiers-reset-demotion-targets-of-nodes-without-memory
-+++ a/mm/memory-tiers.c
-@@ -378,7 +378,11 @@ static void disable_all_demotion_targets
- 	struct memory_tier *memtier;
- 	int node;
+--- a/mm/memory.c~mm-khugepaged-free-unused-page-table-when-setting-a-huge-pmd-fails
++++ a/mm/memory.c
+@@ -5741,6 +5741,7 @@ vm_fault_t do_set_pmd(struct vm_fault *v
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
+ 	unsigned long haddr = vmf->address & HPAGE_PMD_MASK;
++	bool pgtable_allocated = false;
+ 	pmd_t entry;
+ 	vm_fault_t ret = VM_FAULT_FALLBACK;
  
--	for_each_node_state(node, N_MEMORY) {
-+	/*
-+	 * When the NODE_REMOVED_LAST_MEMORY event fires, N_MEMORY has already
-+	 * been dropped from the node, so we must walk every node instead.
-+	 */
-+	for_each_node(node) {
- 		node_demotion[node].preferred = NODE_MASK_NONE;
- 		/*
- 		 * We are holding memory_tier_lock, it is safe
+@@ -5782,6 +5783,7 @@ vm_fault_t do_set_pmd(struct vm_fault *v
+ 		vmf->prealloc_pte = pte_alloc_one(vma->vm_mm);
+ 		if (!vmf->prealloc_pte)
+ 			return VM_FAULT_OOM;
++		pgtable_allocated = true;
+ 	}
+ 
+ 	vmf->ptl = pmd_lock(vma->vm_mm, vmf->pmd);
+@@ -5812,6 +5814,10 @@ vm_fault_t do_set_pmd(struct vm_fault *v
+ 	count_vm_event(THP_FILE_MAPPED);
+ out:
+ 	spin_unlock(vmf->ptl);
++	if (pgtable_allocated && vmf->prealloc_pte) {
++		pte_free(vma->vm_mm, vmf->prealloc_pte);
++		vmf->prealloc_pte = NULL;
++	}
+ 	return ret;
+ }
+ #else
 _
 
-Patches currently in -mm which might be from gourry@gourry.net are
+Patches currently in -mm which might be from david@kernel.org are
 
-mm-mempolicy-convert-mempolicy-refcnt-to-refcount_t.patch
-selftests-mm-add-madv_cold-and-madv_pageout-contract-tests.patch
-selftests-mm-check-madv_cold-and-madv_pageout-range-handling.patch
-selftests-mm-check-that-madv_cold-and-madv_pageout-reject-hugetlb.patch
-selftests-mm-check-that-madv_cold-and-madv_pageout-preserve-shared-memory.patch
-selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps.patch
-selftests-mm-check-madv_pageout-file-permissions.patch
-selftests-mm-check-that-unauthorized-madv_pageout-skips-large-file-folios.patch
-mm-hmm-reject-shadow-stack-mappings.patch
+mm-mprotect-dont-skip-uffd-marker-install-when-racing-with-pte-table-reclaim.patch
+mm-userfaultfd-prevent-poison-marker-loss.patch
+mm-hugetlb-compare-against-persistent-count-when-freeing-lowmem-folios.patch
+mm-hugetlb-preserve-reservations-when-shrinking-on-highmem.patch
+mm-hugetlb-account-temporary-folios-separately.patch
+mm-hugetlb-account-temporary-folios-separately-fix.patch
+mm-hugetlb-serialize-page-cache-allocations-with-truncation.patch
+mm-hugetlb-serialize-page-cache-allocations-with-truncation-fix.patch
+mm-memfd-recheck-the-page-cache-before-allocating-a-hugetlb-folio.patch
+mm-hugetlb-count-again-if-the-reserve-map-shrank.patch
+mm-hugetlb-account-restored-reservations-before-freeing-folios.patch
+mm-hugetlb-delay-anon-folio-rmap-removal-until-after-the-tlb-flush.patch
+mm-userfaultfd-reject-dax-mappings.patch
 
