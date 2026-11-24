@@ -1,50 +1,50 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795479086;
-	b=ZARkbitK3Y+gXtHJgKu0jeaFbHzRKugfI3tr8hRsDDGUqhBsJOcM9YLdwnpV+EX93+DH
-	 BJi/2LMX/e2zsme+DcxyfUE2w9cU+iDmWWIzWWTlCgiP/VIkL4Lk3iddB2gyQb3zD6+Ve
-	 LRYQxflJVj/uPGUw87wpglhcfdngLeWFwpLsiZsp2u1TfTCzho35JtnQYMiYcmomUPuU9
-	 W7BVi3hUHbyw33hg9e45syCoeSftEuAWRWLmg2uGT3ERmfe6U/cfQMvfdvY+poTGYusTH
-	 nfanP/BkooynShQXScK/vFqI4T5ohH4e+tT3hglZ2/MksTB1CmoHqyFtQjaC1i3CF6g==
+	t=1795479089;
+	b=iABBOd+k+A7shuo8MrquDZild6MY0n7QWpfcrj0xaEk2/nI1PwTr+Fz/F6rOOdVcilRK
+	 v+VmcXMercj60mrcNyWuMXfgMoJznN04ZDHw/iL/mLTO2Oy4lDd3j+AGC0USxp6YqEZIo
+	 FOUinKQUBhA+dd61mGkuxOqWnACKem+1aJKyJII5Cxh8Vjrsz5BosayNcyODxheHRUFU0
+	 Qhi5f1dnatGDtWyWKnar9BQIOSXAQBy+G9xwV/gV6zqQiZygevW220QmbarEevxZ0xPXh
+	 5BmnZRZF7ooOodbo2GSXiLzC+kxf4oFX8mK8TjQioTLbOL5TQB9vojPrBpshMVKf7xA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795479086;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795479089;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=hq9MHNmf5z+jIkrzLF2XaknjsP17OD5HJekgqR1pJOw=;
-	b=qjGB+xYMnWIIOY0UaxZu0nTNgOibgRPZcauwYuDC6GQS+iKi1V/kHMbDThHOE/14a5L5
-	 C4HJ6FPb+ToQgeBNi31KDFgqMQloR+n6EAS/KYVHA/Yu7QXcUGY07z/W8xnk0/Cx6yHQe
-	 D3Cb0P5XDkBOV6CB63p7CzmiAQzAn/wN7kh/6au3/3cnDQzNoo2Jo7kPJmnGLBCHHO0TB
-	 4y137OkBw7wa3n2Rcy8NAXmUWPiq6xKPS9PSuS+LxYbalr40sxlfXVAhtVZK4gp09Rdsv
-	 6vC/dMEBEvyFAok/vjh3XIeDJtarY3cadIhSv2pH2WVSiBGu/ETCHwqxNtp1r/FOEcQ==
+	bh=L8Y6V9ILvUFJNFD7aWPf6dI5pScyO1WaXxUutqRiwRw=;
+	b=h5QpfdmkWM/hJO6fqmj0j3TpoqQ5jBsEd+RagexUsKWfJrMlVmIQGmBRhUMc1thkNU0X
+	 fdghCjmyrdRjf4wQmwYVPg8AvwgjNHOt0qlT8rfO3f2LwqdtYG1DP1j3CeCIShoKC/1WH
+	 ZpT1GR0+78yduuMBt0GzsKOiBHe0iAgIMXCCjYfJ4jCk844+VMxTqmuSQsufDsmnQ6yZf
+	 mJPtY2Ko29WDkJjcUpkLKEhaYrl89SZvHbJJ+dnhSCjmlCqeHzcXkbGuJqvsDUEYYuDZB
+	 FwwL3zn6OpKRNc4Fga0tVx3geO9BOWQmSBC95mm99JNs0gW7pkeu0BoSD894SbZinvw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=sB79IUuv;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PxPDuIPK;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93C77606A321
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 00:11:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EA5E606A321
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 00:11:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=sB79IUuv
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08C671F000CA;
-	Tue, 24 Nov 2026 00:11:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PxPDuIPK
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7408D1F000C6;
+	Tue, 24 Nov 2026 00:11:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795479086;
-	bh=hq9MHNmf5z+jIkrzLF2XaknjsP17OD5HJekgqR1pJOw=;
+	d=linux-foundation.org; s=korg; t=1795479088;
+	bh=L8Y6V9ILvUFJNFD7aWPf6dI5pScyO1WaXxUutqRiwRw=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=sB79IUuvgH5MQahuvH2cDeSgER238H9lZ2OudQKMrTetVx3nfkpq+PQtGDRQhm22l
-	 +IgeBFjJ8dx4jhuFEicyVv6N6iyhkVhgyfvIqq30ubB5KFvEOVoetynxLURED8ylbJ
-	 mYx6OEvFdBBRLDSsOxeuJ2FMICjrHdaois/pThZI=
-Date: Mon, 23 Nov 2026 16:11:25 -0800
+	b=PxPDuIPK6kj/q2kDedc/fsyRAR/i8IMgS3fCOm6hJj/wFRp2WfjAPQyL8tFyigHjH
+	 HD7HHyXFzmPEGEz+gvSyDmTpgE4HHkBASNjxAbXwGoySr2Ho0FHmQswzcsfeCIIO9j
+	 dfdOALCGaF1gssbJjGzm8/NPfehWz/nG/h6l/KKg=
+Date: Mon, 23 Nov 2026 16:11:27 -0800
 To: mm-commits@vger.kernel.org,yosry@kernel.org,nphamcs@gmail.com,
 	minchan@kernel.org,hongfengchen@xiaomi.com,chenhongfeng0212@gmail.com,
 	bgeffon@google.com,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261123054746.2579253-2-senozhatsky@chromium.org>
-References: <20261123054746.2579253-2-senozhatsky@chromium.org>
-Subject: + zsmalloc-free-a-zspages-pages-in-one-batch.patch added to mm-new branch
-Message-Id: <20261124001126.08C671F000CA@smtp.kernel.org>
+In-Reply-To: <20261123054746.2579253-3-senozhatsky@chromium.org>
+References: <20261123054746.2579253-3-senozhatsky@chromium.org>
+Subject: + zram-keep-the-hot-statistics-per-cpu.patch added to mm-new branch
+Message-Id: <20261124001128.7408D1F000C6@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,12 +56,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: zsmalloc: free a zspage's pages in one batch
+     Subject: zram: keep the hot statistics per CPU
 has been added to the -mm mm-new branch.  Its filename is
-     zsmalloc-free-a-zspages-pages-in-one-batch.patch
+     zram-keep-the-hot-statistics-per-cpu.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-free-a-zspages-pages-in-one-batch.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-keep-the-hot-statistics-per-cpu.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -91,140 +91,327 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zsmalloc: free a zspage's pages in one batch
-Date: Mon, 23 Nov 2026 14:47:36 +0900
+Subject: zram: keep the hot statistics per CPU
+Date: Mon, 23 Nov 2026 14:47:37 +0900
 
-Patch series "zram: zsmalloc: speed up zspage free path", v3.
-
-This is a followup on deferred zs_free() discussion [1].  We cannot do
-deferred zs_free(), at least not on the zsmalloc side, due to the fact
-that object handle is now stored in-place on the client side (zswap/zram
-entry).  There is still a possibility for a speed up tho.  One is batching
-of zspage's pages free.  The other one is moving zram stats into per-CPU
-area (as was suggested by Hongfeng Chen), which reduces cache lines
-bouncing in zram slot-free notification path.
-
-
-This patch (of 2):
-
-__free_frozen_pages() and dec_zone_page_state() take about 22% of the
-profile [2].
-
-Collect the pages of a multi-page zspage in a folio_batch and free
-them with folios_put(), which takes the pcp lock once per run of
-same-zone pages, and update NR_ZSPAGES once per such run as well
-A zspage never has more pages than a folio_batch holds.
-
-Single-page zspages, incompressible or power of 2 size classes, use
-the current inline path.  There is nothing to batch there, and
-folio_batch is not free, hence the batch path lives in its own
-noinline function.
+When several processes free swapped out memory at the same time, e.g.  on
+munmap() or exit, all CPUs update pages_stored, compr_data_size,
+same_pages, huge_pages, huge_pages_since and notify_free stats, so the
+cachelines bounce a lot [1].  Keep the six counters per CPU instead, as
+local64_t updated with preemption disabled.
 
 munmap() test:
-                    next-20261119      v7.4-rc3
-  256 MiB           -2.0% .. -4.1%     -4.4%
-  1 GiB             -2.8% .. -4.4%     -3.8%
+                  before     after
+  4 x 256 MiB     18.69 ms   14.12 ms   (-24%)
+  8 x 128 MiB     14.82 ms   10.09 ms   (-32%)
 
-Link: https://lore.kernel.org/20261123054746.2579253-1-senozhatsky@chromium.org
-Link: https://patch.msgid.link/20261123054746.2579253-2-senozhatsky@chromium.org
-Link: https://lore.kernel.org/all/20261016120927.3191690-1-hongfengchen@xiaomi.com/ [1]
-Link: https://lore.kernel.org/20261109105957.2577351-1-chenhongfeng0212@gmail.com [2]
+Link: https://patch.msgid.link/20261123054746.2579253-3-senozhatsky@chromium.org
+Link: https://lore.kernel.org/20261017031542.3504947-1-hongfengchen@xiaomi.com [1]
+Signed-off-by: Hongfeng Chen <hongfengchen@xiaomi.com>
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Hongfeng Chen <hongfengchen@xiaomi.com>
+Co-developed-by: Hongfeng Chen <hongfengchen@xiaomi.com>
 Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Yosry Ahmed <yosry@kernel.org>
 Cc: Brian Geffon <bgeffon@google.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Hongfeng Chen <chenhongfeng0212@gmail.com>
 
- mm/zsmalloc.c |   52 ++++++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 46 insertions(+), 6 deletions(-)
+ drivers/block/zram/zram_drv.c |   99 +++++++++++++++++++++++---------
+ drivers/block/zram/zram_drv.h |   26 ++++++--
+ 2 files changed, 93 insertions(+), 32 deletions(-)
 
---- a/mm/zsmalloc.c~zsmalloc-free-a-zspages-pages-in-one-batch
-+++ a/mm/zsmalloc.c
-@@ -43,6 +43,7 @@
- #include <linux/debugfs.h>
- #include <linux/zsmalloc.h>
- #include <linux/fs.h>
-+#include <linux/folio_batch.h>
- #include <linux/workqueue.h>
- #include "zpdesc.h"
- 
-@@ -844,6 +845,44 @@ unlock:
+--- a/drivers/block/zram/zram_drv.c~zram-keep-the-hot-statistics-per-cpu
++++ a/drivers/block/zram/zram_drv.c
+@@ -101,6 +101,38 @@ static void slot_unlock(struct zram *zra
+ 	clear_and_wake_up_bit(ZRAM_ENTRY_LOCK_BIT, lock);
  }
  
- /*
-+ * Free the pages of a multi-page zspage in one go, see folios_put().
-+ * Not inlined, so that the folio_batch is only set up (and, with
-+ * CONFIG_INIT_STACK_ALL_ZERO, zero-filled) when there is something
-+ * to batch.
-+ */
-+static noinline void free_page_chain(struct zpdesc *zpdesc)
++static void zram_stat_add(struct zram *zram, enum zram_pcpu_stat item,
++			  s64 amount)
 +{
-+	struct zone *zone = zpdesc_zone(zpdesc);
-+	struct folio_batch fbatch;
-+	int nr = 0;
++	struct zram_pcpu_stats *stats = get_cpu_ptr(zram->pcpu_stats);
 +
-+	static_assert(ZS_MAX_PAGES_PER_ZSPAGE <= FOLIO_BATCH_SIZE);
-+
-+	folio_batch_init(&fbatch);
-+	do {
-+		struct zpdesc *next = get_next_zpdesc(zpdesc);
-+
-+		VM_BUG_ON_PAGE(!zpdesc_is_locked(zpdesc), zpdesc_page(zpdesc));
-+		reset_zpdesc(zpdesc);
-+		zpdesc_unlock(zpdesc);
-+
-+		/* NR_ZSPAGES is per zone: one update per same-zone run */
-+		if (unlikely(zpdesc_zone(zpdesc) != zone)) {
-+			mod_zone_page_state(zone, NR_ZSPAGES, -nr);
-+			zone = zpdesc_zone(zpdesc);
-+			nr = 0;
-+		}
-+		nr++;
-+
-+		folio_batch_add(&fbatch, zpdesc_folio(zpdesc));
-+		zpdesc = next;
-+	} while (zpdesc);
-+
-+	mod_zone_page_state(zone, NR_ZSPAGES, -nr);
-+	folios_put(&fbatch);
++	local64_add(amount, &stats->stat[item]);
++	put_cpu_ptr(zram->pcpu_stats);
 +}
 +
-+/*
-  * Three free helpers, kept apart here:
-  *
-  * __free_zspage_lockless(): bare core; walks zpdescs and returns pages
-@@ -861,21 +900,22 @@ unlock:
-  */
- static inline void __free_zspage_lockless(struct zspage *zspage)
- {
--	struct zpdesc *zpdesc, *next;
-+	struct zpdesc *zpdesc;
- 
- 	VM_BUG_ON(get_zspage_inuse(zspage));
- 	VM_BUG_ON(zspage->fullness != ZS_INUSE_RATIO_0);
- 
--	next = zpdesc = get_first_zpdesc(zspage);
--	do {
-+	zpdesc = get_first_zpdesc(zspage);
-+	if (get_next_zpdesc(zpdesc)) {
-+		free_page_chain(zpdesc);
-+	} else {
-+		/* Single-page zspage, e.g. a huge object: nothing to batch */
- 		VM_BUG_ON_PAGE(!zpdesc_is_locked(zpdesc), zpdesc_page(zpdesc));
--		next = get_next_zpdesc(zpdesc);
- 		reset_zpdesc(zpdesc);
- 		zpdesc_unlock(zpdesc);
- 		zpdesc_dec_zone_page_state(zpdesc);
- 		zpdesc_put(zpdesc);
--		zpdesc = next;
--	} while (zpdesc != NULL);
++static void zram_stat_sub(struct zram *zram, enum zram_pcpu_stat item,
++			  s64 amount)
++{
++	struct zram_pcpu_stats *stats = get_cpu_ptr(zram->pcpu_stats);
++
++	local64_sub(amount, &stats->stat[item]);
++	put_cpu_ptr(zram->pcpu_stats);
++}
++
++static u64 zram_stat_read(struct zram *zram, enum zram_pcpu_stat item)
++{
++	struct zram_pcpu_stats *stats;
++	s64 sum = 0;
++	int cpu;
++
++	for_each_possible_cpu(cpu) {
++		stats = per_cpu_ptr(zram->pcpu_stats, cpu);
++		sum += local64_read(&stats->stat[item]);
 +	}
++
++	return sum < 0 ? 0 : sum;
++}
++
+ static inline bool init_done(struct zram *zram)
+ {
+ 	return zram->disksize;
+@@ -950,8 +982,9 @@ static int zram_writeback_complete(struc
  
- 	cache_free_zspage(zspage);
+ 	clear_slot_flag(zram, index, ZRAM_IDLE);
+ 	if (test_slot_flag(zram, index, ZRAM_HUGE))
+-		atomic64_dec(&zram->stats.huge_pages);
+-	atomic64_sub(get_slot_size(zram, index), &zram->stats.compr_data_size);
++		zram_stat_sub(zram, ZRAM_STAT_HUGE_PAGES, 1);
++	zram_stat_sub(zram, ZRAM_STAT_COMPR_DATA_SIZE,
++		      get_slot_size(zram, index));
+ 	zs_free(zram->mem_pool, &zram->table[index].handle);
+ 	zram->table[index].blk_idx = req->blk_idx;
+ 	set_slot_flag(zram, index, ZRAM_WB);
+@@ -1933,7 +1966,7 @@ static ssize_t io_stat_show(struct devic
+ 			"%8llu %8llu 0 %8llu\n",
+ 			(u64)atomic64_read(&zram->stats.failed_reads),
+ 			(u64)atomic64_read(&zram->stats.failed_writes),
+-			(u64)atomic64_read(&zram->stats.notify_free));
++			zram_stat_read(zram, ZRAM_STAT_NOTIFY_FREE));
+ 
+ 	return ret;
  }
+@@ -1955,20 +1988,20 @@ static ssize_t mm_stat_show(struct devic
+ 		zs_pool_stats(zram->mem_pool, &pool_stats);
+ 	}
+ 
+-	orig_size = atomic64_read(&zram->stats.pages_stored);
++	orig_size = zram_stat_read(zram, ZRAM_STAT_PAGES_STORED);
+ 	max_used = atomic_long_read(&zram->stats.max_used_pages);
+ 
+ 	ret = sysfs_emit(buf,
+ 			"%8llu %8llu %8llu %8lu %8ld %8llu %8lu %8llu %8llu\n",
+ 			orig_size << PAGE_SHIFT,
+-			(u64)atomic64_read(&zram->stats.compr_data_size),
++			zram_stat_read(zram, ZRAM_STAT_COMPR_DATA_SIZE),
+ 			mem_used << PAGE_SHIFT,
+ 			zram->limit_pages << PAGE_SHIFT,
+ 			max_used << PAGE_SHIFT,
+-			(u64)atomic64_read(&zram->stats.same_pages),
++			zram_stat_read(zram, ZRAM_STAT_SAME_PAGES),
+ 			atomic_long_read(&pool_stats.pages_compacted),
+-			(u64)atomic64_read(&zram->stats.huge_pages),
+-			(u64)atomic64_read(&zram->stats.huge_pages_since));
++			zram_stat_read(zram, ZRAM_STAT_HUGE_PAGES),
++			zram_stat_read(zram, ZRAM_STAT_HUGE_PAGES_SINCE));
+ 
+ 	return ret;
+ }
+@@ -2051,7 +2084,7 @@ static void slot_free(struct zram *zram,
+ 		 * ZRAM_HUGE flag for deferred decompression path.
+ 		 */
+ 		if (!test_slot_flag(zram, index, ZRAM_WB))
+-			atomic64_dec(&zram->stats.huge_pages);
++			zram_stat_sub(zram, ZRAM_STAT_HUGE_PAGES, 1);
+ 		clear_slot_flag(zram, index, ZRAM_HUGE);
+ 	}
+ 
+@@ -2067,7 +2100,7 @@ static void slot_free(struct zram *zram,
+ 	 */
+ 	if (test_slot_flag(zram, index, ZRAM_SAME)) {
+ 		clear_slot_flag(zram, index, ZRAM_SAME);
+-		atomic64_dec(&zram->stats.same_pages);
++		zram_stat_sub(zram, ZRAM_STAT_SAME_PAGES, 1);
+ 		goto out;
+ 	}
+ 
+@@ -2077,10 +2110,10 @@ static void slot_free(struct zram *zram,
+ 
+ 	zs_free(zram->mem_pool, handle);
+ 
+-	atomic64_sub(get_slot_size(zram, index),
+-		     &zram->stats.compr_data_size);
++	zram_stat_sub(zram, ZRAM_STAT_COMPR_DATA_SIZE,
++		      get_slot_size(zram, index));
+ out:
+-	atomic64_dec(&zram->stats.pages_stored);
++	zram_stat_sub(zram, ZRAM_STAT_PAGES_STORED, 1);
+ 	zram->table[index].element = 0;
+ 	set_slot_size(zram, index, 0);
+ }
+@@ -2252,8 +2285,8 @@ static int write_same_filled_page(struct
+ 	mark_slot_accessed(zram, index);
+ 	slot_unlock(zram, index);
+ 
+-	atomic64_inc(&zram->stats.same_pages);
+-	atomic64_inc(&zram->stats.pages_stored);
++	zram_stat_add(zram, ZRAM_STAT_SAME_PAGES, 1);
++	zram_stat_add(zram, ZRAM_STAT_PAGES_STORED, 1);
+ 
+ 	return 0;
+ }
+@@ -2283,10 +2316,10 @@ static int write_incompressible_page(str
+ 	mark_slot_accessed(zram, index);
+ 	slot_unlock(zram, index);
+ 
+-	atomic64_add(PAGE_SIZE, &zram->stats.compr_data_size);
+-	atomic64_inc(&zram->stats.huge_pages);
+-	atomic64_inc(&zram->stats.huge_pages_since);
+-	atomic64_inc(&zram->stats.pages_stored);
++	zram_stat_add(zram, ZRAM_STAT_COMPR_DATA_SIZE, PAGE_SIZE);
++	zram_stat_add(zram, ZRAM_STAT_HUGE_PAGES, 1);
++	zram_stat_add(zram, ZRAM_STAT_HUGE_PAGES_SINCE, 1);
++	zram_stat_add(zram, ZRAM_STAT_PAGES_STORED, 1);
+ 
+ 	return 0;
+ }
+@@ -2346,8 +2379,8 @@ static int zram_write_page(struct zram *
+ 	slot_unlock(zram, index);
+ 
+ 	/* Update stats */
+-	atomic64_inc(&zram->stats.pages_stored);
+-	atomic64_add(comp_len, &zram->stats.compr_data_size);
++	zram_stat_add(zram, ZRAM_STAT_PAGES_STORED, 1);
++	zram_stat_add(zram, ZRAM_STAT_COMPR_DATA_SIZE, comp_len);
+ 
+ 	return ret;
+ }
+@@ -2538,8 +2571,8 @@ static int recompress_slot(struct zram *
+ 	set_slot_size(zram, index, comp_len_new);
+ 	set_slot_comp_priority(zram, index, prio);
+ 
+-	atomic64_add(comp_len_new, &zram->stats.compr_data_size);
+-	atomic64_inc(&zram->stats.pages_stored);
++	zram_stat_add(zram, ZRAM_STAT_COMPR_DATA_SIZE, comp_len_new);
++	zram_stat_add(zram, ZRAM_STAT_PAGES_STORED, 1);
+ 
+ 	return 0;
+ }
+@@ -2717,7 +2750,7 @@ static void zram_bio_discard(struct zram
+ 		slot_lock(zram, index);
+ 		slot_free(zram, index);
+ 		slot_unlock(zram, index);
+-		atomic64_inc(&zram->stats.notify_free);
++		zram_stat_add(zram, ZRAM_STAT_NOTIFY_FREE, 1);
+ 		index++;
+ 		n -= PAGE_SIZE;
+ 	}
+@@ -2810,7 +2843,7 @@ static void zram_slot_free_notify(struct
+ 
+ 	zram = bdev->bd_disk->private_data;
+ 
+-	atomic64_inc(&zram->stats.notify_free);
++	zram_stat_add(zram, ZRAM_STAT_NOTIFY_FREE, 1);
+ 	if (!slot_trylock(zram, index)) {
+ 		atomic64_inc(&zram->stats.miss_free);
+ 		return;
+@@ -2851,6 +2884,8 @@ static void zram_destroy_comps(struct zr
+ 
+ static void zram_reset_device(struct zram *zram)
+ {
++	int cpu;
++
+ 	guard(rwsem_write)(&zram->dev_lock);
+ 
+ 	zram->limit_pages = 0;
+@@ -2863,6 +2898,9 @@ static void zram_reset_device(struct zra
+ 	zram->disksize = 0;
+ 	zram_destroy_comps(zram);
+ 	memset(&zram->stats, 0, sizeof(zram->stats));
++	for_each_possible_cpu(cpu)
++		memset(per_cpu_ptr(zram->pcpu_stats, cpu), 0,
++		       sizeof(struct zram_pcpu_stats));
+ 	reset_bdev(zram);
+ #ifdef CONFIG_ZRAM_WRITEBACK
+ 	zram->wb_limit_enable = false;
+@@ -3081,9 +3119,15 @@ static int zram_add(void)
+ 	if (!zram)
+ 		return -ENOMEM;
+ 
++	zram->pcpu_stats = alloc_percpu(struct zram_pcpu_stats);
++	if (!zram->pcpu_stats) {
++		ret = -ENOMEM;
++		goto out_free_dev;
++	}
++
+ 	ret = idr_alloc(&zram_index_idr, zram, 0, 0, GFP_KERNEL);
+ 	if (ret < 0)
+-		goto out_free_dev;
++		goto out_free_stats;
+ 	device_id = ret;
+ 
+ 	init_rwsem(&zram->dev_lock);
+@@ -3125,6 +3169,8 @@ out_cleanup_disk:
+ 	put_disk(zram->disk);
+ out_free_idr:
+ 	idr_remove(&zram_index_idr, device_id);
++out_free_stats:
++	free_percpu(zram->pcpu_stats);
+ out_free_dev:
+ 	kfree(zram);
+ 	return ret;
+@@ -3174,6 +3220,7 @@ static int zram_remove(struct zram *zram
+ 	zram_reset_device(zram);
+ 
+ 	put_disk(zram->disk);
++	free_percpu(zram->pcpu_stats);
+ 	kfree(zram);
+ 	return 0;
+ }
+--- a/drivers/block/zram/zram_drv.h~zram-keep-the-hot-statistics-per-cpu
++++ a/drivers/block/zram/zram_drv.h
+@@ -16,6 +16,7 @@
+ #define _ZRAM_DRV_H_
+ 
+ #include <asm/byteorder.h>
++#include <asm/local64.h>
+ #include <linux/rwsem.h>
+ #include <linux/zsmalloc.h>
+ 
+@@ -94,15 +95,27 @@ struct zram_table_entry {
+ 	};
+ };
+ 
++/*
++ * Updated for every page that is stored or freed, so kept per CPU: with
++ * shared counters, concurrent swap frees bounce their cacheline.
++ */
++enum zram_pcpu_stat {
++	ZRAM_STAT_PAGES_STORED,		/* no. of pages currently stored */
++	ZRAM_STAT_COMPR_DATA_SIZE,	/* compressed size of pages stored */
++	ZRAM_STAT_SAME_PAGES,		/* no. of same element filled pages */
++	ZRAM_STAT_HUGE_PAGES,		/* no. of huge pages */
++	ZRAM_STAT_HUGE_PAGES_SINCE,	/* no. of huge pages since set up */
++	ZRAM_STAT_NOTIFY_FREE,		/* no. of slot free notifications */
++	NR_ZRAM_PCPU_STATS,
++};
++
++struct zram_pcpu_stats {
++	local64_t stat[NR_ZRAM_PCPU_STATS];
++};
++
+ struct zram_stats {
+-	atomic64_t compr_data_size;	/* compressed size of pages stored */
+ 	atomic64_t failed_reads;	/* can happen when memory is too low */
+ 	atomic64_t failed_writes;	/* can happen when memory is too low */
+-	atomic64_t notify_free;	/* no. of swap slot free notifications */
+-	atomic64_t same_pages;		/* no. of same element filled pages */
+-	atomic64_t huge_pages;		/* no. of huge pages */
+-	atomic64_t huge_pages_since;	/* no. of huge pages since zram set up */
+-	atomic64_t pages_stored;	/* no. of pages currently stored */
+ 	atomic_long_t max_used_pages;	/* no. of maximum pages stored */
+ 	atomic64_t miss_free;		/* no. of missed free */
+ #ifdef	CONFIG_ZRAM_WRITEBACK
+@@ -138,6 +151,7 @@ struct zram {
+ 	unsigned long limit_pages;
+ 
+ 	struct zram_stats stats;
++	struct zram_pcpu_stats __percpu *pcpu_stats;
+ 	/*
+ 	 * This is the limit on amount of *uncompressed* worth of data
+ 	 * we can store in a disk.
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
