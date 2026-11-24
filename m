@@ -1,49 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795541010;
-	b=X44zz3vpGHZ67fClgyY+EdZP3I55iXUG+ncFkaEl3vsFM2EVc2Yf9lJ7UXvALLSx3HV2
-	 gUEmS3pBXEjbeZBmXIljDCkyIgybfGCMot035oWx6HYfuua5T8f7GPS9iAGrHFF4cVWyM
-	 w3i1nUcoOisZMsPYuz3mXS+rYV8UYMoKkOzrAdYvBQH2i+4ELCPEUIZkQMANpaaE4zaMW
-	 JvV9RLL88b4DsMRk1tHvHTaWk1HVUCkHNYItFLRuTppvt6/HALRENTdP6Ccto8dpkV9zr
-	 99sCP7uJqT84VD4teOkoa+JNklui86IAtf5jkfZIb21SiFmIZ5orDHRmJ59zWMHMbKA==
+	t=1795541014;
+	b=0mGCB/jNucC4mE1Q6BJcrfBluKa3jAWPdfMlBppin2dtI/vNZsj7J056ED5fwCQZl6Ed
+	 hGFCQ+b+3JsIsi7QH9RmP6Wmfmd6B67ZVH2yUQh6CuRXr/AmUK39MWW/l/EsVfXsUa8I3
+	 LBlzY0PMQNUYjXXwT6A4TRD9+vUB+4RWVZM74zjXtenZxWwYiVFq2++QeYTnP8QsMXGim
+	 MrUHf1C0k6UHekNjryd3RioJfeb4nCEWbm/kC7sgslEA63z70AU4FKumm2yo2weBe9Rvd
+	 RfgeTTP4N14MJwwAlcAHhY1Dq5qZrquJezb9XGmYancAIJlncDsvevzozMZM9fo2Kww==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795541010;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795541014;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=4m9k9+NP84uTsgaFFfpmYIHMjEQd5Ll+mSP/EwBGdrE=;
-	b=x43KCWp/eVGWbbDfLh7Gl4H/ZUxWR8REa/vzYoQGT9oBTMHyxPTYqeTH7l6wkSpcc3Sp
-	 InYP3m6Kl04clb9rhx2gioIz1RmoQcVs4VXERZSWdTkUxP/1X9oZ2NqtdwGGBoTBUY1i1
-	 tGvO+dc3qW+tgImxydu4iFvQmWvvJUHSloK0ZabN3kbKnGGvg4vqRQ1uoEY4cPmusLGUa
-	 gsZsOxpeYTdgngl9rvcnbLmneY6kOaeV33hAYID+evPkbtHQlE6vH08cj0zznh1UgbROu
-	 35kF/gdudwdHw+IcWNy3bavWLWuKjl+cmu0IM03RH6vEDGsLLjbU0/5vES5qSaPLkVg==
+	bh=nSfOtE8fwZLmPstMRmsRS1s4vN6KPHlVbKsOQ/PuqVg=;
+	b=ASQeDgCBHZk8JZFeK6O/b06Y4CrjY5Zb3l/LE09SIEiKobwaTbpxzbXBlM9nCRbJ6G4n
+	 wXBfkWcw+ku3dKMJdlFQ2ZBQ5tiM0zY2rqGWGF4P2/KKdXj17i2hPvfJj4ppJIeau9FkD
+	 whG7ODczx2VFK1r6Ft5suTTgXkAW8NiOPY24s22BdboA23fjQnvfuyLTgBE0pUpkwE7M6
+	 FULbqPHHSuY9tNr/67ApWWbzEA2Hd/mvbgAfJ+JrPsdlt0nvtOnAtGf3sapeeeS3I6Ybs
+	 q1x7G2YDc0Hgu0l+oaHukzeekc1a0mthM4eAH5Ak66kcujov5sI9EIXTbjTJZ3y392g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=x0em6vpp;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=kqT3FQyy;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C22CA606A31E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:23:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31128606A32A
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:23:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=x0em6vpp
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CFC41F000E0;
-	Tue, 24 Nov 2026 17:23:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=kqT3FQyy
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B4061F000C4;
+	Tue, 24 Nov 2026 17:23:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795541010;
-	bh=4m9k9+NP84uTsgaFFfpmYIHMjEQd5Ll+mSP/EwBGdrE=;
+	d=linux-foundation.org; s=korg; t=1795541013;
+	bh=nSfOtE8fwZLmPstMRmsRS1s4vN6KPHlVbKsOQ/PuqVg=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=x0em6vppLBSWTD4ovNG07FZbFOAhHN8VZGx16mVtFe/nxDg0G7v3bdAe+eVD9KOKq
-	 P8vw1IkG0j59/EC3S8lQzBeEsxDdR3tpbll/rGq/4fd7F5XxAWRXSVeeENs4e5jLlU
-	 1yGCS0kLfEuZXOnjn0e8KiPDh8eu+eIlXZOe5Vi4=
-Date: Tue, 24 Nov 2026 09:23:29 -0800
+	b=kqT3FQyyIc25DeT5uTN+WwwZrWuAWYfuhzlJEQVcg8Q1b7kfKp16S4WmQfZtp1MzN
+	 77FOrjX7aW+1UdYJrKVAkGEXRLnFAdZFa9Svx2Lw+Giuwl3+KiuvVqf0W9lqI2SX5I
+	 yoI7wHWnF9JWj3IMvi+neM3zWw2vQt94AKUQRDaY=
+Date: Tue, 24 Nov 2026 09:23:32 -0800
 To: mm-commits@vger.kernel.org,lianux.mm@gmail.com,jm5905938@gmail.com,
 	sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124153636.91854-14-sj@kernel.org>
-References: <20261124153636.91854-14-sj@kernel.org>
-Subject: + mm-damon-core-introduce-damon_report_exist.patch added to mm-new branch
-Message-Id: <20261124172330.3CFC41F000E0@smtp.kernel.org>
+In-Reply-To: <20261124153636.91854-15-sj@kernel.org>
+References: <20261124153636.91854-15-sj@kernel.org>
+Subject: + mm-damon-paddr-support-report_made-type-probe-filter.patch added to mm-new branch
+Message-Id: <20261124172333.4B4061F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/damon/core: introduce damon_report_exist()
+     Subject: mm/damon/paddr: support REPORT_MADE type probe filter
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-introduce-damon_report_exist.patch
+     mm-damon-paddr-support-report_made-type-probe-filter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-introduce-damon_report_exist.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-support-report_made-type-probe-filter.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -90,97 +90,78 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: introduce damon_report_exist()
-Date: Tue, 24 Nov 2026 07:36:19 -0800
+Subject: mm/damon/paddr: support REPORT_MADE type probe filter
+Date: Tue, 24 Nov 2026 07:36:20 -0800
 
-Implement and expose a new DAMON API function for searching data
-attribute reports from the report queue.  The purpose is to let
-operation sets use it for supporting the REPORT_MADE type probe filters.
+Add a support of DAMON_FILTER_TYPE_REPORT_MADE type probe filter to the
+physical address space operation set.  Use the DAMON core API function,
+damon_report_exist() for the core report search functionality.  Set the
+time range as the last sampling interval.  Pass damon_ctx to the filter
+matching function for getting the sampling interval.
 
-The caller can specify the type, associated memory address range, and
-the creation time range of reports to search.
-
-The function uses CAS-based try-locking for the mutual-exclusive
-synchronization.  If any parallel access to the queue is detected, it
-forgives searching.
-
-Link: https://patch.msgid.link/20261124153636.91854-14-sj@kernel.org
+Link: https://patch.msgid.link/20261124153636.91854-15-sj@kernel.org
+Signed-off-by: Lian Wang <lianux.mm@gmail.com>
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Aveline Noir <jm5905938@gmail.com>
-Cc: Lian Wang <lianux.mm@gmail.com>
+Tested-by: Lian Wang <lianux.mm@gmail.com>
+Cc: Aveline Noir <jm5905938@gmail.com>
 
- include/linux/damon.h |    3 ++
- mm/damon/core.c       |   46 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 49 insertions(+)
+ mm/damon/paddr.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-core-introduce-damon_report_exist
-+++ a/include/linux/damon.h
-@@ -1199,6 +1199,9 @@ int damon_call(struct damon_ctx *ctx, st
- int damos_walk(struct damon_ctx *ctx, struct damos_walk_control *control);
- 
- int damon_submit_report(struct damon_report *report);
-+bool damon_report_exist(enum damon_report_type report_type,
-+		struct damon_addr_range *addr_range,
-+		unsigned long jiffies_old);
- 
- int damon_set_region_system_rams_default(struct damon_target *t,
- 				unsigned long *start, unsigned long *end,
---- a/mm/damon/core.c~mm-damon-core-introduce-damon_report_exist
-+++ a/mm/damon/core.c
-@@ -2392,6 +2392,52 @@ int damon_submit_report(struct damon_rep
- 	return 0;
+--- a/mm/damon/paddr.c~mm-damon-paddr-support-report_made-type-probe-filter
++++ a/mm/damon/paddr.c
+@@ -140,9 +140,10 @@ static void damon_pa_prep_probes(struct
  }
  
-+/**
-+ * damon_report_exist() - Find if a report of a given condition exists.
-+ *
-+ * @report_type:	Type of the report.
-+ * @addr_range:		Address range of the report.
-+ * @jiffies_old:	Oldest jiffies to find the report for.
-+ *
-+ * Returns true if the report is found, false otherwise.
-+ */
-+bool damon_report_exist(enum damon_report_type report_type,
-+		struct damon_addr_range *addr_range, unsigned long jiffies_old)
-+{
-+	struct damon_report_queue *queue;
-+	int lock_old_val;
-+	unsigned int idx, nr_read;
-+	struct damon_report *report;
-+	bool found = false;
-+
-+	queue = &damon_report_queue;
-+	lock_old_val = atomic_cmpxchg(&queue->lock, 0, 1);
-+
-+	if (lock_old_val)
-+		return false;
-+	idx = queue->tail;
-+	for (nr_read = 0; nr_read < queue->nr_reports; nr_read++) {
-+		if (idx)
-+			idx--;
-+		else
-+			idx = queue->size - 1;
-+		report = &queue->reports[idx];
-+
-+		if (time_before(report->jiffies, jiffies_old))
-+			break;
-+		if (report->type != report_type)
-+			continue;
-+		if (addr_range->end <= report->addr_range.start ||
-+				report->addr_range.end <= addr_range->start)
-+			continue;
-+		found = true;
+ static bool damon_pa_filter_match(struct damon_filter *filter,
+-		struct folio *folio)
++		struct folio *folio, phys_addr_t pa, struct damon_ctx *ctx)
+ {
+ 	bool matched = false;
++	struct damon_addr_range addr_range;
+ 
+ 	switch (filter->type) {
+ 	case DAMON_FILTER_TYPE_PGIDLE_UNSET:
+@@ -157,19 +158,27 @@ static bool damon_pa_filter_match(struct
+ 		else
+ 			matched = damon_folio_young(folio) == false;
+ 		break;
++	case DAMON_FILTER_TYPE_REPORT_MADE:
++		addr_range.start = damon_pa_core_addr(pa, ctx->addr_unit);
++		addr_range.end = addr_range.start + 1;
++		matched = damon_report_exist(filter->report_type, &addr_range,
++				jiffies -
++				usecs_to_jiffies(ctx->attrs.sample_interval));
 +		break;
-+	}
-+
-+	atomic_cmpxchg(&queue->lock, 1, 0);
-+	return found;
-+}
-+
- /*
-  * Reset the aggregated monitoring results ('nr_accesses' of each region).
-  */
+ 	default:
+ 		return damon_ops_filter_match(filter, folio);
+ 	}
+ 	return matched == filter->matching;
+ }
+ 
+-static bool damon_pa_filter_pass(struct folio *folio, struct damon_probe *p)
++static bool damon_pa_filter_pass(struct folio *folio, struct damon_probe *p,
++		phys_addr_t pa, struct damon_ctx *ctx)
+ {
+ 	struct damon_filter *f;
+ 	bool pass = true;
+ 
+ 	damon_for_each_filter(f, p) {
+-		if (damon_pa_filter_match(f, folio)) {
++		if (damon_pa_filter_match(f, folio, pa, ctx)) {
+ 			pass = f->allow;
+ 			break;
+ 		}
+@@ -199,7 +208,7 @@ static unsigned int damon_pa_apply_probe
+ 					ctx->addr_unit);
+ 			folio = damon_get_folio(PHYS_PFN(pa));
+ 			damon_for_each_probe(p, ctx) {
+-				if (damon_pa_filter_pass(folio, p))
++				if (damon_pa_filter_pass(folio, p, pa, ctx))
+ 					r->probe_hits[i]++;
+ 				i++;
+ 			}
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
