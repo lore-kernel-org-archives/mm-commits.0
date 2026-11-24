@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795542954;
-	b=wW8PH8qYw4yYB6gYtiH7ATdwfjdm+b0S+zFU9x7YWQzUlQPJLCMwsrSNR0BmmlOjFpYJ
-	 WIcyTb3audIiJ5smiaSs5aDWmHK8Q92SZJ0+RCfgphVyNYyxD6YfV6sTsBG89VpqyurHO
-	 hPVymQ+nashZ1bw8ubgsYSGLOCaKDBugu4sSN8TYrA3bDqHOUW+g4xBNs9qA9OZDLmLO2
-	 VFy1r+tBOGdcJGc0rdVMy8CWAJHi9dg47ddSUFNu0pw065EtxCRUQgJyJ95k59tyImXZz
-	 zOZEcy3R6XF6f4LjGIiT0ifCTWhyiXjw3gn5AoFD4IeBcGPIhIfcJ4cUP+0aug0SozQ==
+	t=1795542957;
+	b=xg5GtdbtEcZUKA6f2aTuqfKHMeKPwzW3CIlmh0KfBtqfr5naJ8PBVhcNZCWEoi2U4u0Z
+	 T7+3reixqHkmaYqaNZcm8cwkELqC7Q5EK/xxvKNXIpvtP5QYiAq+QrDyMcfH/+D3qrGsq
+	 IR1dBy4ekjufs2XyInAyZTEQ3q0lf1EEKNFy32nD7+IkJ20JLzFeW6VE8WzVnuRDanimh
+	 ToPU9Ej2C53kQivsxPeZYpxA6rifvMXY5hbvuNI8U10vHgs1447lJxlMYIoqbTs7ytU9d
+	 CsEM8WvPXy/cKk2vRvPaCD0OV+lKVoPq22j198GLqA3y6TZIGPzcyNTIzYItAs1i+rQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795542954;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795542957;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=EXHPBo1j6echpyYMtS5HYF6q15GcWM6Q7UZm30+gM4g=;
-	b=BXA0GGqdj8580/j35AWwybBZoROrxecDGIIVImPQ6eKzW8LoSjVyk+YxC7SPCpf9JBBz
-	 WtcMIj8tOiSaWV7RYIJDFj0roR05d0EiCH6FYb2/RuwVO0z9wXJITEL0u+Nx+0WH6/N5a
-	 7hUE30b8UPMdnXe7hW23odfUkmNhyg6zzGLfvYvSiLPIJIOemhCDWfXZ/rav682WT3uxc
-	 UMRjeuz3tMBWJ8Kd+ZwsxNr79gT2s3sMAUATU2+0ucfelROdt1yRMio1XCbUYbFtg4Aiy
-	 3vnxLwIxKce4Gk9hURA1rdtaUW5EVte4BaVPr5myLU+gFmEaI6SJKqLvLswINapOGIg==
+	bh=JHi4yRXB+aXcLplNQKlfsh1cVOVIQ274XE5Bu8XHh4k=;
+	b=RnwfZBcOAtlwisOTAuz5g8wzpu0awJ7dkWiRKA+S6Hvv7no+rp9O0hg5k3X5sLY6zo7e
+	 Atu6tJrXyI6ZoV4eMTlklZMVFDHucvhvg8M6Y4xstvXZZXOfh5rzBNOohgG7nmR5BkmoB
+	 wakbv80JY+IoudJ6zuqY/oS8ET/9xbDwAwgMczeC2qDCB8ldtu4GR29wjeC6HYn02nXox
+	 s6soCdC19ZPwWXn4AhCIiSVY/29Bh7rdmATnxvvboYbiHgnVD1dlYZH65T028bNpJVu8j
+	 r5DvOmtyG5ynLtCKnfKMxPrHyFwtBCHgSc+2W75e2KzRITQb8gr/SyCCE1P4oL2kWRQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=T1bhEMMk;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=DnooCa4U;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66AF4606A31E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:55:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9274606A31E
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:55:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=T1bhEMMk
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB2181F000CF;
-	Tue, 24 Nov 2026 17:55:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=DnooCa4U
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 665411F000C4;
+	Tue, 24 Nov 2026 17:55:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795542953;
-	bh=EXHPBo1j6echpyYMtS5HYF6q15GcWM6Q7UZm30+gM4g=;
+	d=linux-foundation.org; s=korg; t=1795542956;
+	bh=JHi4yRXB+aXcLplNQKlfsh1cVOVIQ274XE5Bu8XHh4k=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=T1bhEMMk6fX/GOZZdpkyy0EL/mvdnMwUA1r2KdV8d456f17U02BHm9jwUM2lPk2kg
-	 f/jUNfePXZhy2RJj2nQyE7WKrkPG7qtna0cgFnNvp2iGhhoQvxSqVOpEzvvSGDXZz/
-	 cLT/4LS5ald8+TEzLfHlQoZlnD6CEF3NOKD7VHtU=
-Date: Tue, 24 Nov 2026 09:55:53 -0800
+	b=DnooCa4U1ohQyJo12fYPJBumjuXo2mtcJV916qby0qIyOEvJ7EkE929OdtjjH8qsz
+	 brNDlTYoboG+RiFNrCI3v6WaO1Av17J/YUWlgqKZNNlosmh7TsyjYIlTUNDCa7XnkA
+	 bG9znyHbsPtuAuV2HqcNJrM0E1UcuQNnJJXQu5As=
+Date: Tue, 24 Nov 2026 09:55:55 -0800
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124-late-2026-vma-flags-v2-1-bf3fade93064@kernel.org>
-References: <20261124-late-2026-vma-flags-v2-1-bf3fade93064@kernel.org>
-Subject: + mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t.patch added to mm-new branch
-Message-Id: <20261124175553.CB2181F000CF@smtp.kernel.org>
+In-Reply-To: <20261124-late-2026-vma-flags-v2-2-bf3fade93064@kernel.org>
+References: <20261124-late-2026-vma-flags-v2-2-bf3fade93064@kernel.org>
+Subject: + mm-madvise-convert-madvise_vma_behavior-to-use-vma_flags_t.patch added to mm-new branch
+Message-Id: <20261124175556.665411F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +54,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/filemap: convert fault and readahead logic to use vma_flags_t
+     Subject: mm/madvise: convert madvise_vma_behavior() to use vma_flags_t
 has been added to the -mm mm-new branch.  Its filename is
-     mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t.patch
+     mm-madvise-convert-madvise_vma_behavior-to-use-vma_flags_t.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-convert-madvise_vma_behavior-to-use-vma_flags_t.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -89,49 +89,38 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/filemap: convert fault and readahead logic to use vma_flags_t
-Date: Tue, 24 Nov 2026 17:07:53 +0000
+Subject: mm/madvise: convert madvise_vma_behavior() to use vma_flags_t
+Date: Tue, 24 Nov 2026 17:07:54 +0000
 
-Patch series "mm: continue vma_flags_t conversion", v2.
+Replace use of the legacy vm_flags_t flags with vma_flags_t values
+throughout the madvise logic.
 
-Continue the conversion of legacy vm_flags_t flags to the new vma_flags_t
-bitmap type.
+In order to do so, update ksm_madvise() and hugepage_madvise() to take a
+vma_flags_t pointer, and update their other callers in mremap and the
+powerpc KVM ultravisor code accordingly.
 
-Do some more core mm conversion (we really should be the first to
-completely move to the new scheme :), but also update some mm-adjacent and
-otherwise straightforward cases - /proc/$pid/maps and friends, the coredump
-VMA dump size logic, uprobes, perf and LSM mmap/mprotect hooks.
-
-This series only makes strictly mechanical changes to keep things gentle
-during this very busy cycle.
-
-No functional change intended.
-
-
-This patch (of 11):
-
-Replace use of the legacy vm_flags_t flags with vma_flags_t values in the
-file fault and mmap readahead logic.
+In the latter case we replace vm_flags_reset() with vma_overwrite_flags().
+The VMA is write locked at this point, so the atomic flags preserved by
+vma_overwrite_flags() cannot differ from those copied, and the behaviour
+is unchanged.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20261124-late-2026-vma-flags-v2-0-bf3fade93064@kernel.org
-Link: https://patch.msgid.link/20261124-late-2026-vma-flags-v2-1-bf3fade93064@kernel.org
+Link: https://patch.msgid.link/20261124-late-2026-vma-flags-v2-2-bf3fade93064@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: David Hildenbrand <david@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Rik van Riel <riel@surriel.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Harry Yoo <harry@kernel.org>
 Cc: Jann Horn <jannh@google.com>
-Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Zi Yan <ziy@nvidia.com>
 Cc: Matthew Brost <matthew.brost@intel.com>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
@@ -143,6 +132,7 @@ Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Nico Pache <nico.pache@linux.dev>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
 Cc: Usama Arif <usama.arif@linux.dev>
 Cc: Kiryl Shutsemau <kas@kernel.org>
 Cc: Xu Xin <xu.xin@linux.dev>
@@ -195,123 +185,294 @@ Cc: Fan Wu <wufan@kernel.org>
 Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
 Cc: Ondrej Mosnáček <omosnacek@gmail.com>
 
- mm/filemap.c |   26 ++++++++++++++------------
- 1 file changed, 14 insertions(+), 12 deletions(-)
+ arch/powerpc/kvm/book3s_hv_uvmem.c |   10 ++---
+ include/linux/huge_mm.h            |    4 +-
+ include/linux/ksm.h                |    4 +-
+ mm/khugepaged.c                    |   10 ++---
+ mm/ksm.c                           |    8 ++--
+ mm/madvise.c                       |   49 ++++++++++++++-------------
+ mm/mremap.c                        |    2 -
+ 7 files changed, 45 insertions(+), 42 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t
-+++ a/mm/filemap.c
-@@ -3359,13 +3359,14 @@ static struct file *do_sync_mmap_readahe
- 	struct address_space *mapping = file->f_mapping;
- 	DEFINE_READAHEAD(ractl, file, ra, mapping, vmf->pgoff);
- 	struct file *fpin = NULL;
--	vm_flags_t vm_flags = vmf->vma->vm_flags;
-+	struct vm_area_struct *vma = vmf->vma;
- 	bool force_thp_readahead = false;
- 	unsigned int thp_order = 0;
- 	unsigned short mmap_miss;
- 
- 	/* Use the readahead code, even if readahead is disabled */
--	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) && (vm_flags & VM_HUGEPAGE)) {
-+	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
-+	    vma_test(vma, VMA_HUGEPAGE_BIT)) {
- 		/*
- 		 * Cap max THP order at 2MB: this is the common PMD-sized
- 		 * hugepage size, and it avoids memory pressure from very
-@@ -3385,20 +3386,21 @@ static struct file *do_sync_mmap_readahe
- 		 * If we don't want any read-ahead, don't bother.
- 		 * VM_EXEC case below is already intended for random access.
- 		 */
--		if ((vm_flags & (VM_RAND_READ | VM_EXEC)) == VM_RAND_READ)
-+		if (vma_test(vma, VMA_RAND_READ_BIT) &&
-+		    !vma_test(vma, VMA_EXEC_BIT))
- 			return fpin;
- 
- 		if (!ra->ra_pages)
- 			return fpin;
- 
--		if (vm_flags & VM_SEQ_READ) {
-+		if (vma_test(vma, VMA_SEQ_READ_BIT)) {
- 			fpin = maybe_unlock_mmap_for_io(vmf, fpin);
- 			page_cache_sync_ra(&ractl, ra->ra_pages);
- 			return fpin;
+--- a/arch/powerpc/kvm/book3s_hv_uvmem.c~mm-madvise-convert-madvise_vma_behavior-to-use-vma_flags_t
++++ a/arch/powerpc/kvm/book3s_hv_uvmem.c
+@@ -393,7 +393,7 @@ static int kvmppc_memslot_page_merge(str
+ {
+ 	unsigned long gfn = memslot->base_gfn;
+ 	unsigned long end, start = gfn_to_hva(kvm, gfn);
+-	vm_flags_t vm_flags;
++	vma_flags_t vma_flags;
+ 	int ret = 0;
+ 	struct vm_area_struct *vma;
+ 	int merge_flag = (merge) ? MADV_MERGEABLE : MADV_UNMERGEABLE;
+@@ -411,15 +411,15 @@ static int kvmppc_memslot_page_merge(str
+ 			break;
  		}
- 	}
+ 		vma_start_write(vma);
+-		/* Copy vm_flags to avoid partial modifications in ksm_madvise */
+-		vm_flags = vma->vm_flags;
++		/* Copy flags to avoid partial modifications in ksm_madvise */
++		vma_flags = vma->flags;
+ 		ret = ksm_madvise(vma, vma->vm_start, vma->vm_end,
+-			  merge_flag, &vm_flags);
++				merge_flag, &vma_flags);
+ 		if (ret) {
+ 			ret = H_STATE;
+ 			break;
+ 		}
+-		vm_flags_reset(vma, vm_flags);
++		vma_overwrite_flags(vma, vma_flags);
+ 		start = vma->vm_end;
+ 	} while (end > vma->vm_end);
  
--	if (!(vm_flags & (VM_SEQ_READ | VM_EXEC))) {
-+	if (!vma_test_any(vma, VMA_SEQ_READ_BIT, VMA_EXEC_BIT)) {
- 		/* Avoid banging the cache line if not needed */
- 		mmap_miss = READ_ONCE(ra->mmap_miss);
- 		if (mmap_miss < MMAP_LOTSAMISS * 10)
-@@ -3414,6 +3416,7 @@ static struct file *do_sync_mmap_readahe
+--- a/include/linux/huge_mm.h~mm-madvise-convert-madvise_vma_behavior-to-use-vma_flags_t
++++ a/include/linux/huge_mm.h
+@@ -507,7 +507,7 @@ change_huge_pud(struct mmu_gather *tlb,
+ 			__split_huge_pud(__vma, __pud, __address);	\
+ 	}  while (0)
  
- 	if (force_thp_readahead) {
- 		unsigned long folio_nr_pages = 1UL << thp_order;
-+		const bool random_read = vma_test(vma, VMA_RAND_READ_BIT);
+-int hugepage_madvise(struct vm_area_struct *vma, vm_flags_t *vm_flags,
++int hugepage_madvise(struct vm_area_struct *vma, vma_flags_t *vma_flags,
+ 		     int advice);
+ int madvise_collapse(struct vm_area_struct *vma, unsigned long start,
+ 		     unsigned long end, bool *lock_dropped);
+@@ -709,7 +709,7 @@ static inline bool unmap_huge_pmd_locked
+ 	do { } while (0)
  
- 		fpin = maybe_unlock_mmap_for_io(vmf, fpin);
- 		ractl._index &= ~(folio_nr_pages - 1);
-@@ -3422,7 +3425,7 @@ static struct file *do_sync_mmap_readahe
- 		 * Fetch two folios so we get the chance to actually
- 		 * readahead, unless we've been told not to.
- 		 */
--		if (!(vm_flags & VM_RAND_READ))
-+		if (!random_read)
- 			ra->size *= 2;
- 		ra->async_size = folio_nr_pages;
- 		ra->order = thp_order;
-@@ -3430,7 +3433,7 @@ static struct file *do_sync_mmap_readahe
- 		return fpin;
- 	}
+ static inline int hugepage_madvise(struct vm_area_struct *vma,
+-				   vm_flags_t *vm_flags, int advice)
++		vma_flags_t *vma_flags, int advice)
+ {
+ 	return -EINVAL;
+ }
+--- a/include/linux/ksm.h~mm-madvise-convert-madvise_vma_behavior-to-use-vma_flags_t
++++ a/include/linux/ksm.h
+@@ -16,7 +16,7 @@
  
--	if (vm_flags & VM_EXEC) {
-+	if (vma_test(vma, VMA_EXEC_BIT)) {
+ #ifdef CONFIG_KSM
+ int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
+-		unsigned long end, int advice, vm_flags_t *vm_flags);
++		unsigned long end, int advice, vma_flags_t *vma_flags);
+ vma_flags_t ksm_vma_flags(struct mm_struct *mm, const struct file *file,
+ 			  vma_flags_t vma_flags);
+ int ksm_enable_merge_any(struct mm_struct *mm);
+@@ -139,7 +139,7 @@ static inline void collect_procs_ksm(con
+ 
+ #ifdef CONFIG_MMU
+ static inline int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
+-		unsigned long end, int advice, vm_flags_t *vm_flags)
++		unsigned long end, int advice, vma_flags_t *vma_flags)
+ {
+ 	return 0;
+ }
+--- a/mm/khugepaged.c~mm-madvise-convert-madvise_vma_behavior-to-use-vma_flags_t
++++ a/mm/khugepaged.c
+@@ -363,16 +363,16 @@ static unsigned int collapse_max_ptes_sw
+ }
+ 
+ int hugepage_madvise(struct vm_area_struct *vma,
+-		     vm_flags_t *vm_flags, int advice)
++		     vma_flags_t *vma_flags, int advice)
+ {
+ 	switch (advice) {
+ 	case MADV_HUGEPAGE:
+-		*vm_flags &= ~VM_NOHUGEPAGE;
+-		*vm_flags |= VM_HUGEPAGE;
++		vma_flags_clear(vma_flags, VMA_NOHUGEPAGE_BIT);
++		vma_flags_set(vma_flags, VMA_HUGEPAGE_BIT);
+ 		break;
+ 	case MADV_NOHUGEPAGE:
+-		*vm_flags &= ~VM_HUGEPAGE;
+-		*vm_flags |= VM_NOHUGEPAGE;
++		vma_flags_clear(vma_flags, VMA_HUGEPAGE_BIT);
++		vma_flags_set(vma_flags, VMA_NOHUGEPAGE_BIT);
  		/*
- 		 * Allow arch to request a preferred minimum folio order for
- 		 * executable memory. This can often be beneficial to
-@@ -3442,7 +3445,6 @@ static struct file *do_sync_mmap_readahe
- 		 * pad that might exist between sections, which would be a waste
- 		 * of memory.
- 		 */
--		struct vm_area_struct *vma = vmf->vma;
- 		const unsigned long start = vma_start_pgoff(vma);
- 		const unsigned long end = vma_end_pgoff(vma);
- 		unsigned long ra_end;
-@@ -3485,7 +3487,7 @@ static struct file *do_async_mmap_readah
- 	unsigned short mmap_miss;
+ 		 * Setting VM_NOHUGEPAGE will prevent khugepaged from scanning
+ 		 * this vma even if we leave the mm registered in khugepaged if
+--- a/mm/ksm.c~mm-madvise-convert-madvise_vma_behavior-to-use-vma_flags_t
++++ a/mm/ksm.c
+@@ -3022,7 +3022,7 @@ int ksm_disable(struct mm_struct *mm)
+ }
  
- 	/* If we don't want any read-ahead, don't bother */
--	if (vmf->vma->vm_flags & VM_RAND_READ || !ra->ra_pages)
-+	if (vma_test(vmf->vma, VMA_RAND_READ_BIT) || !ra->ra_pages)
- 		return fpin;
+ int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
+-		unsigned long end, int advice, vm_flags_t *vm_flags)
++		unsigned long end, int advice, vma_flags_t *vma_flags)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	int err;
+@@ -3040,11 +3040,11 @@ int ksm_madvise(struct vm_area_struct *v
+ 				return err;
+ 		}
  
- 	/*
-@@ -3499,7 +3501,7 @@ static struct file *do_async_mmap_readah
- 	 * keep the counter symmetric.
+-		*vm_flags |= VM_MERGEABLE;
++		vma_flags_set(vma_flags, VMA_MERGEABLE_BIT);
+ 		break;
+ 
+ 	case MADV_UNMERGEABLE:
+-		if (!(*vm_flags & VM_MERGEABLE))
++		if (!vma_flags_test(vma_flags, VMA_MERGEABLE_BIT))
+ 			return 0;		/* just ignore the advice */
+ 
+ 		if (vma_has_anon_rmap(vma)) {
+@@ -3053,7 +3053,7 @@ int ksm_madvise(struct vm_area_struct *v
+ 				return err;
+ 		}
+ 
+-		*vm_flags &= ~VM_MERGEABLE;
++		vma_flags_clear(vma_flags, VMA_MERGEABLE_BIT);
+ 		break;
+ 	}
+ 
+--- a/mm/madvise.c~mm-madvise-convert-madvise_vma_behavior-to-use-vma_flags_t
++++ a/mm/madvise.c
+@@ -148,11 +148,10 @@ static int replace_anon_vma_name(struct
+  * Update the vm_flags or anon_name on region of a vma, splitting it or merging
+  * it as necessary. Must be called with mmap_lock held for writing.
+  */
+-static int madvise_update_vma(vm_flags_t new_flags,
++static int madvise_update_vma(vma_flags_t new_vma_flags,
+ 		struct madvise_behavior *madv_behavior)
+ {
+ 	struct vm_area_struct *vma = madv_behavior->vma;
+-	vma_flags_t new_vma_flags = legacy_to_vma_flags(new_flags);
+ 	struct madvise_behavior_range *range = &madv_behavior->range;
+ 	struct anon_vma_name *anon_name = madv_behavior->anon_name;
+ 	bool set_new_anon_name = madv_behavior->behavior == __MADV_SET_ANON_VMA_NAME;
+@@ -627,7 +626,8 @@ static void madvise_cold_page_range(stru
+ 
+ static inline bool can_madv_lru_vma(struct vm_area_struct *vma)
+ {
+-	return !(vma->vm_flags & (VM_LOCKED|VM_PFNMAP|VM_HUGETLB));
++	return !vma_test_any(vma, VMA_LOCKED_BIT, VMA_PFNMAP_BIT,
++			     VMA_HUGETLB_BIT);
+ }
+ 
+ static long madvise_cold(struct madvise_behavior *madv_behavior)
+@@ -675,8 +675,8 @@ static long madvise_pageout(struct madvi
+ 	 * owner nor write capable of the file. We allow private file mappings
+ 	 * further to pageout dirty anon pages.
  	 */
- 	if (likely(!folio_test_locked(folio)) &&
--	    !(vmf->vma->vm_flags & (VM_SEQ_READ | VM_EXEC))) {
-+	    !vma_test_any(vmf->vma, VMA_SEQ_READ_BIT, VMA_EXEC_BIT)) {
- 		mmap_miss = READ_ONCE(ra->mmap_miss);
- 		if (mmap_miss)
- 			WRITE_ONCE(ra->mmap_miss, --mmap_miss);
-@@ -3532,7 +3534,7 @@ static vm_fault_t filemap_fault_recheck_
- 	 * scenarios. Recheck the PTE without PT lock firstly, thereby reducing
- 	 * the number of times we hold PT lock.
- 	 */
--	if (!(vma->vm_flags & VM_LOCKED))
-+	if (!vma_test(vma, VMA_LOCKED_BIT))
+-	if (!vma_is_anonymous(vma) && (!can_do_file_pageout(vma) &&
+-				(vma->vm_flags & VM_MAYSHARE)))
++	if (!vma_is_anonymous(vma) && !can_do_file_pageout(vma) &&
++	    vma_test(vma, VMA_MAYSHARE_BIT))
  		return 0;
  
- 	if (!(vmf->flags & FAULT_FLAG_ORIG_PTE_VALID))
-@@ -4018,7 +4020,7 @@ vm_fault_t filemap_map_pages(struct vm_f
- 		if ((map_ret & VM_FAULT_NOPAGE) &&
- 		    !(vmf->flags & FAULT_FLAG_TRIED) &&
- 		    !folio_test_workingset(folio) &&
--		    !(vma->vm_flags & (VM_SEQ_READ | VM_EXEC))) {
-+		    !vma_test_any(vma, VMA_SEQ_READ_BIT, VMA_EXEC_BIT)) {
- 			unsigned short mmap_miss;
+ 	lru_add_drain();
+@@ -923,12 +923,12 @@ bool madvise_dontneed_free_valid_vma(str
+ 	struct madvise_behavior_range *range = &madv_behavior->range;
  
- 			mmap_miss = READ_ONCE(file->f_ra.mmap_miss);
+ 	if (!vma_is_hugetlb(vma)) {
+-		unsigned int forbidden = VM_PFNMAP;
++		vma_flags_t forbidden = mk_vma_flags(VMA_PFNMAP_BIT);
+ 
+ 		if (behavior != MADV_DONTNEED_LOCKED)
+-			forbidden |= VM_LOCKED;
++			vma_flags_set(&forbidden, VMA_LOCKED_BIT);
+ 
+-		return !(vma->vm_flags & forbidden);
++		return !vma_test_any_mask(vma, forbidden);
+ 	}
+ 
+ 	if (behavior != MADV_DONTNEED && behavior != MADV_DONTNEED_LOCKED)
+@@ -1063,7 +1063,7 @@ static long madvise_remove(struct madvis
+ 
+ 	mark_mmap_lock_dropped(madv_behavior);
+ 
+-	if (vma->vm_flags & VM_LOCKED)
++	if (vma_test(vma, VMA_LOCKED_BIT))
+ 		return -EINVAL;
+ 
+ 	f = vma->vm_file;
+@@ -1377,7 +1377,7 @@ static bool can_madvise_modify(struct ma
+ 		return true;
+ 
+ 	/* If the user could write to the mapping anyway, then this is fine. */
+-	if ((vma->vm_flags & VM_WRITE) &&
++	if (vma_test(vma, VMA_WRITE_BIT) &&
+ 	    arch_vma_access_permitted(vma, /* write= */ true,
+ 			/* execute= */ false, /* foreign= */ false))
+ 		return true;
+@@ -1401,7 +1401,7 @@ static int madvise_vma_behavior(struct m
+ {
+ 	int behavior = madv_behavior->behavior;
+ 	struct vm_area_struct *vma = madv_behavior->vma;
+-	vm_flags_t new_flags = vma->vm_flags;
++	vma_flags_t new_flags = vma->flags;
+ 	struct madvise_behavior_range *range = &madv_behavior->range;
+ 	int error;
+ 
+@@ -1432,44 +1432,47 @@ static int madvise_vma_behavior(struct m
+ 	/* The below behaviours update VMAs via madvise_update_vma(). */
+ 
+ 	case MADV_NORMAL:
+-		new_flags = new_flags & ~VM_RAND_READ & ~VM_SEQ_READ;
++		vma_flags_clear(&new_flags, VMA_RAND_READ_BIT,
++				VMA_SEQ_READ_BIT);
+ 		break;
+ 	case MADV_SEQUENTIAL:
+-		new_flags = (new_flags & ~VM_RAND_READ) | VM_SEQ_READ;
++		vma_flags_clear(&new_flags, VMA_RAND_READ_BIT);
++		vma_flags_set(&new_flags, VMA_SEQ_READ_BIT);
+ 		break;
+ 	case MADV_RANDOM:
+-		new_flags = (new_flags & ~VM_SEQ_READ) | VM_RAND_READ;
++		vma_flags_clear(&new_flags, VMA_SEQ_READ_BIT);
++		vma_flags_set(&new_flags, VMA_RAND_READ_BIT);
+ 		break;
+ 	case MADV_DONTFORK:
+-		new_flags |= VM_DONTCOPY;
++		vma_flags_set(&new_flags, VMA_DONTCOPY_BIT);
+ 		break;
+ 	case MADV_DOFORK:
+ 		if (!vma_is_mm_backed(vma) || vma_is_hugetlb(vma))
+ 			return -EINVAL;
+-		new_flags &= ~VM_DONTCOPY;
++		vma_flags_clear(&new_flags, VMA_DONTCOPY_BIT);
+ 		break;
+ 	case MADV_WIPEONFORK:
+ 		/* MADV_WIPEONFORK is only supported on anonymous memory. */
+-		if (vma->vm_file || new_flags & VM_SHARED)
++		if (vma->vm_file || vma_flags_test(&new_flags, VMA_SHARED_BIT))
+ 			return -EINVAL;
+-		new_flags |= VM_WIPEONFORK;
++		vma_flags_set(&new_flags, VMA_WIPEONFORK_BIT);
+ 		break;
+ 	case MADV_KEEPONFORK:
+-		if (new_flags & VM_DROPPABLE)
++		if (vma_flags_test_single_mask(&new_flags, VMA_DROPPABLE))
+ 			return -EINVAL;
+-		new_flags &= ~VM_WIPEONFORK;
++		vma_flags_clear(&new_flags, VMA_WIPEONFORK_BIT);
+ 		break;
+ 	case MADV_DONTDUMP:
+-		new_flags |= VM_DONTDUMP;
++		vma_flags_set(&new_flags, VMA_DONTDUMP_BIT);
+ 		break;
+ 	case MADV_DODUMP:
+ 		/* Only mm-backed memory can be meaningfully dumped. */
+ 		if (!vma_is_mm_backed(vma))
+ 			return -EINVAL;
+ 		/* Core mm may discard droppable memory at any time. */
+-		if (new_flags & VM_DROPPABLE)
++		if (vma_flags_test_single_mask(&new_flags, VMA_DROPPABLE))
+ 			return -EINVAL;
+-		new_flags &= ~VM_DONTDUMP;
++		vma_flags_clear(&new_flags, VMA_DONTDUMP_BIT);
+ 		break;
+ 	case MADV_MERGEABLE:
+ 	case MADV_UNMERGEABLE:
+--- a/mm/mremap.c~mm-madvise-convert-madvise_vma_behavior-to-use-vma_flags_t
++++ a/mm/mremap.c
+@@ -1131,7 +1131,7 @@ static unsigned long prep_move_vma(struc
+ 	struct vm_area_struct *vma = vrm->vma;
+ 	unsigned long old_addr = vrm->addr;
+ 	unsigned long old_len = vrm->old_len;
+-	vm_flags_t dummy = vma->vm_flags;
++	vma_flags_t dummy = vma->flags;
+ 	const bool split_before = vma->vm_start != old_addr;
+ 	const bool split_after = vma->vm_end != old_addr + old_len;
+ 
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
