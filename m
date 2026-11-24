@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795542962;
-	b=z78SDkQYq7YHfFVtGntdrJMA0JT+1KwDHHXVbsWPWNaN52rEfoI/CiSqTPLH3hM/XXmK
-	 MCjN8PWh0PTGvtP1SNO4VpvDAVmnAzK/ZyHh225/tvN15Ax49ZVqsJahz2jxZRmUfi+5T
-	 Scz1gJ2kbb+wHO4T1ZY7atNpoGOBHRhyPTyiKtnVKgVjDu+g/S4TgPz0tyo+8JAxQlHzE
-	 q1lO9QejWukB43/GgiDrH3TN8S/AKSUDZddG0VSYGTkhImqFDfIeod1XsU5nIKT0c1tgA
-	 hAYqzTMFat9jQVU+/w1unMJMorGfl3KYhQ6RgABy+V8kgFmJ69E/FieqCxoR+VHYOCw==
+	t=1795542969;
+	b=B1TQsrAYiHFz7kKqh1rICSV6flzwVHmsxtqCUmM1t8hpP8zxOsP1GZhTNwL8ZFELNyLC
+	 Z4SRxwvljopenHqi+0oQ6TPan92t0/5aeg8jaJJcn4CFj3CUCLGLT3oC3IAVR2difrpPH
+	 tODSg1xKCgE3++mVmcAIDhgMx9yqH44mrZtMSkDfZeycnpyptfJ5T8WfydrtD1mLmPT1E
+	 uF662Kf2IqNesfsr4VRwTh/ieVhqv8hXPq4WKIR5nkCyO3G4RgcCylcIcmntJSxJ4Gibx
+	 3z753LG+3M0TIF4HoSrcE/Lzgm/55aMuWKo3Yv4cWFumIjxNF4e5Td4IM0fXAGd9oIQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795542962;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795542969;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=iKY7vYCqMdTk9GWvq0B45hutVmDq4UZxD0kQFIr0lcA=;
-	b=QSSNYN2nXcuHrGclNmVSFOhQeShlpeqwJ8RSSbO0gTTBRATUAIEQnemnWaeXRRP0Ma4+
-	 yFAtWlPfm2PZzWBIhmj1ZoHkmgYKQbYFEYYOSsoFTHTMiqf2IdMscRLyMphBZSymtGL4y
-	 1b23lZh+b9nyx1GVewDXSDaXU25oWS4jevOmUd+vACK5ruPjn/Xm//zJAtDVoEbdG0KAo
-	 EUXVxmtX55DJ3aViTDAQrYGXVcfW13W9jff5ERnUpWcS3PX6b1gUD3Aeg92Z9CN/WcpUg
-	 8RmMveyf09WjsR+/J1XpomQClsNPZRXMP0r+Mb/MhBGrlcm5E3kdoQRyIQO6gyRwoaQ==
+	bh=+1WvKEH/XXARdweXCf1jWHooeRYAyvF+ulJSMl0Rj3E=;
+	b=Cn4B+7mQJYjpH/ul3MIfFcxb1ewQCgQh9mHY/YIB661D1Z3CVNgZaAROpfFp5qZqOQgw
+	 zcY3MJYaWxFJFX5n9cNdbaNi32kPUNO/0RtaGuvHf94HC+eMte8yhBBcZQbz42f5wtWBP
+	 Wl+OBc0KPSi/+nQecHF9Joka8o/PbfKms5YHHR58I9fnLzE6GiU7wgOwoZLJ1ntWS0sea
+	 BJGXCCS5qysqh3eiz3hAOzN+rxbmoG229IKcKRgkmI5XFYNRQIk9dPporkMyhIsfzIfvP
+	 jtbS261QpU+XP3MIkZ/EXHtAcBIc9jRlY70IYs9u3S6WMo9GUte01b3PUM0+UOZZ2gQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=bWHVQmXE;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=DkuG9p4u;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D54A606A31E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:56:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A942F606A31E
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:56:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=bWHVQmXE
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0561C1F000CA;
-	Tue, 24 Nov 2026 17:56:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=DkuG9p4u
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40B3F1F000CA;
+	Tue, 24 Nov 2026 17:56:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795542962;
-	bh=iKY7vYCqMdTk9GWvq0B45hutVmDq4UZxD0kQFIr0lcA=;
+	d=linux-foundation.org; s=korg; t=1795542969;
+	bh=+1WvKEH/XXARdweXCf1jWHooeRYAyvF+ulJSMl0Rj3E=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=bWHVQmXEd3o57C937ike0pE7oucHnonQpK/U/7q8hrValHLe+o5Z/aWg/oTK3t/Mm
-	 DPNYh4n69WqUKienXK5zzqqQb4poWPMLayzfQS6dGq956tAohd2D1nrXDaptHCJF3q
-	 WldJUu1jjTqkal4yKcw3bw11p8psr7Mges8cYyRQ=
-Date: Tue, 24 Nov 2026 09:56:01 -0800
+	b=DkuG9p4uYcuknAqK2uW1FRitnRkeu7tPpQlyjgignv0VrLuwm6dxPEYCvJcNbB4q8
+	 x97rmWwYhlX7/tNN9vHpuY1jjd6CDyFqG1auTNZNAUxuPFEn4iUEO3KO65xuIn7Wit
+	 sPERaF0tro8bbgXSO70OM34reIHbEtSBbzP9MAFk=
+Date: Tue, 24 Nov 2026 09:56:08 -0800
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124-late-2026-vma-flags-v2-3-bf3fade93064@kernel.org>
-References: <20261124-late-2026-vma-flags-v2-3-bf3fade93064@kernel.org>
-Subject: + mm-convert-miscellaneous-vma-flag-tests-to-use-vma_flags_t.patch added to mm-new branch
-Message-Id: <20261124175602.0561C1F000CA@smtp.kernel.org>
+In-Reply-To: <20261124-late-2026-vma-flags-v2-4-bf3fade93064@kernel.org>
+References: <20261124-late-2026-vma-flags-v2-4-bf3fade93064@kernel.org>
+Subject: + fs-proc-task_mmu-convert-vma-flag-tests-to-use-vma_flags_t.patch added to mm-new branch
+Message-Id: <20261124175609.40B3F1F000CA@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +54,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm: convert miscellaneous VMA flag tests to use vma_flags_t
+     Subject: fs/proc/task_mmu: convert VMA flag tests to use vma_flags_t
 has been added to the -mm mm-new branch.  Its filename is
-     mm-convert-miscellaneous-vma-flag-tests-to-use-vma_flags_t.patch
+     fs-proc-task_mmu-convert-vma-flag-tests-to-use-vma_flags_t.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-miscellaneous-vma-flag-tests-to-use-vma_flags_t.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-convert-vma-flag-tests-to-use-vma_flags_t.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -89,22 +89,32 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm: convert miscellaneous VMA flag tests to use vma_flags_t
-Date: Tue, 24 Nov 2026 17:07:55 +0000
+Subject: fs/proc/task_mmu: convert VMA flag tests to use vma_flags_t
+Date: Tue, 24 Nov 2026 17:07:56 +0000
 
-Replace use of the legacy vm_flags_t flags with vma_flags_t values in the
-remaining straightforward VMA flag tests scattered throughout core mm, HMM
-(and its test module), DAMON and the OOM reaper.
+Replace use of the legacy vm_flags_t flags with vma_flags_t values where
+VMA flags are tested directly in /proc/$pid/[s]maps, pagemap, clear_refs
+and PROCMAP_QUERY.
+
+In replacing vm_flags_clear() (which takes the VMA write lock) with
+vma_clear_flags() (which does not) in clear_refs_write(), we explicitly
+write lock the VMA. The mmap write lock is already held at this point.
+
+Note that vm_flags_clear() asserts that the page tables support soft-dirty
+when clearing VM_SOFTDIRTY, whereas vma_clear_flags() does not. No other
+VMA flag is checked this way, so this assert is intentionally dropped.
+
+The show_vma_header_prefix() and show_smap_vma_flags() output functions and
+the thp_vma_allowable_orders() call continue to use legacy flags for the
+time being.
 
 No functional change intended.
 
-Link: https://patch.msgid.link/20261124-late-2026-vma-flags-v2-3-bf3fade93064@kernel.org
+Link: https://patch.msgid.link/20261124-late-2026-vma-flags-v2-4-bf3fade93064@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Gregory Price (Meta) <gourry@gourry.net>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: SJ Park <sj@kernel.org> # DAMON
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Peter Xu <peterx@redhat.com>
@@ -119,6 +129,7 @@ Cc: Zi Yan <ziy@nvidia.com>
 Cc: Matthew Brost <matthew.brost@intel.com>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
 Cc: Ying Huang <ying.huang@linux.alibaba.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
@@ -148,6 +159,7 @@ Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Leon Romanovsky <leon@kernel.org>
+Cc: SJ Park <sj@kernel.org>
 Cc: Rakie Kim <rakie.kim@sk.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -177,200 +189,146 @@ Cc: Fan Wu <wufan@kernel.org>
 Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
 Cc: Ondrej Mosnáček <omosnacek@gmail.com>
 
- include/linux/mm_inline.h |    2 +-
- lib/test_hmm.c            |    4 ++--
- mm/damon/vaddr.c          |    2 +-
- mm/hmm.c                  |    6 +++---
- mm/internal.h             |    2 +-
- mm/mempolicy.c            |    4 ++--
- mm/mmap_lock.c            |    4 ++--
- mm/msync.c                |    4 ++--
- mm/oom_kill.c             |    4 ++--
- mm/pagewalk.c             |    2 +-
- mm/vma.h                  |    4 ++--
- 11 files changed, 19 insertions(+), 19 deletions(-)
+ fs/proc/task_mmu.c |   43 ++++++++++++++++++++++---------------------
+ 1 file changed, 22 insertions(+), 21 deletions(-)
 
---- a/include/linux/mm_inline.h~mm-convert-miscellaneous-vma-flag-tests-to-use-vma_flags_t
-+++ a/include/linux/mm_inline.h
-@@ -813,7 +813,7 @@ static inline pte_marker copy_pte_marker
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmu-convert-vma-flag-tests-to-use-vma_flags_t
++++ a/fs/proc/task_mmu.c
+@@ -570,18 +570,18 @@ next_vma:
  
- static inline bool vma_has_recency(const struct vm_area_struct *vma)
+ 	/* VMA permissions should satisfy query flags */
+ 	if (flags & PROCMAP_QUERY_VMA_FLAGS) {
+-		u32 perm = 0;
++		vma_flags_t perm = EMPTY_VMA_FLAGS;
+ 
+ 		if (flags & PROCMAP_QUERY_VMA_READABLE)
+-			perm |= VM_READ;
++			vma_flags_set(&perm, VMA_READ_BIT);
+ 		if (flags & PROCMAP_QUERY_VMA_WRITABLE)
+-			perm |= VM_WRITE;
++			vma_flags_set(&perm, VMA_WRITE_BIT);
+ 		if (flags & PROCMAP_QUERY_VMA_EXECUTABLE)
+-			perm |= VM_EXEC;
++			vma_flags_set(&perm, VMA_EXEC_BIT);
+ 		if (flags & PROCMAP_QUERY_VMA_SHARED)
+-			perm |= VM_MAYSHARE;
++			vma_flags_set(&perm, VMA_MAYSHARE_BIT);
+ 
+-		if ((vma->vm_flags & perm) != perm)
++		if (!vma_test_all_mask(vma, perm))
+ 			goto skip_vma;
+ 	}
+ 
+@@ -648,13 +648,13 @@ static int do_procmap_query(struct mm_st
+ 	karg.vma_end = vma->vm_end;
+ 
+ 	karg.vma_flags = 0;
+-	if (vma->vm_flags & VM_READ)
++	if (vma_test(vma, VMA_READ_BIT))
+ 		karg.vma_flags |= PROCMAP_QUERY_VMA_READABLE;
+-	if (vma->vm_flags & VM_WRITE)
++	if (vma_test(vma, VMA_WRITE_BIT))
+ 		karg.vma_flags |= PROCMAP_QUERY_VMA_WRITABLE;
+-	if (vma->vm_flags & VM_EXEC)
++	if (vma_test(vma, VMA_EXEC_BIT))
+ 		karg.vma_flags |= PROCMAP_QUERY_VMA_EXECUTABLE;
+-	if (vma->vm_flags & VM_MAYSHARE)
++	if (vma_test(vma, VMA_MAYSHARE_BIT))
+ 		karg.vma_flags |= PROCMAP_QUERY_VMA_SHARED;
+ 
+ 	karg.vma_page_size = vma_kernel_pagesize(vma);
+@@ -971,7 +971,7 @@ static void smaps_pte_entry(pte_t *pte,
  {
--	if (vma->vm_flags & (VM_SEQ_READ | VM_RAND_READ))
-+	if (vma_test_any(vma, VMA_SEQ_READ_BIT, VMA_RAND_READ_BIT))
- 		return false;
- 
- 	if (vma->vm_file && (vma->vm_file->f_mode & FMODE_NOREUSE))
---- a/lib/test_hmm.c~mm-convert-miscellaneous-vma-flag-tests-to-use-vma_flags_t
-+++ a/lib/test_hmm.c
-@@ -1251,7 +1251,7 @@ static int dmirror_migrate_to_system(str
- 	mmap_read_lock(mm);
- 	for (addr = start; addr < end; addr = next) {
- 		vma = vma_lookup(mm, addr);
--		if (!vma || !(vma->vm_flags & VM_READ)) {
-+		if (!vma || !vma_test(vma, VMA_READ_BIT)) {
- 			ret = -EINVAL;
- 			goto out;
- 		}
-@@ -1323,7 +1323,7 @@ static int dmirror_migrate_to_device(str
- 	mmap_read_lock(mm);
- 	for (addr = start; addr < end; addr = next) {
- 		vma = vma_lookup(mm, addr);
--		if (!vma || !(vma->vm_flags & VM_READ)) {
-+		if (!vma || !vma_test(vma, VMA_READ_BIT)) {
- 			ret = -EINVAL;
- 			goto out;
- 		}
---- a/mm/damon/vaddr.c~mm-convert-miscellaneous-vma-flag-tests-to-use-vma_flags_t
-+++ a/mm/damon/vaddr.c
-@@ -240,7 +240,7 @@ static void damon_va_walk_page_range(str
- 		goto lock_mmap;
- 	}
- 
--	if (!(vma->vm_flags & VM_PFNMAP)) {
-+	if (!vma_test(vma, VMA_PFNMAP_BIT)) {
- 		ops->walk_lock = PGWALK_VMA_RDLOCK_VERIFY;
- 		walk_page_range_vma(vma, start, end, ops, private);
- 	}
---- a/mm/hmm.c~mm-convert-miscellaneous-vma-flag-tests-to-use-vma_flags_t
-+++ a/mm/hmm.c
-@@ -596,9 +596,9 @@ static int hmm_vma_walk_test(unsigned lo
- 	struct hmm_range *range = hmm_vma_walk->range;
+ 	struct mem_size_stats *mss = walk->private;
+ 	struct vm_area_struct *vma = walk->vma;
+-	bool locked = !!(vma->vm_flags & VM_LOCKED);
++	bool locked = vma_test(vma, VMA_LOCKED_BIT);
+ 	struct page *page = NULL;
+ 	bool present = false, young = false, dirty = false;
+ 	pte_t ptent = ptep_get(pte);
+@@ -1018,7 +1018,7 @@ static void smaps_pmd_entry(pmd_t *pmd,
+ {
+ 	struct mem_size_stats *mss = walk->private;
+ 	struct vm_area_struct *vma = walk->vma;
+-	bool locked = !!(vma->vm_flags & VM_LOCKED);
++	bool locked = vma_test(vma, VMA_LOCKED_BIT);
+ 	struct page *page = NULL;
+ 	bool present = false;
+ 	struct folio *folio;
+@@ -1732,7 +1732,7 @@ static int clear_refs_test_walk(unsigned
+ 	struct clear_refs_private *cp = walk->private;
  	struct vm_area_struct *vma = walk->vma;
  
--	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP)) &&
-+	if (!vma_test_any(vma, VMA_IO_BIT, VMA_PFNMAP_BIT) &&
- 	    !vma_test_single_mask(vma, VMA_SHADOW_STACK) &&
--	    vma->vm_flags & VM_READ)
-+	    vma_test(vma, VMA_READ_BIT))
- 		return 0;
+-	if (vma->vm_flags & VM_PFNMAP)
++	if (vma_test(vma, VMA_PFNMAP_BIT))
+ 		return 1;
  
  	/*
-@@ -663,7 +663,7 @@ static int hmm_do_fault(struct mm_struct
- 		return -EFAULT;
+@@ -1802,9 +1802,10 @@ static ssize_t clear_refs_write(struct f
  
- 	if (required_fault & HMM_NEED_WRITE_FAULT) {
--		if (!(vma->vm_flags & VM_WRITE))
-+		if (!vma_test(vma, VMA_WRITE_BIT))
- 			return -EPERM;
- 		fault_flags |= FAULT_FLAG_WRITE;
- 	}
---- a/mm/internal.h~mm-convert-miscellaneous-vma-flag-tests-to-use-vma_flags_t
-+++ a/mm/internal.h
-@@ -1259,7 +1259,7 @@ ssize_t splice_folio_into_pipe(struct pi
+ 		if (type == CLEAR_REFS_SOFT_DIRTY) {
+ 			for_each_vma(vmi, vma) {
+-				if (!(vma->vm_flags & VM_SOFTDIRTY))
++				if (!vma_test(vma, VMA_SOFTDIRTY_BIT))
+ 					continue;
+-				vm_flags_clear(vma, VM_SOFTDIRTY);
++				vma_start_write(vma);
++				vma_clear_flags(vma, VMA_SOFTDIRTY_BIT);
+ 				vma_set_page_prot(vma);
+ 			}
  
- static inline bool vma_is_single_threaded_private(struct vm_area_struct *vma)
- {
--	if (vma->vm_flags & VM_SHARED)
-+	if (vma_test(vma, VMA_SHARED_BIT))
- 		return false;
+@@ -1908,7 +1909,7 @@ static int pagemap_pte_hole(unsigned lon
+ 			break;
  
- 	return atomic_read(&vma->vm_mm->mm_users) == 1;
---- a/mm/mempolicy.c~mm-convert-miscellaneous-vma-flag-tests-to-use-vma_flags_t
-+++ a/mm/mempolicy.c
-@@ -2015,7 +2015,7 @@ SYSCALL_DEFINE5(get_mempolicy, int __use
- 
- bool vma_migratable(struct vm_area_struct *vma)
- {
--	if (vma->vm_flags & (VM_IO | VM_PFNMAP))
-+	if (vma_test_any(vma, VMA_IO_BIT, VMA_PFNMAP_BIT))
- 		return false;
- 
- 	/*
-@@ -2567,7 +2567,7 @@ struct folio *vma_alloc_folio_noprof(gfp
- 	pgoff_t ilx;
- 	struct folio *folio;
- 
--	if (vma->vm_flags & VM_DROPPABLE)
-+	if (vma_test_single_mask(vma, VMA_DROPPABLE))
- 		gfp |= __GFP_NOWARN;
- 
- 	pol = get_vma_policy(vma, addr, order, &ilx);
---- a/mm/mmap_lock.c~mm-convert-miscellaneous-vma-flag-tests-to-use-vma_flags_t
-+++ a/mm/mmap_lock.c
-@@ -651,7 +651,7 @@ struct vm_area_struct *lock_mm_and_find_
- 	 * Well, dang. We might still be successful, but only
- 	 * if we can extend a vma to do so.
- 	 */
--	if (!vma || !(vma->vm_flags & VM_GROWSDOWN)) {
-+	if (!vma || !vma_test(vma, VMA_GROWSDOWN_BIT)) {
- 		mmap_read_unlock(mm);
- 		return NULL;
- 	}
-@@ -674,7 +674,7 @@ struct vm_area_struct *lock_mm_and_find_
- 			goto fail;
- 		if (vma->vm_start <= addr)
- 			goto success;
--		if (!(vma->vm_flags & VM_GROWSDOWN))
-+		if (!vma_test(vma, VMA_GROWSDOWN_BIT))
- 			goto fail;
+ 		/* Addresses in the VMA. */
+-		if (vma->vm_flags & VM_SOFTDIRTY)
++		if (vma_test(vma, VMA_SOFTDIRTY_BIT))
+ 			pme = make_pme(0, PM_SOFT_DIRTY);
+ 		for (; addr < min(end, vma->vm_end); addr += PAGE_SIZE) {
+ 			err = add_to_pagemap(&pme, pm);
+@@ -1980,7 +1981,7 @@ static pagemap_entry_t pte_to_pagemap_en
  	}
  
---- a/mm/msync.c~mm-convert-miscellaneous-vma-flag-tests-to-use-vma_flags_t
-+++ a/mm/msync.c
-@@ -79,7 +79,7 @@ SYSCALL_DEFINE3(msync, unsigned long, st
- 		}
- 		/* Here vma->vm_start <= start < vma->vm_end. */
- 		if ((flags & MS_INVALIDATE) &&
--				(vma->vm_flags & VM_LOCKED)) {
-+				vma_test(vma, VMA_LOCKED_BIT)) {
- 			error = -EBUSY;
- 			goto out_unlock;
- 		}
-@@ -88,7 +88,7 @@ SYSCALL_DEFINE3(msync, unsigned long, st
- 		fend = fstart + (min(end, vma->vm_end) - start) - 1;
- 		start = vma->vm_end;
- 		if ((flags & MS_SYNC) && file &&
--				(vma->vm_flags & VM_SHARED)) {
-+				vma_test(vma, VMA_SHARED_BIT)) {
- 			get_file(file);
- 			mmap_read_unlock(mm);
- 			error = vfs_fsync_range(file, fstart, fend, 1);
---- a/mm/oom_kill.c~mm-convert-miscellaneous-vma-flag-tests-to-use-vma_flags_t
-+++ a/mm/oom_kill.c
-@@ -524,7 +524,7 @@ static bool __oom_reap_task_mm(struct mm
- 	 * of the address space.
- 	 */
- 	mas_for_each_rev(&mas, vma, 0) {
--		if (vma->vm_flags & (VM_HUGETLB|VM_PFNMAP))
-+		if (vma_test_any(vma, VMA_HUGETLB_BIT, VMA_PFNMAP_BIT))
- 			continue;
+ out:
+-	if (vma->vm_flags & VM_SOFTDIRTY)
++	if (vma_test(vma, VMA_SOFTDIRTY_BIT))
+ 		flags |= PM_SOFT_DIRTY;
  
- 		/*
-@@ -537,7 +537,7 @@ static bool __oom_reap_task_mm(struct mm
- 		 * we do not want to block exit_mmap by keeping mm ref
- 		 * count elevated without a good reason.
+ 	return make_pme(frame, flags);
+@@ -1998,7 +1999,7 @@ static int pagemap_pmd_range_thp(pmd_t *
+ 	struct folio *folio = NULL;
+ 	int err = 0;
+ 
+-	if (vma->vm_flags & VM_SOFTDIRTY)
++	if (vma_test(vma, VMA_SOFTDIRTY_BIT))
+ 		flags |= PM_SOFT_DIRTY;
+ 
+ 	if (pmd_none(pmd))
+@@ -2120,7 +2121,7 @@ static int pagemap_hugetlb_range(pte_t *
+ 	int err = 0;
+ 	pte_t pte;
+ 
+-	if (vma->vm_flags & VM_SOFTDIRTY)
++	if (vma_test(vma, VMA_SOFTDIRTY_BIT))
+ 		flags |= PM_SOFT_DIRTY;
+ 
+ 	ptl = huge_pte_lock(hstate_vma(vma), walk->mm, ptep);
+@@ -2629,13 +2630,13 @@ static int pagemap_scan_test_walk(unsign
  		 */
--		if (vma_is_anonymous(vma) || !(vma->vm_flags & VM_SHARED)) {
-+		if (vma_is_anonymous(vma) || !vma_test(vma, VMA_SHARED_BIT)) {
- 			if (zap_vma_for_reaping(vma))
- 				ret = false;
- 		}
---- a/mm/pagewalk.c~mm-convert-miscellaneous-vma-flag-tests-to-use-vma_flags_t
-+++ a/mm/pagewalk.c
-@@ -393,7 +393,7 @@ static int walk_page_test(unsigned long
- 	 * define their ->pte_hole() callbacks, so let's delegate them to handle
- 	 * vma(VM_PFNMAP).
- 	 */
--	if (vma->vm_flags & VM_PFNMAP) {
-+	if (vma_test(vma, VMA_PFNMAP_BIT)) {
- 		int err = 1;
- 		if (ops->pte_hole)
- 			err = ops->pte_hole(start, end, -1, walk);
---- a/mm/vma.h~mm-convert-miscellaneous-vma-flag-tests-to-use-vma_flags_t
-+++ a/mm/vma.h
-@@ -596,9 +596,9 @@ static inline bool vma_wants_manual_pte_
- 	 * private mappings, that's always the case when we have write
- 	 * permissions as we properly have to handle COW.
- 	 */
--	if (vma->vm_flags & VM_SHARED)
-+	if (vma_test(vma, VMA_SHARED_BIT))
- 		return vma_wants_writenotify(vma, vma->vm_page_prot);
--	return !!(vma->vm_flags & VM_WRITE);
-+	return vma_test(vma, VMA_WRITE_BIT);
- }
+ 	}
  
- #ifdef CONFIG_MMU
+-	if (vma->vm_flags & VM_PFNMAP)
++	if (vma_test(vma, VMA_PFNMAP_BIT))
+ 		return 1;
+ 
+ 	if (wp_allowed)
+ 		vma_category |= PAGE_IS_WPALLOWED;
+ 
+-	if (vma->vm_flags & VM_SOFTDIRTY)
++	if (vma_test(vma, VMA_SOFTDIRTY_BIT))
+ 		vma_category |= PAGE_IS_SOFT_DIRTY;
+ 
+ 	if (!pagemap_scan_is_interesting_vma(vma_category, p))
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
