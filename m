@@ -1,42 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795514623;
-	b=NI68oHD/Wvn73EN8HajxwrrKAjU+iRi4ZGPROWbN7g7Y96hcGGWmKKZYQdJnn6p7IvDF
-	 tDubbMvVAXCWX5BtNNzB0J68p5EEUlXhlOcAFBoOlthfdYkE3+2uz8U3+dz8xtDEAk5n4
-	 ZbixIVuicCq58hSTJmaxH4APty2Qg61Qvs03a83v5frXWINUaWN2TfwPKNqZvTscXo8QQ
-	 yn69+JfTaDDwfs3Ja9w/eeRk71um9AyWfJH2BEgVxvftUmIsCH0E4jc3JUxjja36bD0gL
-	 la3qMvR5YwW1TrmJgkJGUZpc5ZSWtJuMFqNGNj0WalW7JIuSZ3JvvG2R95WbTzmf4Ew==
+	t=1795514627;
+	b=AE38B6acUqw4ob4TT1wWXtJai+4lf6fUDMmX+9l5D1keGJXeHZvqWKviriGqroVOHmpd
+	 LPJxQ0fdMqtdEgf7aFLTD84hu+Evd90jg5aKm8Ob7+vmTUBPTwEgsYO+SA5N4qvpWhwJS
+	 Z7FSui9iyc4rb/sXX2uQzzFbI3o+LGR6h9an/f5GCmTmNIoiAnS71Dp5Vfc05gzSRMAGG
+	 e7udPRkQjFn6n4wC3RSs5rDwMUufDFOW3EAmeF6vPTqyOL50kMkyNMPG440mn32qTl5rL
+	 fY+7KYUm8/jH7uK55z39D56MztKenCiHMpHR2aQUmlb+hfKCT269AcjbHYUXmlGqeaw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795514623;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795514627;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=nvILDKG7w98l35/j/eXutNdHf6HOJkiNecAJdcvTEjQ=;
-	b=asa42TXOrHVv+vbGNw0Gok7nAcSdS84X4xXIfEcQjAmySV7+w+7sz5183KcBb2VO/5fG
-	 1lYasnq0J/vmjXS6vH5U2oZv2cnYqQjSGBSZu+sqSVxrHZDIX8mcftcTd6l/pA71ml5hZ
-	 FH68hPSmIHzjMWLfkPDoR7CmMKO9WHBwQ8IRerHgTZ1SvbS95JgiHRVXwWvHLBqLhpZo5
-	 iX1FmCARywE7LnV+RxIfoqpgMam7aShyzaiToX+U7/7kEe5JAHVB3C7z2vLMU8tdVLhhk
-	 pWcAmjvgT3EnRWnchjDNcwOYmUaq8x5bmJ4Q/typcJztbeeKn4GL9nk0qfQCnATfmfA==
+	bh=jjPlizUfysprBLmx68OMo2HBkiM3CuHQoU/hOWUxt9w=;
+	b=DiU/pQSzLeyT4Ryd33ccAvo9QGxehdxK85PIcgojIWrv323WjEpo3ZDaf64SweQrvYmE
+	 dk2tBqs4d9nVB0RlMhTFNhvGqEPdHWwgq0cBPwF/tmrLYE/LjgvfPbzg+BQ7tSwE2b93G
+	 t8mhP32kZzw0JiA9IqSQuy4MdTz344NCJlmn5RvsWHrS2Aci4QM/Lg9LYPfoe44dinUGy
+	 zbNzzE2KKq6TUXQC/pVkPu71/xxwSCrjCqF0oTEvCg79OMAy7igKL5jCl3tUvW0lFKyFN
+	 HwzpkF2wqewT5PIbWDsugjmZf9UvIjuiVkdU8cxcH+uLQRnGU9CVHZqLS+ujlSAqctQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1XJ2UxQZ;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=O4XNDMRi;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 569D2606A682
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 10:03:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBB46606A321
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 10:03:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1XJ2UxQZ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC4D11F000CF;
-	Tue, 24 Nov 2026 10:03:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=O4XNDMRi
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 550BD1F000CA;
+	Tue, 24 Nov 2026 10:03:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795514622;
-	bh=nvILDKG7w98l35/j/eXutNdHf6HOJkiNecAJdcvTEjQ=;
+	d=linux-foundation.org; s=korg; t=1795514626;
+	bh=jjPlizUfysprBLmx68OMo2HBkiM3CuHQoU/hOWUxt9w=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=1XJ2UxQZ9o7Z6GHGicx0GGlMhgqIZ32kh+LwMEFTvxWmk0ypxWPDiG56T7ADDPQHH
-	 dsmfTyJLnfhCqudg0jvjgDGjBk4YSkoT4Qd5X3U7ufzB6MhozPdR9MSry8lmx7I7Ht
-	 Pq0Hj2Da8VoDQMX4hhz9iG88mzCelelFzqu/1czU=
-Date: Tue, 24 Nov 2026 02:03:42 -0800
+	b=O4XNDMRiFOQWDxLBrP4VsUSExitg0PJjb9B+J5bXoY03eMXOhqOmZ2140rbjDHzXw
+	 ly4pFqhb5M8E3tvavOrdESm32VrSepXzpGhgoDVezBelW477f7nncq6McDmbRrSVaM
+	 5qM7zfK5tSwTs+sytiWLTD2SQlByHWNpDxoexVs4=
+Date: Tue, 24 Nov 2026 02:03:45 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,
 	surenb@google.com,smostafa@google.com,skhan@linuxfoundation.org,
 	rppt@kernel.org,rdunlap@infradead.org,praan@google.com,mhocko@suse.com,
@@ -46,10 +46,10 @@ To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,
 	brendan.jackman@linux.dev,baolu.lu@linux.intel.com,songmuchun@bytedance.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261119065812.89959-7-songmuchun@bytedance.com>
-References: <20261119065812.89959-7-songmuchun@bytedance.com>
-Subject: + mm-page_ext-inline-unchecked-page-extension-lookup.patch added to mm-new branch
-Message-Id: <20261124100342.CC4D11F000CF@smtp.kernel.org>
+In-Reply-To: <20261119065812.89959-8-songmuchun@bytedance.com>
+References: <20261119065812.89959-8-songmuchun@bytedance.com>
+Subject: + kmsan-fix-metadata-loss-during-hugetlb-struct-page-reinitialization.patch added to mm-new branch
+Message-Id: <20261124100346.550BD1F000CA@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -61,12 +61,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/page_ext: inline unchecked page extension lookup
+     Subject: kmsan: fix metadata loss during HugeTLB struct page reinitialization
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_ext-inline-unchecked-page-extension-lookup.patch
+     kmsan-fix-metadata-loss-during-hugetlb-struct-page-reinitialization.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_ext-inline-unchecked-page-extension-lookup.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-fix-metadata-loss-during-hugetlb-struct-page-reinitialization.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -96,28 +96,38 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/page_ext: inline unchecked page extension lookup
-Date: Thu, 19 Nov 2026 14:58:11 +0800
+Subject: kmsan: fix metadata loss during HugeTLB struct page reinitialization
+Date: Thu, 19 Nov 2026 14:58:12 +0800
 
-The KMSAN runtime needs an unchecked page extension lookup that can be
-inlined into its uninstrumented compilation unit while page_ext.c remains
-instrumented.
+KMSAN stores each page's shadow and origin pointers in struct page.
+Boot-time gigantic HugeTLB pages are reinitialized after
+kmsan_init_shadow() installs these pointers, dropping the mappings and
+leaving the allocated metadata pages unreachable.
 
-Provide an inline lookup for this use case while keeping the existing RCU
-checks for other callers.
+Move the pointers to page_ext, whose boot-time storage is available
+before kmsan_init_shadow() and survives struct page reinitialization.
+Use the inline unchecked lookup under notrace preemption so metadata
+lookup cannot recurse through instrumented hooks.
 
-Link: https://patch.msgid.link/20261119065812.89959-7-songmuchun@bytedance.com
+This shrinks struct page from 80 to 64 bytes on x86-64 KMSAN builds,
+making its size a power of two and allowing HugeTLB Vmemmap Optimization
+with KMSAN.
+
+Link: https://patch.msgid.link/20261119065812.89959-8-songmuchun@bytedance.com
+Fixes: fde1c4ecf916 ("mm: hugetlb: skip initialization of gigantic tail struct pages if freed by HVO")
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reported-by: Sashiko <sashiko-bot@kernel.org>
+Closes: https://sashiko.dev/#/bug/linux-ac161ba4-30cc-4bd3-b93c-ab7af8a6f64f
 Reviewed-by: Chris Down <chris@chrisdown.name>
 Tested-by: Chris Down <chris@chrisdown.name>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Marco Elver <elver@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -133,183 +143,206 @@ Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Shuah Khan <skhan@linuxfoundation.org>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 
- include/linux/page_ext.h |   46 ++++++++++++++++++++++++++++
- mm/page_ext.c            |   60 ++-----------------------------------
- 2 files changed, 50 insertions(+), 56 deletions(-)
+ Documentation/dev-tools/kmsan.rst |    8 +---
+ include/linux/kmsan.h             |    2 +
+ include/linux/mm.h                |   12 +------
+ include/linux/mm_types.h          |   12 -------
+ lib/Kconfig.kmsan                 |    1 
+ mm/kmsan/shadow.c                 |   45 ++++++++++++++++++++++++----
+ mm/page_ext.c                     |    4 ++
+ 7 files changed, 52 insertions(+), 32 deletions(-)
 
---- a/include/linux/page_ext.h~mm-page_ext-inline-unchecked-page-extension-lookup
-+++ a/include/linux/page_ext.h
-@@ -64,7 +64,14 @@ static inline bool early_page_ext_enable
- void page_ext_alloc(void);
- void page_ext_init(void);
+--- a/Documentation/dev-tools/kmsan.rst~kmsan-fix-metadata-loss-during-hugetlb-struct-page-reinitialization
++++ a/Documentation/dev-tools/kmsan.rst
+@@ -376,13 +376,11 @@ Metadata allocation
  
-+static __always_inline struct page_ext *page_ext_entry(void *base, unsigned long index)
-+{
-+	return base + page_ext_size * index;
-+}
-+
- #ifdef CONFIG_SPARSEMEM
-+#define PAGE_EXT_INVALID	0x1
-+
- static inline bool page_ext_iter_next_fast_possible(unsigned long next_pfn)
- {
- 	/*
-@@ -73,11 +80,50 @@ static inline bool page_ext_iter_next_fa
- 	 */
- 	return next_pfn % PAGES_PER_SECTION;
- }
-+
-+static __always_inline bool page_ext_invalid(struct page_ext *page_ext)
-+{
-+	return !page_ext || (((unsigned long)page_ext & PAGE_EXT_INVALID) == PAGE_EXT_INVALID);
-+}
-+
-+static __always_inline struct page_ext *__page_ext_lookup(unsigned long pfn)
-+{
-+	struct mem_section *section = __pfn_to_section(pfn);
-+	struct page_ext *page_ext = READ_ONCE(section->page_ext);
-+
-+	/*
-+	 * The sanity checks the page allocator does upon freeing a page can
-+	 * reach here before the page_ext arrays are allocated when feeding a
-+	 * range of pages to the allocator for the first time during bootup or
-+	 * memory hotplug.
-+	 */
-+	if (page_ext_invalid(page_ext))
-+		return NULL;
-+	return page_ext_entry(page_ext, pfn);
-+}
- #else
- static inline bool page_ext_iter_next_fast_possible(unsigned long next_pfn)
- {
- 	return true;
- }
-+
-+static __always_inline struct page_ext *__page_ext_lookup(unsigned long pfn)
-+{
-+	int nid = pfn_to_nid(pfn);
-+	struct page_ext *base = NODE_DATA(nid)->node_page_ext;
-+	unsigned long index;
-+
-+	/*
-+	 * The sanity checks the page allocator does upon freeing a page can
-+	 * reach here before the page_ext arrays are allocated when feeding a
-+	 * range of pages to the allocator for the first time during bootup or
-+	 * memory hotplug.
-+	 */
-+	if (unlikely(!base))
-+		return NULL;
-+	index = pfn - round_down(node_start_pfn(nid), MAX_ORDER_NR_PAGES);
-+	return page_ext_entry(base, index);
-+}
- #endif
+ There are several places in the kernel for which the metadata is stored.
  
- extern struct page_ext *page_ext_get(const struct page *page);
---- a/mm/page_ext.c~mm-page_ext-inline-unchecked-page-extension-lookup
-+++ a/mm/page_ext.c
-@@ -63,10 +63,6 @@
-  * can utilize this callback to initialize the state of it correctly.
-  */
+-1. Each ``struct page`` instance contains two pointers to its shadow and
+-origin pages::
++1. Each page frame has a corresponding ``struct page_metadata`` entry containing
++two pointers to its shadow and origin pages::
  
--#ifdef CONFIG_SPARSEMEM
--#define PAGE_EXT_INVALID       (0x1)
--#endif
--
- #if defined(CONFIG_PAGE_IDLE_FLAG) && !defined(CONFIG_64BIT)
- static bool need_page_idle(void)
- {
-@@ -180,33 +176,7 @@ static void __init invoke_init_callbacks
- 	}
- }
+-  struct page {
+-    ...
++  struct page_metadata {
+     struct page *shadow, *origin;
+-    ...
+   };
  
--static inline struct page_ext *get_entry(void *base, unsigned long index)
--{
--	return base + page_ext_size * index;
--}
--
- #ifndef CONFIG_SPARSEMEM
--static struct page_ext *lookup_page_ext(const struct page *page)
--{
--	unsigned long pfn = page_to_pfn(page);
--	unsigned long index;
--	struct page_ext *base;
--
--	WARN_ON_ONCE(!rcu_read_lock_held());
--	base = NODE_DATA(page_to_nid(page))->node_page_ext;
--	/*
--	 * The sanity checks the page allocator does upon freeing a
--	 * page can reach here before the page_ext arrays are
--	 * allocated when feeding a range of pages to the allocator
--	 * for the first time during bootup or memory hotplug.
--	 */
--	if (unlikely(!base))
--		return NULL;
--	index = pfn - round_down(node_start_pfn(page_to_nid(page)),
--					MAX_ORDER_NR_PAGES);
--	return get_entry(base, index);
--}
--
- static int __init alloc_node_page_ext(int nid)
- {
- 	struct page_ext *base;
-@@ -252,29 +222,6 @@ static int __init __page_ext_alloc(void)
- }
+ At boot-time, the kernel allocates shadow and origin pages for every available
+--- a/include/linux/kmsan.h~kmsan-fix-metadata-loss-during-hugetlb-struct-page-reinitialization
++++ a/include/linux/kmsan.h
+@@ -15,12 +15,14 @@
+ #include <linux/types.h>
  
- #else /* CONFIG_SPARSEMEM */
--static bool page_ext_invalid(struct page_ext *page_ext)
--{
--	return !page_ext || (((unsigned long)page_ext & PAGE_EXT_INVALID) == PAGE_EXT_INVALID);
--}
--
--static struct page_ext *lookup_page_ext(const struct page *page)
--{
--	unsigned long pfn = page_to_pfn(page);
--	struct mem_section *section = __pfn_to_section(pfn);
--	struct page_ext *page_ext = READ_ONCE(section->page_ext);
--
--	WARN_ON_ONCE(!rcu_read_lock_held());
--	/*
--	 * The sanity checks the page allocator does upon freeing a
--	 * page can reach here before the page_ext arrays are
--	 * allocated when feeding a range of pages to the allocator
--	 * for the first time during bootup or memory hotplug.
--	 */
--	if (page_ext_invalid(page_ext))
--		return NULL;
--	return get_entry(page_ext, pfn);
--}
--
- static __ref void *alloc_page_ext(size_t size, int nid)
- {
- 	void *addr;
-@@ -365,7 +312,7 @@ static void __free_page_ext(unsigned lon
- 		base = (void *)base - PAGE_EXT_INVALID;
- 	WRITE_ONCE(ms->page_ext, NULL);
+ struct page;
++struct page_ext_operations;
+ struct kmem_cache;
+ struct task_struct;
+ struct scatterlist;
+ struct urb;
  
--	base = get_entry(base, pfn);
-+	base = page_ext_entry(base, pfn);
- 	free_page_ext(base);
- }
- 
-@@ -508,7 +455,8 @@ void __init page_ext_init(void)
-  */
- struct page_ext *page_ext_lookup(unsigned long pfn)
- {
--	return lookup_page_ext(pfn_to_page(pfn));
-+	WARN_ON_ONCE(!rcu_read_lock_held());
-+	return __page_ext_lookup(pfn);
- }
+ #ifdef CONFIG_KMSAN
++extern struct page_ext_operations kmsan_ops;
  
  /**
-@@ -527,7 +475,7 @@ struct page_ext *page_ext_get(const stru
- 	struct page_ext *page_ext;
+  * kmsan_task_create() - Initialize KMSAN state for the task.
+--- a/include/linux/mm.h~kmsan-fix-metadata-loss-during-hugetlb-struct-page-reinitialization
++++ a/include/linux/mm.h
+@@ -134,7 +134,7 @@ extern int mmap_rnd_compat_bits __read_m
+  * define their own version of this macro in <asm/pgtable.h>
+  */
+ #if BITS_PER_LONG == 64
+-/* This function must be updated when the size of struct page grows above 96
++/* This function must be updated when the size of struct page grows above 80
+  * or reduces below 56. The idea that compiler optimizes out switch()
+  * statement, and only leaves move/store instructions. Also the compiler can
+  * combine write statements if they are both assignments and can be reordered,
+@@ -145,18 +145,12 @@ static inline void __mm_zero_struct_page
+ {
+ 	unsigned long *_pp = (void *)page;
  
- 	rcu_read_lock();
--	page_ext = lookup_page_ext(page);
-+	page_ext = page_ext_lookup(page_to_pfn(page));
- 	if (!page_ext) {
- 		rcu_read_unlock();
- 		return NULL;
+-	 /* Check that struct page is either 56, 64, 72, 80, 88 or 96 bytes */
++	/* Check that struct page is either 56, 64, 72 or 80 bytes */
+ 	BUILD_BUG_ON(sizeof(struct page) & 7);
+ 	BUILD_BUG_ON(sizeof(struct page) < 56);
+-	BUILD_BUG_ON(sizeof(struct page) > 96);
++	BUILD_BUG_ON(sizeof(struct page) > 80);
+ 
+ 	switch (sizeof(struct page)) {
+-	case 96:
+-		_pp[11] = 0;
+-		fallthrough;
+-	case 88:
+-		_pp[10] = 0;
+-		fallthrough;
+ 	case 80:
+ 		_pp[9] = 0;
+ 		fallthrough;
+--- a/include/linux/mm_types.h~kmsan-fix-metadata-loss-during-hugetlb-struct-page-reinitialization
++++ a/include/linux/mm_types.h
+@@ -208,18 +208,6 @@ struct page {
+ #ifdef LAST_CPUPID_NOT_IN_PAGE_FLAGS
+ 	int _last_cpupid;
+ #endif
+-
+-#ifdef CONFIG_KMSAN
+-	/*
+-	 * KMSAN metadata for this page:
+-	 *  - shadow page: every bit indicates whether the corresponding
+-	 *    bit of the original page is initialized (0) or not (1);
+-	 *  - origin page: every 4 bytes contain an id of the stack trace
+-	 *    where the uninitialized value was created.
+-	 */
+-	struct page *kmsan_shadow;
+-	struct page *kmsan_origin;
+-#endif
+ } _struct_page_alignment;
+ 
+ /*
+--- a/lib/Kconfig.kmsan~kmsan-fix-metadata-loss-during-hugetlb-struct-page-reinitialization
++++ a/lib/Kconfig.kmsan
+@@ -10,6 +10,7 @@ config KMSAN
+ 	depends on HAVE_ARCH_KMSAN && HAVE_KMSAN_COMPILER
+ 	depends on DEBUG_KERNEL && !KASAN && !KCSAN
+ 	depends on !PREEMPT_RT
++	select PAGE_EXTENSION
+ 	select STACKDEPOT
+ 	select STACKDEPOT_ALWAYS_INIT
+ 	help
+--- a/mm/kmsan/shadow.c~kmsan-fix-metadata-loss-during-hugetlb-struct-page-reinitialization
++++ a/mm/kmsan/shadow.c
+@@ -13,6 +13,7 @@
+ #include <linux/cacheflush.h>
+ #include <linux/memblock.h>
+ #include <linux/mm_types.h>
++#include <linux/page_ext.h>
+ #include <linux/slab.h>
+ #include <linux/smp.h>
+ #include <linux/stddef.h>
+@@ -24,23 +25,55 @@
+ #define KMSAN_META_MASK_SHADOW		BIT(0)
+ #define KMSAN_META_MASK_ORIGIN		BIT(1)
+ 
++/*
++ * KMSAN metadata for this page:
++ *  - shadow page: every bit indicates whether the corresponding
++ *    bit of the original page is initialized (0) or not (1);
++ *  - origin page: every 4 bytes contain an id of the stack trace
++ *    where the uninitialized value was created.
++ */
+ struct page_metadata {
+ 	struct page *shadow;
+ 	struct page *origin;
+ };
+ 
++static __init bool need_page_metadata(void)
++{
++	return true;
++}
++
++struct page_ext_operations kmsan_ops = {
++	.size	= sizeof(struct page_metadata),
++	.need	= need_page_metadata,
++};
++
+ static inline struct page_metadata get_page_metadata(struct page *page)
+ {
+-	return (struct page_metadata) {
+-		.shadow = page->kmsan_shadow,
+-		.origin = page->kmsan_origin,
+-	};
++	struct page_metadata meta = {};
++	struct page_ext *page_ext;
++
++	/*
++	 * Avoid instrumented preemption debug and tracing hooks while resolving
++	 * KMSAN metadata, as they would recurse back into metadata lookup.
++	 */
++	preempt_disable_notrace();
++	page_ext = __page_ext_lookup(page_to_pfn(page));
++	if (page_ext)
++		meta = *(struct page_metadata *)page_ext_data(page_ext, &kmsan_ops);
++	preempt_enable_no_resched_notrace();
++
++	return meta;
+ }
+ 
+ static inline void set_page_metadata(struct page *page, struct page_metadata meta)
+ {
+-	page->kmsan_shadow = meta.shadow;
+-	page->kmsan_origin = meta.origin;
++	struct page_ext *page_ext;
++
++	preempt_disable_notrace();
++	page_ext = __page_ext_lookup(page_to_pfn(page));
++	if (page_ext)
++		*(struct page_metadata *)page_ext_data(page_ext, &kmsan_ops) = meta;
++	preempt_enable_no_resched_notrace();
+ }
+ 
+ static inline void *shadow_ptr_for(struct page_metadata meta)
+--- a/mm/page_ext.c~kmsan-fix-metadata-loss-during-hugetlb-struct-page-reinitialization
++++ a/mm/page_ext.c
+@@ -12,6 +12,7 @@
+ #include <linux/rcupdate.h>
+ #include <linux/pgalloc_tag.h>
+ #include <linux/iommu-debug-pagealloc.h>
++#include <linux/kmsan.h>
+ #include <linux/slab.h>
+ 
+ /*
+@@ -87,6 +88,9 @@ static struct page_ext_operations *page_
+ #ifdef CONFIG_PAGE_TABLE_CHECK
+ 	&page_table_check_ops,
+ #endif
++#ifdef CONFIG_KMSAN
++	&kmsan_ops,
++#endif
+ #ifdef CONFIG_IOMMU_DEBUG_PAGEALLOC
+ 	&page_iommu_debug_ops,
+ #endif
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
