@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795541613;
-	b=FKfXl65y98/OT95r8bxFaell7jqxH6fh8mbdtLo+S2XaiGKpK3JZQnBc6N5malPfRHwl
-	 APG6XUk/3pqoKnWsJAmVwFiRixrfpdss7g/ME1XXgj79oSnAz0wio+WlUf+NMkIhX70mg
-	 Dq3K4a8/DH2qvAUEZvAp+d0BJ5YDcbz6kPyZt0bq45+idgdZPd+v6ayJvZhgN7rDBc7l5
-	 OVonkNppe2z+U5Ow8IzEr4H+D/+KVRiR1ZhOooTGducws3+9UsGmQymtGfTvtsx87CLoG
-	 0YSla2lHtGLLMFQFjDdcuA6z7Cp9nvKs+mjjywR4/KiiZovL5kdSjb7+exe/y/JSjPQ==
+	t=1795542954;
+	b=wW8PH8qYw4yYB6gYtiH7ATdwfjdm+b0S+zFU9x7YWQzUlQPJLCMwsrSNR0BmmlOjFpYJ
+	 WIcyTb3audIiJ5smiaSs5aDWmHK8Q92SZJ0+RCfgphVyNYyxD6YfV6sTsBG89VpqyurHO
+	 hPVymQ+nashZ1bw8ubgsYSGLOCaKDBugu4sSN8TYrA3bDqHOUW+g4xBNs9qA9OZDLmLO2
+	 VFy1r+tBOGdcJGc0rdVMy8CWAJHi9dg47ddSUFNu0pw065EtxCRUQgJyJ95k59tyImXZz
+	 zOZEcy3R6XF6f4LjGIiT0ifCTWhyiXjw3gn5AoFD4IeBcGPIhIfcJ4cUP+0aug0SozQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795541613;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795542954;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=KRKcH0psMs5K4ny2BULIFxZ1CWt3hzDKA8Zb3Ov9cVg=;
-	b=aCemTqm3DUZ0vVN5Yr73CrPGDHqqbV3JKYT2OLP+gfe4mUyeTvLF8MoDLPDBDkHXLbz6
-	 kvNu7ZF9yJBOW8csmLTkt9YxnNrEmnUb349d10B4QXpTursX+7AXUzBQWtxkbYYN3koSL
-	 08xUfKR3SKjo0tFHY9tKesOQIB5YakmVQKIPcbafQUw7D1wBIbcXwk0fAI8SjVl883U4G
-	 oz6jU9SyrSujxrc9zMfa1sYGqmSJFLQr+ht3ZIbC1npkaezk0MABNzumcjrEn0eh5YOTf
-	 Z1+mvkDL1GoJssprwZf7bPtIq8eiek/RnjurekwCT7MtlvQRQ6i9gdJkmNShiT++SUQ==
+	bh=EXHPBo1j6echpyYMtS5HYF6q15GcWM6Q7UZm30+gM4g=;
+	b=BXA0GGqdj8580/j35AWwybBZoROrxecDGIIVImPQ6eKzW8LoSjVyk+YxC7SPCpf9JBBz
+	 WtcMIj8tOiSaWV7RYIJDFj0roR05d0EiCH6FYb2/RuwVO0z9wXJITEL0u+Nx+0WH6/N5a
+	 7hUE30b8UPMdnXe7hW23odfUkmNhyg6zzGLfvYvSiLPIJIOemhCDWfXZ/rav682WT3uxc
+	 UMRjeuz3tMBWJ8Kd+ZwsxNr79gT2s3sMAUATU2+0ucfelROdt1yRMio1XCbUYbFtg4Aiy
+	 3vnxLwIxKce4Gk9hURA1rdtaUW5EVte4BaVPr5myLU+gFmEaI6SJKqLvLswINapOGIg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=uzZyr3OW;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=T1bhEMMk;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9190606A33E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:33:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66AF4606A31E
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:55:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=uzZyr3OW
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 488B91F000F0;
-	Tue, 24 Nov 2026 17:33:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=T1bhEMMk
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB2181F000CF;
+	Tue, 24 Nov 2026 17:55:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795541613;
-	bh=KRKcH0psMs5K4ny2BULIFxZ1CWt3hzDKA8Zb3Ov9cVg=;
+	d=linux-foundation.org; s=korg; t=1795542953;
+	bh=EXHPBo1j6echpyYMtS5HYF6q15GcWM6Q7UZm30+gM4g=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=uzZyr3OWT4kVMoHV/hiNP6kVMJEaxvP/pfH1VRqRIgFnVFyh6C+a1KPS8ajbrx7WE
-	 S25sVQkQUoQujMVLhlINgAC7FxpsbTlvntmcSsZzXZSNSLydThaxC4UC7cm9b9/351
-	 Byy/9A7pc0rpS8DBuz5qpVI/Dof+ScvWR8cOj614=
-Date: Tue, 24 Nov 2026 09:33:32 -0800
+	b=T1bhEMMk6fX/GOZZdpkyy0EL/mvdnMwUA1r2KdV8d456f17U02BHm9jwUM2lPk2kg
+	 f/jUNfePXZhy2RJj2nQyE7WKrkPG7qtna0cgFnNvp2iGhhoQvxSqVOpEzvvSGDXZz/
+	 cLT/4LS5ald8+TEzLfHlQoZlnD6CEF3NOKD7VHtU=
+Date: Tue, 24 Nov 2026 09:55:53 -0800
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <awXHR007d8MlhJUC@gremlin>
-References: <awXHR007d8MlhJUC@gremlin>
-Subject: + mm-vma-drop-mm-asynchronously-in-vma_start_read-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261124173333.488B91F000F0@smtp.kernel.org>
+In-Reply-To: <20261124-late-2026-vma-flags-v2-1-bf3fade93064@kernel.org>
+References: <20261124-late-2026-vma-flags-v2-1-bf3fade93064@kernel.org>
+Subject: + mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t.patch added to mm-new branch
+Message-Id: <20261124175553.CB2181F000CF@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,15 +54,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm-vma-drop-mm-asynchronously-in-vma_start_read-fix
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-vma-drop-mm-asynchronously-in-vma_start_read-fix.patch
+     Subject: mm/filemap: convert fault and readahead logic to use vma_flags_t
+has been added to the -mm mm-new branch.  Its filename is
+     mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-drop-mm-asynchronously-in-vma_start_read-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,66 +88,253 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vma-drop-mm-asynchronously-in-vma_start_read-fix
-Date: Tue Nov 24 09:31:33 AM PST 2026
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: mm/filemap: convert fault and readahead logic to use vma_flags_t
+Date: Tue, 24 Nov 2026 17:07:53 +0000
 
-tweak comment, per Lorenzo
+Patch series "mm: continue vma_flags_t conversion", v2.
 
-Link: https://lore.kernel.org/awXHR007d8MlhJUC@gremlin
+Continue the conversion of legacy vm_flags_t flags to the new vma_flags_t
+bitmap type.
+
+Do some more core mm conversion (we really should be the first to
+completely move to the new scheme :), but also update some mm-adjacent and
+otherwise straightforward cases - /proc/$pid/maps and friends, the coredump
+VMA dump size logic, uprobes, perf and LSM mmap/mprotect hooks.
+
+This series only makes strictly mechanical changes to keep things gentle
+during this very busy cycle.
+
+No functional change intended.
+
+
+This patch (of 11):
+
+Replace use of the legacy vm_flags_t flags with vma_flags_t values in the
+file fault and mmap readahead logic.
+
+No functional change intended.
+
+Link: https://lore.kernel.org/20261124-late-2026-vma-flags-v2-0-bf3fade93064@kernel.org
+Link: https://patch.msgid.link/20261124-late-2026-vma-flags-v2-1-bf3fade93064@kernel.org
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Harry Yoo <harry@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Nico Pache <nico.pache@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Usama Arif <usama.arif@linux.dev>
+Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: Xu Xin <xu.xin@linux.dev>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Christophe Leroy <chleroy@kernel.org>
+Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Cc: Shrikanth Hegde <sshegde@linux.ibm.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: SJ Park <sj@kernel.org>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Namhyung Kim <namhyung@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: Ian Rogers <irogers@google.com>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: James Clark <james.clark@linaro.org>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: John Johansen <john.johansen@canonical.com>
+Cc: Georgia Garcia <georgia.garcia@canonical.com>
+Cc: Paul Moore <paul@paul-moore.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Serge E. Hallyn <serge@hallyn.com>
+Cc: Mimi Zohar <zohar@linux.ibm.com>
+Cc: Roberto Sassu <roberto.sassu@huawei.com>
+Cc: Dmitry Kasatkin <dmitry.kasatkin@gmail.com>
+Cc: Eric Snowberg <eric.snowberg@oracle.com>
+Cc: Fan Wu <wufan@kernel.org>
+Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
+Cc: Ondrej Mosnáček <omosnacek@gmail.com>
 
- mm/mmap_lock.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/filemap.c |   26 ++++++++++++++------------
+ 1 file changed, 14 insertions(+), 12 deletions(-)
 
---- a/mm/mmap_lock.c~mm-vma-drop-mm-asynchronously-in-vma_start_read-fix
-+++ a/mm/mmap_lock.c
-@@ -300,7 +300,7 @@ err:
- err_unstable:
+--- a/mm/filemap.c~mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t
++++ a/mm/filemap.c
+@@ -3359,13 +3359,14 @@ static struct file *do_sync_mmap_readahe
+ 	struct address_space *mapping = file->f_mapping;
+ 	DEFINE_READAHEAD(ractl, file, ra, mapping, vmf->pgoff);
+ 	struct file *fpin = NULL;
+-	vm_flags_t vm_flags = vmf->vma->vm_flags;
++	struct vm_area_struct *vma = vmf->vma;
+ 	bool force_thp_readahead = false;
+ 	unsigned int thp_order = 0;
+ 	unsigned short mmap_miss;
+ 
+ 	/* Use the readahead code, even if readahead is disabled */
+-	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) && (vm_flags & VM_HUGEPAGE)) {
++	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
++	    vma_test(vma, VMA_HUGEPAGE_BIT)) {
+ 		/*
+ 		 * Cap max THP order at 2MB: this is the common PMD-sized
+ 		 * hugepage size, and it avoids memory pressure from very
+@@ -3385,20 +3386,21 @@ static struct file *do_sync_mmap_readahe
+ 		 * If we don't want any read-ahead, don't bother.
+ 		 * VM_EXEC case below is already intended for random access.
+ 		 */
+-		if ((vm_flags & (VM_RAND_READ | VM_EXEC)) == VM_RAND_READ)
++		if (vma_test(vma, VMA_RAND_READ_BIT) &&
++		    !vma_test(vma, VMA_EXEC_BIT))
+ 			return fpin;
+ 
+ 		if (!ra->ra_pages)
+ 			return fpin;
+ 
+-		if (vm_flags & VM_SEQ_READ) {
++		if (vma_test(vma, VMA_SEQ_READ_BIT)) {
+ 			fpin = maybe_unlock_mmap_for_io(vmf, fpin);
+ 			page_cache_sync_ra(&ractl, ra->ra_pages);
+ 			return fpin;
+ 		}
+ 	}
+ 
+-	if (!(vm_flags & (VM_SEQ_READ | VM_EXEC))) {
++	if (!vma_test_any(vma, VMA_SEQ_READ_BIT, VMA_EXEC_BIT)) {
+ 		/* Avoid banging the cache line if not needed */
+ 		mmap_miss = READ_ONCE(ra->mmap_miss);
+ 		if (mmap_miss < MMAP_LOTSAMISS * 10)
+@@ -3414,6 +3416,7 @@ static struct file *do_sync_mmap_readahe
+ 
+ 	if (force_thp_readahead) {
+ 		unsigned long folio_nr_pages = 1UL << thp_order;
++		const bool random_read = vma_test(vma, VMA_RAND_READ_BIT);
+ 
+ 		fpin = maybe_unlock_mmap_for_io(vmf, fpin);
+ 		ractl._index &= ~(folio_nr_pages - 1);
+@@ -3422,7 +3425,7 @@ static struct file *do_sync_mmap_readahe
+ 		 * Fetch two folios so we get the chance to actually
+ 		 * readahead, unless we've been told not to.
+ 		 */
+-		if (!(vm_flags & VM_RAND_READ))
++		if (!random_read)
+ 			ra->size *= 2;
+ 		ra->async_size = folio_nr_pages;
+ 		ra->order = thp_order;
+@@ -3430,7 +3433,7 @@ static struct file *do_sync_mmap_readahe
+ 		return fpin;
+ 	}
+ 
+-	if (vm_flags & VM_EXEC) {
++	if (vma_test(vma, VMA_EXEC_BIT)) {
+ 		/*
+ 		 * Allow arch to request a preferred minimum folio order for
+ 		 * executable memory. This can often be beneficial to
+@@ -3442,7 +3445,6 @@ static struct file *do_sync_mmap_readahe
+ 		 * pad that might exist between sections, which would be a waste
+ 		 * of memory.
+ 		 */
+-		struct vm_area_struct *vma = vmf->vma;
+ 		const unsigned long start = vma_start_pgoff(vma);
+ 		const unsigned long end = vma_end_pgoff(vma);
+ 		unsigned long ra_end;
+@@ -3485,7 +3487,7 @@ static struct file *do_async_mmap_readah
+ 	unsigned short mmap_miss;
+ 
+ 	/* If we don't want any read-ahead, don't bother */
+-	if (vmf->vma->vm_flags & VM_RAND_READ || !ra->ra_pages)
++	if (vma_test(vmf->vma, VMA_RAND_READ_BIT) || !ra->ra_pages)
+ 		return fpin;
+ 
  	/*
- 	 * If vma got attached to another mm from under us, that mm is not
--	 * stable and can be freed in the narrow window after vma->vm_refcnt
-+	 * stable and can be reused in the narrow window after vma->vm_refcnt
- 	 * is dropped and before rcuwait_wake_up(mm) is called. Grab it before
- 	 * releasing vma->vm_refcnt.
+@@ -3499,7 +3501,7 @@ static struct file *do_async_mmap_readah
+ 	 * keep the counter symmetric.
  	 */
+ 	if (likely(!folio_test_locked(folio)) &&
+-	    !(vmf->vma->vm_flags & (VM_SEQ_READ | VM_EXEC))) {
++	    !vma_test_any(vmf->vma, VMA_SEQ_READ_BIT, VMA_EXEC_BIT)) {
+ 		mmap_miss = READ_ONCE(ra->mmap_miss);
+ 		if (mmap_miss)
+ 			WRITE_ONCE(ra->mmap_miss, --mmap_miss);
+@@ -3532,7 +3534,7 @@ static vm_fault_t filemap_fault_recheck_
+ 	 * scenarios. Recheck the PTE without PT lock firstly, thereby reducing
+ 	 * the number of times we hold PT lock.
+ 	 */
+-	if (!(vma->vm_flags & VM_LOCKED))
++	if (!vma_test(vma, VMA_LOCKED_BIT))
+ 		return 0;
+ 
+ 	if (!(vmf->flags & FAULT_FLAG_ORIG_PTE_VALID))
+@@ -4018,7 +4020,7 @@ vm_fault_t filemap_map_pages(struct vm_f
+ 		if ((map_ret & VM_FAULT_NOPAGE) &&
+ 		    !(vmf->flags & FAULT_FLAG_TRIED) &&
+ 		    !folio_test_workingset(folio) &&
+-		    !(vma->vm_flags & (VM_SEQ_READ | VM_EXEC))) {
++		    !vma_test_any(vma, VMA_SEQ_READ_BIT, VMA_EXEC_BIT)) {
+ 			unsigned short mmap_miss;
+ 
+ 			mmap_miss = READ_ONCE(file->f_ra.mmap_miss);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ljs@kernel.org are
 
-mm-vma-drop-mm-asynchronously-in-vma_start_read-fix.patch
-kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize-fix.patch
-selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
-selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
-selftests-mm-allocate-nr_pages-based-on-pmd-size-for-uffd-pmd_move-tests-fix.patch
-selftests-mm-retain-move-pmd-coverage-and-verify-huge-pmds.patch
-lib-test_xarray-check-unused-spare-node-after-range-creation.patch
-mm-memory-failure-dont-unpoison-a-leaked-raw_hwp_unreliable-folio-fix.patch
-mm-vmstat_kunit-add-synthetic-benchmark-for-mm-stats-fix.patch
-lib-test_hmm-invalidate-all-mirrors-on-device-private-migration.patch
-lib-test_hmm-invalidate-all-mirrors-on-device-private-migration-fix.patch
-mm-prevent-pre-content-bypass-through-mremap-and-remap_file_pages.patch
-afs-do-not-put-error-pointer-after-address-lookup-failure.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-0.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-1.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-2.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-3.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-4.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-5.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-6.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-7.patch
-selftests-mm-hmm-speed-up-migrate_remap_fault.patch
-ocfs2-unregister-the-jbd2-shrinker-before-journal-shutdown.patch
-ipc-msg-clamp-negative-msg_info-usage-counts.patch
-squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix.patch
-squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index-fix.patch
-ocfs2-skip-network-flush-when-no-domain-handlers-are-registered.patch
-selftests-ptrace-check-that-ptrace_set_syscall_info-rejects-invalid-error-values-fix.patch
-lib-asn1_encoder-fix-encoding-of-zero-oid-components.patch
-proc-serialize-task-owner-updates.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+mm-msync-return-enomem-if-page-aligned-length-overflows.patch
+mm-vma-drop-mm-asynchronously-in-vma_start_read.patch
+mm-vma-predicate-vma_assert_stabilised-on-config_debug_vm.patch
+mm-only-assert-mmap-locks-if-config_debug_vm-or-lockdep-is-set.patch
+mm-only-assert-vma-locks-if-config_debug_vm-is-set.patch
+mm-convert-warn_on_onces-to-vm_warn_on_once-in-vma-lock-code.patch
+mm-madvise-zap-markers-from-guard-regions.patch
+mm-mmap-free-gathered-pages-before-mmf_oom_skip.patch
+percpu-fix-contig-hints-that-are-too-low.patch
+percpu-search-the-whole-reserved-chunk.patch
+mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t.patch
+mm-madvise-convert-madvise_vma_behavior-to-use-vma_flags_t.patch
+mm-convert-miscellaneous-vma-flag-tests-to-use-vma_flags_t.patch
+fs-proc-task_mmu-convert-vma-flag-tests-to-use-vma_flags_t.patch
+fs-coredump-convert-vma_dump_size-to-use-vma_flags_t.patch
+uprobes-convert-vma-flag-tests-to-use-vma_flags_t.patch
+perf-convert-vma-flag-tests-to-use-vma_flags_t.patch
+selinux-convert-vma-flag-tests-to-use-vma_flags_t.patch
+apparmor-convert-vma-flag-tests-to-use-vma_flags_t.patch
+ima-convert-vma-flag-tests-to-use-vma_flags_t.patch
+ipe-convert-vma-flag-tests-to-use-vma_flags_t.patch
 
