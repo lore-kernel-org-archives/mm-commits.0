@@ -1,42 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795547359;
-	b=SSMZHPQPvtj6h86uW0aTOaXrWZUhRREXJsoPjHvzRkwxm/IZzwUgenqNx8IhUeLKjsSw
-	 oiDYg39TvLfx7rytA6lAFk+M69oJbfNoGsFpWbqqZEi3qAKDY2JC93cCc/QN+xOdPwjkW
-	 NqWOBodaXlkOcxZm6iwmgZCjTyPkXt11fYvF+GN9Ex/GIB9NNvmR2YOF5IrESOu6sG4a8
-	 cm5k2FbC5zCZVTZAWPnwnoKoHVs9BQnMSrVNRpHRKYgr53pgmzAfLC8tiKUkpzS1bLw2U
-	 ZFrrMQBb4GG+5Pj1GjwqwyaoHtRSAuVOo/E96PwfeQ+tsyrIiAiVIvPVu19tuD2D7Aw==
+	t=1795547362;
+	b=0+FSEWJk8uYv4XTxitwdbhjOMnD/1ZfBR2cXAo8JqGPx2ywAFOwWIlqREK5uGGXhfVa6
+	 O8rLuEcNxj7I/95vitF8zo18wuE069bz9ANbmZyDS9ooDQf9Ls5ycFJp9qMUoCuOs9kRL
+	 khwxtZmw02zvgvqyuxfqXUWCrBx82KBUvpEz8ObAM7lHEJH5QUIP0Q4fNFIT/Z5epy9yA
+	 ZuqZclizi+mL8p7XQx66ZrgmOHVfEtiDE7sYSV2tuUMszA1+VRvUAxfblm1gKyRQ12ocg
+	 Q7iCgxvUr0kOfEme9H7/5Gx2YrDllAAt3Dec6ZkVqT0U0fudOcQPFVrG7ITPJpWUCyA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795547359;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795547362;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=JBefsFVGyW2Wk4HfIbv6VCtD0PQkosGnL5rpCarJVZI=;
-	b=sdbc4drAjXUWuRF8EsqqX4nIBkmVuywirla/XFvpser4fbEc1uk/I2LAfgZ1FXjuNl7j
-	 Rgyx8GrOTeEY/Y2F3PCMoUb/fGC2DSuCOZkjtMrEKfWOvyZU3ojjvUUC/ON2WaohQhTnP
-	 ZprTRV4wxcDOFK9PiqEDDcArvaUcgaLQhGShcHXJupWspP4/unVRoUfykfjXonrA5tkol
-	 EIbGlt2QlJ5q4MzxanWoyQ6ZgS46Y8A+WmMDSKWNHcoE7a+E14bbA9Nm42QGrNyBB9j7F
-	 WwfDQ+Cms+d9FaG8NSQ8/AffEZkqU4IXtxb2iEEdfxyA60jpcgSvl7s8z9fiCS4R7Bg==
+	bh=zj57YfKsyMglvA9myFe91F0LN3ijLG2T+aT11OhZ1aw=;
+	b=QOeu0CFpE7HZ31XFKct2hTQNoJ/bWraQCOGIMiptoS+u4p+5vt0kEXwcoEsMi6cUgoly
+	 VD0kZ1GC24L6EHSp4jHezAPDBosUZxDfAH2uJrOd3AeQh8RrZGPLlAkhMGw/RuUOwiCyH
+	 wBXGrE1biZT3R/6PBz6E272Tq5PM3XxsY7zpGk9GKzIs1oIBDI3eq6tsHzrnxYo0qaLFr
+	 Z9X/DV6agROJ0KBQp8ql+pwxUs6S7TZEw/bZYZLHtflDqEg22Ng7WnbX4FKIJroZ3Y6uu
+	 wjZpKG5mmXmkdtMBikmjaQvftqyiUVBXUYls82XX4hqPDsT7x2+mmitwgOHlxpB3zBw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=r10aOBuA;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ksUWhlUG;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB628606A31E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 19:09:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C98C8606A32C
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 19:09:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=r10aOBuA
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F12531F000C6;
-	Tue, 24 Nov 2026 19:09:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ksUWhlUG
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B140B1F000C0;
+	Tue, 24 Nov 2026 19:09:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795547359;
-	bh=JBefsFVGyW2Wk4HfIbv6VCtD0PQkosGnL5rpCarJVZI=;
+	d=linux-foundation.org; s=korg; t=1795547361;
+	bh=zj57YfKsyMglvA9myFe91F0LN3ijLG2T+aT11OhZ1aw=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=r10aOBuASk7zPcfdeXynbpuvGLFGVioVzvWG2DZWZZH2KcB27BI/4M+vttbOKojBu
-	 i8GpOlB3Yk2RtxVprYGiFMhMJTtQch3exeSPtI3qTPllq4KHE7nbbm4I04OR8Ofvbf
-	 EgZ/37eusPufTIXfFiXTk+K5GSMKxVWm7meGXQFQ=
-Date: Tue, 24 Nov 2026 11:09:18 -0800
+	b=ksUWhlUG+ncE5wPKn7B5fE4tdAVPMGQHLXsLaYT9fKADROWAIbRaxFYR5CJaUGwWa
+	 IjFxzIkYG0pnIBga3H9hy8ZuQT3JRqdEz5INQGJAwaoNGOdMaYMLwiY7Lp1sGlvkoq
+	 NAE+Nk6PiNwkYUp4rFzHVdRhlFf/qWWe6BXTsxlo=
+Date: Tue, 24 Nov 2026 11:09:21 -0800
 To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,wei.liu@kernel.org,
 	tglx@kernel.org,sumit.garg@kernel.org,stephen.smalley.work@gmail.com,
 	sstabellini@kernel.org,sshegde@linux.ibm.com,scott.branden@broadcom.com,
@@ -49,16 +49,15 @@ To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,wei.liu@kernel.org,
 	jenswi@kernel.org,jasowangio@gmail.com,jarkko@kernel.org,jack@suse.cz,
 	hpa@zytor.com,haiyangz@microsoft.com,gregkh@linuxfoundation.org,
 	eperezma@redhat.com,edumazet@kernel.org,dwmw@amazon.co.uk,
-	dwmw2@infradead.org,decui@microsoft.com,davem@davemloft.net,
-	dave.hansen@linux.intel.com,chleroy@kernel.org,bp@alien8.de,
-	billy_tsai@aspeedtech.com,arnd@arndb.de,andrew+netdev@lunn.ch,
-	andrew@codeconstruct.com.au,andersson@kernel.org,abel.vesa@oss.qualcomm.com,
-	ljs@kernel.org,akpm@linux-foundation.org
+	decui@microsoft.com,davem@davemloft.net,dave.hansen@linux.intel.com,
+	chleroy@kernel.org,bp@alien8.de,billy_tsai@aspeedtech.com,arnd@arndb.de,
+	andrew+netdev@lunn.ch,andrew@codeconstruct.com.au,andersson@kernel.org,
+	abel.vesa@oss.qualcomm.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124-late-2026-mmap_prepare-v2-12-0b0d99d655f9@kernel.org>
-References: <20261124-late-2026-mmap_prepare-v2-12-0b0d99d655f9@kernel.org>
-Subject: + ptp-vmclock-convert-mmap-hook-to-mmap_prepare.patch added to mm-new branch
-Message-Id: <20261124190918.F12531F000C6@smtp.kernel.org>
+In-Reply-To: <20261124-late-2026-mmap_prepare-v2-13-0b0d99d655f9@kernel.org>
+References: <20261124-late-2026-mmap_prepare-v2-13-0b0d99d655f9@kernel.org>
+Subject: + vhost-vdpa-convert-mmap-hook-to-mmap_prepare.patch added to mm-new branch
+Message-Id: <20261124190921.B140B1F000C0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -70,12 +69,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: ptp: vmclock: convert mmap hook to mmap_prepare
+     Subject: vhost-vdpa: convert mmap hook to mmap_prepare
 has been added to the -mm mm-new branch.  Its filename is
-     ptp-vmclock-convert-mmap-hook-to-mmap_prepare.patch
+     vhost-vdpa-convert-mmap-hook-to-mmap_prepare.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ptp-vmclock-convert-mmap-hook-to-mmap_prepare.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vhost-vdpa-convert-mmap-hook-to-mmap_prepare.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -105,17 +104,17 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: ptp: vmclock: convert mmap hook to mmap_prepare
-Date: Tue, 24 Nov 2026 14:02:55 +0000
+Subject: vhost-vdpa: convert mmap hook to mmap_prepare
+Date: Tue, 24 Nov 2026 14:02:56 +0000
 
-Move from the deprecated mmap hook to the new mmap_prepare hook, using the
-I/O PFN remap mmap action to map the clock page and retaining the -EAGAIN
-error on failure via the action error override.
+Move from the deprecated mmap hook to the new mmap_prepare hook. The hook
+only validates the request and sets the VMA flags, operations and page
+protection.
 
-Link: https://patch.msgid.link/20261124-late-2026-mmap_prepare-v2-12-0b0d99d655f9@kernel.org
+Link: https://patch.msgid.link/20261124-late-2026-mmap_prepare-v2-13-0b0d99d655f9@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: David Woodhouse <dwmw@amazon.co.uk>
+Acked-by: Michael S. Tsirkin <mst@redhat.com>
 Cc: Juergen Gross <jgross@suse.com>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
@@ -128,7 +127,6 @@ Cc: Shrikanth Hegde <sshegde@linux.ibm.com>
 Cc: Haiyang Zhang <haiyangz@microsoft.com>
 Cc: Wei Liu <wei.liu@kernel.org>
 Cc: Dexuan Cui <decui@microsoft.com>
-Cc: Michael S. Tsirkin <mst@redhat.com>
 Cc: Jason Wang <jasowangio@gmail.com>
 Cc: Eugenio Pérez <eperezma@redhat.com>
 Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
@@ -153,7 +151,6 @@ Cc: Scott Branden <scott.branden@broadcom.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Richard Cochran <richardcochran@gmail.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
 Cc: Andrew Lunn <andrew+netdev@lunn.ch>
 Cc: David S. Miller <davem@davemloft.net>
 Cc: Eric Dumazet <edumazet@kernel.org>
@@ -164,56 +161,65 @@ Cc: Jan Kara <jack@suse.cz>
 Cc: Abel Vesa <abel.vesa@oss.qualcomm.com>
 Cc: Kameron Carr <kameroncarr@linux.microsoft.com>
 Cc: Michael Kelley <mhklinux@outlook.com>
+Cc: David Woodhouse <dwmw@amazon.co.uk>
 
- drivers/ptp/ptp_vmclock.c |   19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ drivers/vhost/vdpa.c |   23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
 
---- a/drivers/ptp/ptp_vmclock.c~ptp-vmclock-convert-mmap-hook-to-mmap_prepare
-+++ a/drivers/ptp/ptp_vmclock.c
-@@ -364,27 +364,26 @@ struct vmclock_file_state {
- 	atomic_t seq;
+--- a/drivers/vhost/vdpa.c~vhost-vdpa-convert-mmap-hook-to-mmap_prepare
++++ a/drivers/vhost/vdpa.c
+@@ -1617,19 +1617,19 @@ static const struct vm_operations_struct
+ 	.fault = vhost_vdpa_fault,
  };
  
--static int vmclock_miscdev_mmap(struct file *fp, struct vm_area_struct *vma)
-+static int vmclock_miscdev_mmap_prepare(struct vm_area_desc *desc)
+-static int vhost_vdpa_mmap(struct file *file, struct vm_area_struct *vma)
++static int vhost_vdpa_mmap_prepare(struct vm_area_desc *desc)
  {
--	struct vmclock_file_state *fst = fp->private_data;
-+	struct vmclock_file_state *fst = desc->file->private_data;
- 	struct vmclock_state *st = fst->st;
+-	struct vhost_vdpa *v = vma->vm_file->private_data;
++	struct vhost_vdpa *v = desc->file->private_data;
+ 	struct vdpa_device *vdpa = v->vdpa;
+ 	const struct vdpa_config_ops *ops = vdpa->config;
+ 	struct vdpa_notification_area notify;
+-	unsigned long index = vma->vm_pgoff;
++	unsigned long index = desc->pgoff;
  
--	if ((vma->vm_flags & (VM_READ|VM_WRITE)) != VM_READ)
-+	if (!vma_desc_test(desc, VMA_READ_BIT) ||
-+	    vma_desc_test(desc, VMA_WRITE_BIT))
- 		return -EROFS;
- 
- 	/*
- 	 * Restrict the read-only mapping so it cannot be upgraded to
- 	 * writable later with mprotect().
- 	 */
--	vm_flags_clear(vma, VM_MAYWRITE);
-+	vma_desc_clear_flags(desc, VMA_MAYWRITE_BIT);
- 
--	if (vma->vm_end - vma->vm_start != PAGE_SIZE || vma->vm_pgoff)
-+	if (vma_desc_size(desc) != PAGE_SIZE || desc->pgoff)
+-	if (vma->vm_end - vma->vm_start != PAGE_SIZE)
++	if (vma_desc_size(desc) != PAGE_SIZE)
  		return -EINVAL;
+-	if ((vma->vm_flags & VM_SHARED) == 0)
++	if (!vma_desc_test(desc, VMA_SHARED_BIT))
+ 		return -EINVAL;
+-	if (vma->vm_flags & VM_READ)
++	if (vma_desc_test(desc, VMA_READ_BIT))
+ 		return -EINVAL;
+ 	if (!ops->get_vq_notification)
+ 		return -ENOTSUPP;
+@@ -1642,12 +1642,13 @@ static int vhost_vdpa_mmap(struct file *
+ 		return -EINVAL;
+ 	if (notify.addr & (PAGE_SIZE - 1))
+ 		return -EINVAL;
+-	if (vma->vm_end - vma->vm_start != notify.size)
++	if (vma_desc_size(desc) != notify.size)
+ 		return -ENOTSUPP;
  
--	if (io_remap_pfn_range(vma, vma->vm_start,
--			       st->res.start >> PAGE_SHIFT, PAGE_SIZE,
--			       vma->vm_page_prot))
--		return -EAGAIN;
-+	mmap_action_ioremap_full(desc, st->res.start >> PAGE_SHIFT);
-+	desc->action.error_override = -EAGAIN;
- 
+-	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+-	vm_flags_set(vma, VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP);
+-	vma->vm_ops = &vhost_vdpa_vm_ops;
++	desc->page_prot = pgprot_noncached(desc->page_prot);
++	vma_desc_set_flags(desc, VMA_IO_BIT, VMA_PFNMAP_BIT, VMA_DONTEXPAND_BIT,
++			   VMA_DONTDUMP_BIT);
++	desc->vm_ops = &vhost_vdpa_vm_ops;
  	return 0;
  }
-@@ -484,7 +483,7 @@ static const struct file_operations vmcl
- 	.owner = THIS_MODULE,
- 	.open = vmclock_miscdev_open,
- 	.release = vmclock_miscdev_release,
--	.mmap = vmclock_miscdev_mmap,
-+	.mmap_prepare = vmclock_miscdev_mmap_prepare,
- 	.read = vmclock_miscdev_read,
- 	.poll = vmclock_miscdev_poll,
+ #endif /* CONFIG_MMU */
+@@ -1659,7 +1660,7 @@ static const struct file_operations vhos
+ 	.write_iter	= vhost_vdpa_chr_write_iter,
+ 	.unlocked_ioctl	= vhost_vdpa_unlocked_ioctl,
+ #ifdef CONFIG_MMU
+-	.mmap		= vhost_vdpa_mmap,
++	.mmap_prepare	= vhost_vdpa_mmap_prepare,
+ #endif /* CONFIG_MMU */
+ 	.compat_ioctl	= compat_ptr_ioctl,
  };
 _
 
