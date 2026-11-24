@@ -1,50 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795500200;
-	b=dHdgXaJ1WM5hjkLAV5KxS67/THj9BO4Za1P2u9g4VDloLq3sWl1Dr2BOPiwvwZI09FWv
-	 O/n2KW/jXjF7JvycVCfGTgNQiCW4b1iuOcW5yMlecLmD5pRFpydn2QEpojvZvujE1qg03
-	 Exs1JiFCak7kTpfLS2KCQJPq7BzvzvLZ4U+kxun4zMlglfHflrlq9VKw8daV1aEZUe4Ni
-	 OuhMInbJnyluZh7dGg0sOl1E0tu0swr+FHpTWbjWQoEqkg6Qwymr6+LTbDWJbhJGNxMxc
-	 QvGvI1oFLJp8JDCDckd2d/RT4WuTa5OcZKCkiINx9xiOWTPG5m2FYu7sj69t7+a9mLw==
+	t=1795500669;
+	b=jtMCs9QMhsIc+8JssqnETUREyRzg9ElSEByPXadeGRNpWUDqH9yD8oUYlOzp/DAFLNFm
+	 2X2Rvd3Rr8YVQoEdElAOJVphvHDvynI78rxEx/j5XulI6rhO2A8G+diqXBCob3xMP9CD5
+	 TV6KN8bvbKd5pAnQK4weH+EJjpGUJkHztFjyOVSHojrRsokXBqLgq05MXxzIzhSQm3avQ
+	 SJ2GdIH4AiMQegQ7d7nTjujtiToYlWt7BnT750Ss8EZvCt2kEnXs0Yx3jzCk0MtCmj/DO
+	 HxwRf07/0Z78w0QKOvUBo2/f672m3PvKvoXCQvwQKwyIB522S5QjCaAqNXqsBpgyVmA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795500200;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795500669;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=M9jL5IiALvmK/ea8xnsBuKnxJ95RqHSo/nmekJvDzoA=;
-	b=jTTffIWFRLL4DwfTLks5Xw47l05LQYTO/uhLfrXySGL/ajIANlQFMy+wgamJAfwOjsU/
-	 7AcNyFSSXYTivgfhEC6jVl3aBi2HoGke6Uzf2rE2Lgnnhjj9Y1lpXvBzfnbBXw8GtHQEQ
-	 oCMHglE41mqbQuhLWTbF+ffQhaFQNLzyDC+Efm5FoTdyfGaG62A/sVwWiX98k6mCZWgSP
-	 D9Cm2hxU1jWlYuutzYESWjhqNSHCCbKJqhCj6jzP+BVsjlvzXAPkv1k8XisZ2JxQByHJw
-	 r/TjUFoAlhIYCT0NnehokOJEHUItt8wNmsZOVF5o6YEw/OAPMeMhjEfpu3f+Zv7d3uA==
+	bh=e9SobyGlrR+cESi5q4h8gNJYYO+xrXR1UXlRrRrvWfQ=;
+	b=IImdajPlKvzm2eOueo+GUKbflwRsGozQLPPxzgO/0YED8YJwLpvp2RaAr/No/7sJQxW9
+	 7EYF452+elEWIrt0oQWAB4gdotAAADbcoLfzTYPUcXTo2tzfg2EKXnLnoQedrv5BUypxt
+	 icXn+mVOGGs4JqjDCROV1dt4ClqIbutHYJDHACuTFcesalqDJiAC0/9SFVGOFZmRYTROZ
+	 jbjggvh1/ci31doMSV6MP0YU/VNAoPxpuuN2FEHXGqsoKnVXLNThaWTlTI1eEG06bMb5K
+	 ymY/6QQmkDeaIlUzf8Mppj61dmrHVLTLeeFIO+yoW3bDUHNjrFXumldaslR+dQsjfTA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=lhjG5B+m;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=rYiwFhaS;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DE6D606A326
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 06:03:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE0E2606A31E
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 06:11:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=lhjG5B+m
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 791E51F000CA;
-	Tue, 24 Nov 2026 06:03:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=rYiwFhaS
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 246401F000D3;
+	Tue, 24 Nov 2026 06:11:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795500199;
-	bh=M9jL5IiALvmK/ea8xnsBuKnxJ95RqHSo/nmekJvDzoA=;
+	d=linux-foundation.org; s=korg; t=1795500669;
+	bh=e9SobyGlrR+cESi5q4h8gNJYYO+xrXR1UXlRrRrvWfQ=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=lhjG5B+mrecEgauDy64nQicoYl7xk9UJsVkar546NkAJ8k+NAOg6jjPwiA8WBwbiD
-	 siz75LFa888Gh1Afnc895Byhjk0xTuuN6WggpVfrWo1ZJHb8b3SHIkBR7kNhutaYxf
-	 mvxOuAOd7HGceGvH751dRxQGxBKb718Y53BA6Xs8=
-Date: Mon, 23 Nov 2026 22:03:18 -0800
-To: mm-commits@vger.kernel.org,jarkko@kernel.org,
-	james.bottomley@hansenpartnership.com,dhowells@redhat.com,abc0eichs@qq.com,
-	akpm@linux-foundation.org
+	b=rYiwFhaSRHqeRS4RsYrbicRbqo0y7C6iiiIQVqG3NBMl9O7IF462bz+6PGb9cMkLf
+	 yoZKlPpSgd2dqRwJ/ILSnTNoDhnN/TBKdZArhH+vgez8ZguO/ZP4KbPgViciswd+s9
+	 mi9EN1GyPaegAuiAoHqsqVeghxl58YYVRxCA0dqY=
+Date: Mon, 23 Nov 2026 22:11:08 -0800
+To: mm-commits@vger.kernel.org,hirofumi@mail.parknet.co.jp,
+	matheus.aalmeida@inf.ufrgs.br,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <tencent_AFE15D698FFD4F18E16A6EF7CDA002D69806@qq.com>
-References: <tencent_AFE15D698FFD4F18E16A6EF7CDA002D69806@qq.com>
-Subject: + lib-asn1_encoder-fix-encoding-of-zero-oid-components.patch added to mm-nonmm-unstable branch
-Message-Id: <20261124060319.791E51F000CA@smtp.kernel.org>
+In-Reply-To: <20261026163941.495833-2-matheus.aalmeida@inf.ufrgs.br>
+References: <20261026163941.495833-2-matheus.aalmeida@inf.ufrgs.br>
+Subject: [merged] fat-batch-synchronous-mirror-writes.patch removed from -mm tree
+Message-Id: <20261124061109.246401F000D3@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,103 +54,193 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
-     Subject: lib/asn1_encoder: fix encoding of zero OID components
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-asn1_encoder-fix-encoding-of-zero-oid-components.patch
+The quilt patch titled
+     Subject: fat: batch synchronous mirror writes
+has been removed from the -mm tree.  Its filename was
+     fat-batch-synchronous-mirror-writes.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-asn1_encoder-fix-encoding-of-zero-oid-components.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib/asn1_encoder: fix encoding of zero OID components
-Date: Fri, 20 Nov 2026 21:00:55 +0800
+From: Matheus Alves de Almeida <matheus.aalmeida@inf.ufrgs.br>
+Subject: fat: batch synchronous mirror writes
+Date: Mon, 26 Oct 2026 13:39:40 -0300
 
-asn1_encode_oid_digit() encodes a zero component as 0x80, which says
-another octet belongs to the same subidentifier.  If zero is the last
-component, the encoding ends with an unterminated subidentifier.  If
-another component follows, a decoder may consume its octets as part of the
-zero component instead.  For example, 1.2.0.1 becomes 06 03 2a 80 01: DER
-rejects it, while a permissive decoder may read it as 1.2.1.
+Patch series "fat: improve synchronous mount performance", v2.
 
-Encode zero as 0x00, the complete one-octet representation of a zero
-subidentifier.
+This series improves performance on synchronous mounts by batching FAT
+mirror writes and improving fat_sync_bhs() submission.
 
-Link: https://patch.msgid.link/tencent_AFE15D698FFD4F18E16A6EF7CDA002D69806@qq.com
-Fixes: b07067627cd5 ("lib: Add ASN.1 encoder")
+The benchmarks were run on top of my other FAT allocation batching changes
+currently in linux-next.
+
+
+This patch (of 2):
+
+fat_mirror_bhs() currently synchronizes buffer-by-buffer on synchronous
+mounts, serializing I/O and degrading performance.
+
+Make fat_mirror_bhs() batch dirty buffer heads and use fat_sync_bhs() to
+sync several at once.  Add a fat_brelse_array() helper that releases
+buffer heads in an array.
+
+Benchmarking was done under QEMU/KVM with a virtio-blk device using
+cache=directsync.  Each result is the arithmetic mean of 10 samples.
+
+start = now_ns();
+for (unsigned i = 0; i < count; i++) {
+	fallocate(fds[i], FALLOC_FL_KEEP_SIZE, 0, bytes);
+}
+elapsed = now_ns() - start;
+
+Sync-mounted FAT32 using count=16 files:
+File size    Cluster size    Before    After    Improvement
+256MiB       512B            49.81s    12.26s   4.06x
+1MiB         512B            0.198s    0.057s   3.50x
+256MiB       4096B           7.060s    1.640s   4.31x
+1MiB         4096B           0.073s    0.028s   2.60x
+
+Asynchronous mounts were also benchmarked with no noticeable performance
+change.
+
+Link: https://lore.kernel.org/20261026163941.495833-1-matheus.aalmeida@inf.ufrgs.br
+Link: https://patch.msgid.link/20261026163941.495833-2-matheus.aalmeida@inf.ufrgs.br
+Signed-off-by: Matheus Alves de Almeida <matheus.aalmeida@inf.ufrgs.br>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: zzz <abc0eichs@qq.com>
-Cc: James Bottomley <james.bottomley@hansenpartnership.com>
-Cc: Jarkko Sakkinen <jarkko@kernel.org>
-Cc: David Howells <dhowells@redhat.com>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
- lib/asn1_encoder.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/fat/fat.h    |    1 
+ fs/fat/fatent.c |   80 ++++++++++++++++++++++++++++++++--------------
+ fs/fat/misc.c   |    6 +++
+ 3 files changed, 64 insertions(+), 23 deletions(-)
 
---- a/lib/asn1_encoder.c~lib-asn1_encoder-fix-encoding-of-zero-oid-components
-+++ a/lib/asn1_encoder.c
-@@ -97,7 +97,7 @@ static int asn1_encode_oid_digit(unsigne
+--- a/fs/fat/fatent.c~fat-batch-synchronous-mirror-writes
++++ a/fs/fat/fatent.c
+@@ -376,42 +376,76 @@ int fat_ent_read(struct inode *inode, st
+ 	return ops->ent_get(fatent);
+ }
  
- 	/* quick case */
- 	if (oid == 0) {
--		*data++ = 0x80;
-+		*data++ = 0;
- 		(*data_len)--;
- 		goto out;
+-/* FIXME: We can write the blocks as more big chunk. */
+-static int fat_mirror_bhs(struct super_block *sb, struct buffer_head **bhs,
+-			  int nr_bhs)
++static int fat_mirror_one(struct super_block *sb, struct buffer_head **bhs,
++			  int nr_bhs, int target)
+ {
+ 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
++	sector_t backup_fat = sbi->fat_length * target;
++	/*
++	 * Use the value of MAX_BUF_PER_PAGE for 4K pages. This reduces stack
++	 * usage on large-page architectures as callers may already have a
++	 * MAX_BUF_PER_PAGE-sized array in their stack.
++	 */
++	struct buffer_head *dirty[8];
+ 	struct buffer_head *c_bh;
+-	int err, n, copy;
++	int err, n, nr_dirty;
+ 
++	nr_dirty = 0;
+ 	err = 0;
+-	for (copy = 1; copy < sbi->fats; copy++) {
+-		sector_t backup_fat = sbi->fat_length * copy;
+-
+-		for (n = 0; n < nr_bhs; n++) {
+-			c_bh = sb_getblk(sb, backup_fat + bhs[n]->b_blocknr);
+-			if (!c_bh) {
+-				err = -ENOMEM;
+-				goto error;
++	for (n = 0; n < nr_bhs; n++) {
++		c_bh = sb_getblk(sb, backup_fat + bhs[n]->b_blocknr);
++		if (!c_bh) {
++			err = -ENOMEM;
++			goto error;
++		}
++		/* Avoid race with userspace read via bdev */
++		lock_buffer(c_bh);
++		memcpy(c_bh->b_data, bhs[n]->b_data, sb->s_blocksize);
++		set_buffer_uptodate(c_bh);
++		unlock_buffer(c_bh);
++		mmb_mark_buffer_dirty(c_bh,
++			&MSDOS_I(sbi->fat_inode)->i_metadata_bhs);
++		if (sb->s_flags & SB_SYNCHRONOUS) {
++			dirty[nr_dirty] = c_bh;
++			++nr_dirty;
++			if (nr_dirty == ARRAY_SIZE(dirty)) {
++				err = fat_sync_bhs(dirty, nr_dirty);
++				fat_brelse_array(dirty, nr_dirty);
++				nr_dirty = 0;
++				if (err)
++					goto error;
+ 			}
+-			/* Avoid race with userspace read via bdev */
+-			lock_buffer(c_bh);
+-			memcpy(c_bh->b_data, bhs[n]->b_data, sb->s_blocksize);
+-			set_buffer_uptodate(c_bh);
+-			unlock_buffer(c_bh);
+-			mmb_mark_buffer_dirty(c_bh,
+-				&MSDOS_I(sbi->fat_inode)->i_metadata_bhs);
+-			if (sb->s_flags & SB_SYNCHRONOUS)
+-				err = sync_dirty_buffer(c_bh);
++		} else {
+ 			brelse(c_bh);
+-			if (err)
+-				goto error;
+ 		}
  	}
++
+ error:
++	if (nr_dirty) {
++		int err2 = fat_sync_bhs(dirty, nr_dirty);
++		if (!err)
++			err = err2;
++		fat_brelse_array(dirty, nr_dirty);
++	}
++
+ 	return err;
+ }
+ 
++static int fat_mirror_bhs(struct super_block *sb, struct buffer_head **bhs,
++			  int nr_bhs)
++{
++	struct msdos_sb_info *sbi = MSDOS_SB(sb);
++	int copy;
++
++	for (copy = 1; copy < sbi->fats; copy++) {
++		int err = fat_mirror_one(sb, bhs, nr_bhs, copy);
++		if (err)
++			return err;
++	}
++
++	return 0;
++}
++
+ int fat_ent_write(struct inode *inode, struct fat_entry *fatent,
+ 		  int new, int old, int wait)
+ {
+--- a/fs/fat/fat.h~fat-batch-synchronous-mirror-writes
++++ a/fs/fat/fat.h
+@@ -480,6 +480,7 @@ void fat_truncate_time(struct inode *ino
+ int fat_update_time(struct inode *inode, enum fs_update_time type,
+ 		unsigned int flags);
+ extern int fat_sync_bhs(struct buffer_head **bhs, int nr_bhs);
++void fat_brelse_array(struct buffer_head *bhs[], int n);
+ 
+ int fat_cache_init(void);
+ void fat_cache_destroy(void);
+--- a/fs/fat/misc.c~fat-batch-synchronous-mirror-writes
++++ a/fs/fat/misc.c
+@@ -364,3 +364,9 @@ int fat_sync_bhs(struct buffer_head **bh
+ 	}
+ 	return err;
+ }
++
++void fat_brelse_array(struct buffer_head *bhs[], int n)
++{
++	while (--n >= 0)
++		brelse(bhs[n]);
++}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from matheus.aalmeida@inf.ufrgs.br are
 
-kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize-fix.patch
-selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
-selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
-selftests-mm-allocate-nr_pages-based-on-pmd-size-for-uffd-pmd_move-tests-fix.patch
-selftests-mm-retain-move-pmd-coverage-and-verify-huge-pmds.patch
-lib-test_xarray-check-unused-spare-node-after-range-creation.patch
-mm-memory-failure-dont-unpoison-a-leaked-raw_hwp_unreliable-folio-fix.patch
-mm-vmstat_kunit-add-synthetic-benchmark-for-mm-stats-fix.patch
-lib-test_hmm-invalidate-all-mirrors-on-device-private-migration.patch
-lib-test_hmm-invalidate-all-mirrors-on-device-private-migration-fix.patch
-mm-prevent-pre-content-bypass-through-mremap-and-remap_file_pages.patch
-mm-madvise-notify-userfaultfd-when-installing-guard-regions.patch
-afs-do-not-put-error-pointer-after-address-lookup-failure.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-2.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-3.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-4.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-5.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-6.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-7.patch
-fuse-let-memory-failure-remove-poisoned-page-cache-folios.patch
-nilfs2-report-mapping-errors-from-fsync.patch
-ceph-preserve-data-writeback-errors-in-fsync.patch
-ocfs2-unregister-the-jbd2-shrinker-before-journal-shutdown.patch
-ipc-msg-clamp-negative-msg_info-usage-counts.patch
-squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix.patch
-squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index-fix.patch
-ocfs2-skip-network-flush-when-no-domain-handlers-are-registered.patch
-selftests-ptrace-check-that-ptrace_set_syscall_info-rejects-invalid-error-values-fix.patch
-jfs-validate-xattr-entry-bounds-before-replacing-an-attribute.patch
-proc-serialize-task-owner-updates.patch
-lib-asn1_encoder-fix-encoding-of-zero-oid-components.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+fat-improve-fat_sync_bhs-write-submission.patch
 
