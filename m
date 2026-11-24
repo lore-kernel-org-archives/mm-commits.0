@@ -1,49 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795540987;
-	b=IkmSoyZNRYfRdcfRsaCTK4bv99DolJMN17zCzIlt2JvuA5gqyxHgj26kGzwQH+UPgJdQ
-	 P3fpUDMoBGzpbcs+zi1mVMVqK3j0qqaIyvLq5ww9jpzm2Xxq279aPEo13bDjERGlY4YVK
-	 KCdU7rss3XMo+Tc+IGf7WsmT0ZccO6wTfKhKiCSihbw7TRbmrC7N8PEcr5nVK6QCVWPqf
-	 4ksoaijLTa6/0gEpaX5qn4hse9z7xhLQd2qLf4rUHUn4HTDfrYJPP4RlGijQemGHi6r8Q
-	 tnjvWnD6hvPNzKObCWufxzMnOJzQNjIVjhdfg7eaNuwQ+yDiNSWlJsSnnOGXGvO577A==
+	t=1795540990;
+	b=gZSWyivZoQGdm1MAk+loa5B0yAac+NgPTgbKnhrmddrIsa84Me+RT43WJgDGr1RGn6xe
+	 py1XNyf5LCuDYBDTmbJ7vdqWz1fhrHPMNBaymO9uQFVhQZVhO4x3S3Y8dkRh3x2ImzMKK
+	 1EkpCVf4pNdOwmN4jpTR3kKlQ+q2jK0ybLhNg+BB5CdhYuM+yzaOCpaz9A9iDBHpnoddJ
+	 fZ6Iq7LuKuP1NSGlEi84BABwovB4PsqdIBXO4EoOzmbFZe63ykiDlpVCn+vtae05lFORR
+	 Cj/lQ3UH/JXIdERwm4mGkKTvobtyRJ3xN06vA2LQsl93tu/Y4YwcufD+B0uW7n2JJLg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795540987;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795540990;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=BpEx9uJW7GOSucufUQKxIdkZcBWqfv5wUfIIMQXdTMo=;
-	b=XUx0AmZJYcRagq1s5RYwD0kMs29JUxsxWG/ZQDZSJG1cnB6n+yMNgmQ6vNtZ8MUetNqI
-	 aXsVsO6xdzRBKlBhgb3r37grqKbCXVmK8cYxGQZ82Gkj3VoCH4dreIkrUvjutF0gp3nQG
-	 gpFLWIdnY25cKomz0/X/wlQEOVkr9kEjQ7pYA5Y8cgXAw7rVT0tkSwHMqkQ6PTMKqnaVZ
-	 xLI/aM8Q+bDuLdU/2dHpaWKdKw6II9qLf3fordoNOMjnSeqe6gB/+Ec5cdhFJk+oE02ju
-	 UosdBeCETXDF06IcgAfOvvvBehNsZEJkA0wMVgHLlbHUBi+LDDjuoIZNdvSlheeKQFA==
+	bh=SJlndbJB7zF12PrMFWd6krfDp85Ee4NkgecdED+YuTQ=;
+	b=qe+GTF2JmORM/W2Wvw/H2S0PYL0wQ+G0HdO4eF0AdVj6RFt3wVEmxCDrhPUsim6F4og1
+	 Xq86IkKiZpNjfHDJ+76pKvXG5lTVIFhX9jLowd+qjXGNGUIbLel9aIrbdYW1XuxEmH82X
+	 Iir9vG7pC4OBa6oF+tkUOU/dN93UX9kCar4BVp143C3ru5fl46UATib0s8TUKUrvJaeVG
+	 blvIx19AF/vlP0vssnVN3V4I5mXtfGia6svJFb3Jya942TxWkqa3XS/hDRAd1voiCdp54
+	 8/hBJQmSzZ9TrY2z4nD2lgfY8YQH65JV1/RY+4Xk/Wjun15NVEH2BWN5KkRy8f37pEg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=nt68tuI9;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=z6w3OiMD;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CEF6606A31E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:23:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 442E3606A31E
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:23:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=nt68tuI9
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C5621F000ED;
-	Tue, 24 Nov 2026 17:23:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=z6w3OiMD
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89B811F000C4;
+	Tue, 24 Nov 2026 17:23:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795540987;
-	bh=BpEx9uJW7GOSucufUQKxIdkZcBWqfv5wUfIIMQXdTMo=;
+	d=linux-foundation.org; s=korg; t=1795540989;
+	bh=SJlndbJB7zF12PrMFWd6krfDp85Ee4NkgecdED+YuTQ=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=nt68tuI90hO6pOFZEOxGSxc0YTGYWSoK/CHmxIWO4lHJgOzZR6l1/494Q+f0wWZLq
-	 FRyZGa6jenwsQHAc++d/w48YRYTbd4AseU4t5ciB/I2nXh1pXgeEltb1XNcSgvk0QM
-	 L8eLokD5IHnAp/UxTEOcPcii2ei5OoRMV8cydJh8=
-Date: Tue, 24 Nov 2026 09:23:06 -0800
+	b=z6w3OiMDf9xNPOduXo23Cb+b6fEmYlKz0QaOcjJDyoD1bpR5zcpAFPPsBabEu+yGP
+	 Q5fYHP18HT7wBqenYLxUJrvadEpjsPuVzF/eT7GPXHDNK14Rq9FtwdANAlHIwTtB6L
+	 UGEix/eL2DQSZOJFX9fAM5vNGFw/8A7BIhlWESEM=
+Date: Tue, 24 Nov 2026 09:23:09 -0800
 To: mm-commits@vger.kernel.org,lianux.mm@gmail.com,jm5905938@gmail.com,
 	sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124153636.91854-6-sj@kernel.org>
-References: <20261124153636.91854-6-sj@kernel.org>
-Subject: + mm-damon-sysfs-add-reports-producers-directory.patch added to mm-new branch
-Message-Id: <20261124172307.1C5621F000ED@smtp.kernel.org>
+In-Reply-To: <20261124153636.91854-7-sj@kernel.org>
+References: <20261124153636.91854-7-sj@kernel.org>
+Subject: + mm-damon-sysfs-add-producers-nr_producers-file.patch added to mm-new branch
+Message-Id: <20261124172309.89B811F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/damon/sysfs: add reports/producers/ directory
+     Subject: mm/damon/sysfs: add producers/nr_producers file
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-add-reports-producers-directory.patch
+     mm-damon-sysfs-add-producers-nr_producers-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-add-reports-producers-directory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-add-producers-nr_producers-file.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -90,90 +90,95 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs: add reports/producers/ directory
-Date: Tue, 24 Nov 2026 07:36:11 -0800
+Subject: mm/damon/sysfs: add producers/nr_producers file
+Date: Tue, 24 Nov 2026 07:36:12 -0800
 
-Add a new sysfs directory, producers/, under reports/ directory.  It is
-a placeholder for files that will be used for controlling DAMON report
-producers.
+Implement a new sysfs file, nr_producers, under the producers/
+directory.  The file will be used for generating directories for each
+report producer, in a manner that is similar to the nr_kdamonds file.
 
-Link: https://patch.msgid.link/20261124153636.91854-6-sj@kernel.org
+Link: https://patch.msgid.link/20261124153636.91854-7-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Aveline Noir <jm5905938@gmail.com>
 Reviewed-by: Lian Wang <lianux.mm@gmail.com>
 
- mm/damon/sysfs.c |   48 ++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 47 insertions(+), 1 deletion(-)
+ mm/damon/sysfs.c |   51 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 51 insertions(+)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-add-reports-producers-directory
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-add-producers-nr_producers-file
 +++ a/mm/damon/sysfs.c
-@@ -2979,10 +2979,38 @@ static const struct kobj_type damon_sysf
- 	.default_groups = damon_sysfs_kdamonds_groups,
- };
+@@ -2983,6 +2983,7 @@ static const struct kobj_type damon_sysf
  
-+/* producers dir */
-+
-+struct damon_sysfs_producers {
-+	struct kobject kobj;
-+};
-+
-+static struct damon_sysfs_producers *damon_sysfs_producers_alloc(void)
-+{
-+	return kzalloc_obj(struct damon_sysfs_producers);
-+}
-+
-+static void damon_sysfs_producers_release(struct kobject *kobj)
-+{
-+	kfree(container_of(kobj, struct damon_sysfs_producers, kobj));
-+}
-+
-+static struct attribute *damon_sysfs_producers_attrs[] = {
-+	NULL,
-+};
-+ATTRIBUTE_GROUPS(damon_sysfs_producers);
-+
-+static const struct kobj_type damon_sysfs_producers_ktype = {
-+	.release = damon_sysfs_producers_release,
-+	.sysfs_ops = &kobj_sysfs_ops,
-+	.default_groups = damon_sysfs_producers_groups,
-+};
-+
- /* reports dir */
- 
- struct damon_sysfs_reports {
+ struct damon_sysfs_producers {
  	struct kobject kobj;
-+	struct damon_sysfs_producers *producers;
++	int nr;
  };
  
- static struct damon_sysfs_reports *damon_sysfs_reports_alloc(void)
-@@ -2992,7 +3020,25 @@ static struct damon_sysfs_reports *damon
- 
- static int damon_sysfs_reports_add_dirs(struct damon_sysfs_reports *reports)
- {
--	return 0;
-+	struct damon_sysfs_producers *producers;
-+	int err;
-+
-+	producers = damon_sysfs_producers_alloc();
-+	if (!producers)
-+		return -ENOMEM;
-+	reports->producers = producers;
-+
-+	err = kobject_init_and_add(&producers->kobj,
-+			&damon_sysfs_producers_ktype, &reports->kobj,
-+			"producers");
-+	if (err)
-+		goto put_producers_out;
-+	return err;
-+
-+put_producers_out:
-+	kobject_put(&producers->kobj);
-+	reports->producers = NULL;
-+	return err;
+ static struct damon_sysfs_producers *damon_sysfs_producers_alloc(void)
+@@ -2990,12 +2991,62 @@ static struct damon_sysfs_producers *dam
+ 	return kzalloc_obj(struct damon_sysfs_producers);
  }
  
- static void damon_sysfs_reports_release(struct kobject *kobj)
++static void damon_sysfs_producers_rm_dirs(
++		struct damon_sysfs_producers *producers)
++{
++	producers->nr = 0;
++}
++
++static int damon_sysfs_producers_add_dirs(
++		struct damon_sysfs_producers *producers, int nr_producers)
++{
++	damon_sysfs_producers_rm_dirs(producers);
++	producers->nr = nr_producers;
++	return 0;
++}
++
++static ssize_t nr_producers_show(struct kobject *kobj,
++		struct kobj_attribute *attr, char *buf)
++{
++	struct damon_sysfs_producers *producers = container_of(kobj,
++			struct damon_sysfs_producers, kobj);
++
++	return sysfs_emit(buf, "%d\n", producers->nr);
++}
++
++static ssize_t nr_producers_store(struct kobject *kobj,
++		struct kobj_attribute *attr, const char *buf, size_t count)
++{
++	struct damon_sysfs_producers *producers;
++	int nr, err = kstrtoint(buf, 0, &nr);
++
++	if (err)
++		return err;
++	if (nr < 0)
++		return -EINVAL;
++
++	producers = container_of(kobj, struct damon_sysfs_producers, kobj);
++
++	if (!mutex_trylock(&damon_sysfs_lock))
++		return -EBUSY;
++	err = damon_sysfs_producers_add_dirs(producers, nr);
++	mutex_unlock(&damon_sysfs_lock);
++	if (err)
++		return err;
++
++	return count;
++}
++
+ static void damon_sysfs_producers_release(struct kobject *kobj)
+ {
+ 	kfree(container_of(kobj, struct damon_sysfs_producers, kobj));
+ }
+ 
++static struct kobj_attribute damon_sysfs_producers_nr_attr =
++__ATTR_RW_MODE(nr_producers, 0600);
++
+ static struct attribute *damon_sysfs_producers_attrs[] = {
++	&damon_sysfs_producers_nr_attr.attr,
+ 	NULL,
+ };
+ ATTRIBUTE_GROUPS(damon_sysfs_producers);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
