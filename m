@@ -1,55 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795562972;
-	b=YGEDlBnf99Irv2wyIKtE1k7gxCW4Kn5gKqbLLnIYWPJjfxapkK8SgkgMArAkOIsY7cW7
-	 rACbElzOC+Cyzoxwbogy6y4AwOGG71ubcTyxC5kn6Yh8ztYew8xj/VwK8SuF03dTPLTai
-	 ruQ4DO1aIzidcIM6B5XZZz2iWz/jB+HYSSnODGUAmJmxLWBLziyk9EHF0xYgovzupFnRi
-	 E6nlhtdbD6tTX9it5eke6PPZ92g95AO0P+MM2/XU9/zCZM0FU3Dt+3xWsXdfOJNxUGXsJ
-	 SS3O5jkKfbOR2fdvZjNlm3iM/WZpb4p5CbhBoIjAvX8WWd1QueB+T4MRZHlNP4+ESeg==
+	t=1795562979;
+	b=42Z1kKyvdw0hVIEwvbpS85BUeiJQkCltDs8b3q3s5KnAzI/h7JilWIvh52S4cfY8939d
+	 S5oCxyhqygkBge+o0FmOPQ9euGv9N/4oQ0LpOCGCMqGx1BZjk8fQuh47hFx/JDCgLb54y
+	 ELKcwaujBAJiTFWuZnsGDBzmUIpHRQ5BO5jIIa1NUTcCZO1cxbYHdmmPsMFJHfbdciO4X
+	 syYgryx1v3ypaUgHSKt00L9EiJ4dHoG3Eo2JSKt/TKGBjUC1RTJD5R8oAZUNk9+bAcMKB
+	 km4Rpox7101okJoDFY44j9I+haIs2XX4svWAJArUzqP6ma7k3LAgRtQFj3xobIA3gNQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795562972;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795562979;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=Bf+XBPyChdHiXT7CR8kI8PmkqJa/ocekJYhEnaM1zK0=;
-	b=coAuTxOajAliHyCdCDI4jUU6X9pkJbSxZbRDPcO59lzRkmrxNnjMM7PhO8OXkaDFsMdy
-	 wORWXElmmeM5hLbVT6sAhpBgK+ID8Ewgo+wNc741zH5fSmk5RvuCeBNBc07LGtB7LEzPe
-	 evH7Wd4uN0gkEpZUoxDkvZJhG88TAYZHoM1Knl1bxefyBjksEjaqRdfhUWsiLaqb23QvU
-	 UBryTssCY7H2pvkXMPhmyxi9mfsu0faYwGxkukfX4dPcwWt2RsNxLvFSvuDDGa8qx17go
-	 flMRn4WLd4YtMOoyW8AE67ym9ELrWx7ljYyvPPbcLK4BI/3ml/8Ab96HS+YzKtoYrXA==
+	bh=O8n14Yk1Wil/YzutbjPw6McNfXfMAan683Ngb07TXiU=;
+	b=H0dMFEIqkI75TGOJAYLAb1E9oHhw3N2f5IamzGPu7ka4WKNemD8WRCcubwQkXIR9mDAQ
+	 HN+A1sDlE30H+u3+q0btytARwhJG2dQYKlDI9+4fheeFreQORNpD8UOdAMzY3gXoo7Q1k
+	 hwazrjfv8AlEhZbIseO3YA0tNZRB9W/m4mOlKmn3cZC0J3sdSv6SvMg8HV/O61zj7IAOq
+	 BmBSFDr+lTAyrQinHUuQs/5WsOMU0cUSiVADn89gJfiePfZnKKUj31cAimVk2YuzJrZLL
+	 +dmMzpaoFFonGZmh+ncL761faf+2TJFPw1xRm8lDbjIDQMLYMbD6fNe+nIqK+eqG5jg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mYlq0kUW;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=OjWwKPDZ;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E643606A321;
-	Tue, 24 Nov 2026 23:29:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA485606A323
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 23:29:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mYlq0kUW
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA9941F000D0;
-	Tue, 24 Nov 2026 23:29:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=OjWwKPDZ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD7E01F000D0;
+	Tue, 24 Nov 2026 23:29:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795562972;
-	bh=Bf+XBPyChdHiXT7CR8kI8PmkqJa/ocekJYhEnaM1zK0=;
+	d=linux-foundation.org; s=korg; t=1795562978;
+	bh=O8n14Yk1Wil/YzutbjPw6McNfXfMAan683Ngb07TXiU=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=mYlq0kUW2IRakdostg7qCwA2d6dNIH6zs6v5Ej1s3zTVRkpw8rOdzZFhar4+W75Gx
-	 FYjx23UTd6ktLaQqmEKRhYXFvOGrqNdM/UEbfaPm3uYwRb43rLfee+W4TXidXuFTX4
-	 +71scsIZ4YIJur9mwNZj7zOtuB/QTQYoOm8wCkhQ=
-Date: Tue, 24 Nov 2026 15:29:31 -0800
+	b=OjWwKPDZ6IqEEyey1E9dP5wLk/lsrzaY3M5BGOeLGa7gXL/O2+7A6rkuND1nO5qIC
+	 sk77f/mrhpL29huR65raNN1HfQ7VLvtavEdhIzsO9Econ0CEvIwVJpFg6Zy7Pbe8EQ
+	 98d3caQ72ksOg5UYO6jSQDwHOnVS/kkeEAmvo4AM=
+Date: Tue, 24 Nov 2026 15:29:38 -0800
 To: mm-commits@vger.kernel.org,xu.xin@linux.dev,willy@infradead.org,
-	vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,
-	shakeel.butt@linux.dev,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,
-	ljs@kernel.org,liam@infradead.org,kees@kernel.org,josef@toxicpanda.com,
-	joey.gouly@arm.com,jannh@google.com,hughd@google.com,gourry@gourry.net,
-	david@kernel.org,chengming.zhou@linux.dev,catalin.marinas@arm.com,
-	bunk@stusta.de,azpijr@gmail.com,a.p.zijlstra@chello.nl,aaw@google.com,
-	mason@kernel.org,akpm@linux-foundation.org
+	vbabka@kernel.org,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,
+	pfalcato@suse.de,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,
+	kees@kernel.org,josef@toxicpanda.com,joey.gouly@arm.com,jannh@google.com,
+	hughd@google.com,gourry@gourry.net,david@kernel.org,chengming.zhou@linux.dev,
+	catalin.marinas@arm.com,bunk@stusta.de,azpijr@gmail.com,
+	a.p.zijlstra@chello.nl,aaw@google.com,mason@kernel.org,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261121-some-more-ai-fixes-v1-4-236e925d9b64@kernel.org>
-References: <20261121-some-more-ai-fixes-v1-4-236e925d9b64@kernel.org>
-Subject: + mm-vma-fix-uncharge-after-failed-stack-relocation.patch added to mm-new branch
-Message-Id: <20261124232931.EA9941F000D0@smtp.kernel.org>
+In-Reply-To: <20261121-some-more-ai-fixes-v1-6-236e925d9b64@kernel.org>
+References: <20261121-some-more-ai-fixes-v1-6-236e925d9b64@kernel.org>
+Subject: + mm-mremap-respect-guard-gaps-on-in-place-expansion.patch added to mm-new branch
+Message-Id: <20261124232938.CD7E01F000D0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -61,12 +61,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/vma: fix uncharge after failed stack relocation
+     Subject: mm/mremap: respect guard gaps on in-place expansion
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vma-fix-uncharge-after-failed-stack-relocation.patch
+     mm-mremap-respect-guard-gaps-on-in-place-expansion.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-fix-uncharge-after-failed-stack-relocation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-respect-guard-gaps-on-in-place-expansion.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -96,48 +96,34 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Chris Mason <mason@kernel.org>
-Subject: mm/vma: fix uncharge after failed stack relocation
-Date: Sat, 21 Nov 2026 16:02:30 +0000
+Subject: mm/mremap: respect guard gaps on in-place expansion
+Date: Sat, 21 Nov 2026 16:02:32 +0000
 
-An execve() that fails to relocate its stack can underflow
-vm_committed_as, and the commit limit of vm.overcommit_memory=2 then no
-longer holds.
+Growing a mapping in place can let it use up the guard gap below a
+stack, so that the stack can't grow any further, or overflows into the
+mapping instead of faulting.
 
-exit_mmap() uncharges vma_pages() of each VMA with VMA_ACCOUNT_BIT, so
-the charge has to match the size of the VMA. relocate_vma_down() expands
-the stack VMA by the relocation distance without a charge, and relies on
-its vma_shrink() to make the two match again. But it returns with the
-VMA still expanded if move_page_tables() can't allocate a page table,
-for example at the memory cgroup limit, or if vma_shrink() fails:
+A mapping has to stay out of the gap of the next VMA unless the caller
+fixed its address. But vma_expandable() only checks that the new range
+doesn't intersect the next VMA, and it passes MAP_FIXED to
+get_unmapped_area(), which skips the gap check there.
 
-    relocate_vma_down()             charged    vma_pages()
-    ===================             =======    ===========
-                                    L          L
-    vma_expand()                    L          L + shift
-    move_page_tables() fails
-      return -ENOMEM
+Fix the issue by stopping in-place growth at the start of the gap.
 
-    exit_mmap()
-      tear_down_vmas()
-      vm_unacct_memory(L + shift)   -shift
+Growing a mapping into or within the gap of a stack or shadow stack now
+fails with ENOMEM without MREMAP_MAYMOVE, or if the mapping can't be
+moved.
 
-On x86-64 with 4-level page tables, the distance is up to 16 GiB for a
-64-bit program, and about 128 TiB for a 32-bit one.
-
-Fix the issue by giving back the charge of the stack VMA where its
-relocation fails, and excluding the VMA from what exit_mmap() uncharges.
-The argument pages of the dying task are then outside the commit charge
-until exit_mmap() frees them.
-
-Link: https://patch.msgid.link/20261121-some-more-ai-fixes-v1-4-236e925d9b64@kernel.org
-Fixes: b6a2fea39318 ("mm: variable length argument support")
+Link: https://patch.msgid.link/20261121-some-more-ai-fixes-v1-6-236e925d9b64@kernel.org
+Fixes: 1be7107fbe18 ("mm: larger stack guard gap, between vmas")
 Signed-off-by: Chris Mason <mason@kernel.org>
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Tested-by: Gregory Price (Meta) <gourry@gourry.net>
-  Link: https://lore.kernel.org/179536262938.412063.9413830491196612418.b4-reply@b4
+  Link: https://lore.kernel.org/179536256259.412063.8859349312024671580.b4-reply@b4
 Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
+Reviewed-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
@@ -157,57 +143,26 @@ Cc: Hugh Dickins <hughd@google.com>
 Cc: Joey Gouly <joey.gouly@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: "Jose A. Perez de Azpillaga" <azpijr@gmail.com>
-Cc: <stable@vger.kernel.org>
 
- mm/vma_exec.c |   22 +++++++++++++++++++---
- 1 file changed, 19 insertions(+), 3 deletions(-)
+ mm/mremap.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/vma_exec.c~mm-vma-fix-uncharge-after-failed-stack-relocation
-+++ a/mm/vma_exec.c
-@@ -45,6 +45,7 @@ int relocate_vma_down(struct vm_area_str
- 	struct vm_area_struct *next;
- 	struct mmu_gather tlb;
- 	PAGETABLE_MOVE(pmc, vma, vma, old_start, new_start, length);
-+	int err;
+--- a/mm/mremap.c~mm-mremap-respect-guard-gaps-on-in-place-expansion
++++ a/mm/mremap.c
+@@ -1509,10 +1509,12 @@ static unsigned long mremap_to(struct vm
+ static int vma_expandable(struct vm_area_struct *vma, unsigned long delta)
+ {
+ 	unsigned long end = vma->vm_end + delta;
++	struct vm_area_struct *next;
  
- 	BUG_ON(new_start > new_end);
- 
-@@ -68,8 +69,10 @@ int relocate_vma_down(struct vm_area_str
- 	 * process cleanup to remove whatever mess we made.
- 	 */
- 	pmc.for_stack = true;
--	if (length != move_page_tables(&pmc))
--		return -ENOMEM;
-+	if (length != move_page_tables(&pmc)) {
-+		err = -ENOMEM;
-+		goto err_unacct;
-+	}
- 
- 	tlb_gather_mmu(&tlb, mm);
- 	next = vma_next(&vmi);
-@@ -93,7 +96,20 @@ int relocate_vma_down(struct vm_area_str
- 
- 	vma_prev(&vmi);
- 	/* Shrink the vma to just the new range */
--	return vma_shrink(&vmi, vma, new_end);
-+	err = vma_shrink(&vmi, vma, new_end);
-+	if (err)
-+		goto err_unacct;
-+
-+	return 0;
-+
-+err_unacct:
-+	/*
-+	 * The vma now spans more than was charged, so exit_mmap() must not
-+	 * derive the uncharge from its size.
-+	 */
-+	vm_unacct_memory(length >> PAGE_SHIFT);
-+	vma_clear_flags(vma, VMA_ACCOUNT_BIT);
-+	return err;
- }
- 
- /*
+ 	if (end < vma->vm_end) /* overflow */
+ 		return 0;
+-	if (find_vma_intersection(vma->vm_mm, vma->vm_end, end))
++	next = find_vma(vma->vm_mm, vma->vm_end);
++	if (next && end > vm_start_gap(next)) /* intersection, or in its gap */
+ 		return 0;
+ 	if (get_unmapped_area(NULL, vma->vm_start, end - vma->vm_start,
+ 			      0, MAP_FIXED) & ~PAGE_MASK)
 _
 
 Patches currently in -mm which might be from mason@kernel.org are
