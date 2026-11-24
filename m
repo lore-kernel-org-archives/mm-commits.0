@@ -1,42 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795562967;
-	b=D+wZORZealas56JJqKc+rAsXB8SdWcm4ziG7ZlqB1F9pExxKWwbO4sfKfPsyw/qP3rJM
-	 lab58PHjopcDjWzIfj1xHq0AyptoxgiqC9bMJSYdGh/9zSPNjCgl+Kdns8bm9AEKEOpui
-	 qUfLgblbvCUPrzAiRUy6XsvX2GhGTAyKuQRBskP2gFcjJ2pumNnyyZP+4tP7No0bGi/QA
-	 fnwwFSZbHP4nUbkdeYN177/ELipDiCBhNXAJucVTiIebXgPGNpXZ4BK8bOuWByppwLxdf
-	 RMcTC6VjXYu4O/1QIDEsB8SaXITlaYJ/cyy7+7U5bd+tQ+jduq0RaCaKTeL+yI1TLPg==
+	t=1795562969;
+	b=sXOlkcazXssdwsa/x+/SrOmj4EWKxUFHW6vmasRhBBwB2ut6y74PF0ZLyh17K98F/h9B
+	 tnbdDDekiUQS9Nf83q2noB6002it4s97q/CorVZr5ROTml/MDxv/9H5w793TFnemYzW3k
+	 GGit9ajajPHJKhbY/UE1hEjBGtzP7VzCpvtUDTrQpO+SAWf9t61yg/c97uMfuXBFmdx6q
+	 QNHptvwUIKgeGlfWNmBkDJ2RzSB94q/uhEcmK4fYRvfOe0moFSzoAg1HJjpx0tVCpT57f
+	 Jd8YBPUM/kFwoLl79fnK1/4Z8TPdJLYyLsn3syU5lyqSEB8vd+tjuelMhgg2hl+AoNw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795562967;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795562969;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=XhgswX+2BxvWbdI6UgO4qn0YcrmwAn/1VOrRZCvTqqk=;
-	b=vyCS7HKTH7guPxvLtsTAcXIgY22DhgSHJ+HqmI3vp0DBs1NHDNSJiFkSxDOm2fj7QXCL
-	 Kt9lUJ5WJXkTMUie9jzczIydC4UiPtyit6lr+PBD5bzTYNRMY1vKPU6zo/cgUFfobOo3S
-	 qgqqqaTnSl6eE5jhd/AYudP9aMu5ehhYBmZ+EhtLk0txWrB/EYyzuun/kbl4OxM2EBI8e
-	 kANVdGuAk7UjCGJBK42yp3eFSO4XIzkvthbH+VF/M0OBNQ6FGrhY3QoLTDs71ajq6l/Yy
-	 I6zPG+yvyYaXBLTuTgnqFl05i3VOi+G7PQepdDmwu82rZWUuF7WbImDZPRKcvUlWh0w==
+	bh=a/1Ab6LqXyvVjuUL1b1c+gCZOX9gTUoQ32uzt8gTbiU=;
+	b=pVOr5mgqk9ZnbR1TWz6gfB+4DQvspqeoK/8iYNcPAKXd4jR7F3kQEwBmxYXZc/bLcvdB
+	 EDAA0POLrJY/ZCL6YY/ug1dsAaRtrR1PfEKz6msUZe5s4O29a2aBPu7UJZbifZSb357Iu
+	 Pe1y1eue8zJ/1fomm6PP7Yh3vwDhfyfD2ce6m8LIwFAiu/8A+lAPDSr/N/poksh9QUkKo
+	 tctWP1tSb37A9e/c2hM49XfLMHQDzz6xxuriLxk2G2wFev/Sef4eETQ0VTAoZCUCuGwCt
+	 xquLLNAiZV2n25Qwvvr18KZni0LK1tAnfuO9QIKpJt8A2wsjS9ZO5Y6t4WFirVQHIlg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LRCnuMJ8;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Yq9UlVZ8;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CED4A606A31E;
-	Tue, 24 Nov 2026 23:29:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F723606A31E;
+	Tue, 24 Nov 2026 23:29:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LRCnuMJ8
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16B471F000CF;
-	Tue, 24 Nov 2026 23:29:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Yq9UlVZ8
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00ED11F000CF;
+	Tue, 24 Nov 2026 23:29:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795562966;
-	bh=XhgswX+2BxvWbdI6UgO4qn0YcrmwAn/1VOrRZCvTqqk=;
+	d=linux-foundation.org; s=korg; t=1795562969;
+	bh=a/1Ab6LqXyvVjuUL1b1c+gCZOX9gTUoQ32uzt8gTbiU=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=LRCnuMJ8sOxnDyyz5p6WEEhpO+xyg3VA5gtXK3EFjr0Fpr208uhNvXfUPB/Jtz+wB
-	 lQzoF+O2mlIkEgQKj2o8GcfpJQSQFPjr8wM1dksxlinO4atUVHQY4EsK1PmHBTbK8T
-	 dl1tTsrrutz18+e1xxMbWGooRTZWKUeFuCQ8mJ5s=
-Date: Tue, 24 Nov 2026 15:29:25 -0800
+	b=Yq9UlVZ8B0lmu6ahQCpnrcTK//XXZK+gMGvf0yHeKzdStngFgFqXp83FEgGR7HzNK
+	 c1BR3hjx7c0QEKAurUY8pxpk7XJ0YuMBN4vpzebW2cK9xCBBMrgSF06HRvfCDQ7YBN
+	 qym7KdIt7EgSBc0TnbCc2LgGz8mVXLEia99lHLQ4=
+Date: Tue, 24 Nov 2026 15:29:28 -0800
 To: mm-commits@vger.kernel.org,xu.xin@linux.dev,willy@infradead.org,
 	vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,
 	shakeel.butt@linux.dev,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,
@@ -46,10 +46,10 @@ To: mm-commits@vger.kernel.org,xu.xin@linux.dev,willy@infradead.org,
 	bunk@stusta.de,azpijr@gmail.com,a.p.zijlstra@chello.nl,aaw@google.com,
 	ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261121-some-more-ai-fixes-v1-1-236e925d9b64@kernel.org>
-References: <20261121-some-more-ai-fixes-v1-1-236e925d9b64@kernel.org>
-Subject: + mm-vma-error-out-on-invalid-bounds-in-unmapped_area_topdown.patch added to mm-new branch
-Message-Id: <20261124232926.16B471F000CF@smtp.kernel.org>
+In-Reply-To: <20261121-some-more-ai-fixes-v1-2-236e925d9b64@kernel.org>
+References: <20261121-some-more-ai-fixes-v1-2-236e925d9b64@kernel.org>
+Subject: + mm-vma-lock-vmas-before-taking-mm_all_locks_mutex.patch added to mm-new branch
+Message-Id: <20261124232929.00ED11F000CF@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -61,12 +61,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/vma: error out on invalid bounds in unmapped_area_topdown()
+     Subject: mm/vma: lock VMAs before taking mm_all_locks_mutex
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vma-error-out-on-invalid-bounds-in-unmapped_area_topdown.patch
+     mm-vma-lock-vmas-before-taking-mm_all_locks_mutex.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-error-out-on-invalid-bounds-in-unmapped_area_topdown.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-lock-vmas-before-taking-mm_all_locks_mutex.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -96,101 +96,60 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/vma: error out on invalid bounds in unmapped_area_topdown()
-Date: Sat, 21 Nov 2026 16:02:27 +0000
+Subject: mm/vma: lock VMAs before taking mm_all_locks_mutex
+Date: Sat, 21 Nov 2026 16:02:28 +0000
 
-Patch series "mm: reworked AI-generated VMA and mremap fixes".
+If an mmu notifier is registered for an mm while one of its page faults
+sleeps indefinitely under the VMA lock, the registration of mmu
+notifiers for every other mm can hang un-killably.
 
-I have reordered the patches here by priority, David - the first 2 should
-be prioritised as hotfixes, the rest can go in 7.5:
+mm_all_locks_mutex is shared by all mms, so its holder must not wait for
+something that has no bound.
 
-== Critical ==
+However, mm_take_all_locks() calls vma_start_write() on each VMA with the
+mutex held, and thus waits for the readers of the VMA.
 
-1. unmapped_area_topdown() invalid bounds - possible memory corruption,
-   triggerable by any local user.
-2. Lock VMAs before mm_all_locks_mutex - system-wide unkillable hang,
-   triggerable by a local user with FUSE.
+Since commit 4ed4379881aa ("mm: handle shared faults under the VMA lock"),
+such a reader can sleep in ->page_mkwrite().
 
-== Need fixing ==
+Consider fuse_page_mkwrite(), which sleeps until the FUSE server replies to
+a write request:
 
-3. Uncharge after failed stack relocation - strict overcommit limit
-   defeated system-wide.
-4. mmap() offset limits on mremap() expansion - invalid file offset
-   reaches the DAX fault handler.
+    mm A, thread 1          mm A, thread 2         mm B
+    ==============          ==============         ====
+    lock_vma_under_rcu()
+    fuse_page_mkwrite()
+      folio_wait_writeback()
+                            mm_take_all_locks()
+                              mutex_lock()
+                              vma_start_write()
+                                                   mm_take_all_locks()
+                                                     mutex_lock()
 
-== Hardening (no need for Cc: stable) ==
+Fix the issue by locking the VMAs before the mutex is taken.
 
-5. Guard gaps on in-place mremap() expansion.
-6. Non-executable brk mappings under MDWE.
+Additionally, make the VMA write lock killable so a fatal signal returns as
+quickly as possible.
 
-As usual, please go through and check these carefully for correctness,
+Finally, update the comments to reflect the change, dropping the lock
+ordering list which begs for bitrot.
 
+Note that the lock order at the top of mm/rmap.c doesn't appear to be right
+- the hugetlb locks are taken after the VMA write locks. However, this was
+already the case, and can be addressed in a follow-up in any case.
 
-This patch (of 6):
+Target commit 4ed4379881aa ("mm: handle shared faults under the VMA lock")
+as this is where it became possible for VMA lock readers to sleep in
+->page_mkwrite().
 
-unmapped_area_topdown() suffers from a class of bug arising from a mismatch
-between how maple tree functions and VMA iterator functions express ranges
-- the former inclusively, the latter exclusively.
-
-This is problematic with an exclusive upper bound of 0, as it translates
-to an inclusive upper bound of ULONG_MAX, that is a range which extends to
-the end of the address space, and start < end or equivalent comparisons
-evaluate false in a situation where in fact the expression should evaluate
-true.
-
-unmapped_area_topdown() calls vma_iter_area_highest() to position the VMA
-iterator into the next highest empty range spanning [low_limit,
-high_limit), iteratively reducing high_limit without checking whether it
-has reached 0.
-
-This can result in a [low_limit, 0) pair being passed to
-vma_iter_area_highest() and thus unexpected underflow. Consider:
-
-    vm_start        = 0x30000
-    stack_guard_gap = 0x100000
-    info->length    = 0x1000
-    high_limit      = vm_start_gap() = 0
-    high_limit - 1  = ULONG_MAX
-    window          = [low_limit, ULONG_MAX]
-    vma_iter_end()  = ULONG_MAX + 1 = 0
-    gap             = 0 - info->length = 0xfffffffffffff000
-
-The result is page aligned and below the IS_ERR_VALUE() range, so it
-does not look like an error. What follows depends on the caller:
-
- - mmap() with no hint can fail with -ENOMEM while space is free. The
-   bottom-up fallback is skipped, and __get_unmapped_area() refuses the
-   address as above TASK_SIZE.
- - On x86-64, find_nearest_trampoline() can pick the address for the
-   uprobe trampoline. _install_special_mapping() then inserts a VMA
-   whose vm_end is 0, and exit_mmap() frees kernel page tables that
-   every mm shares.
- - On powerpc64 with the hash MMU, slice_get_unmapped_area() can pass
-   the address to alloc_extended_context(), which then writes out of
-   bounds of mm->context.extended_id[].
-
-mmap() can succeed with an address from the wrapped window where the
-range above TASK_SIZE is too short for the request and its alignment
-padding. On s390 that range is one page, so this takes no more than the
-default stack_guard_gap.
-
-Fix the issue by converting the loop into one that explicitly tests
-low_limit < high_limit.
-
-Additionally, simplify the logic by declaring the VMA iterator in the
-loop (it is reset on each iteration anyway) and exiting with the correct
-output value on success rather than performing a goto when an iteration is
-required.
-
-Link: https://lore.kernel.org/20261121-some-more-ai-fixes-v1-0-236e925d9b64@kernel.org
-Link: https://patch.msgid.link/20261121-some-more-ai-fixes-v1-1-236e925d9b64@kernel.org
-Fixes: 58c5d0d6d522 ("mm/mmap: regression fix for unmapped_area{_topdown}")
+Link: https://patch.msgid.link/20261121-some-more-ai-fixes-v1-2-236e925d9b64@kernel.org
+Fixes: 4ed4379881aa ("mm: handle shared faults under the VMA lock")
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reported-by: Chris Mason <mason@kernel.org>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Tested-by: Gregory Price (Meta) <gourry@gourry.net>
-  Link: https://lore.kernel.org/179536291280.412063.6169498898856535364.b4-reply@b4
+  Link: https://lore.kernel.org/179536280440.412063.5336368383648661511.b4-reply@b4
 Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
 Reviewed-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
 Cc: Liam R. Howlett <liam@infradead.org>
@@ -214,72 +173,61 @@ Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Josef Bacik <josef@toxicpanda.com>
 Cc: <stable@vger.kernel.org>
 
- mm/vma.c |   42 ++++++++++++++++++++----------------------
- 1 file changed, 20 insertions(+), 22 deletions(-)
+ mm/vma.c |   27 +++++++++++++--------------
+ 1 file changed, 13 insertions(+), 14 deletions(-)
 
---- a/mm/vma.c~mm-vma-error-out-on-invalid-bounds-in-unmapped_area_topdown
+--- a/mm/vma.c~mm-vma-lock-vmas-before-taking-mm_all_locks_mutex
 +++ a/mm/vma.c
-@@ -3369,8 +3369,6 @@ unsigned long unmapped_area_topdown(stru
- {
- 	unsigned long length, gap, gap_end;
- 	unsigned long low_limit, high_limit;
--	struct vm_area_struct *tmp;
--	VMA_ITERATOR(vmi, current->mm, 0);
+@@ -2375,15 +2375,10 @@ static void vm_lock_mapping(struct mm_st
+  * mapping->flags avoid to take the same lock twice, if more than one
+  * vma in this mm is backed by the same anon rmap or address_space.
+  *
+- * We take locks in following order, accordingly to comment at beginning
+- * of mm/rmap.c:
+- *   - all hugetlbfs_i_mmap_rwsem_key locks (aka mapping->i_mmap_rwsem for
+- *     hugetlb mapping);
+- *   - all vmas marked locked
+- *   - all i_mmap_rwsem locks;
+- *   - all anon_vma->rwseml
++ * Mark all vmas locked, before taking mm_all_locks_mutex. Then take remaining
++ * locks in the order mandated by the comment at the top of mm/rmap.c.
+  *
+- * We can take all locks within these types randomly because the VM code
++ * We can take locks of the same type in arbitrary order because the VM code
+  * doesn't nest them and we protected from parallel mm_take_all_locks() by
+  * mm_all_locks_mutex.
+  *
+@@ -2400,20 +2395,24 @@ int mm_take_all_locks(struct mm_struct *
  
- 	/* Adjust search length to account for worst case alignment overhead */
- 	length = info->length + info->align_mask + info->start_gap;
-@@ -3381,31 +3379,31 @@ unsigned long unmapped_area_topdown(stru
- 	if (low_limit < mmap_min_addr)
- 		low_limit = mmap_min_addr;
- 	high_limit = info->high_limit;
--retry:
--	if (vma_iter_area_highest(&vmi, low_limit, high_limit, length))
--		return -ENOMEM;
+ 	mmap_assert_write_locked(mm);
  
--	gap = vma_iter_end(&vmi) - info->length;
--	gap -= (gap - info->align_offset) & info->align_mask;
--	gap_end = vma_iter_end(&vmi);
--	tmp = vma_next(&vmi);
--	 /* Avoid prev check if possible */
--	if (tmp && vma_test_any_mask(tmp, VMA_STARTGAP_FLAGS)) {
--		if (vm_start_gap(tmp) < gap_end) {
-+	while (low_limit < high_limit) {
-+		VMA_ITERATOR(vmi, current->mm, 0);
-+		struct vm_area_struct *tmp;
-+
-+		if (vma_iter_area_highest(&vmi, low_limit, high_limit, length))
-+			break;
-+
-+		gap = vma_iter_end(&vmi) - info->length;
-+		gap -= (gap - info->align_offset) & info->align_mask;
-+		gap_end = vma_iter_end(&vmi);
-+		tmp = vma_next(&vmi);
-+		/* Avoid prev check if possible */
-+		if (tmp && vma_test_any_mask(tmp, VMA_STARTGAP_FLAGS)) {
-+			if (vm_start_gap(tmp) >= gap_end)
-+				return gap;
- 			high_limit = vm_start_gap(tmp);
--			vma_iter_reset(&vmi);
--			goto retry;
--		}
--	} else {
--		tmp = vma_prev(&vmi);
--		if (tmp && vm_end_gap(tmp) > gap) {
-+		} else {
-+			tmp = vma_prev(&vmi);
-+			if (!tmp || vm_end_gap(tmp) <= gap)
-+				return gap;
- 			high_limit = tmp->vm_start;
--			vma_iter_reset(&vmi);
--			goto retry;
- 		}
- 	}
+-	mutex_lock(&mm_all_locks_mutex);
 -
--	return gap;
-+	return -ENOMEM;
- }
+ 	/*
+-	 * vma_start_write() does not have a complement in mm_drop_all_locks()
+-	 * because vma_start_write() is always asymmetrical; it marks a VMA as
++	 * VMA write locks do not have a complement in mm_drop_all_locks(),
++	 * because VMA write locking is always asymmetrical; it marks a VMA as
+ 	 * being written to until mmap_write_unlock() or mmap_write_downgrade()
+ 	 * is reached.
+ 	 */
+ 	for_each_vma(vmi, vma) {
++		int err;
++
+ 		if (signal_pending(current))
+-			goto out_unlock;
+-		vma_start_write(vma);
++			return -EINTR;
++		err = vma_start_write_killable(vma);
++		if (err)
++			return err;
+ 	}
  
- /*
++	mutex_lock(&mm_all_locks_mutex);
++
+ 	vma_iter_init(&vmi, mm, 0);
+ 	for_each_vma(vmi, vma) {
+ 		if (signal_pending(current))
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
