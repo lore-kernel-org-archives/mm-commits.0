@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795542972;
-	b=ZDR/TIPsUeP5Ewc3Nf91wdIt1DD1/t2TAXYjjbPI2dRUaoy40rS5xIgbcFJpNBHgbbt1
-	 uakhwaDHolZOL4CSjczXoTd2VKgunQ8OAyxztnPtIYb3nf0D22OwJwh4F2ZZFRHmXuGyR
-	 WPdDystKSXBYP2soEhjQmdkbbdPi1Ve+Xme4AZQQV5k2Adv2fJwBIchbFUw5anhsy7hnA
-	 QCitk2Tu+hcAJnieaNXpLijb/rESdom0IE2xAirAxHhAoQyOUJpTHVZcjEfcUinFzPZJP
-	 z/nm8i8z2h7ce85qiywL0m8PJ144A9LBNxFcnL7fcQoiiIZypb1q1E6szNWIp40p12Q==
+	t=1795542975;
+	b=gCFrWGyTdygl4Uo8PbVBDUY5lpSoTHkojjiByH5WgWr5hKjRo6ErI2sCsivYTbXXPX7e
+	 89n3JvM2xaWlj6sAaNegX+y6fhtKyr+86ZlrkgAVXRmumF1efayx2X/TGfTzNVQoRD35j
+	 bFWsoCEiOHa1Nro+bpd4xUehed274RhgwpycWkP7E0xBY5au7jUsJP58br1Ac2BvqzOmU
+	 s8f76ZSMn1PFfGEFyBZBboEs93z+lhI6aS+cpo6q3CSGggd8wNj6ZeKRvLFX1tDHiS9oj
+	 QE6KZZGclNO4VDilGVXvQRsbVMK7TTawkbFTGTkG+ojWwqRqvwuerAgRm8LnaqktB0Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795542972;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795542975;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=pJCo7eqlHPxXSJNxqMui3CSnE4Dmhyr3humnXRdSoKE=;
-	b=ppgt09uKo+mc1NqMK1OGCGLaRFjcct2PACPJMcEOwC31HaUB+sMExnWZaLYUSovdCBjp
-	 9Pux5nz3y8Ie/xF6RRrXpOLaEjQ4mpsUcq9PDor74TEFkDVUysAU+sintC3FXZ9F+ARLp
-	 wKaiE1qiHR+3/b3lVoPygqk6EeRi9UueRLa9Skdji/FprlDDJGvT3xwF5cWN52ojg2vHT
-	 cxtWZ3G/ASF5VD4qrIjYXyserIisvoKSHUUjb5r473Dov5BwDINjKuZdyBNQM2BF+yfxc
-	 IFwYEhjy2OCXRGfotyq3WNmKYF3GUvbuBwoPL5IWlzCsQrFU04cHD43oZNaru2w53mw==
+	bh=Awn8haymz6+/q/o6Gi3xdMFyqMEbJsi2m01O9ScuRho=;
+	b=ZVAwOZmX3yg0nQC27A1q4C7i+RynYE/0yueJ5GNRchgdJsH7l2dBAyQYNtQza75i70A6
+	 Z4PW4Khv97fIHp24tDmd+EptKroH6wBZ759cFsrY4OKSQsSqmGncg3tF7binIUH85gzAO
+	 sUoDMVZrFTg4h7v9K1AQCvQ6G8gSPuzKlozLoaqy/K7eDw6valpi7Yr5/qV9a3oksfwvU
+	 DmRYSsib2+7hO9mj2dFZHT8tnqxVoUz+vW6bxXNvUp25wHzbxQ87I5qqqfu36Q5SwjRwT
+	 jEnDDys4Mp/R3dvc8HFgFz0lEdnTacZsSSiZBmuB+xSzrzUjnFl62vRugpAdQ25f0uA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=haGt+q70;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=eW3wEbvv;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47335606A336
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:56:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 709CF606A32A
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:56:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=haGt+q70
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF1191F000D0;
-	Tue, 24 Nov 2026 17:56:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=eW3wEbvv
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E36021F000C0;
+	Tue, 24 Nov 2026 17:56:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795542972;
-	bh=pJCo7eqlHPxXSJNxqMui3CSnE4Dmhyr3humnXRdSoKE=;
+	d=linux-foundation.org; s=korg; t=1795542975;
+	bh=Awn8haymz6+/q/o6Gi3xdMFyqMEbJsi2m01O9ScuRho=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=haGt+q70AjbudT2T71zmbxmfIAjX9ghzBUzVClNw3kR9F7hXnWln5Djjx30UFkwMB
-	 XcBDjKsBDgEnFPzWEeGarB0fpe36VVsyA/tnuRU+sHROwtmZAc7u5L4FBOFlfKfkis
-	 WyEzpRERRgaJwHr9AqGT5r2kaujLbae+P4r6mEM8=
-Date: Tue, 24 Nov 2026 09:56:11 -0800
+	b=eW3wEbvvQQahqjRBRYsSKgdPb9x50B/iBt8SPi+7BL574WB59qRGvQsiq6AA0okYa
+	 4xJ8LjFhsscs89Llhsw/k/HsyZuRC/HW6TtO1PxXyK8DrIishmqC8Ll+yFS8AeHESh
+	 FKayrbWhrLGjtAeH2n1NDh9RUkQrl+hnyI/k+4TM=
+Date: Tue, 24 Nov 2026 09:56:14 -0800
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124-late-2026-vma-flags-v2-5-bf3fade93064@kernel.org>
-References: <20261124-late-2026-vma-flags-v2-5-bf3fade93064@kernel.org>
-Subject: + fs-coredump-convert-vma_dump_size-to-use-vma_flags_t.patch added to mm-new branch
-Message-Id: <20261124175611.CF1191F000D0@smtp.kernel.org>
+In-Reply-To: <20261124-late-2026-vma-flags-v2-6-bf3fade93064@kernel.org>
+References: <20261124-late-2026-vma-flags-v2-6-bf3fade93064@kernel.org>
+Subject: + uprobes-convert-vma-flag-tests-to-use-vma_flags_t.patch added to mm-new branch
+Message-Id: <20261124175614.E36021F000C0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +54,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: fs/coredump: convert vma_dump_size() to use vma_flags_t
+     Subject: uprobes: convert VMA flag tests to use vma_flags_t
 has been added to the -mm mm-new branch.  Its filename is
-     fs-coredump-convert-vma_dump_size-to-use-vma_flags_t.patch
+     uprobes-convert-vma-flag-tests-to-use-vma_flags_t.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-coredump-convert-vma_dump_size-to-use-vma_flags_t.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/uprobes-convert-vma-flag-tests-to-use-vma_flags_t.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -89,18 +89,15 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: fs/coredump: convert vma_dump_size() to use vma_flags_t
-Date: Tue, 24 Nov 2026 17:07:57 +0000
+Subject: uprobes: convert VMA flag tests to use vma_flags_t
+Date: Tue, 24 Nov 2026 17:07:58 +0000
 
-Replace use of the legacy vm_flags_t flags with vma_flags_t values when
-determining how much of a VMA to dump.
-
-The flags copied into struct core_vma_metadata remain legacy flags as they
-are consumed by the binfmt handlers.
+Replace use of the legacy vm_flags_t flags with vma_flags_t values in the
+uprobes VMA validity checks.
 
 No functional change intended.
 
-Link: https://patch.msgid.link/20261124-late-2026-vma-flags-v2-5-bf3fade93064@kernel.org
+Link: https://patch.msgid.link/20261124-late-2026-vma-flags-v2-6-bf3fade93064@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Lance Yang <lance.yang@linux.dev>
@@ -179,64 +176,46 @@ Cc: Fan Wu <wufan@kernel.org>
 Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
 Cc: Ondrej Mosnáček <omosnacek@gmail.com>
 
- fs/coredump.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ kernel/events/uprobes.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
---- a/fs/coredump.c~fs-coredump-convert-vma_dump_size-to-use-vma_flags_t
-+++ a/fs/coredump.c
-@@ -1837,15 +1837,15 @@ static unsigned long vma_dump_size(struc
- 	if (always_dump_vma(vma))
- 		goto whole;
+--- a/kernel/events/uprobes.c~uprobes-convert-vma-flag-tests-to-use-vma_flags_t
++++ a/kernel/events/uprobes.c
+@@ -134,12 +134,14 @@ static void uprobe_warn(struct task_stru
+  */
+ static bool valid_vma(struct vm_area_struct *vma, bool is_register)
+ {
+-	vm_flags_t flags = VM_HUGETLB | VM_MAYEXEC | VM_MAYSHARE;
++	vma_flags_t forbidden = mk_vma_flags(VMA_HUGETLB_BIT,
++					     VMA_MAYSHARE_BIT);
  
--	if (vma->vm_flags & VM_DONTDUMP)
-+	if (vma_test(vma, VMA_DONTDUMP_BIT))
+ 	if (is_register)
+-		flags |= VM_WRITE;
++		vma_flags_set(&forbidden, VMA_WRITE_BIT);
+ 
+-	return vma->vm_file && (vma->vm_flags & flags) == VM_MAYEXEC;
++	return vma->vm_file && vma_test(vma, VMA_MAYEXEC_BIT) &&
++		!vma_test_any_mask(vma, forbidden);
+ }
+ 
+ static unsigned long offset_to_vaddr(struct vm_area_struct *vma, loff_t offset)
+@@ -286,7 +288,7 @@ static bool valid_ref_ctr_vma(struct upr
+ 	return uprobe->ref_ctr_offset &&
+ 		vma->vm_file &&
+ 		file_inode(vma->vm_file) == uprobe->inode &&
+-		(vma->vm_flags & (VM_WRITE|VM_SHARED)) == VM_WRITE &&
++		vma_test(vma, VMA_WRITE_BIT) && !vma_test(vma, VMA_SHARED_BIT) &&
+ 		vma->vm_start <= vaddr &&
+ 		vma->vm_end > vaddr;
+ }
+@@ -1607,7 +1609,7 @@ int uprobe_mmap(struct vm_area_struct *v
  		return 0;
  
- 	/* support for DAX */
- 	if (vma_is_dax(vma)) {
--		if ((vma->vm_flags & VM_SHARED) &&
-+		if (vma_test(vma, VMA_SHARED_BIT) &&
- 		    COREDUMP_MEMORY_TYPE_INCLUDE(memory_types, DAX_SHARED))
- 			goto whole;
--		if (!(vma->vm_flags & VM_SHARED) &&
-+		if (!vma_test(vma, VMA_SHARED_BIT) &&
- 		    COREDUMP_MEMORY_TYPE_INCLUDE(memory_types, DAX_PRIVATE))
- 			goto whole;
- 		return 0;
-@@ -1853,21 +1853,21 @@ static unsigned long vma_dump_size(struc
- 
- 	/* Hugetlb memory check */
- 	if (vma_is_hugetlb(vma)) {
--		if ((vma->vm_flags & VM_SHARED) &&
-+		if (vma_test(vma, VMA_SHARED_BIT) &&
- 		    COREDUMP_MEMORY_TYPE_INCLUDE(memory_types, HUGETLB_SHARED))
- 			goto whole;
--		if (!(vma->vm_flags & VM_SHARED) &&
-+		if (!vma_test(vma, VMA_SHARED_BIT) &&
- 		    COREDUMP_MEMORY_TYPE_INCLUDE(memory_types, HUGETLB_PRIVATE))
- 			goto whole;
- 		return 0;
- 	}
- 
- 	/* Do not dump I/O mapped devices or special mappings */
--	if (vma->vm_flags & VM_IO)
-+	if (vma_test(vma, VMA_IO_BIT))
- 		return 0;
- 
- 	/* By default, dump shared memory if mapped from an anonymous file. */
--	if (vma->vm_flags & VM_SHARED) {
-+	if (vma_test(vma, VMA_SHARED_BIT)) {
- 		if (file_inode(vma->vm_file)->i_nlink == 0 ?
- 			    COREDUMP_MEMORY_TYPE_INCLUDE(memory_types, ANON_SHARED) :
- 			    COREDUMP_MEMORY_TYPE_INCLUDE(memory_types, FILE_SHARED))
-@@ -1890,7 +1890,7 @@ static unsigned long vma_dump_size(struc
- 	 * dump the first page to aid in determining what was mapped here.
- 	 */
- 	if (COREDUMP_MEMORY_TYPE_INCLUDE(memory_types, ELF_HEADERS) &&
--	    vma->vm_pgoff == 0 && (vma->vm_flags & VM_READ)) {
-+	    vma->vm_pgoff == 0 && vma_test(vma, VMA_READ_BIT)) {
- 		if ((READ_ONCE(file_inode(vma->vm_file)->i_mode) & 0111) != 0)
- 			return PAGE_SIZE;
+ 	if (vma->vm_file &&
+-	    (vma->vm_flags & (VM_WRITE|VM_SHARED)) == VM_WRITE &&
++	    vma_test(vma, VMA_WRITE_BIT) && !vma_test(vma, VMA_SHARED_BIT) &&
+ 	    mm_flags_test(MMF_HAS_UPROBES, vma->vm_mm))
+ 		delayed_ref_ctr_inc(vma);
  
 _
 
