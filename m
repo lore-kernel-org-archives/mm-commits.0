@@ -1,42 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795559258;
-	b=inKYhYsGya+YMEt6ReYW0McYKiWpuMptwHgpH/EPXFMrzB35OLG6OvQBXRg8b7PC0r26
-	 oLEYGA5khUaBkj2OMkOvn4RM7+UHj56/Im6gVeaITvPfUq8obdVH9bQf4JD9AbkJK5K/K
-	 j9PbLtjg5RbEcPVSfxqB9Ucp7DCBrE2Fldd6e6WjsEoiOJdyxRAE6W0Lz/O660+JK01gt
-	 2Q77JZnmfp6n+dx8gcqQ6DqpKTa7DL7gB8rQgDhC/KU93+6QZmgKpEweUqB9kMx9hAhrv
-	 IQVQdHAuFlqfsGZ4KlhF8lq7w18zC/NtJiyIN7UG4AVnDOIEDJEbNazXauhgYSwvJyw==
+	t=1795559261;
+	b=ed1uIAbBg/2dUqS/4uvTeNDcVaidK2eHS13D5QoCq7N9g4rG0SFnbO78C538tNnwNXwr
+	 yOI4U53GAO/w4q+ftiGDo9AslIziHdjhJh9OOMio1EFH02zBW03/BsjK1L7AMPO2RFBnp
+	 pMn7n8+dmWmAm7+bbqE8kWHW0JoQQ0vcu/GIoe56ZrGJ4cV0NpQUyDCwp5+6EQyJ3r+Jg
+	 ZI8o0UdFTpitO4ZNSsE/cOWVQ3g/PvoyCmWfTactNLdGkdXGHLI56CjF9lgt+D2mh7PZA
+	 An2+jpzYeWKXpolqpTx5e1MZXVtfpOu4GVSJx1STWubDtpAzfDV5gnSH+kPUc6gA/Pw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795559258;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795559261;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=iSpXgOY/BIhvtTEIjqhLCM37YAdDqV/wb3xXa6ugtJg=;
-	b=Np7ucRnPeHlDQp2J6loNWvfEnKPwoPfkmTOtXJXNXWmXwRKdTNwczvhfISlnwkA5CLz0
-	 Gi2Pg78bNi4Yr1KubOj9GD/3t38gV9Os0RsX8JRdaID/WVJ+LnaJPtSeO1r3mrK2zWBpg
-	 FZrnqsIoydDUOuM49JQ8aCIWiOfDkDrWK7XjRi1dGYI7sHOeqGGXU4wMmshl4R47GriXl
-	 C91K24TsyF3dUulz9B1OUE8yriegqfTeV47n+grlHdn5nYhs0hljJtnCSw6w08Fg4zI+D
-	 WztO2NFEnWCmKVCK3ArABW6BoXiqOyUasBCulfru3RHv1qoAYgWx2NUZ2r1Yn6uqgpw==
+	bh=c3gIo6JRrIKBUDgaKM6HxNJg7yEK/J7Iwi5UH9Lr71I=;
+	b=qs9DiARHRNtw5Z6Msvew/TG6kzqHTxBo3b2p2YJ5y5C+Hq0ix9pdYZXSBORXNpEBpmwR
+	 aXWIVgTHHIwqLHuGwlUqgH7mnJqfQLW+t2xs2TzbXTsAKsza6AzC3h97AF6Cf1+gZnW1P
+	 vVIOVLfv6vgYFGNiMxphDpoSoUggn/b9QtL3Cg8jNZalVMHvosfohiNKt3iNO8xWdpCtZ
+	 ZioaONxjdLlBfvCI5MHjA5zNNN8VPyI872TY2qBqfiExMQyhN67A0Su2o8PPlI/kN5d3w
+	 YH47lpu4iaxJQeLB4svYDqdHSuxbAmA3h+G5YTojzclvp8YcCewK8F4FuyQeVM7vV3w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SAnCHx52;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=aH0iuCG0;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB7DB606A31E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 22:27:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4D46606A31E
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 22:27:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SAnCHx52
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3437C1F000C0;
-	Tue, 24 Nov 2026 22:27:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=aH0iuCG0
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3843E1F000C0;
+	Tue, 24 Nov 2026 22:27:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795559257;
-	bh=iSpXgOY/BIhvtTEIjqhLCM37YAdDqV/wb3xXa6ugtJg=;
+	d=linux-foundation.org; s=korg; t=1795559260;
+	bh=c3gIo6JRrIKBUDgaKM6HxNJg7yEK/J7Iwi5UH9Lr71I=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=SAnCHx52j8CN9MHutGAfHN2ZifLn4DAg9NfOgz2J65cO1PeDGrUerRbPPbRZzT3Sf
-	 NFuOCAQTyJqX33R6YWQ4Rs8IQwEo/mAjR/16hTVK/Umnz2lqcO8p/1CytxPGDy20O2
-	 QswSNpgS8A4Dhj1NlRAIYFk8MF1BeYsykRiDW6C8=
-Date: Tue, 24 Nov 2026 14:27:36 -0800
+	b=aH0iuCG0NQq518rhgYGRWFvmJtwk24MSe1KrFkaarVpn9Pg18IWHHJ/Dnea3uAC3H
+	 Qq8U1gGSzsVE7AgXj+l9x2sINg0d8arZoDvHGhxzu7KHU46HuYTuLxKMi/Cs4i/GdT
+	 0Hb79WFem5fVDe+FrXjEA5VUWf1/Bbe5PAJPtXPU=
+Date: Tue, 24 Nov 2026 14:27:39 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
 	vbabka@kernel.org,usama.arif@linux.dev,usama.anjum@arm.com,surenb@google.com,
 	sfr@canb.auug.org.au,ryan.roberts@arm.com,rppt@kernel.org,pfalcato@suse.de,
@@ -50,10 +50,10 @@ To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
 	apopple@nvidia.com,aarcange@redhat.com,tz2294@columbia.edu,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261117-uffd-state-fixes-v3-6-b617009d1a4a@columbia.edu>
-References: <20261117-uffd-state-fixes-v3-6-b617009d1a4a@columbia.edu>
-Subject: + mm-huge_memory-build-the-moved-huge-zero-pmd-from-the-destination-vma.patch added to mm-new branch
-Message-Id: <20261124222737.3437C1F000C0@smtp.kernel.org>
+In-Reply-To: <20261117-uffd-state-fixes-v3-7-b617009d1a4a@columbia.edu>
+References: <20261117-uffd-state-fixes-v3-7-b617009d1a4a@columbia.edu>
+Subject: + mm-mremap-resolve-uffd-state-when-the-context-is-dropped-not-during-the-move.patch added to mm-new branch
+Message-Id: <20261124222740.3843E1F000C0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -65,12 +65,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/huge_memory: build the moved huge zero PMD from the destination VMA
+     Subject: mm/mremap: resolve uffd state when the context is dropped, not during the move
 has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-build-the-moved-huge-zero-pmd-from-the-destination-vma.patch
+     mm-mremap-resolve-uffd-state-when-the-context-is-dropped-not-during-the-move.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-build-the-moved-huge-zero-pmd-from-the-destination-vma.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-resolve-uffd-state-when-the-context-is-dropped-not-during-the-move.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -100,33 +100,39 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm/huge_memory: build the moved huge zero PMD from the destination VMA
-Date: Tue, 17 Nov 2026 23:28:46 -0500
+Subject: mm/mremap: resolve uffd state when the context is dropped, not during the move
+Date: Tue, 17 Nov 2026 23:28:47 -0500
 
-move_pages_huge_pmd() builds the destination PMD for the huge zero page
-by copying the source PMD and clearing its uffd bit, so the destination
-keeps the protection of the source.
+Without UFFD_FEATURE_EVENT_REMAP, the new VMA of an mremap() is not
+registered with userfaultfd, so the uffd state of its entries is cleared
+while they are moved. If the move fails halfway, the entries are moved
+back into the old VMA, which is still registered, without their uffd
+state. Writes and accesses to them are then no longer reported.
 
-A source VMA registered for RWP can map the huge zero page with a
-PAGE_NONE PMD, and UFFDIO_MOVE does not check how the source is
-registered. The destination then gets a PAGE_NONE PMD without the uffd
-bit, although nothing asked for that in the destination VMA.
+To fix it, leave the entries alone during the move and clear the uffd
+state of the new VMA in mremap_userfaultfd_prep(), right before dropping
+the context, like unregistering does. This walks the page tables of the
+new VMA a second time.
 
-The next access fixes it up through the NUMA hinting fault path. Until
-then, the first access to the destination takes a spurious fault and GUP
-has to take the fault path. The impact on userspace is small.
+This is done with userfaultfd_clear_ptes(), which also makes the PTEs
+writable again where that is safe. That removes a spurious write fault
+per protected page on private anonymous memory, but adds spurious write
+faults on shmem and hugetlb, as change_protection() makes writable pages
+that were never protected read-only. UFFDIO_UNREGISTER and
+UFFDIO_WRITEPROTECT already behave this way. This will be fixed in
+change_protection() separately.
 
-The moved entry must have the protection of the destination VMA. To fix
-it, build the entry from the vm_page_prot of the destination VMA, as
-move_zeropage_pte() does for the small zero page, and keep marking it
-soft-dirty. A destination VMA registered for RWP still gets its PMD
-re-armed afterwards.
+The entries no longer need per-entry handling during the move, so drop
+uffd_supports_page_table_move() and clear_uffd_wp_pmd(). Whole page
+tables of these VMAs can be moved again.
 
-Link: https://patch.msgid.link/20261117-uffd-state-fixes-v3-6-b617009d1a4a@columbia.edu
+Link: https://patch.msgid.link/20261117-uffd-state-fixes-v3-7-b617009d1a4a@columbia.edu
+Fixes: 0cef0bb836e3 ("mm: clear uffd-wp PTE/PMD state on mremap()")
 Fixes: 763f43865fc4 ("mm: preserve RWP marker across PTE rewrites")
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Tested-by: Gregory Price (Meta) <gourry@gourry.net>
 Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
@@ -137,7 +143,6 @@ Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Balbir Singh <balbirs@nvidia.com>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: Pedro Falcato <pfalcato@suse.de>
@@ -165,24 +170,189 @@ Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Mikołaj Lenczewski <miko.lenczewski@arm.com>
 Cc: Breno Leitao <leitao@debian.org>
 
- mm/huge_memory.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/huge_memory.c |   25 ------------------------
+ mm/hugetlb.c     |   27 --------------------------
+ mm/mremap.c      |   46 ---------------------------------------------
+ mm/userfaultfd.c |    1 
+ 4 files changed, 3 insertions(+), 96 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-build-the-moved-huge-zero-pmd-from-the-destination-vma
+--- a/mm/huge_memory.c~mm-mremap-resolve-uffd-state-when-the-context-is-dropped-not-during-the-move
 +++ a/mm/huge_memory.c
-@@ -2999,9 +2999,9 @@ int move_pages_huge_pmd(struct mm_struct
- 		/* Follow mremap() behavior and treat the entry dirty after the move */
- 		_dst_pmd = pmd_mkwrite(pmd_mkdirty(_dst_pmd), dst_vma);
- 	} else {
--		src_pmdval = pmdp_huge_clear_flush(src_vma, src_addr, src_pmd);
--		_dst_pmd = move_soft_dirty_pmd(src_pmdval);
--		_dst_pmd = clear_uffd_wp_pmd(_dst_pmd);
-+		pmdp_huge_clear_flush(src_vma, src_addr, src_pmd);
-+		_dst_pmd = folio_mk_pmd(huge_zero_folio, dst_vma->vm_page_prot);
-+		_dst_pmd = move_soft_dirty_pmd(pmd_mkspecial(_dst_pmd));
+@@ -2634,18 +2634,6 @@ static pmd_t move_soft_dirty_pmd(pmd_t p
+ 	return pmd;
+ }
+ 
+-static pmd_t clear_uffd_wp_pmd(pmd_t pmd)
+-{
+-	if (pmd_none(pmd))
+-		return pmd;
+-	if (pmd_present(pmd))
+-		pmd = pmd_clear_uffd(pmd);
+-	else
+-		pmd = pmd_swp_clear_uffd(pmd);
+-
+-	return pmd;
+-}
+-
+ bool move_huge_pmd(struct vm_area_struct *vma, unsigned long old_addr,
+ 		  unsigned long new_addr, pmd_t *old_pmd, pmd_t *new_pmd)
+ {
+@@ -2681,19 +2669,6 @@ bool move_huge_pmd(struct vm_area_struct
+ 			pgtable_trans_huge_deposit(mm, new_pmd, pgtable);
+ 		}
+ 		pmd = move_soft_dirty_pmd(pmd);
+-		if (vma_has_uffd_without_event_remap(vma)) {
+-			/*
+-			 * See __copy_present_ptes(): normalise the RWP marker
+-			 * so the destination starts accessible instead of
+-			 * taking a numa-hinting fault on first access. Only the
+-			 * marker (protnone + uffd) needs it; leave other present
+-			 * PMDs in the VMA untouched.
+-			 */
+-			if (pmd_present(pmd) && userfaultfd_rwp(vma) &&
+-			    pmd_uffd(pmd))
+-				pmd = pmd_modify(pmd, vma->vm_page_prot);
+-			pmd = clear_uffd_wp_pmd(pmd);
+-		}
+ 		set_pmd_at(mm, new_addr, new_pmd, pmd);
+ 		if (force_flush)
+ 			flush_pmd_tlb_range(vma, old_addr, old_addr + PMD_SIZE);
+--- a/mm/hugetlb.c~mm-mremap-resolve-uffd-state-when-the-context-is-dropped-not-during-the-move
++++ a/mm/hugetlb.c
+@@ -5189,7 +5189,6 @@ static void move_huge_pte(struct vm_area
+ 			  unsigned long new_addr, pte_t *src_pte, pte_t *dst_pte,
+ 			  unsigned long sz)
+ {
+-	bool need_clear_uffd_wp = vma_has_uffd_without_event_remap(vma);
+ 	struct hstate *h = hstate_vma(vma);
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	spinlock_t *src_ptl, *dst_ptl;
+@@ -5200,31 +5199,7 @@ static void move_huge_pte(struct vm_area
+ 	double_pt_lock(dst_ptl, src_ptl);
+ 
+ 	pte = huge_ptep_get_and_clear(mm, old_addr, src_pte, sz);
+-
+-	if (need_clear_uffd_wp && pte_is_uffd_wp_marker(pte)) {
+-		huge_pte_clear(mm, new_addr, dst_pte, sz);
+-	} else {
+-		if (need_clear_uffd_wp) {
+-			if (pte_present(pte)) {
+-				/*
+-				 * See __copy_present_ptes(): normalise the RWP
+-				 * marker so the destination starts accessible
+-				 * instead of taking a numa-hinting fault on
+-				 * first access. Only the marker (protnone + uffd)
+-				 * needs it; leave other present PTEs untouched.
+-				 */
+-				if (userfaultfd_rwp(vma) && huge_pte_uffd(pte)) {
+-					pte = huge_pte_modify(pte, vma->vm_page_prot);
+-					pte = arch_make_huge_pte(pte, huge_page_shift(h),
+-								 vma->vm_flags);
+-				}
+-				pte = huge_pte_clear_uffd(pte);
+-			} else {
+-				pte = pte_swp_clear_uffd(pte);
+-			}
+-		}
+-		set_huge_pte_at(mm, new_addr, dst_pte, pte, sz);
+-	}
++	set_huge_pte_at(mm, new_addr, dst_pte, pte, sz);
+ 
+ 	double_pt_unlock(dst_ptl, src_ptl);
+ }
+--- a/mm/mremap.c~mm-mremap-resolve-uffd-state-when-the-context-is-dropped-not-during-the-move
++++ a/mm/mremap.c
+@@ -199,7 +199,6 @@ static int move_ptes(struct pagetable_mo
+ 		unsigned long extent, pmd_t *old_pmd, pmd_t *new_pmd)
+ {
+ 	struct vm_area_struct *vma = pmc->old;
+-	bool need_clear_uffd_wp = vma_has_uffd_without_event_remap(vma);
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	pte_t *old_ptep, *new_ptep;
+ 	pte_t old_pte, pte;
+@@ -291,27 +290,7 @@ static int move_ptes(struct pagetable_mo
+ 		pte = get_and_clear_ptes(mm, old_addr, old_ptep, nr_ptes);
+ 		pte = move_pte(pte, old_addr, new_addr);
+ 		pte = move_soft_dirty_pte(pte);
+-
+-		if (need_clear_uffd_wp && pte_is_uffd_wp_marker(pte))
+-			pte_clear(mm, new_addr, new_ptep);
+-		else {
+-			if (need_clear_uffd_wp) {
+-				if (pte_present(pte)) {
+-					/*
+-					 * See __copy_present_ptes(): normalise
+-					 * RWP PTEs so the destination starts
+-					 * accessible instead of taking a
+-					 * numa-hinting fault on first access.
+-					 */
+-					if (userfaultfd_rwp(vma) && pte_uffd(pte))
+-						pte = pte_modify(pte, vma->vm_page_prot);
+-					pte = pte_clear_uffd(pte);
+-				} else {
+-					pte = pte_swp_clear_uffd(pte);
+-				}
+-			}
+-			set_ptes(mm, new_addr, new_ptep, pte, nr_ptes);
+-		}
++		set_ptes(mm, new_addr, new_ptep, pte, nr_ptes);
  	}
  
- 	/* Re-arm RWP on the moved PMD if dst_vma is RWP-registered. */
+ 	lazy_mmu_mode_disable();
+@@ -335,25 +314,6 @@ static inline bool arch_supports_page_ta
+ }
+ #endif
+ 
+-static inline bool uffd_supports_page_table_move(struct pagetable_move_control *pmc)
+-{
+-	/*
+-	 * If we are moving a VMA that has uffd-wp registered but with
+-	 * remap events disabled (new VMA will not be registered with uffd), we
+-	 * need to ensure that the uffd-wp state is cleared from all pgtables.
+-	 * This means recursing into lower page tables in move_page_tables().
+-	 *
+-	 * We might get called with VMAs reversed when recovering from a
+-	 * failed page table move. In that case, the
+-	 * "old"-but-actually-"originally new" VMA during recovery will not have
+-	 * a uffd context. Recursing into lower page tables during the original
+-	 * move but not during the recovery move will cause trouble, because we
+-	 * run into already-existing page tables. So check both VMAs.
+-	 */
+-	return !vma_has_uffd_without_event_remap(pmc->old) &&
+-	       !vma_has_uffd_without_event_remap(pmc->new);
+-}
+-
+ #ifdef CONFIG_HAVE_MOVE_PMD
+ static bool move_normal_pmd(struct pagetable_move_control *pmc,
+ 			pmd_t *old_pmd, pmd_t *new_pmd)
+@@ -366,8 +326,6 @@ static bool move_normal_pmd(struct paget
+ 
+ 	if (!arch_supports_page_table_move())
+ 		return false;
+-	if (!uffd_supports_page_table_move(pmc))
+-		return false;
+ 	/*
+ 	 * The destination pmd shouldn't be established, free_pgtables()
+ 	 * should have released it.
+@@ -435,8 +393,6 @@ static bool move_normal_pud(struct paget
+ 
+ 	if (!arch_supports_page_table_move())
+ 		return false;
+-	if (!uffd_supports_page_table_move(pmc))
+-		return false;
+ 	/*
+ 	 * The destination pud shouldn't be established, free_pgtables()
+ 	 * should have released it.
+--- a/mm/userfaultfd.c~mm-mremap-resolve-uffd-state-when-the-context-is-dropped-not-during-the-move
++++ a/mm/userfaultfd.c
+@@ -3179,6 +3179,7 @@ void mremap_userfaultfd_prep(struct vm_a
+ 		up_write(&ctx->map_changing_lock);
+ 	} else {
+ 		/* Drop uffd context if remap feature not enabled */
++		userfaultfd_clear_ptes(vma, vma->vm_start, vma->vm_end);
+ 		userfaultfd_reset_ctx(vma);
+ 	}
+ }
 _
 
 Patches currently in -mm which might be from tz2294@columbia.edu are
