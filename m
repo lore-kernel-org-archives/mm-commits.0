@@ -1,49 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795541030;
-	b=3XhahKDtkzng7EGwf+KqHX88adh7t+1vOFB8ObAwgypRgPRtMcOH3a0D9tSCFixSwMnm
-	 i7DzS4Pi8tDjtrWNDhB/f7tQXzsh9LYjPTDwkW4rJSfqAv5Z+ZvdYnq/kfDBlu4M9EkB+
-	 gxmB+d0MA68x0IJP1QzxNZ1b3wpvj/8Xw2CIZzH/byZ7LBI+CiKCDdAgLcv1QNuGyiBAG
-	 niz+VLqiYcL3euhm6vUbrrD7AkcUYGwrlmSFCd/byoWaPlOSzh8GWBHodBn96tS3YE3+c
-	 Ome0MNYjJ8J9p+DF+pLdQAu0RwX/0zG8n/ZKtmrzd5E6KuzFvxcdJJqwq08pm/LWXUA==
+	t=1795541032;
+	b=nKicJBr8tnMFNAL72f2bBHSlehUcCqFh6uyXDVUEr1vOv8H42X+q2MTXTsTSnlW4K45m
+	 vLkAtlbn43jP4L0yMTLcLLr+MoC59N28ZCpP8k646Ipt+IoJPVkBwQZZ+Y5Gl1mtn4iLR
+	 /GbuUb29rQPGeeHJPq9nRdokikvUJd9us4weykpfQHwbi/8iqWckPhNHZoRFqsR9osVnT
+	 iDyURu24hcL4MO7q9kdaNG1l0UoX2HTaBPT4rUThKMLfV+1LFG1Nba72q3wK0Xh0hSLvS
+	 WMde5DuuXXWRw/IXFsPwTLzGYutzED4/MpaW/tupEdLzBDw0xOVhY1VPtkrwwst2PsA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795541030;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795541032;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=fB4Ls/imHOySKNH5CMAIMSI/malhNm7CGMpkPXKn+JQ=;
-	b=H499JKR8Bbr/W8Vn7kNEHPDhR7E2T4WfVvtu8PeEzcVv31icYVx4/ghaXU53SjhAEHCY
-	 8dZTg3LWLvcB3T50uOPZqNCEsvbNFVY1xUxhnSellBS4UdAWE+B7O+pcbf8qMdoagRolk
-	 btkwd7xU+6PY0MfHs4yORPmLL2HsMA+qlVy5d2r2FDHvVeTk9lKTaX1CdaA/asa/f9E0A
-	 oyijuaMi1jB/fWg3TIwnSJ2bP9TspbKOnlrwQRodlngJ8l1NZGh5ED25U3iKMZ737AGdS
-	 fc1kIcuZRZ6xSN5OpRKnGEBCSReTVD8T0d9dW3TUpL7+0Al6mBGr9wAO/MW0V9vqK0g==
+	bh=FBH7zCL8uD64WwWbQfJuslyDKxhGDKZZRoLowjfDA1Y=;
+	b=bCra3hEpQDiNfBY1M/TmLw/Yxtwyh92mFcV9VYJRsCzBYGxIQiq8XzRJP+Zqh7HDuljB
+	 7iyZ9iJf5mtnNUxQi3u0zOkLO0E0Km8JuqODgPt1+gur4+gZIg3ZKJHA6wE/zO65dqk1F
+	 PO+Gp4SAXTU8AhIAwUljZvToXVk/gNxqdhqRkp6DF9MTSupy9Jh0zUWdVoDko0YhRmQtk
+	 +mubUBc9e49hq3Xe/oIqsV7qAbJC1pNlSMvGRzsNtIEXteCv8CZHg9/sDa/FxZuXZthCe
+	 MkELvqnT4aG117AGgZ3u+RT9NhjbrIBhhBoFiUCxc+V/9eC7brdWTMmQktJSFO2MeGw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=o9SVyjVm;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GmYsp34p;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 404B5606A323
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:23:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD5B3606A32E
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:23:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=o9SVyjVm
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2EB81F000D0;
-	Tue, 24 Nov 2026 17:23:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GmYsp34p
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54D1D1F000EB;
+	Tue, 24 Nov 2026 17:23:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795541029;
-	bh=fB4Ls/imHOySKNH5CMAIMSI/malhNm7CGMpkPXKn+JQ=;
+	d=linux-foundation.org; s=korg; t=1795541032;
+	bh=FBH7zCL8uD64WwWbQfJuslyDKxhGDKZZRoLowjfDA1Y=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=o9SVyjVmqj33P06YTK/UIVPeWaixCpiJpwnIGzaBl9bn7F3hJ6VO1QyAB79jy2EgS
-	 lAi5VruLeqRxMrGeclHK/USmX2PDPMB0Q+L2qHGpYl92LW+zTUWUNNmyGNofM9MKBH
-	 t5MqlFGa/Vz0gd9/6zkJvqDQBZCaamwB3h2M8T3E=
-Date: Tue, 24 Nov 2026 09:23:49 -0800
+	b=GmYsp34ppf9I01ic79M70HfAR7ELB3e28HzOKgdrS5Q3pp0qaEcyYgqEma1RjsaKb
+	 iHssaHk3IkUHh3aV7itAiT78yU/lPNeA5Y+ZF5wJji4Hnt0T4M2HygsymJQhqAz4sy
+	 1+Zj+mdfudPrAZbUY2NO2aLxvGIUUzt8M4LkAsOM=
+Date: Tue, 24 Nov 2026 09:23:51 -0800
 To: mm-commits@vger.kernel.org,lianux.mm@gmail.com,jm5905938@gmail.com,
 	sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124153636.91854-21-sj@kernel.org>
-References: <20261124153636.91854-21-sj@kernel.org>
-Subject: + mm-damon-api-introduce-user_report-report-type.patch added to mm-new branch
-Message-Id: <20261124172349.A2EB81F000D0@smtp.kernel.org>
+In-Reply-To: <20261124153636.91854-22-sj@kernel.org>
+References: <20261124153636.91854-22-sj@kernel.org>
+Subject: + mm-damon-sysfs-add-user_report-support-for-report-type-input.patch added to mm-new branch
+Message-Id: <20261124172352.54D1D1F000EB@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/damon/api: introduce user_report report type
+     Subject: mm/damon/sysfs: add user_report support for report type input
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-api-introduce-user_report-report-type.patch
+     mm-damon-sysfs-add-user_report-support-for-report-type-input.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-api-introduce-user_report-report-type.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-add-user_report-support-for-report-type-input.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -90,37 +90,35 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/api: introduce user_report report type
-Date: Tue, 24 Nov 2026 07:36:26 -0800
+Subject: mm/damon/sysfs: add user_report support for report type input
+Date: Tue, 24 Nov 2026 07:36:27 -0800
 
-Users could know some data attribute information and willing to provide
-that to DAMON.  Introduce a new damon_report_type,
-DAMON_REPORT_TYPE_USER_REPORT, for such user-provided reports.
+Extend the mapping list for data attribute report types and user
+keywords, for the USER_REPORT report type.  Use "user_report" as the
+matching user keyword.
 
-Link: https://patch.msgid.link/20261124153636.91854-21-sj@kernel.org
+Link: https://patch.msgid.link/20261124153636.91854-22-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Aveline Noir <jm5905938@gmail.com>
 Reviewed-by: Lian Wang <lianux.mm@gmail.com>
 
- include/linux/damon.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/damon/sysfs.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/include/linux/damon.h~mm-damon-api-introduce-user_report-report-type
-+++ a/include/linux/damon.h
-@@ -759,9 +759,11 @@ struct damon_intervals_goal {
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-add-user_report-support-for-report-type-input
++++ a/mm/damon/sysfs.c
+@@ -1187,6 +1187,10 @@ struct damon_sysfs_report_type_name {
  
- /**
-  * enum damon_report_type - Type of &struct damon_report.
-+ *
-+ * @DAMON_REPORT_TYPE_USER_REPORT:	User-generated report.
-  */
- enum damon_report_type {
--	NR_DAMON_REPORT_TYPES,
-+	DAMON_REPORT_TYPE_USER_REPORT,
+ static const struct damon_sysfs_report_type_name
+ damon_sysfs_report_type_names[] = {
++	{
++		.type = DAMON_REPORT_TYPE_USER_REPORT,
++		.name = "user_report",
++	},
  };
  
- /**
+ static ssize_t filter_report_type_show(struct kobject *kobj,
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
