@@ -1,42 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795547336;
-	b=FYO1byFRxleLPenoSWDNrxHOGuVdcAlhmO2pN3pt+SdcnX7xuAMWbU41xN1p0TTYLKmm
-	 AOw0LRXFQjHzNtOs2+zf5vdJYkQBkQl36xs1yk8gwKxo9scTrT69eoMmyCNnLFAY3oGI3
-	 UY4nTK+eXWTxwblHmvxc5wlrrqlmdnbH0mDXMwwqwD+fBTacpTl57441VYNhZdThi9OxG
-	 TI4Z/VC2+JgBl2Z28B4lkdGTo+s/CaVej/DExTk0LAy7tvqzEotXMFb4y8rp9LRySmK9X
-	 kGuY7kTaO3zcfuMwRlmsAL/Ydc96F8kwYuCaH78JLHO8azMNMNMV37KKMgK3qwYpakg==
+	t=1795547339;
+	b=TVLdseEBtHaIVcu0EkEd/CbqDMBKgyvEV2srT4LTvOw2GkBHJxyvbVk3/Js5dpg5Ytn1
+	 YsFRFB38ebtlCdw4az1O522B1n9lrmK6zXLGLguYpIvgm6DFlQxicOFSyLJv9r9KhD6Ak
+	 7MkVaJ6PIX/NdXPt2rVM4baBl4aAo7hPWzNQ5IggxfJAgaK3It8/amcBJ5qLsWxTvK/fB
+	 CVeJAaObjUeqWJ47dE6ixlZplROeRIzk6vgZI/ifq5HEuIqvl3buOLQO5ewUTQ4RaUq1c
+	 kX1LPchYtpaMoKc72wohOb56ubVmu566DyrjbCSp2lApCSdy47g5yMAHHv/Vn5DWXiw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795547336;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795547339;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=RIxNnGQXsluZfyKdJJ5v6wxlzKssfEtz9134IsDy91c=;
-	b=R5Wj3PR9X1sQo2kz1sehRCplDFFAgNK3tJM//sbXjIFCPslQ05A3mk9mmrIIBbCBsU/d
-	 mBl5W7472ctpO/s1PnbEmdLGl+yy3YUR7BP9rzAW00k8hn7enNlpT6/LNkoyGVup8mwIV
-	 qnGUtxT8KCVcGpaIAT0XWrphpQykL9Abqc4N0L38C7/3fzPRBfWpoei93hebOum0JsqU5
-	 8Ivkt+rOOvsu3mmVuSangVPm1ne5I3ORSydcJ7+uEj2WzKI/M9yXPT9ENu5b2tpWsU55l
-	 NfhATdyOkfa3gaQ7WR4OLl+KMQ4In3/MG6nFabj8Xz6umj1+LN4igcZ8xQ1edHZZ7pA==
+	bh=7BJJZm25ek693bE/UGHWkug21jWPNSM+VBWRgUhJNLc=;
+	b=HddyNwPBrWtRLe4eC9g0o0WiJ4RhrU6s/9e2ZVElFxXQ1EQK7+Go0XMNgYWydcgdt5ww
+	 RZ6bN2SDflVARtz8cSy2eGoVtkzyplnRAXQvLT/+wM/Kr24Gjlzdcy5XmXwg/sSJNMF59
+	 tzZlV0WCQXzCV7jCHqAORdnGrtyiBg6Jq7P3HjCG4ZFm4WYx59WjCf55xg33VhpvYdpnC
+	 WrnGPVUTwvaKzskePqEQp5I5KgC0L0oVNYVA5x3ZC/v4Nb4k7y8eL5mU/MhGCF9/sv1kS
+	 Gf114phvmAdopJ/UZZXu6DzJ8c/twrdXUqfBDjpn9s6gGhPSv4mKXkwXnyTAJ6f0loQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=AFfgaJIS;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xDmzQtsZ;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30BF1606A337
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 19:08:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00FB2606A31E
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 19:08:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=AFfgaJIS
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EEFC1F000C0;
-	Tue, 24 Nov 2026 19:08:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xDmzQtsZ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DB6E1F000CF;
+	Tue, 24 Nov 2026 19:08:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795547335;
-	bh=RIxNnGQXsluZfyKdJJ5v6wxlzKssfEtz9134IsDy91c=;
+	d=linux-foundation.org; s=korg; t=1795547338;
+	bh=7BJJZm25ek693bE/UGHWkug21jWPNSM+VBWRgUhJNLc=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=AFfgaJISg4l7lf1z9gCen7KpsHiy5L92pv5qP8SGiZDIGL4YGqMHgdDe0p9ynwUYq
-	 OdMbh6HP2CpMVV4tZdtKTsasqXHFCQEPo8s/VL8ujrxSNi8cteeFOtHjpNQAjaT8f/
-	 7HAFUPa3q3k9UzMNxAKx1ugx/iOjJR+4zKsVw7Ao=
-Date: Tue, 24 Nov 2026 11:08:54 -0800
+	b=xDmzQtsZzL9MgcMEPROgeSR4/0qdIzKOIUN4359Dg2mkdQu52ZaER/dts5vjdbSc3
+	 TxvY2PUWIwu5nr9edm5txkzdLKqXN0vqptV9w/HEKlY4IHoCEep4jiIfXGzUhIJ6Sv
+	 TPiIkYpX+2Av46VWDeldsUD+qs63XctE36bx83q4=
+Date: Tue, 24 Nov 2026 11:08:57 -0800
 To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,wei.liu@kernel.org,
 	tglx@kernel.org,sumit.garg@kernel.org,stephen.smalley.work@gmail.com,
 	sstabellini@kernel.org,sshegde@linux.ibm.com,scott.branden@broadcom.com,
@@ -47,18 +47,18 @@ To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,wei.liu@kernel.org,
 	kuba@kernel.org,konradybcio@kernel.org,kameroncarr@linux.microsoft.com,
 	joel@jms.id.au,jgross@suse.com,jens.wiklander@oss.qualcomm.com,
 	jenswi@kernel.org,jasowangio@gmail.com,jarkko@kernel.org,jack@suse.cz,
-	hpa@zytor.com,haiyangz@microsoft.com,gregkh@linuxfoundation.org,
-	eperezma@redhat.com,edumazet@kernel.org,dwmw@amazon.co.uk,
-	decui@microsoft.com,davem@davemloft.net,dave.hansen@linux.intel.com,
-	dave.hansen@intel.com,chleroy@kernel.org,bp@alien8.de,
+	jack@suse.com,hpa@zytor.com,haiyangz@microsoft.com,
+	gregkh@linuxfoundation.org,eperezma@redhat.com,edumazet@kernel.org,
+	dwmw@amazon.co.uk,decui@microsoft.com,davem@davemloft.net,
+	dave.hansen@linux.intel.com,chleroy@kernel.org,bp@alien8.de,
 	billy_tsai@aspeedtech.com,arnd@arndb.de,andrew+netdev@lunn.ch,
 	andrew@codeconstruct.com.au,andersson@kernel.org,abel.vesa@oss.qualcomm.com,
 	ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124-late-2026-mmap_prepare-v2-4-0b0d99d655f9@kernel.org>
-References: <20261124-late-2026-mmap_prepare-v2-4-0b0d99d655f9@kernel.org>
-Subject: + x86-sgx-convert-vepc-mmap-hook-to-mmap_prepare.patch added to mm-new branch
-Message-Id: <20261124190855.6EEFC1F000C0@smtp.kernel.org>
+In-Reply-To: <20261124-late-2026-mmap_prepare-v2-5-0b0d99d655f9@kernel.org>
+References: <20261124-late-2026-mmap_prepare-v2-5-0b0d99d655f9@kernel.org>
+Subject: + udf-convert-mmap-hook-to-mmap_prepare.patch added to mm-new branch
+Message-Id: <20261124190858.5DB6E1F000CF@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -70,12 +70,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: x86/sgx: convert vepc mmap hook to mmap_prepare
+     Subject: udf: convert mmap hook to mmap_prepare
 has been added to the -mm mm-new branch.  Its filename is
-     x86-sgx-convert-vepc-mmap-hook-to-mmap_prepare.patch
+     udf-convert-mmap-hook-to-mmap_prepare.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-sgx-convert-vepc-mmap-hook-to-mmap_prepare.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/udf-convert-mmap-hook-to-mmap_prepare.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -105,18 +105,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: x86/sgx: convert vepc mmap hook to mmap_prepare
-Date: Tue, 24 Nov 2026 14:02:47 +0000
+Subject: udf: convert mmap hook to mmap_prepare
+Date: Tue, 24 Nov 2026 14:02:48 +0000
 
 Move from the deprecated mmap hook to the new mmap_prepare hook. The hook
-only checks that the mapping is shared and sets VMA flags, operations and
-private data.
+only updates the access time and sets the VMA operations.
 
-Link: https://patch.msgid.link/20261124-late-2026-mmap_prepare-v2-4-0b0d99d655f9@kernel.org
+Link: https://patch.msgid.link/20261124-late-2026-mmap_prepare-v2-5-0b0d99d655f9@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Jarkko Sakkinen <jarkko@kernel.org>
-Acked-by: Dave Hansen <dave.hansen@linux.intel.com> # x86 bits
+Reviewed-by: Jan Kara <jack@suse.cz>
 Cc: Juergen Gross <jgross@suse.com>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
@@ -133,10 +131,13 @@ Cc: Michael S. Tsirkin <mst@redhat.com>
 Cc: Jason Wang <jasowangio@gmail.com>
 Cc: Eugenio Pérez <eperezma@redhat.com>
 Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
+Cc: Jarkko Sakkinen <jarkko@kernel.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Thomas Gleixner <tglx@kernel.org>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Jan Kara <jack@suse.com>
 Cc: Paul Moore <paul@paul-moore.com>
 Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
 Cc: Ondrej Mosnáček <omosnacek@gmail.com>
@@ -158,52 +159,39 @@ Cc: Eric Dumazet <edumazet@kernel.org>
 Cc: Jakub Kicinski <kuba@kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>
 Cc: Jens Wiklander <jens.wiklander@oss.qualcomm.com>
-Cc: Jan Kara <jack@suse.cz>
 Cc: Abel Vesa <abel.vesa@oss.qualcomm.com>
 Cc: Kameron Carr <kameroncarr@linux.microsoft.com>
 Cc: Michael Kelley <mhklinux@outlook.com>
 Cc: David Woodhouse <dwmw@amazon.co.uk>
-Cc: Dave Hansen <dave.hansen@intel.com>
 
- arch/x86/kernel/cpu/sgx/virt.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ fs/udf/file.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/arch/x86/kernel/cpu/sgx/virt.c~x86-sgx-convert-vepc-mmap-hook-to-mmap_prepare
-+++ a/arch/x86/kernel/cpu/sgx/virt.c
-@@ -98,17 +98,18 @@ static const struct vm_operations_struct
- 	.fault = sgx_vepc_fault,
- };
+--- a/fs/udf/file.c~udf-convert-mmap-hook-to-mmap_prepare
++++ a/fs/udf/file.c
+@@ -190,10 +190,10 @@ static int udf_release_file(struct inode
+ 	return 0;
+ }
  
--static int sgx_vepc_mmap(struct file *file, struct vm_area_struct *vma)
-+static int sgx_vepc_mmap_prepare(struct vm_area_desc *desc)
+-static int udf_file_mmap(struct file *file, struct vm_area_struct *vma)
++static int udf_file_mmap_prepare(struct vm_area_desc *desc)
  {
--	struct sgx_vepc *vepc = file->private_data;
-+	struct sgx_vepc *vepc = desc->file->private_data;
- 
--	if (!(vma->vm_flags & VM_SHARED))
-+	if (!vma_desc_test(desc, VMA_SHARED_BIT))
- 		return -EINVAL;
- 
--	vma->vm_ops = &sgx_vepc_vm_ops;
-+	desc->vm_ops = &sgx_vepc_vm_ops;
- 	/* Don't copy VMA in fork() */
--	vm_flags_set(vma, VM_PFNMAP | VM_IO | VM_DONTDUMP | VM_DONTCOPY);
--	vma->vm_private_data = vepc;
-+	vma_desc_set_flags(desc, VMA_PFNMAP_BIT, VMA_IO_BIT, VMA_DONTDUMP_BIT,
-+			   VMA_DONTCOPY_BIT);
-+	desc->private_data = vepc;
+-	file_accessed(file);
+-	vma->vm_ops = &udf_file_vm_ops;
++	file_accessed(desc->file);
++	desc->vm_ops = &udf_file_vm_ops;
  
  	return 0;
  }
-@@ -315,7 +316,7 @@ static const struct file_operations sgx_
- 	.unlocked_ioctl	= sgx_vepc_ioctl,
- 	.compat_ioctl	= sgx_vepc_ioctl,
- 	.release	= sgx_vepc_release,
--	.mmap		= sgx_vepc_mmap,
-+	.mmap_prepare	= sgx_vepc_mmap_prepare,
- };
- 
- static struct miscdevice sgx_vepc_dev = {
+@@ -202,7 +202,7 @@ const struct file_operations udf_file_op
+ 	.read_iter		= generic_file_read_iter,
+ 	.unlocked_ioctl		= udf_ioctl,
+ 	.open			= generic_file_open,
+-	.mmap			= udf_file_mmap,
++	.mmap_prepare		= udf_file_mmap_prepare,
+ 	.write_iter		= udf_file_write_iter,
+ 	.release		= udf_release_file,
+ 	.fsync			= simple_fsync,
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
