@@ -1,42 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795547339;
-	b=TVLdseEBtHaIVcu0EkEd/CbqDMBKgyvEV2srT4LTvOw2GkBHJxyvbVk3/Js5dpg5Ytn1
-	 YsFRFB38ebtlCdw4az1O522B1n9lrmK6zXLGLguYpIvgm6DFlQxicOFSyLJv9r9KhD6Ak
-	 7MkVaJ6PIX/NdXPt2rVM4baBl4aAo7hPWzNQ5IggxfJAgaK3It8/amcBJ5qLsWxTvK/fB
-	 CVeJAaObjUeqWJ47dE6ixlZplROeRIzk6vgZI/ifq5HEuIqvl3buOLQO5ewUTQ4RaUq1c
-	 kX1LPchYtpaMoKc72wohOb56ubVmu566DyrjbCSp2lApCSdy47g5yMAHHv/Vn5DWXiw==
+	t=1795547342;
+	b=kuKrd8LD2VlCu+Fkp371G/szNKJnW6iuPtO3wmqMUG7i/My9ZFjHfXjXVsqrlNr8SPza
+	 uzAamavYBT2jU+YzP3CvXkpWnVrtFadirA65IixQ8oAYV5ZXUou03XxnDQde0yFVYBf7u
+	 qtPtcvP/DjAxnKy1qjWxerqeTW2w/fI7msRgkor7jAQoFhmkOew0NvOZw5C/jO+uWgG2F
+	 bh37t/Ux07UJmMzcqGY7MC0xc82aHEBaE9eGq7iXs3/qPvR64kDWhMhWQ2/LZCw15eIbv
+	 7t259n4sFJTx31o5B2hhONKawgrDtyz7o78LNdpEMShUIbRFBS3ZmEBx8LE/VqMsRMg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795547339;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795547342;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=7BJJZm25ek693bE/UGHWkug21jWPNSM+VBWRgUhJNLc=;
-	b=HddyNwPBrWtRLe4eC9g0o0WiJ4RhrU6s/9e2ZVElFxXQ1EQK7+Go0XMNgYWydcgdt5ww
-	 RZ6bN2SDflVARtz8cSy2eGoVtkzyplnRAXQvLT/+wM/Kr24Gjlzdcy5XmXwg/sSJNMF59
-	 tzZlV0WCQXzCV7jCHqAORdnGrtyiBg6Jq7P3HjCG4ZFm4WYx59WjCf55xg33VhpvYdpnC
-	 WrnGPVUTwvaKzskePqEQp5I5KgC0L0oVNYVA5x3ZC/v4Nb4k7y8eL5mU/MhGCF9/sv1kS
-	 Gf114phvmAdopJ/UZZXu6DzJ8c/twrdXUqfBDjpn9s6gGhPSv4mKXkwXnyTAJ6f0loQ==
+	bh=Gi9pD5i53puE/lMKx3b0NUaEYFknAOuYUU20fljwxFQ=;
+	b=2gSW1ahMDgpxiTp4NcztsEcwFTtQjcCcBreW5LIGsXP0U5GAsDXB+QwN28idnhVqF8BJ
+	 4DlKsd4OxexVVGzkSLwDFVtJaP5HGgvtDqp2eJWE0eq3qWlnfe38m1n+uKYW2BwPOg1zo
+	 pQS3RoqfGzcBnA6wcBJHXcoI4kNerF4E/ig6TBZoHkn0DA3FTscNPLR1GVjHpvHpvXFEf
+	 czaBjbcfwL8+PQAp77C/juKus4moroU21K1JryBVxWdvyEeA+JBdJD50NDNwupbT7Lf5z
+	 U5tVNOld+j23h+6A/f2yYNt86twI/earjsQd61HRTxOQDtPUzjbuTqt8M36jRlivjDA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xDmzQtsZ;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=X26GaPrz;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00FB2606A31E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 19:08:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19820606A326
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 19:09:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xDmzQtsZ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DB6E1F000CF;
-	Tue, 24 Nov 2026 19:08:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=X26GaPrz
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 600741F000CA;
+	Tue, 24 Nov 2026 19:09:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795547338;
-	bh=7BJJZm25ek693bE/UGHWkug21jWPNSM+VBWRgUhJNLc=;
+	d=linux-foundation.org; s=korg; t=1795547341;
+	bh=Gi9pD5i53puE/lMKx3b0NUaEYFknAOuYUU20fljwxFQ=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=xDmzQtsZzL9MgcMEPROgeSR4/0qdIzKOIUN4359Dg2mkdQu52ZaER/dts5vjdbSc3
-	 TxvY2PUWIwu5nr9edm5txkzdLKqXN0vqptV9w/HEKlY4IHoCEep4jiIfXGzUhIJ6Sv
-	 TPiIkYpX+2Av46VWDeldsUD+qs63XctE36bx83q4=
-Date: Tue, 24 Nov 2026 11:08:57 -0800
+	b=X26GaPrzHGsRo1RTgkoqtzsqWKhyGNmIId02yj2nR6LKUrNyix4vF0SDFtJR2epv7
+	 +GL4rtYzz/eUKg4rdXevnYEMkz19M8WG+vOaCsVsMMdgrjOHHkoUpPSrdWdiu/MGEz
+	 vl36lPEO2JDpDw5UzLc6Q9qSenEhwP9vTpHEpC0c=
+Date: Tue, 24 Nov 2026 11:09:00 -0800
 To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,wei.liu@kernel.org,
 	tglx@kernel.org,sumit.garg@kernel.org,stephen.smalley.work@gmail.com,
 	sstabellini@kernel.org,sshegde@linux.ibm.com,scott.branden@broadcom.com,
@@ -47,18 +47,17 @@ To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,wei.liu@kernel.org,
 	kuba@kernel.org,konradybcio@kernel.org,kameroncarr@linux.microsoft.com,
 	joel@jms.id.au,jgross@suse.com,jens.wiklander@oss.qualcomm.com,
 	jenswi@kernel.org,jasowangio@gmail.com,jarkko@kernel.org,jack@suse.cz,
-	jack@suse.com,hpa@zytor.com,haiyangz@microsoft.com,
-	gregkh@linuxfoundation.org,eperezma@redhat.com,edumazet@kernel.org,
-	dwmw@amazon.co.uk,decui@microsoft.com,davem@davemloft.net,
-	dave.hansen@linux.intel.com,chleroy@kernel.org,bp@alien8.de,
-	billy_tsai@aspeedtech.com,arnd@arndb.de,andrew+netdev@lunn.ch,
-	andrew@codeconstruct.com.au,andersson@kernel.org,abel.vesa@oss.qualcomm.com,
-	ljs@kernel.org,akpm@linux-foundation.org
+	hpa@zytor.com,haiyangz@microsoft.com,gregkh@linuxfoundation.org,
+	eperezma@redhat.com,edumazet@kernel.org,dwmw@amazon.co.uk,
+	decui@microsoft.com,davem@davemloft.net,dave.hansen@linux.intel.com,
+	chleroy@kernel.org,bp@alien8.de,billy_tsai@aspeedtech.com,arnd@arndb.de,
+	andrew+netdev@lunn.ch,andrew@codeconstruct.com.au,andersson@kernel.org,
+	abel.vesa@oss.qualcomm.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124-late-2026-mmap_prepare-v2-5-0b0d99d655f9@kernel.org>
-References: <20261124-late-2026-mmap_prepare-v2-5-0b0d99d655f9@kernel.org>
-Subject: + udf-convert-mmap-hook-to-mmap_prepare.patch added to mm-new branch
-Message-Id: <20261124190858.5DB6E1F000CF@smtp.kernel.org>
+In-Reply-To: <20261124-late-2026-mmap_prepare-v2-6-0b0d99d655f9@kernel.org>
+References: <20261124-late-2026-mmap_prepare-v2-6-0b0d99d655f9@kernel.org>
+Subject: + selinuxfs-convert-mmap-hooks-to-mmap_prepare.patch added to mm-new branch
+Message-Id: <20261124190901.600741F000CA@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -70,12 +69,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: udf: convert mmap hook to mmap_prepare
+     Subject: selinuxfs: convert mmap hooks to mmap_prepare
 has been added to the -mm mm-new branch.  Its filename is
-     udf-convert-mmap-hook-to-mmap_prepare.patch
+     selinuxfs-convert-mmap-hooks-to-mmap_prepare.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/udf-convert-mmap-hook-to-mmap_prepare.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selinuxfs-convert-mmap-hooks-to-mmap_prepare.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -105,16 +104,19 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: udf: convert mmap hook to mmap_prepare
-Date: Tue, 24 Nov 2026 14:02:48 +0000
+Subject: selinuxfs: convert mmap hooks to mmap_prepare
+Date: Tue, 24 Nov 2026 14:02:49 +0000
 
-Move from the deprecated mmap hook to the new mmap_prepare hook. The hook
-only updates the access time and sets the VMA operations.
+Move from the deprecated mmap hook to the new mmap_prepare hook for the
+policy and status files.
 
-Link: https://patch.msgid.link/20261124-late-2026-mmap_prepare-v2-5-0b0d99d655f9@kernel.org
+The policy file only sets VMA flags and operations. The status file remaps
+a single page, so use the PFN remap mmap action to do so.
+
+Link: https://patch.msgid.link/20261124-late-2026-mmap_prepare-v2-6-0b0d99d655f9@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Acked-by: Paul Moore <paul@paul-moore.com>
 Cc: Juergen Gross <jgross@suse.com>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
@@ -137,8 +139,6 @@ Cc: Thomas Gleixner <tglx@kernel.org>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Jan Kara <jack@suse.com>
-Cc: Paul Moore <paul@paul-moore.com>
 Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
 Cc: Ondrej Mosnáček <omosnacek@gmail.com>
 Cc: Joel Stanley <joel@jms.id.au>
@@ -159,39 +159,75 @@ Cc: Eric Dumazet <edumazet@kernel.org>
 Cc: Jakub Kicinski <kuba@kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>
 Cc: Jens Wiklander <jens.wiklander@oss.qualcomm.com>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Abel Vesa <abel.vesa@oss.qualcomm.com>
 Cc: Kameron Carr <kameroncarr@linux.microsoft.com>
 Cc: Michael Kelley <mhklinux@outlook.com>
 Cc: David Woodhouse <dwmw@amazon.co.uk>
 
- fs/udf/file.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ security/selinux/selinuxfs.c |   24 +++++++++++-------------
+ 1 file changed, 11 insertions(+), 13 deletions(-)
 
---- a/fs/udf/file.c~udf-convert-mmap-hook-to-mmap_prepare
-+++ a/fs/udf/file.c
-@@ -190,10 +190,10 @@ static int udf_release_file(struct inode
- 	return 0;
+--- a/security/selinux/selinuxfs.c~selinuxfs-convert-mmap-hooks-to-mmap_prepare
++++ a/security/selinux/selinuxfs.c
+@@ -236,27 +236,25 @@ static ssize_t sel_read_handle_status(st
+ 				       sizeof(struct selinux_kernel_status));
  }
  
--static int udf_file_mmap(struct file *file, struct vm_area_struct *vma)
-+static int udf_file_mmap_prepare(struct vm_area_desc *desc)
+-static int sel_mmap_handle_status(struct file *filp,
+-				  struct vm_area_struct *vma)
++static int sel_mmap_prepare_handle_status(struct vm_area_desc *desc)
  {
--	file_accessed(file);
--	vma->vm_ops = &udf_file_vm_ops;
-+	file_accessed(desc->file);
-+	desc->vm_ops = &udf_file_vm_ops;
+-	struct page    *status = filp->private_data;
+-	unsigned long	size = vma->vm_end - vma->vm_start;
++	struct page    *status = desc->file->private_data;
+ 
+ 	BUG_ON(!status);
+ 
+ 	/* only allows one page from the head */
+-	if (vma->vm_pgoff > 0 || size != PAGE_SIZE)
++	if (desc->pgoff > 0 || vma_desc_size(desc) != PAGE_SIZE)
+ 		return -EIO;
+ 
+-	return remap_pfn_range(vma, vma->vm_start,
+-			       page_to_pfn(status),
+-			       size, vma->vm_page_prot);
++	mmap_action_remap_full(desc, page_to_pfn(status));
++
++	return 0;
+ }
+ 
+ static const struct file_operations sel_handle_status_ops = {
+ 	.open		= sel_open_handle_status,
+ 	.read		= sel_read_handle_status,
+-	.mmap		= sel_mmap_handle_status,
++	.mmap_prepare	= sel_mmap_prepare_handle_status,
+ 	.llseek		= generic_file_llseek,
+ };
+ 
+@@ -419,10 +417,10 @@ static const struct vm_operations_struct
+ 	.page_mkwrite = sel_mmap_policy_fault,
+ };
+ 
+-static int sel_mmap_policy(struct file *filp, struct vm_area_struct *vma)
++static int sel_mmap_prepare_policy(struct vm_area_desc *desc)
+ {
+-	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP);
+-	vma->vm_ops = &sel_mmap_policy_ops;
++	vma_desc_set_flags(desc, VMA_DONTEXPAND_BIT, VMA_DONTDUMP_BIT);
++	desc->vm_ops = &sel_mmap_policy_ops;
  
  	return 0;
  }
-@@ -202,7 +202,7 @@ const struct file_operations udf_file_op
- 	.read_iter		= generic_file_read_iter,
- 	.unlocked_ioctl		= udf_ioctl,
- 	.open			= generic_file_open,
--	.mmap			= udf_file_mmap,
-+	.mmap_prepare		= udf_file_mmap_prepare,
- 	.write_iter		= udf_file_write_iter,
- 	.release		= udf_release_file,
- 	.fsync			= simple_fsync,
+@@ -430,7 +428,7 @@ static int sel_mmap_policy(struct file *
+ static const struct file_operations sel_policy_ops = {
+ 	.open		= sel_open_policy,
+ 	.read		= sel_read_policy,
+-	.mmap		= sel_mmap_policy,
++	.mmap_prepare	= sel_mmap_prepare_policy,
+ 	.release	= sel_release_policy,
+ 	.llseek		= generic_file_llseek,
+ };
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
