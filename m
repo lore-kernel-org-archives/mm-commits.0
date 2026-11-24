@@ -1,55 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795562982;
-	b=2fmLCGOFXMFl1wZ/6q5gQlaAt4P/aTErwc//ItpCJWCcSPg+EwpkENi64v8xqBHCeH26
-	 tpBAkyj3Oa2VCLA+SBTP3Lk4Jx5xCUaDDnytQAs+ZX3YZk9SCa6AcZ/QaIQkL+s1n6Bxz
-	 3zCMPpGZ9AqqD/DR7LNGaoXR5L8nRUf4BK07d7MSEc7eQ11egTADEVwMFt16UlO2jYF0+
-	 Ze8ipTyNePaVaKD9Evl5gKo51PaQttQPD/8etL+zRLlLKH0VxmMGuHXc6R8vUrIxTFfR3
-	 zVCGPN6s7tVMyM3Kd+CvypUm6RZp356LyEwrS30sMzebBtFIpfItgWmonMicwYl2ayw==
+	t=1795563245;
+	b=APJVHg6dxJAs7jsQGbAQahZmkLMTis1dTd40gvBzCkleDtpwE2Z98fH51hEKpaiM+iZT
+	 W7FmwpFYaUii6zfUSeyT1cAm2a12nUj6kgLSOw3b1xt4vOA4BdhWJ6oZKwkG4b57avZJi
+	 /M0fnpYfcQc7bykSAOOsHoI0S54AgHhz5BXcNxEvWhlMTjACEedt1Cm1aKrpNAzM/8HGK
+	 fAkLeEIKM82rt5Yap6kPz7/9bg7kqKpWsHBq3eBWRk4XvB2/2ePSBtj8lrc/At5kbH/0j
+	 AEKf7AnX2LRQYL79QQ4X//lUjFfPsm+9o1ZH8gdDJFSf3FUqP7j8AiVkD0LA1lDubmg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795562982;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795563245;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=RjvB5DGQveRYmZK17YSm5fVmzri5qVSLARz1TpILN7g=;
-	b=QBL3O3/+R45/PmCPeXQIHkpMi5jCKt6v/83lUd2rTnzMRR/S0Ijwse+WpjeAnhmnX4A0
-	 hE82DEFJ8mTv7BOacvEJtAd3pbpdUVT2qC83QM7c5RFIyjTI544BF5QPvN1Ax1p4PEUU2
-	 fmLbqJBxCpEpmL/Z0jjhvj7ij7C7SL4nV94fvO5a2UpLMoiuo8NM0Zw2xSKG2us1CPrDI
-	 Gk9wyIaFsk+ABMmTsC4zho2kki+l2M+j01brzEYbOPv3RbC4KmHRvlUseOtAnwvBKB2jS
-	 Zsff7wesBJphWSAVA/9PXvIJ1d2+g+DECnK0dKQgF3sWl3lrU8bucyWytYRXw5nRitQ==
+	bh=LoX4e9LB5wW7p8QXBM30MIPyUrixWQHAyI+jO6IxGYo=;
+	b=xVjBHQoTTXXQHuUrg44rBD8FotUdHtKWJmvVgMHspgja1VT3GwRVAoQkbIbQ2rEgiRSe
+	 zKrBPM5gnvvASXFT3v0f4loobDHaVlowCnnDH4sB4g62mknPuC0oNntOLcdavMztGwio+
+	 07Dwp8/LzmQqWM3MN+LD/OvA2R65awj9jXwJEm2QX0TffOrDMLC3z5SJJtr91T+DIYk1g
+	 F39fAt50a51qpq+937PuYqk9rwmWizUSc/x8rONW4op75IjlkC2G+NP68bIhdm5AD7Wt3
+	 UvKVVZPhirZTClKprsGjYcA4H/bRhsGJz0bBFDKF2CjWWhfX5UHXQ1nB+OPcynUOCOw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=asmFhzMk;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="Ss6sZ/aD";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 355E1606A31E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 23:29:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64E60606A31E
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 23:34:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=asmFhzMk
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B16B31F000D2;
-	Tue, 24 Nov 2026 23:29:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ss6sZ/aD
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 103281F000CA;
+	Tue, 24 Nov 2026 23:34:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795562981;
-	bh=RjvB5DGQveRYmZK17YSm5fVmzri5qVSLARz1TpILN7g=;
+	d=linux-foundation.org; s=korg; t=1795563245;
+	bh=LoX4e9LB5wW7p8QXBM30MIPyUrixWQHAyI+jO6IxGYo=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=asmFhzMkvA0gEJKEK0xVrSDkaIbBXptF1GCCa9EGmyQ8WtaF706k4CZeKTomy5H3B
-	 2oQGkKNRt1v7JH9ekoedWvU66KrTFxkSIi8i5N88e2eR+cicsaxcU8Ra+CsF24KB2e
-	 9X7IIlCL0HmwOEmA2diwTorkEfjvVM1tW/XZl6CM=
-Date: Tue, 24 Nov 2026 15:29:41 -0800
-To: mm-commits@vger.kernel.org,xu.xin@linux.dev,willy@infradead.org,
-	vbabka@kernel.org,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,
-	pfalcato@suse.de,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,
-	kees@kernel.org,josef@toxicpanda.com,joey.gouly@arm.com,jannh@google.com,
-	hughd@google.com,gourry@gourry.net,david@kernel.org,chengming.zhou@linux.dev,
-	catalin.marinas@arm.com,bunk@stusta.de,azpijr@gmail.com,
-	a.p.zijlstra@chello.nl,aaw@google.com,mason@kernel.org,
-	akpm@linux-foundation.org
+	b=Ss6sZ/aDJFeKEyoDqwPwLKHL9zGIkiNAN1dlJD0UPTEzb5TjW84U9xYUAdkqEt262
+	 UrrGKAelXOGS7i5Dn79I3qW9wQuJsS6FhLQxWETDCErKOg6UMTua4gbeBdETDU03Xs
+	 WAF2nO6cqEMR5t1d/mrv4jNoU7/UFZQ+GvNSUef0=
+Date: Tue, 24 Nov 2026 15:34:04 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
+	shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,peterx@redhat.com,
+	mhocko@suse.com,lokeshgidra@google.com,ljs@kernel.org,liam@infradead.org,
+	david@kernel.org,kaleshsingh@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261121-some-more-ai-fixes-v1-7-236e925d9b64@kernel.org>
-References: <20261121-some-more-ai-fixes-v1-7-236e925d9b64@kernel.org>
-Subject: + mm-vma-make-brk-mappings-non-executable-under-mdwe.patch added to mm-new branch
-Message-Id: <20261124232941.B16B31F000D2@smtp.kernel.org>
+In-Reply-To: <20261122082020.1255434-2-kaleshsingh@google.com>
+References: <20261122082020.1255434-2-kaleshsingh@google.com>
+Subject: + selftests-mm-uffd-wp-mremap-skip-unsupported-shmem-and-hugetlb-cases.patch added to mm-new branch
+Message-Id: <20261124233405.103281F000CA@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -61,12 +57,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/vma: make brk mappings non-executable under MDWE
+     Subject: selftests/mm: uffd-wp-mremap: skip unsupported shmem and hugetlb cases
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vma-make-brk-mappings-non-executable-under-mdwe.patch
+     selftests-mm-uffd-wp-mremap-skip-unsupported-shmem-and-hugetlb-cases.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-make-brk-mappings-non-executable-under-mdwe.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-uffd-wp-mremap-skip-unsupported-shmem-and-hugetlb-cases.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -95,97 +91,91 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Chris Mason <mason@kernel.org>
-Subject: mm/vma: make brk mappings non-executable under MDWE
-Date: Sat, 21 Nov 2026 16:02:33 +0000
+From: Kalesh Singh <kaleshsingh@google.com>
+Subject: selftests/mm: uffd-wp-mremap: skip unsupported shmem and hugetlb cases
+Date: Sun, 22 Nov 2026 08:20:17 +0000
 
-With PR_SET_MDWE in effect, brk() and the ELF loader can still create
-anonymous mappings that are both writable and executable.
+Patch series "selftests/mm: fix userfaultfd tests with
+CONFIG_PTE_MARKER_UFFD_WP=n".
 
-MDWE only holds if every path that decides the flags of a VMA asks
-map_deny_write_exec(). mmap_region() and do_mprotect_pkey() do, but
-do_brk_flags() does not. It always sets VMA_WRITE_BIT, and it gets
-VMA_EXEC_BIT in any of these cases:
+With CONFIG_PTE_MARKER_UFFD_WP=n, userfaultfd write protection only works
+on anonymous memory.  uffd-wp-mremap then fails its shmem and hugetlb
+cases, and uffd-unit-tests skips anonymous runs that would pass.  Patch 1
+skips the unsupported uffd-wp-mremap cases and patch 2 filters
+uffd-unit-tests' required features per memory type.
 
-    VMA_DATA_DEFAULT_FLAGS is
-      VMA_DATA_FLAGS_TSK_EXEC    the personality has READ_IMPLIES_EXEC
-                                 (e.g. x86, arm, arm64, mips)
-      VMA_DATA_FLAGS_EXEC        always
-                                 (the default, e.g. m68k, sh, sparc)
-    vm_brk_flags(is_exec)        elf_load() of a PT_LOAD with PF_X and
-                                 p_memsz > p_filesz
+Tested on arm64 device: with CONFIG_PTE_MARKER_UFFD_WP=n,
+uffd-wp-mremap goes from 26 failures to none and uffd-unit-tests
+passes 78 tests instead of 70; with =y, the results are unchanged.
 
-Fix the issue by dropping VMA_EXEC_BIT if MDWE is in effect, so that
-brk() and execve() keep working where the bit is only a default.
 
-Under MDWE, a task that runs code from its heap, or from the part of an
-executable PT_LOAD beyond p_filesz, now gets SIGSEGV in the cases above.
+This patch (of 2):
 
-mprotect(PROT_READ | PROT_EXEC) on these mappings now fails with
--EACCES. While the personality has READ_IMPLIES_EXEC, so does
-mprotect(PROT_READ), as on any other anonymous mapping that is not
-executable.
+uffd-wp-mremap checks only for UFFD_FEATURE_PAGEFAULT_FLAG_WP before it
+runs. With CONFIG_PTE_MARKER_UFFD_WP=n the kernel keeps that feature
+but supports write protection on anonymous memory only, so the shmem
+and hugetlb cases fail with EINVAL from UFFDIO_REGISTER instead of
+skipping. Skip them when UFFD_FEATURE_WP_HUGETLBFS_SHMEM is missing.
 
-[ljs@kernel.org: switched to MMF_HAS_MDWE test, tweaked commit msg]
-Link: https://patch.msgid.link/20261121-some-more-ai-fixes-v1-7-236e925d9b64@kernel.org
-Fixes: b507808ebce2 ("mm: implement memory-deny-write-execute as a prctl")
-Signed-off-by: Chris Mason <mason@kernel.org>
-Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Link: https://lore.kernel.org/20261122082020.1255434-1-kaleshsingh@google.com
+Link: https://patch.msgid.link/20261122082020.1255434-2-kaleshsingh@google.com
+Fixes: b2466bb3b495 ("selftests/mm: introduce uffd-wp-mremap regression test")
+Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Tested-by: Gregory Price (Meta) <gourry@gourry.net>
-  Link: https://lore.kernel.org/179536252140.412063.16869457803147347876.b4-reply@b4
-Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
-Reviewed-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ollie Wild <aaw@google.com>
-Cc: Adrian Bunk <bunk@stusta.de>
-Cc: Xu Xin <xu.xin@linux.dev>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Reviewed-by: Liam R. Howlett (Google) <liam@infradead.org>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
 Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Joey Gouly <joey.gouly@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 
- mm/vma.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ tools/testing/selftests/mm/uffd-wp-mremap.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
---- a/mm/vma.c~mm-vma-make-brk-mappings-non-executable-under-mdwe
-+++ a/mm/vma.c
-@@ -3235,6 +3235,10 @@ int do_brk_flags(struct vma_iterator *vm
- 	vma_flags_set(&vma_flags, VMA_ACCOUNT_BIT);
- 	vma_flags_set_mask(&vma_flags, mm->def_vma_flags);
+--- a/tools/testing/selftests/mm/uffd-wp-mremap.c~selftests-mm-uffd-wp-mremap-skip-unsupported-shmem-and-hugetlb-cases
++++ a/tools/testing/selftests/mm/uffd-wp-mremap.c
+@@ -18,15 +18,14 @@ static int nr_thpsizes;
+ static unsigned long thpsizes[20];
+ static int nr_hugetlbsizes;
+ static unsigned long hugetlbsizes[10];
++static uint64_t uffd_features;
  
-+	/* The flags are implied, so under MDWE drop exec rather than fail. */
-+	if (mm_flags_test(MMF_HAS_MDWE, mm))
-+		vma_flags_clear(&vma_flags, VMA_EXEC_BIT);
+ static void check_uffd_wp_feature_supported(void)
+ {
+-	uint64_t features = 0;
+-
+-	if (uffd_get_features(&features))
++	if (uffd_get_features(&uffd_features))
+ 		ksft_exit_skip("failed to get available features (%d)\n", errno);
+ 
+-	if (!(features & UFFD_FEATURE_PAGEFAULT_FLAG_WP))
++	if (!(uffd_features & UFFD_FEATURE_PAGEFAULT_FLAG_WP))
+ 		ksft_exit_skip("uffd-wp feature not supported\n");
+ }
+ 
+@@ -180,6 +179,12 @@ static void test_one_folio(uffd_global_t
+ 				swapout ? "true" : "false",
+ 				hugetlb ? "true" : "false");
+ 
++	if ((!private || hugetlb) &&
++	    !(uffd_features & UFFD_FEATURE_WP_HUGETLBFS_SHMEM)) {
++		ksft_test_result_skip("uffd-wp on shmem and hugetlbfs is not supported\n");
++		return;
++	}
 +
- 	vma_flags = ksm_vma_flags(mm, NULL, vma_flags);
- 	if (!may_expand_vm(mm, &vma_flags, len >> PAGE_SHIFT))
- 		return -ENOMEM;
+ 	/* Allocate a folio of required size and type. */
+ 	mem = alloc_one_folio(size, private, hugetlb);
+ 	if (!mem) {
 _
 
-Patches currently in -mm which might be from mason@kernel.org are
+Patches currently in -mm which might be from kaleshsingh@google.com are
 
-mm-swap-fix-large-swap-in-across-swap-file-extents.patch
-hugetlbfs-do-not-grow-a-sealed-file-in-mmap.patch
-mm-hugetlb-keep-surplus-folios-that-are-reserved.patch
-mm-hugetlb-fix-reservation-leak-on-min_size=-mounts.patch
-mm-cachestat-count-each-page-only-once.patch
-mm-cachestat-restart-the-walk-after-each-entry.patch
-percpu-queue-the-balance-work-on-an-unbound-workqueue.patch
-mm-vma-fix-uncharge-after-failed-stack-relocation.patch
-mm-mremap-apply-the-mmap-offset-limits-on-expansion.patch
-mm-mremap-respect-guard-gaps-on-in-place-expansion.patch
-mm-vma-make-brk-mappings-non-executable-under-mdwe.patch
+mm-swap-make-swap_header-badpages-a-flexible-array.patch
+selftests-mm-uffd-wp-mremap-skip-unsupported-shmem-and-hugetlb-cases.patch
+selftests-mm-uffd-unit-tests-filter-required-features-per-memory-type.patch
 
