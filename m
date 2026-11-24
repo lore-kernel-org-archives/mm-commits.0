@@ -1,50 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795541024;
-	b=nzzU2vEeKKlpKeZqOrOxgTDkWuaUuB1qxw6aJsaXcPcOm+8IKWp/TvbxziCZxbxsLJa3
-	 /XmldM1QSeFMLGnop6KXVhbuT7T8gG3ZPmHsKaPglunA01OxhLM+v6v4sSjkYwrT5S5xg
-	 0B4AbnHjzAZAb9gZ9XkVf6X9/MsaDj0xJeAq8NKRMY2AKGvscec+8qC2H1uHkHEQpe0rA
-	 x+tQCj8kOv4tkcM7wmF7nlZ9MegdT39iIrgAO4/brv4Mr6TWRZI/VBbAl/+1Q0TRVNKid
-	 kiuZGYDgzl+aFdOajQ1TYIwdJ+Qc8Gf8HgOIPYvQzLr1kUJyqWK5zcuw0dau61gEYZQ==
+	t=1795541027;
+	b=wAdpWbcpWGvVeIUFdyiJHcGo/1mj26NRnyy2/YRslVNZagpvZANAmnB11MvLRKgZ7Kl3
+	 2dutX7AHuGh1hr7wZ2FtKDPHprX0XI0OAIkvg2/O7Y3l58KQ/sMVEpKlekoB+RppCn5wn
+	 cU76XXKCXpC/r8Qbk0njnOBu45RGOAtBBxR93FVXkcydXws9+TQCTfjaVrYiQ5eOX3mIN
+	 i+FK2Yl23Qx+gjPe8gJ6rVJM2ru3eLttQJC6SGOaAzQrF/2dV3GrMycTkHiaSm3qkA4P7
+	 GtQClGqTdJB4oEWmLUB2Qk3UOhxbZ1mfJsczODi1fIvZYJzNDB4kQYpT8pIxuOXddZg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795541024;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795541027;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=pvys2uR21mLwa4o46sqWGSv+5ycaHPPLMGZkn4SoMwA=;
-	b=xcFTw7cAiplPWOdsvTwbziB9Z3w3y2j8imDUaCEFqMth7PrXIGB72Q8+fQCzBKdrq6YK
-	 Hv9dqSrMSV592xedI3z2QnBSsfTG3Vpsh6JBoMeoLMJYvgBFEpng8ZnkdMCzv2MNc84/z
-	 Aq+mipY92l71ro5Kz3wntrgufocoNjmeiJP9BevoRsJdL6PNw0G/mFzCTy1FvIMfm9DBe
-	 LJj6P+ASDbJYhvtej4gcg4dM4AJ+ABn4OwGJpzCulQ0jw1RlgZTnFveOHcYOOPwdLzWum
-	 6+ilfOMyH2+c2GcL6nZaFgIcVcig/VNIvcj5BhsE9ANQjZc4mnVI30B4ZKwf5pT6T5w==
+	bh=l3vAEolwoSySyU0nYQPdvhfvbu900Pymop9/o9Dt4WU=;
+	b=dQu+4tyVVAt8sk2bYkZXsUkJclx9rPUE6eLieFFHu2lpx8UiZam/z2XvEnYcgbwvjEkZ
+	 0XZG8WQ8PX67mPoQlr4dcmh+JVKRYcbBz3qdjdzNyrTGeMnJE3kV189LloTNsl6kUGI+N
+	 V4Dke2Uwi4OBNTfVqw4j1v2xIk3ukA0AeTFubPpvD/vjJ9nR2YFwlKA13pt60+P1++Zt/
+	 V/bsZImvl8szWGveb7aJ5tFw4aznXGjaEXJ6gbZ+cuS/6X3olXFV6if68fOTCMjAO5Rx7
+	 TVttGirvrt1hgZBJPTCzG06iVLbJ/KW+wzEqQIipdRhaqnApLdyxvw9yMm/U0xTX05A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=sbrDzR6z;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=KQ9j4N68;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3098606A327
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:23:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94F3B606A31E
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:23:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=sbrDzR6z
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 581921F000C0;
-	Tue, 24 Nov 2026 17:23:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=KQ9j4N68
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC90C1F000C6;
+	Tue, 24 Nov 2026 17:23:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795541024;
-	bh=pvys2uR21mLwa4o46sqWGSv+5ycaHPPLMGZkn4SoMwA=;
+	d=linux-foundation.org; s=korg; t=1795541027;
+	bh=l3vAEolwoSySyU0nYQPdvhfvbu900Pymop9/o9Dt4WU=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=sbrDzR6zeg5njKjKcpQJUUdxNtzOabcFOMMxgzuPxSvN4I13Ejkpgys4a2ui/nzjn
-	 jWdy9Au9eUKSpeUdJCyaz2+91L0sgwJjX3qybqA2DUOR9XZo5HX7NC0V/2p/KWxRGC
-	 jVe5igHdreSvpQSuuA+FoxyKDINj4eWBV1AvgpEA=
-Date: Tue, 24 Nov 2026 09:23:43 -0800
-To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,
-	rdunlap@infradead.org,lianux.mm@gmail.com,jm5905938@gmail.com,corbet@lwn.net,
+	b=KQ9j4N68TAGAi5aR6v5WJs9AGxH5z/9fCcqmTTlIXdpKBuK+PybX/1uIHGrVJ3mRB
+	 Bgbu8rpBdC/jeeM7AO29ekUWFV03wE+tFYYgJU+LU9pEXWjTV1DOac9gG+j5qCi4Yl
+	 sjlbAaj4VqL7jtoEDfTu6X532xBvFqcd8wV6vblk=
+Date: Tue, 24 Nov 2026 09:23:46 -0800
+To: mm-commits@vger.kernel.org,lianux.mm@gmail.com,jm5905938@gmail.com,
 	sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124153636.91854-19-sj@kernel.org>
-References: <20261124153636.91854-19-sj@kernel.org>
-Subject: + docs-admin-guide-mm-damon-usage-update-for-report_made-probe-filter.patch added to mm-new branch
-Message-Id: <20261124172344.581921F000C0@smtp.kernel.org>
+In-Reply-To: <20261124153636.91854-20-sj@kernel.org>
+References: <20261124153636.91854-20-sj@kernel.org>
+Subject: + docs-abi-damon-update-for-report_made-probe-filter.patch added to mm-new branch
+Message-Id: <20261124172346.DC90C1F000C6@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: update for REPORT_MADE probe filter
+     Subject: Docs/ABI/damon: update for REPORT_MADE probe filter
 has been added to the -mm mm-new branch.  Its filename is
-     docs-admin-guide-mm-damon-usage-update-for-report_made-probe-filter.patch
+     docs-abi-damon-update-for-report_made-probe-filter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-update-for-report_made-probe-filter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-damon-update-for-report_made-probe-filter.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -91,46 +90,37 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: update for REPORT_MADE probe filter
-Date: Tue, 24 Nov 2026 07:36:24 -0800
+Subject: Docs/ABI/damon: update for REPORT_MADE probe filter
+Date: Tue, 24 Nov 2026 07:36:25 -0800
 
-Update DAMON usage document for the newly added REPORT_MADE type probe
+Update DAMON ABI document for the newly added REPORT_MADE type probe
 filter support.
 
-Link: https://patch.msgid.link/20261124153636.91854-19-sj@kernel.org
+Link: https://patch.msgid.link/20261124153636.91854-20-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Aveline Noir <jm5905938@gmail.com>
 Reviewed-by: Lian Wang <lianux.mm@gmail.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
 
- Documentation/admin-guide/mm/damon/usage.rst |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ Documentation/ABI/testing/sysfs-kernel-mm-damon |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-update-for-report_made-probe-filter
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -78,7 +78,7 @@ comma (",").
-     │ │ │ │ │ │ │ │ │ 0/prep_action
-     │ │ │ │ │ │ │ │ │ ...
-     │ │ │ │ │ │ │ │ filters/nr_filters
--    │ │ │ │ │ │ │ │ │ 0/type,matching,allow,path,min,max
-+    │ │ │ │ │ │ │ │ │ 0/type,matching,allow,path,min,max,filter_report_type
-     │ │ │ │ │ │ │ │ │ ...
-     │ │ │ │ │ │ │ ...
-     │ │ │ │ │ :ref:`targets <sysfs_targets>`/nr_targets
-@@ -320,6 +320,10 @@ filter <sysfs_filters>`.  When the filte
- ``min`` and ``max`` files act as files of the same names for :ref:`DAMOS
- filter <sysfs_filters>`.
+--- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-update-for-report_made-probe-filter
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
+@@ -233,6 +233,13 @@ Description:	Writing 'Y' or 'N' to this
+ 		hitting the probe for the memory that satisfies the 'type' and
+ 		the 'matching' of the directory.
  
-+When the filter ``type`` is ``report_made``, the :ref:`report
-+<damon_design_attr_reporting>` type for the filtering should also be specified
-+by writing the type name to ``filter_report_type`` file.
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/probes/<P>/filters/<F>/filter_report_type
++Date:		Nov 2026
++Contact:	SJ Park <sj@kernel.org>
++Description:	If 'report_made' is written to the 'type' file, writing to and
++		reading from this file sets and gets the 'report_type' of the
++		reports that this filter is working for.
 +
- .. _sysfs_targets:
- 
- contexts/<N>/targets/
+ What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/targets/nr_targets
+ Date:		Mar 2022
+ Contact:	SJ Park <sj@kernel.org>
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
