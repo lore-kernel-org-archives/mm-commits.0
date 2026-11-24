@@ -1,42 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795547342;
-	b=kuKrd8LD2VlCu+Fkp371G/szNKJnW6iuPtO3wmqMUG7i/My9ZFjHfXjXVsqrlNr8SPza
-	 uzAamavYBT2jU+YzP3CvXkpWnVrtFadirA65IixQ8oAYV5ZXUou03XxnDQde0yFVYBf7u
-	 qtPtcvP/DjAxnKy1qjWxerqeTW2w/fI7msRgkor7jAQoFhmkOew0NvOZw5C/jO+uWgG2F
-	 bh37t/Ux07UJmMzcqGY7MC0xc82aHEBaE9eGq7iXs3/qPvR64kDWhMhWQ2/LZCw15eIbv
-	 7t259n4sFJTx31o5B2hhONKawgrDtyz7o78LNdpEMShUIbRFBS3ZmEBx8LE/VqMsRMg==
+	t=1795547345;
+	b=v06H+W5auXajNrZkRwVyiiGf0/mG1SXSkjKOOUTFSC3x40ZYzIFcEGNYjo9KS9VAT/JC
+	 XjB4PoGXrOFoe2+qQYc/s0JwT5hztxDBzY6AZd78wsLnnMSjB0D3iVyh0FMFXezEvm7KD
+	 kwhW401GSuQmonGjoIB3sV8Sdz/FnehCAqpPeY5yvYviDm+jLJXbogMm7kMCuGbcU0D/A
+	 ozUZAuCbfetqRqxO8jdeAQ1N0tMB7A9wyO6MM9jYZA4G5HRhTRjpT+y6MATds0nYwPno/
+	 buvNedRphMvdKh91yjxSOS09PrEaPq02kKgGQVSM/FVzWoN77RvqZqDoQ7hgf5y7nsQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795547342;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795547345;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=Gi9pD5i53puE/lMKx3b0NUaEYFknAOuYUU20fljwxFQ=;
-	b=2gSW1ahMDgpxiTp4NcztsEcwFTtQjcCcBreW5LIGsXP0U5GAsDXB+QwN28idnhVqF8BJ
-	 4DlKsd4OxexVVGzkSLwDFVtJaP5HGgvtDqp2eJWE0eq3qWlnfe38m1n+uKYW2BwPOg1zo
-	 pQS3RoqfGzcBnA6wcBJHXcoI4kNerF4E/ig6TBZoHkn0DA3FTscNPLR1GVjHpvHpvXFEf
-	 czaBjbcfwL8+PQAp77C/juKus4moroU21K1JryBVxWdvyEeA+JBdJD50NDNwupbT7Lf5z
-	 U5tVNOld+j23h+6A/f2yYNt86twI/earjsQd61HRTxOQDtPUzjbuTqt8M36jRlivjDA==
+	bh=LOw9edRM6EU8IIwlh7nQrCE03GWT1e/JvnY9oz/LKFQ=;
+	b=CYnwbgHICGiwWrq+BU1amW5MNocQM6vgMrLGLdg6J7CPV3DMS4z73gxhIqhTM4uY6Z89
+	 lISg2j5bTVNDDg/4vgVuWSQoGD6n6LWcG1CQxaem4m0CmtbjG+yoZcrAo3Dc7CM41eKVU
+	 HMnsrks9kGevWuuUzQIyNfbtRD8iKBMoSXrUG/1y0X/3vW/dCT7Opyjrq2JD2rg0keK6J
+	 pfEZioXzIbbwTaNBhQBXjLVWhVrJubzOzTO0pYhEz48qkcFIBHi1rithZhsovj6Xnje6U
+	 KAdo4rROLWnJuw1U94Yy3M/zW3p59dlfhscWrSD3ZitxUSJZnCzAnhGxlDyqPymEWNA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=X26GaPrz;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=oD9pL3SK;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19820606A326
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 19:09:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 173D0606A31E
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 19:09:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=X26GaPrz
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 600741F000CA;
-	Tue, 24 Nov 2026 19:09:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=oD9pL3SK
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06D9A1F000C4;
+	Tue, 24 Nov 2026 19:09:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795547341;
-	bh=Gi9pD5i53puE/lMKx3b0NUaEYFknAOuYUU20fljwxFQ=;
+	d=linux-foundation.org; s=korg; t=1795547344;
+	bh=LOw9edRM6EU8IIwlh7nQrCE03GWT1e/JvnY9oz/LKFQ=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=X26GaPrzHGsRo1RTgkoqtzsqWKhyGNmIId02yj2nR6LKUrNyix4vF0SDFtJR2epv7
-	 +GL4rtYzz/eUKg4rdXevnYEMkz19M8WG+vOaCsVsMMdgrjOHHkoUpPSrdWdiu/MGEz
-	 vl36lPEO2JDpDw5UzLc6Q9qSenEhwP9vTpHEpC0c=
-Date: Tue, 24 Nov 2026 11:09:00 -0800
+	b=oD9pL3SKqT+vSpQSwmXkTA9ZUIEP9cNZOm81MXIpDeDfqg4NytPP2LE5gvAnMIOQW
+	 ITN7Kp59BZAbiGMHJM0OhrxPTR4FFkohsvZDAHBzI6RTGefqfsciVGZ70a2N/M6eHX
+	 jLlx6yEAMl5uwljxcjXUMXRzENuGK4fLSx1CnxCY=
+Date: Tue, 24 Nov 2026 11:09:03 -0800
 To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,wei.liu@kernel.org,
 	tglx@kernel.org,sumit.garg@kernel.org,stephen.smalley.work@gmail.com,
 	sstabellini@kernel.org,sshegde@linux.ibm.com,scott.branden@broadcom.com,
@@ -54,10 +54,10 @@ To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,wei.liu@kernel.org,
 	andrew+netdev@lunn.ch,andrew@codeconstruct.com.au,andersson@kernel.org,
 	abel.vesa@oss.qualcomm.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124-late-2026-mmap_prepare-v2-6-0b0d99d655f9@kernel.org>
-References: <20261124-late-2026-mmap_prepare-v2-6-0b0d99d655f9@kernel.org>
-Subject: + selinuxfs-convert-mmap-hooks-to-mmap_prepare.patch added to mm-new branch
-Message-Id: <20261124190901.600741F000CA@smtp.kernel.org>
+In-Reply-To: <20261124-late-2026-mmap_prepare-v2-7-0b0d99d655f9@kernel.org>
+References: <20261124-late-2026-mmap_prepare-v2-7-0b0d99d655f9@kernel.org>
+Subject: + xen-convert-xenstore-interface-mmap-hooks-to-mmap_prepare.patch added to mm-new branch
+Message-Id: <20261124190904.06D9A1F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -69,12 +69,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: selinuxfs: convert mmap hooks to mmap_prepare
+     Subject: xen: convert xenstore interface mmap hooks to mmap_prepare
 has been added to the -mm mm-new branch.  Its filename is
-     selinuxfs-convert-mmap-hooks-to-mmap_prepare.patch
+     xen-convert-xenstore-interface-mmap-hooks-to-mmap_prepare.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selinuxfs-convert-mmap-hooks-to-mmap_prepare.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xen-convert-xenstore-interface-mmap-hooks-to-mmap_prepare.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -104,20 +104,20 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: selinuxfs: convert mmap hooks to mmap_prepare
-Date: Tue, 24 Nov 2026 14:02:49 +0000
+Subject: xen: convert xenstore interface mmap hooks to mmap_prepare
+Date: Tue, 24 Nov 2026 14:02:50 +0000
 
 Move from the deprecated mmap hook to the new mmap_prepare hook for the
-policy and status files.
+xenfs xsd_kva file and the xenbus_backend device, both of which remap the
+xenstore interface page.
 
-The policy file only sets VMA flags and operations. The status file remaps
-a single page, so use the PFN remap mmap action to do so.
+Use the PFN remap mmap action to do so, retaining the -EAGAIN error on
+failure via the action error override.
 
-Link: https://patch.msgid.link/20261124-late-2026-mmap_prepare-v2-6-0b0d99d655f9@kernel.org
+Link: https://patch.msgid.link/20261124-late-2026-mmap_prepare-v2-7-0b0d99d655f9@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Paul Moore <paul@paul-moore.com>
-Cc: Juergen Gross <jgross@suse.com>
+Acked-by: Juergen Gross <jgross@suse.com>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
@@ -139,6 +139,7 @@ Cc: Thomas Gleixner <tglx@kernel.org>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Paul Moore <paul@paul-moore.com>
 Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
 Cc: Ondrej Mosnáček <omosnacek@gmail.com>
 Cc: Joel Stanley <joel@jms.id.au>
@@ -165,68 +166,78 @@ Cc: Kameron Carr <kameroncarr@linux.microsoft.com>
 Cc: Michael Kelley <mhklinux@outlook.com>
 Cc: David Woodhouse <dwmw@amazon.co.uk>
 
- security/selinux/selinuxfs.c |   24 +++++++++++-------------
- 1 file changed, 11 insertions(+), 13 deletions(-)
+ drivers/xen/xenbus/xenbus_dev_backend.c |   14 ++++++--------
+ drivers/xen/xenfs/xenstored.c           |   14 ++++++--------
+ 2 files changed, 12 insertions(+), 16 deletions(-)
 
---- a/security/selinux/selinuxfs.c~selinuxfs-convert-mmap-hooks-to-mmap_prepare
-+++ a/security/selinux/selinuxfs.c
-@@ -236,27 +236,25 @@ static ssize_t sel_read_handle_status(st
- 				       sizeof(struct selinux_kernel_status));
+--- a/drivers/xen/xenbus/xenbus_dev_backend.c~xen-convert-xenstore-interface-mmap-hooks-to-mmap_prepare
++++ a/drivers/xen/xenbus/xenbus_dev_backend.c
+@@ -89,27 +89,25 @@ static long xenbus_backend_ioctl(struct
+ 	}
  }
  
--static int sel_mmap_handle_status(struct file *filp,
--				  struct vm_area_struct *vma)
-+static int sel_mmap_prepare_handle_status(struct vm_area_desc *desc)
+-static int xenbus_backend_mmap(struct file *file, struct vm_area_struct *vma)
++static int xenbus_backend_mmap_prepare(struct vm_area_desc *desc)
  {
--	struct page    *status = filp->private_data;
--	unsigned long	size = vma->vm_end - vma->vm_start;
-+	struct page    *status = desc->file->private_data;
+-	size_t size = vma->vm_end - vma->vm_start;
++	size_t size = vma_desc_size(desc);
  
- 	BUG_ON(!status);
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
  
- 	/* only allows one page from the head */
--	if (vma->vm_pgoff > 0 || size != PAGE_SIZE)
-+	if (desc->pgoff > 0 || vma_desc_size(desc) != PAGE_SIZE)
- 		return -EIO;
+-	if ((size > PAGE_SIZE) || (vma->vm_pgoff != 0))
++	if ((size > PAGE_SIZE) || (desc->pgoff != 0))
+ 		return -EINVAL;
  
--	return remap_pfn_range(vma, vma->vm_start,
--			       page_to_pfn(status),
--			       size, vma->vm_page_prot);
-+	mmap_action_remap_full(desc, page_to_pfn(status));
-+
-+	return 0;
- }
- 
- static const struct file_operations sel_handle_status_ops = {
- 	.open		= sel_open_handle_status,
- 	.read		= sel_read_handle_status,
--	.mmap		= sel_mmap_handle_status,
-+	.mmap_prepare	= sel_mmap_prepare_handle_status,
- 	.llseek		= generic_file_llseek,
- };
- 
-@@ -419,10 +417,10 @@ static const struct vm_operations_struct
- 	.page_mkwrite = sel_mmap_policy_fault,
- };
- 
--static int sel_mmap_policy(struct file *filp, struct vm_area_struct *vma)
-+static int sel_mmap_prepare_policy(struct vm_area_desc *desc)
- {
--	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP);
--	vma->vm_ops = &sel_mmap_policy_ops;
-+	vma_desc_set_flags(desc, VMA_DONTEXPAND_BIT, VMA_DONTDUMP_BIT);
-+	desc->vm_ops = &sel_mmap_policy_ops;
+-	if (remap_pfn_range(vma, vma->vm_start,
+-			    virt_to_pfn(xen_store_interface),
+-			    size, vma->vm_page_prot))
+-		return -EAGAIN;
++	mmap_action_remap_full(desc, virt_to_pfn(xen_store_interface));
++	desc->action.error_override = -EAGAIN;
  
  	return 0;
  }
-@@ -430,7 +428,7 @@ static int sel_mmap_policy(struct file *
- static const struct file_operations sel_policy_ops = {
- 	.open		= sel_open_policy,
- 	.read		= sel_read_policy,
--	.mmap		= sel_mmap_policy,
-+	.mmap_prepare	= sel_mmap_prepare_policy,
- 	.release	= sel_release_policy,
- 	.llseek		= generic_file_llseek,
+ 
+ static const struct file_operations xenbus_backend_fops = {
+ 	.open = xenbus_backend_open,
+-	.mmap = xenbus_backend_mmap,
++	.mmap_prepare = xenbus_backend_mmap_prepare,
+ 	.unlocked_ioctl = xenbus_backend_ioctl,
+ };
+ 
+--- a/drivers/xen/xenfs/xenstored.c~xen-convert-xenstore-interface-mmap-hooks-to-mmap_prepare
++++ a/drivers/xen/xenfs/xenstored.c
+@@ -31,24 +31,22 @@ static int xsd_kva_open(struct inode *in
+ 	return 0;
+ }
+ 
+-static int xsd_kva_mmap(struct file *file, struct vm_area_struct *vma)
++static int xsd_kva_mmap_prepare(struct vm_area_desc *desc)
+ {
+-	size_t size = vma->vm_end - vma->vm_start;
++	size_t size = vma_desc_size(desc);
+ 
+-	if ((size > PAGE_SIZE) || (vma->vm_pgoff != 0))
++	if ((size > PAGE_SIZE) || (desc->pgoff != 0))
+ 		return -EINVAL;
+ 
+-	if (remap_pfn_range(vma, vma->vm_start,
+-			    virt_to_pfn(xen_store_interface),
+-			    size, vma->vm_page_prot))
+-		return -EAGAIN;
++	mmap_action_remap_full(desc, virt_to_pfn(xen_store_interface));
++	desc->action.error_override = -EAGAIN;
+ 
+ 	return 0;
+ }
+ 
+ const struct file_operations xsd_kva_file_ops = {
+ 	.open = xsd_kva_open,
+-	.mmap = xsd_kva_mmap,
++	.mmap_prepare = xsd_kva_mmap_prepare,
+ 	.read = xsd_read,
+ 	.release = xsd_release,
  };
 _
 
