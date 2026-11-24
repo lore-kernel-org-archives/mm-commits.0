@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795542986;
-	b=t1Q24r3mkEGKGS1JkC5WnQVVmK8iRw/UqKobJVuyhEDLEa1msX2OMB02As8BTGphC0pq
-	 dVEHQUGJ6U0TCW7FFUgU9JXbq0IfhoWLCzf6DVOoeu7karednBTwi/WVaLFAdUN2D80fb
-	 IQTnJC0ZmLFTvroDFXk5jKN1oAZrcwkezKYDwWIyIjKAHF8F9C+EOpq8pNo7tF+8h8TX+
-	 O69dd1tkHDyQL6TWPTi5erfQH/GlvIqJfkc4LGtPlVWBddjp/FqgRaEvj//n2vo83G7ST
-	 CLmerPLjN2peT2jW5N/E+lBznujSKUKvQfvM+ndkiZ+0KF1ShfK/T9E9rLnNRMccJLQ==
+	t=1795542989;
+	b=iBPKBW86dxOVziu4qfrXcjOSUgWkE0U5EG/MBQjYFwbpnFIUAK1sPKzASNAQJo4O8nE4
+	 9JDG8vtEWpalxZ81pBvClAtxqwLLSJIbDIAVU250h5deg+4mkbgHnLj/p5IhnZ3MrhuaW
+	 Z0IFcpjz1qvW2ZbtPVTil8z97+RuVYlCvjJwcaNnXf7cEMBzaCdogfVdWdHIWiAIvWTXd
+	 FdwGMxwkxZ7c0BTpF3Rpws1mqxbTaPEOiGTR99RkRJMCR+rrG2fSLViUoICdCkk8tzWWU
+	 I3luh97BstN/NJoAurCvxEsIZSpwfiAtmTjfJRkfQ5lmdtTPn+IpKiBSMlKrlC2JULw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795542986;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795542989;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=/Tj5AdUMj22RTOKbGiLzzKZex5ds8ZaO5vP6FUprDuk=;
-	b=EQad7iSWzFymZ5riTrq/pJc6OvoqO+2nOWP80EkS1LVqhUci/gfNHIu2SpWCNwLIVThR
-	 Ewg53cKhx9OiOQXlq6Gc8BA8N04TQg6klQ0eNkruh/tJ5kwF0SAqKAsYAYqL4xHvilZdB
-	 NTaL2qA4KR2n+AZnDHoR4lTWIJ0HMTe6sTf8FIWt6pWmTzTv2fFqvRwQwaOWUOSGdUkED
-	 8RUJOxVi/ckl3KyHw11bcCIBYA0H+2vLgUP9gJAJBK83OGmAZS4+42no+j8Ng3fb6zLWi
-	 9lv/069NBmQI5Hu/LiZOsDQN2MnSaPgxR+HPnY77knR7PzjzeMDJLm2ykKY6U5PBEGQ==
+	bh=Cj6ACObdP6DtBivnyV8v95CutunVEZMH/FM9H+ItZVc=;
+	b=UqbOGh67jfzMYg8DpyUkuR+Fti7wquugiKKqfiA3ZRE+9OSK02KvUppgEMnrB+JUk5Yu
+	 WXHvauiFJUMFFIp/rwdoyH6uwAwdu6RbRooe8vaBXzw0kiUZipWFz/X2k7rVGG9pILosb
+	 WU9ZeJ+K/CmVEPuRzsAZ3PJ8T164taQGSgtokR3T1u0SEWXPTcZVUUcQG3a0/ZTXLKL7+
+	 /9aiolcYohYqDKgxK+7DR9LQfuB+loQMw3GxeX20AqDNChnXu5A33fyYqYWb405EB4nKV
+	 qmnLAqwPbB74wNT07MJasEewS6J9cAoDj0HCTobUzGwJISLHcZuOqKSytia32ZL0NmQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=M7emIJG6;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=yo1815l5;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63A81606A323
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:56:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FE2B606A331
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:56:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=M7emIJG6
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE72D1F000CA;
-	Tue, 24 Nov 2026 17:56:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=yo1815l5
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DCEC1F000C0;
+	Tue, 24 Nov 2026 17:56:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795542986;
-	bh=/Tj5AdUMj22RTOKbGiLzzKZex5ds8ZaO5vP6FUprDuk=;
+	d=linux-foundation.org; s=korg; t=1795542988;
+	bh=Cj6ACObdP6DtBivnyV8v95CutunVEZMH/FM9H+ItZVc=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=M7emIJG66akRYVnW8P1KGY5pn8Spyf+LWdQ/hFSPlCQBzFpkiZpKHQ+0Pnq3mQPC2
-	 jnrvTRuZE0Ms07Wok8FFk5UeQvLRkHtLSokcYyw/noFN6jvWKAFOKxX5ZEjVN073gr
-	 C5ENf1tA0Or8bJ3uq2Svv32YUkaF04C2GurZ34zM=
-Date: Tue, 24 Nov 2026 09:56:25 -0800
+	b=yo1815l5ilnQrJ06BTpD6FJo57QSsdpmonhO6dwKvoiWjXN+mZ8oNxv6oq7p8/xHD
+	 xbfz8gUn24aDon3LRmp+hmg9mCb9aKQ6056kc6JwhN/5BZpoMdkM/YIYuiPHTLgqsI
+	 Bl63kN4aUTcc5QsP+563WXvM/QZh+bUF4g5qzd9I=
+Date: Tue, 24 Nov 2026 09:56:28 -0800
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124-late-2026-vma-flags-v2-10-bf3fade93064@kernel.org>
-References: <20261124-late-2026-vma-flags-v2-10-bf3fade93064@kernel.org>
-Subject: + ima-convert-vma-flag-tests-to-use-vma_flags_t.patch added to mm-new branch
-Message-Id: <20261124175625.EE72D1F000CA@smtp.kernel.org>
+In-Reply-To: <20261124-late-2026-vma-flags-v2-11-bf3fade93064@kernel.org>
+References: <20261124-late-2026-vma-flags-v2-11-bf3fade93064@kernel.org>
+Subject: + ipe-convert-vma-flag-tests-to-use-vma_flags_t.patch added to mm-new branch
+Message-Id: <20261124175628.8DCEC1F000C0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +54,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: ima: convert VMA flag tests to use vma_flags_t
+     Subject: ipe: convert VMA flag tests to use vma_flags_t
 has been added to the -mm mm-new branch.  Its filename is
-     ima-convert-vma-flag-tests-to-use-vma_flags_t.patch
+     ipe-convert-vma-flag-tests-to-use-vma_flags_t.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ima-convert-vma-flag-tests-to-use-vma_flags_t.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ipe-convert-vma-flag-tests-to-use-vma_flags_t.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -89,17 +89,18 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: ima: convert VMA flag tests to use vma_flags_t
-Date: Tue, 24 Nov 2026 17:08:02 +0000
+Subject: ipe: convert VMA flag tests to use vma_flags_t
+Date: Tue, 24 Nov 2026 17:08:03 +0000
 
 Replace use of the legacy vm_flags_t flags with vma_flags_t values in the
-IMA mprotect LSM hook.
+IPE mprotect LSM hook.
 
 No functional change intended.
 
-Link: https://patch.msgid.link/20261124-late-2026-vma-flags-v2-10-bf3fade93064@kernel.org
+Link: https://patch.msgid.link/20261124-late-2026-vma-flags-v2-11-bf3fade93064@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: Fan Wu <wufan@kernel.org>
 Reviewed-by: Lance Yang <lance.yang@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
@@ -172,24 +173,23 @@ Cc: Mimi Zohar <zohar@linux.ibm.com>
 Cc: Roberto Sassu <roberto.sassu@huawei.com>
 Cc: Dmitry Kasatkin <dmitry.kasatkin@gmail.com>
 Cc: Eric Snowberg <eric.snowberg@oracle.com>
-Cc: Fan Wu <wufan@kernel.org>
 Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
 Cc: Ondrej Mosnáček <omosnacek@gmail.com>
 
- security/integrity/ima/ima_main.c |    2 +-
+ security/ipe/hooks.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/security/integrity/ima/ima_main.c~ima-convert-vma-flag-tests-to-use-vma_flags_t
-+++ a/security/integrity/ima/ima_main.c
-@@ -556,7 +556,7 @@ static int ima_file_mprotect(struct vm_a
+--- a/security/ipe/hooks.c~ipe-convert-vma-flag-tests-to-use-vma_flags_t
++++ a/security/ipe/hooks.c
+@@ -112,7 +112,7 @@ int ipe_file_mprotect(struct vm_area_str
+ 	struct ipe_eval_ctx ctx = IPE_EVAL_CTX_INIT;
  
- 	/* Is mprotect making an mmap'ed file executable? */
- 	if (!(ima_policy_flag & IMA_APPRAISE) || !vma->vm_file ||
--	    !(prot & PROT_EXEC) || (vma->vm_flags & VM_EXEC))
-+	    !(prot & PROT_EXEC) || vma_test(vma, VMA_EXEC_BIT))
+ 	/* Already Executable */
+-	if (vma->vm_flags & VM_EXEC)
++	if (vma_test(vma, VMA_EXEC_BIT))
  		return 0;
  
- 	security_current_getlsmprop_subj(&prop);
+ 	if (prot & PROT_EXEC) {
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
