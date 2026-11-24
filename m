@@ -1,49 +1,50 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795541019;
-	b=jRCcirEeUqUZ3fbCLH4LI7Yk3FjEPRE2nNPCLX3RcdVlsodJ5gkHdeUHgDvj9yZncEN6
-	 3SBViAnAbkce/UrmekVlMKNWhYqCjEk1V8SXmpp2vIS6c21na+iKQtn5ch7DRM1zp3set
-	 Y/0CFEnCk6DqPXyzoMmdb+et9U2BgSNbK0+cCjbD0Sd7gax77kN0oNKooEqJddwkCRUxw
-	 GK6Xlm5qY4YI7EpKOgMQEQqlCRq+pxcmRAR/BPQVhv7bmRwpHXiz5puZqHRJK/JJn4uhF
-	 shhWnBbILW8PMv9JA4IpT1wZDSJesbZ8YbRXvIribXNCvZgPMXE41b7TNEEWUAfAaRg==
+	t=1795541022;
+	b=XMSw9cB0CIiFIaCKT+9GMgE5nTb/VKDV7HJbRSJmqIlxZB9HYlJww53pATFNngsoKQuY
+	 X4Qnwi9QXKCmp19C3539h5Hb/krOCVcqsaK20fUTAuLQ+hWXhxzk54DcmKSCSz1UtSGjn
+	 JxFtA6KW/OVvCO/r68aax/WAPQuvPu/UbcguFeVG0WHNEXo+bnl7pfwAchG53wM+JmjIP
+	 ox8wNuMzy3d4f1qNKrBB7dGm6uxhAKLFohlzPjJAoODU0hHLK8i7SnsX4MH71N3qmvg35
+	 IOE7lNTCbOrd1ToBIb8v5KdQmN5+SzMuuorltev83c98itdo2bFcj6epwS+F0Wv/ltQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795541019;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795541022;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=5PatFB8u+t9EsFRRTIFFtcl0TPmRz7GpaN4sxpKdhlw=;
-	b=INDhbj8sNOU579fuVQZd3TpxR8csh/mHxT0uC+MA5SKXNNRhXvr6v3IM6wqzF8OiQant
-	 aaqzP6FKvGTvD9Rc5Amr9lt+Wjd9BM4GVPyx7aFBBG2M7yPzx3t3iWSjZfqxlSnyPSI5Z
-	 1m9f1G3Kf9ob/MdtfnsUth06xNKDv63rXZS5XfAid5//Lc4eevJZODMGlWlvMYa36Im05
-	 EJSe3uUYiN1p5/iIkErCVWuAjvdUW8vrTTZPY73FTJFuR2fbFvWY/bqyGVHYM4weFXzeS
-	 I8TypKGQswOC7BaU3kAMeNkRHr282cQtMSA0C+JkF6V6HH+2c8SmeOzggWNTswt68zQ==
+	bh=J3ZQZbh09bgC8tW/SctThmcU72c3/EfbD/foZK4Ip+I=;
+	b=GOkVGWR28xkLWMVmHUuxN59G2gsX7Pjo7Gu3CHLgkQqsVzTI09MHeBFjlxYlcD05UDR1
+	 ZFV6Xr7m/zWVsOmMFIv+MUC0ShgoAH5PELlePK3Hlf9ewKPSI7jdCgfg5k2wteOwjuA0f
+	 7MLoujQEuQP2a7J5w7lp5CngWFg+1YSSuJUM+3KjG3oG3W67kz9xqGbtcD2Mjw+j5TMZA
+	 PprXsHML4X4OgQaxQ+wCsUS4hb3rRwxMO2fTe+qOQL24//BC60Q/lFqF8l6cosg/jeyEA
+	 v+HNi4+pEPY9KyqP9XVHEUGaGKGM3QpE9LuG6jFKKtYZerVwxKNvgIY+kqCxW6Nbe2g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=sib2EM7L;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=iuhauT4K;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A151606A321
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:23:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 880F8606A321
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:23:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=sib2EM7L
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DE111F000CF;
-	Tue, 24 Nov 2026 17:23:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=iuhauT4K
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82E6A1F000C0;
+	Tue, 24 Nov 2026 17:23:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795541019;
-	bh=5PatFB8u+t9EsFRRTIFFtcl0TPmRz7GpaN4sxpKdhlw=;
+	d=linux-foundation.org; s=korg; t=1795541021;
+	bh=J3ZQZbh09bgC8tW/SctThmcU72c3/EfbD/foZK4Ip+I=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=sib2EM7LlD0uGmgGFEmyJGyW1cE79lEuwPheXvCnOlP5stEHydV31NWKKrzs7H/Bx
-	 QAvFHjrsURPm/EbRkSSEwxH16tTiILxd9gy1WPNueKImwfpSuZGjJngEoKbwk1D/kw
-	 k0KwnnQu1LTWZalbCb+u+NBoqdI5OXpgde9H8Fzg=
-Date: Tue, 24 Nov 2026 09:23:38 -0800
-To: mm-commits@vger.kernel.org,lianux.mm@gmail.com,jm5905938@gmail.com,
+	b=iuhauT4KXmlz/9w9HC1oePPixPe0l/m+5kEj/Ajl9jBIiRt5gRzip9YeDeZ4du3xH
+	 tvJoGWwNJdITDSwOw00PDxeSmPUrkFdAetIzfTx/xc1X0T9zBL0BuIfTc8LiMfT5Oe
+	 XLTU0yqssGoOR4ubcEi+bQpMrFyRvZiHugLDdBqE=
+Date: Tue, 24 Nov 2026 09:23:41 -0800
+To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,
+	rdunlap@infradead.org,lianux.mm@gmail.com,jm5905938@gmail.com,corbet@lwn.net,
 	sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124153636.91854-17-sj@kernel.org>
-References: <20261124153636.91854-17-sj@kernel.org>
-Subject: + mm-damon-sysfs-support-report_made-type-probe-filter-setup.patch added to mm-new branch
-Message-Id: <20261124172339.2DE111F000CF@smtp.kernel.org>
+In-Reply-To: <20261124153636.91854-18-sj@kernel.org>
+References: <20261124153636.91854-18-sj@kernel.org>
+Subject: + docs-mm-damon-design-update-for-report_made-probe-filter-type.patch added to mm-new branch
+Message-Id: <20261124172341.82E6A1F000C0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,12 +56,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/damon/sysfs: support REPORT_MADE type probe filter setup
+     Subject: Docs/mm/damon/design: update for report_made probe filter type
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-support-report_made-type-probe-filter-setup.patch
+     docs-mm-damon-design-update-for-report_made-probe-filter-type.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-support-report_made-type-probe-filter-setup.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-update-for-report_made-probe-filter-type.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -90,44 +91,46 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs: support REPORT_MADE type probe filter setup
-Date: Tue, 24 Nov 2026 07:36:22 -0800
+Subject: Docs/mm/damon/design: update for report_made probe filter type
+Date: Tue, 24 Nov 2026 07:36:23 -0800
 
-Accept user keyword "report_made" to probe filter type file.  Set the
-damon_filter->type as REPORT_MADE for the input.  Setup
-damon_filter->report_type with the filter_report_type user input.
+Update DAMON design document for the newly added data attribute report
+existence type probe filter.
 
-Link: https://patch.msgid.link/20261124153636.91854-17-sj@kernel.org
+Link: https://patch.msgid.link/20261124153636.91854-18-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Aveline Noir <jm5905938@gmail.com>
-Reviewed-by: Lian Wang <lianux.mm@gmail.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Lian Wang <lianux.mm@gmail.com>
 
- mm/damon/sysfs.c |    6 ++++++
+ Documentation/mm/damon/design.rst |    6 ++++++
  1 file changed, 6 insertions(+)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-support-report_made-type-probe-filter-setup
-+++ a/mm/damon/sysfs.c
-@@ -1016,6 +1016,10 @@ damon_sysfs_filter_type_names[] = {
- 		.type = DAMON_FILTER_TYPE_ACTIVE,
- 		.name = "active",
- 	},
-+	{
-+		.type = DAMON_FILTER_TYPE_REPORT_MADE,
-+		.name = "report_made",
-+	},
- };
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-update-for-report_made-probe-filter-type
++++ a/Documentation/mm/damon/design.rst
+@@ -303,6 +303,8 @@ supported filter types.  Currently below
+ - ``hugepage_size``: Matches if the page for the memory is a part of a hugepage
+   of a given size range.
+ - ``active``: Same as that for DAMOS filters.
++- ``report_made``: Matches if a :ref:`report <damon_design_attr_reporting>` for
++  the memory is made in last sampling interval.
  
- static ssize_t type_show(struct kobject *kobj,
-@@ -2336,6 +2340,8 @@ static int damon_sysfs_set_filters(struc
- 		} else if (filter->type == DAMON_FILTER_TYPE_HUGEPAGE_SIZE) {
- 			filter->range_min = sys_filter->range_min;
- 			filter->range_max = sys_filter->range_max;
-+		} else if (filter->type == DAMON_FILTER_TYPE_REPORT_MADE) {
-+			filter->report_type = sys_filter->report_type;
- 		}
- 		damon_add_filter(probe, filter);
- 	}
+ If such probes are registered, DAMON executes the probes for each region's
+ sampling memory when it does the access :ref:`sampling
+@@ -382,6 +384,10 @@ depending on the type of the report.
+ 
+ For now, no report type is supported.
+ 
++The data attribute probe supports the reports.  The probes can be configured to
++hit for a given memory region if a specific type of valid reports that are
++associated with the probing memory exist in the reports queue.
++
+ Dynamic Target Space Updates Handling
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
