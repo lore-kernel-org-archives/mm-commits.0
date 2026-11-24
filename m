@@ -1,50 +1,50 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795541043;
-	b=zX9i87af72/AozT0mgMDwW/joFgLZ3BXb0wzuNTNeS0bV3O4bGz4i2xRfbEnrHuKElC9
-	 OJRkSH0e8u7sIZkBPuDaSeRFjMrZeRABgnX9Cu2/fNpJjA4knExRovUeYDINMHn8GGpcY
-	 YmzzzhnjLatW+y8zanQ57me1LEqOC8gMncFzwUIhkuXWtFHLPphE1YdtMWX16cDBRqO/M
-	 cpGTzM9qutgJP7i0Th05rBzDcNlxH9uwkNbWS2wn/K40LDPmZOqHhe71m6ZXBGYfit+in
-	 F3QURDeILyFZtuzqTRoSF+dnFBmaDYBDMndTS2vQ8SjzAZkDl5M7EyveIbvGSh1GpEA==
+	t=1795541046;
+	b=3w86Gd0bS5FxSj48C2UjAcqdF7RFuXMYQzAuDJIz2/a9zK5TKgLUZ+mwq/ZtXwaTxBGt
+	 28Wf0jFx8dBGE2fhvj/WYdF20K6m8zmLULqi2K72bepCwBVRJSjH0P12YhCMlU8mwgGqg
+	 /8TkAdd6ogrDVF7uBjhyajxeLOv9iVnPCeXJitEWMnad3kw9NC4N4FUmC9TKzr6tC6BkP
+	 nu1Pj723TLuSGnSzZs3rM2rGHtJVO3DC2m6BD4mvF+nS59XwJS/MpRM4vAEG7KtAKsfRB
+	 xQj1K/ut8o1+1VV9VVbx1EwNnwAsAwj0NwxiGplIKpa2MmiHDRqugC/tmGaQj8b+vwg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795541043;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795541046;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=bBiNHUhdis9154vXXKwBZRBTP3TnVluTKda9tVcugTw=;
-	b=fF1v5JPOt83WeqIlssNar/VZlxAyx4PqveaI3Ln1T0x8KsA4ik8qcaWo4uPXrpCrDkcf
-	 p1Ldcwu4+7IqmL5egmek79AxFvsANwAl6TLxxNkN2q2c2juCiIzDhr8vl2HgYTHzdUFCs
-	 +1RWTH+HwYapkKdKjKwEoKc//EKIjG4Pe1MMvNiehU8YlElsA6kW6T5fjzJiwly8y460L
-	 hXUJ52pmRdLc/JA7csEMbSEJohXbvUkO1G91VrPn1Z5lTgw3n0beTiy4Y+wsL+vjEUw1+
-	 b7fjkYnYPRksjCu2h0H24T66hDoqjRpYLp2uQC1jqLtVocbTTOoMus+E6NVbQUDanRg==
+	bh=fBT+3OqRfEDOMEdNj2ZyCI1ejLscal1CLnVEih3e0pU=;
+	b=PCX2SFUNZFvagI7Dx3Gh1SO8uDwFZZBawPb/WX++JbaXlQeoMLZ7dupxNWqzRV8dVc8s
+	 QEaWPylGMWDP0e/VXm/02Ftz1dlUbLpUVgtQiMOMz4BvMWXg3AtZEbCk9wmx5p2l/YIYr
+	 w/+QWe/8bd4+JWmWVhFHE1BvWvPiAl35I6wwzybsN0heDklNwCWx6rXQuxG4VW8P+WcVq
+	 AYxPfXa4xi/MXa7jOi+rS+PfDMRjM5ooEHw39/hJFm6JaejGluBMrCFJ+IeXHLsSM1ldh
+	 JLJ9axdxT7llrq7bLBr0jJuGmEPdQezO66+86j2jHluw/NZKQKU0xVpGNgOPfHhIzDA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LQ8JvzdK;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=S1AjeENW;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E953606A31E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:24:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 398D9606A31E
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:24:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LQ8JvzdK
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EAB11F000D0;
-	Tue, 24 Nov 2026 17:24:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=S1AjeENW
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 992D41F000CA;
+	Tue, 24 Nov 2026 17:24:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795541043;
-	bh=bBiNHUhdis9154vXXKwBZRBTP3TnVluTKda9tVcugTw=;
+	d=linux-foundation.org; s=korg; t=1795541045;
+	bh=fBT+3OqRfEDOMEdNj2ZyCI1ejLscal1CLnVEih3e0pU=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=LQ8JvzdKwaiuWaUmnZnIPDUrAKlmgqs0LbIMUGJBhcF4Jj4DQZMXJxq4BesCP8o0G
-	 /48hjqTszBJ01D13mQCWteHMKzCsA1c07tcB0PhQftSmWT0eb8SmLwHMda2mVhy6sg
-	 Sj6dm8wO83F3pUulkguyKLO3GDKY6OqIb+LDfdXk=
-Date: Tue, 24 Nov 2026 09:24:02 -0800
+	b=S1AjeENWL6oFM2jxvbo63rFi4wnTUb4+h8tloKGvTaJ8LXlQbBly+wQxGq2kqR3SV
+	 JG8NdA8tU0TNAOny4uoWj5+G3Ffrc3Gg5yWbvK+BW3/OeftHeJ74J/xGkGpSp94t6Q
+	 PwsPEb7AKqG5L9j354CUHQnTehTbYoz6iyk+JSbc=
+Date: Tue, 24 Nov 2026 09:24:05 -0800
 To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,
 	rdunlap@infradead.org,lianux.mm@gmail.com,jm5905938@gmail.com,corbet@lwn.net,
 	sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124153636.91854-26-sj@kernel.org>
-References: <20261124153636.91854-26-sj@kernel.org>
-Subject: + docs-mm-damon-design-update-for-user-report-support.patch added to mm-new branch
-Message-Id: <20261124172403.3EAB11F000D0@smtp.kernel.org>
+In-Reply-To: <20261124153636.91854-27-sj@kernel.org>
+References: <20261124153636.91854-27-sj@kernel.org>
+Subject: + docs-admin-guide-mm-damon-usage-update-for-user_report-report-support.patch added to mm-new branch
+Message-Id: <20261124172405.992D41F000CA@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,12 +56,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: Docs/mm/damon/design: update for user report support
+     Subject: Docs/admin-guide/mm/damon/usage: update for user_report report support
 has been added to the -mm mm-new branch.  Its filename is
-     docs-mm-damon-design-update-for-user-report-support.patch
+     docs-admin-guide-mm-damon-usage-update-for-user_report-report-support.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-update-for-user-report-support.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-update-for-user_report-report-support.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -91,52 +91,50 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: update for user report support
-Date: Tue, 24 Nov 2026 07:36:31 -0800
+Subject: Docs/admin-guide/mm/damon/usage: update for user_report report support
+Date: Tue, 24 Nov 2026 07:36:32 -0800
 
-Update DAMON design document for the newly aded user_report type data
-attribute reports.
+Update DAMON usage document for the newly added user_report type data
+attribute report support.
 
-Link: https://patch.msgid.link/20261124153636.91854-26-sj@kernel.org
+Link: https://patch.msgid.link/20261124153636.91854-27-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Aveline Noir <jm5905938@gmail.com>
-Reviewed-by: Lian Wang <lianux.mm@gmail.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Lian Wang <lianux.mm@gmail.com>
 
- Documentation/mm/damon/design.rst |   15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ Documentation/admin-guide/mm/damon/usage.rst |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-update-for-user-report-support
-+++ a/Documentation/mm/damon/design.rst
-@@ -382,12 +382,25 @@ can generate and submit reports of the g
- submissions could be done automatically by the kernel or manually by the user,
- depending on the type of the report.
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-update-for-user_report-report-support
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -120,7 +120,7 @@ comma (",").
+     │ │ ...
+     │ reports/
+     │ │ producers/nr_producers
+-    │ │ │ 0/report_type,producer_state
++    │ │ │ 0/report_type,producer_state,addr_start,addr_end
+     │ │ │ ...
  
--For now, no report type is supported.
-+Below report types are supported.
+ .. _sysfs_root:
+@@ -770,6 +770,15 @@ Users can write below keywords for the p
+ 
+ - ``on``: Enable the producer.
+ - ``off``: Disable the producer.
++- ``submit``: Generate and submit a new ``user_report`` type report, if
++  ``report_type`` is ``user_report``, and the producer is enabled.
 +
-+- ``user_report``: User-provided report.  To use this, the user should set the
-+  address range of the memory to report for.  This type of report is not
-+  automatically generated and submitted to DAMON.  The user should manually
-+  generate and submit each report using the interface.
++``addr_start`` and ``addr_end`` files are used only for ``user_report`` report
++type.  Those set the address range of memory to manually report .  Users can
++set the start and end address of the address range by writing the addresses to
++the files.  Note that it is open-end range (``[addr_start,addr_end)``) and
++therefore the end address is exclusive.  Reading the files shows the last
++successfully written input.
  
- The data attribute probe supports the reports.  The probes can be configured to
- hit for a given memory region if a specific type of valid reports that are
- associated with the probing memory exist in the reports queue.
- 
-+For example, users can run DAMON in the classical page table accessed bits
-+based access monitoring.  In addition to that, users could find hot data that
-+might not be able to found by DAMON.  DAMON might not able to find that due to
-+limitations in page table accessed bits or its overhead control mechanism.
-+Users may be able to find that using their access to workload source code,
-+experiment results or other tools.  Users can complement monitoring results by
-+feeding the information as user reports.
-+
- Dynamic Target Space Updates Handling
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ .. _tracepoint:
  
 _
 
