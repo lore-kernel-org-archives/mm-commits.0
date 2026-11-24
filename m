@@ -1,49 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795541014;
-	b=0mGCB/jNucC4mE1Q6BJcrfBluKa3jAWPdfMlBppin2dtI/vNZsj7J056ED5fwCQZl6Ed
-	 hGFCQ+b+3JsIsi7QH9RmP6Wmfmd6B67ZVH2yUQh6CuRXr/AmUK39MWW/l/EsVfXsUa8I3
-	 LBlzY0PMQNUYjXXwT6A4TRD9+vUB+4RWVZM74zjXtenZxWwYiVFq2++QeYTnP8QsMXGim
-	 MrUHf1C0k6UHekNjryd3RioJfeb4nCEWbm/kC7sgslEA63z70AU4FKumm2yo2weBe9Rvd
-	 RfgeTTP4N14MJwwAlcAHhY1Dq5qZrquJezb9XGmYancAIJlncDsvevzozMZM9fo2Kww==
+	t=1795541016;
+	b=3TeOPlV06Ye914XJ9n5IGVsKjIUxcakz4J+GeSYmG3LU7cGHVXtru4pl1PpPD19tJYMj
+	 rDUmIWv4rn8ODfFWM6a78P7XzM3iu8kzWxOoNW9zPSyJyqfIbRfZ1FR9m8OD0E6FPScVO
+	 pLwqJN7MxnXGWknNfMhUrkLbCGA1GL7In5K3zv0QTPiKTE2AkS28go6dnPZNQZMIt7B88
+	 UpsOiJdrMKwPomBTWvxq7MSxlD0ZLaNZmiEPxZIOZkfkA0LgPQRln9KbOQFwYKyZzWT+B
+	 xzPpoRyIHhsn+YESKYxMv9lDTB7+0y+Tg6ip6W1BTYbrn0fRtyLXX6O3sk69j+89AHQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795541014;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795541016;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=nSfOtE8fwZLmPstMRmsRS1s4vN6KPHlVbKsOQ/PuqVg=;
-	b=ASQeDgCBHZk8JZFeK6O/b06Y4CrjY5Zb3l/LE09SIEiKobwaTbpxzbXBlM9nCRbJ6G4n
-	 wXBfkWcw+ku3dKMJdlFQ2ZBQ5tiM0zY2rqGWGF4P2/KKdXj17i2hPvfJj4ppJIeau9FkD
-	 whG7ODczx2VFK1r6Ft5suTTgXkAW8NiOPY24s22BdboA23fjQnvfuyLTgBE0pUpkwE7M6
-	 FULbqPHHSuY9tNr/67ApWWbzEA2Hd/mvbgAfJ+JrPsdlt0nvtOnAtGf3sapeeeS3I6Ybs
-	 q1x7G2YDc0Hgu0l+oaHukzeekc1a0mthM4eAH5Ak66kcujov5sI9EIXTbjTJZ3y392g==
+	bh=UsW0cPC/qK+H+KE6UowOWycQb9Nbq4d6mTTmo5kNKTw=;
+	b=VjpmZA3L8EYg++bxbKU+gO5c5mZ4PzBPaqgKScUoEP8MQzHdDEgfMyJkPpfZSkqM8C9o
+	 iR0trVxCv6jnMYeGJjBm/ORfY5q8cWqlyjBSf0fgdPj+0nwxUeePW5Jk2GAat93r4wOWh
+	 w516LNm8VCMlucMlCNrh9RZW7p39ArNIIfdhlZnSMqk9DwbYUc/KKAqJ0I8t5zad02kAi
+	 U/F2tYqH9rP0oPztMaeXsNzuQ6VO8oF7Dl1QmMVFDG9PJn/slAeY4fYR8sc7RM3DEdIaB
+	 0w0yR0o6jXmDh9DPTDPCqCbEv1LW8E2p2KAG2eHih/AFzXl3s6ySvGx4RG79T/SoIxw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=kqT3FQyy;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2kEJD6JL;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31128606A32A
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:23:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE056606A31E
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:23:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=kqT3FQyy
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B4061F000C4;
-	Tue, 24 Nov 2026 17:23:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2kEJD6JL
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 460BD1F000C4;
+	Tue, 24 Nov 2026 17:23:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795541013;
-	bh=nSfOtE8fwZLmPstMRmsRS1s4vN6KPHlVbKsOQ/PuqVg=;
+	d=linux-foundation.org; s=korg; t=1795541016;
+	bh=UsW0cPC/qK+H+KE6UowOWycQb9Nbq4d6mTTmo5kNKTw=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=kqT3FQyyIc25DeT5uTN+WwwZrWuAWYfuhzlJEQVcg8Q1b7kfKp16S4WmQfZtp1MzN
-	 77FOrjX7aW+1UdYJrKVAkGEXRLnFAdZFa9Svx2Lw+Giuwl3+KiuvVqf0W9lqI2SX5I
-	 yoI7wHWnF9JWj3IMvi+neM3zWw2vQt94AKUQRDaY=
-Date: Tue, 24 Nov 2026 09:23:32 -0800
+	b=2kEJD6JLl9lXzx/C8KYCo2Mkg53kcMXJVswUxDYMD/KT9cjkDT+PFmykOeI/I53L1
+	 e0+L8rBxvim+fJkyCW5fCWnPN3IRPyybEL+6XFwnu6FvxOaQm8J5YNDqv8MmRXZ6mZ
+	 HP++2MXwGkzn3k9WRHw4HLSxX/owAj82zsFoLOm0=
+Date: Tue, 24 Nov 2026 09:23:35 -0800
 To: mm-commits@vger.kernel.org,lianux.mm@gmail.com,jm5905938@gmail.com,
 	sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124153636.91854-15-sj@kernel.org>
-References: <20261124153636.91854-15-sj@kernel.org>
-Subject: + mm-damon-paddr-support-report_made-type-probe-filter.patch added to mm-new branch
-Message-Id: <20261124172333.4B4061F000C4@smtp.kernel.org>
+In-Reply-To: <20261124153636.91854-16-sj@kernel.org>
+References: <20261124153636.91854-16-sj@kernel.org>
+Subject: + mm-damon-sysfs-add-filter_report_type-file-under-probe-filter-directory.patch added to mm-new branch
+Message-Id: <20261124172336.460BD1F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/damon/paddr: support REPORT_MADE type probe filter
+     Subject: mm/damon/sysfs: add filter_report_type file under probe filter directory
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-paddr-support-report_made-type-probe-filter.patch
+     mm-damon-sysfs-add-filter_report_type-file-under-probe-filter-directory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-support-report_made-type-probe-filter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-add-filter_report_type-file-under-probe-filter-directory.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -90,78 +90,122 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/paddr: support REPORT_MADE type probe filter
-Date: Tue, 24 Nov 2026 07:36:20 -0800
+Subject: mm/damon/sysfs: add filter_report_type file under probe filter directory
+Date: Tue, 24 Nov 2026 07:36:21 -0800
 
-Add a support of DAMON_FILTER_TYPE_REPORT_MADE type probe filter to the
-physical address space operation set.  Use the DAMON core API function,
-damon_report_exist() for the core report search functionality.  Set the
-time range as the last sampling interval.  Pass damon_ctx to the filter
-matching function for getting the sampling interval.
+Add a sysfs file, filter_report_type, under probe filter directory.  It
+receives damon_report_type from the user.  Reuse
+damon_sysfs_report_type_name struct for user keyword matching.  Move the
+definition instead of forward declaration, as the code change is small
+enough at this stage.
 
-Link: https://patch.msgid.link/20261124153636.91854-15-sj@kernel.org
-Signed-off-by: Lian Wang <lianux.mm@gmail.com>
+Link: https://patch.msgid.link/20261124153636.91854-16-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Tested-by: Lian Wang <lianux.mm@gmail.com>
-Cc: Aveline Noir <jm5905938@gmail.com>
+Reviewed-by: Aveline Noir <jm5905938@gmail.com>
+Reviewed-by: Lian Wang <lianux.mm@gmail.com>
 
- mm/damon/paddr.c |   17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+ mm/damon/sysfs.c |   61 ++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 52 insertions(+), 9 deletions(-)
 
---- a/mm/damon/paddr.c~mm-damon-paddr-support-report_made-type-probe-filter
-+++ a/mm/damon/paddr.c
-@@ -140,9 +140,10 @@ static void damon_pa_prep_probes(struct
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-add-filter_report_type-file-under-probe-filter-directory
++++ a/mm/damon/sysfs.c
+@@ -977,6 +977,7 @@ struct damon_sysfs_filter {
+ 	char *path;
+ 	unsigned long range_min;
+ 	unsigned long range_max;
++	enum damon_report_type report_type;
+ };
+ 
+ static struct damon_sysfs_filter *damon_sysfs_filter_alloc(void)
+@@ -1175,6 +1176,53 @@ static ssize_t max_store(struct kobject
+ 	return err ? err : count;
  }
  
- static bool damon_pa_filter_match(struct damon_filter *filter,
--		struct folio *folio)
-+		struct folio *folio, phys_addr_t pa, struct damon_ctx *ctx)
++struct damon_sysfs_report_type_name {
++	enum damon_report_type type;
++	char *name;
++};
++
++static const struct damon_sysfs_report_type_name
++damon_sysfs_report_type_names[] = {
++};
++
++static ssize_t filter_report_type_show(struct kobject *kobj,
++		struct kobj_attribute *attr, char *buf)
++{
++	struct damon_sysfs_filter *filter = container_of(kobj,
++			struct damon_sysfs_filter, kobj);
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(damon_sysfs_report_type_names); i++) {
++		const struct damon_sysfs_report_type_name *type_name;
++
++		type_name = &damon_sysfs_report_type_names[i];
++		if (type_name->type == filter->report_type)
++			return sysfs_emit(buf, "%s\n", type_name->name);
++	}
++	return -EINVAL;
++}
++
++static ssize_t filter_report_type_store(struct kobject *kobj,
++		struct kobj_attribute *attr, const char *buf, size_t count)
++{
++	struct damon_sysfs_filter *filter = container_of(kobj,
++			struct damon_sysfs_filter, kobj);
++	ssize_t ret = -EINVAL;
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(damon_sysfs_report_type_names); i++) {
++		const struct damon_sysfs_report_type_name *type_name;
++
++		type_name = &damon_sysfs_report_type_names[i];
++		if (sysfs_streq(buf, type_name->name)) {
++			filter->report_type = type_name->type;
++			ret = count;
++			break;
++		}
++	}
++	return ret;
++}
++
+ static void damon_sysfs_filter_release(struct kobject *kobj)
  {
- 	bool matched = false;
-+	struct damon_addr_range addr_range;
+ 	struct damon_sysfs_filter *filter = container_of(kobj,
+@@ -1202,6 +1250,9 @@ static struct kobj_attribute damon_sysfs
+ static struct kobj_attribute damon_sysfs_filter_max_attr =
+ 		__ATTR_RW_MODE(max, 0600);
  
- 	switch (filter->type) {
- 	case DAMON_FILTER_TYPE_PGIDLE_UNSET:
-@@ -157,19 +158,27 @@ static bool damon_pa_filter_match(struct
- 		else
- 			matched = damon_folio_young(folio) == false;
- 		break;
-+	case DAMON_FILTER_TYPE_REPORT_MADE:
-+		addr_range.start = damon_pa_core_addr(pa, ctx->addr_unit);
-+		addr_range.end = addr_range.start + 1;
-+		matched = damon_report_exist(filter->report_type, &addr_range,
-+				jiffies -
-+				usecs_to_jiffies(ctx->attrs.sample_interval));
-+		break;
- 	default:
- 		return damon_ops_filter_match(filter, folio);
- 	}
- 	return matched == filter->matching;
++static struct kobj_attribute damon_sysfs_filter_filter_report_type_attr =
++		__ATTR_RW_MODE(filter_report_type, 0600);
++
+ static struct attribute *damon_sysfs_filter_attrs[] = {
+ 	&damon_sysfs_filter_type_attr.attr,
+ 	&damon_sysfs_filter_matching_attr.attr,
+@@ -1209,6 +1260,7 @@ static struct attribute *damon_sysfs_fil
+ 	&damon_sysfs_filter_path_attr.attr,
+ 	&damon_sysfs_filter_min_attr.attr,
+ 	&damon_sysfs_filter_max_attr.attr,
++	&damon_sysfs_filter_filter_report_type_attr.attr,
+ 	NULL,
+ };
+ ATTRIBUTE_GROUPS(damon_sysfs_filter);
+@@ -2992,15 +3044,6 @@ static struct damon_sysfs_producer *damo
+ 	return kzalloc_obj(struct damon_sysfs_producer);
  }
  
--static bool damon_pa_filter_pass(struct folio *folio, struct damon_probe *p)
-+static bool damon_pa_filter_pass(struct folio *folio, struct damon_probe *p,
-+		phys_addr_t pa, struct damon_ctx *ctx)
+-struct damon_sysfs_report_type_name {
+-	enum damon_report_type type;
+-	char *name;
+-};
+-
+-static const struct damon_sysfs_report_type_name
+-damon_sysfs_report_type_names[] = {
+-};
+-
+ static ssize_t report_type_show(struct kobject *kobj,
+ 		struct kobj_attribute *attr, char *buf)
  {
- 	struct damon_filter *f;
- 	bool pass = true;
- 
- 	damon_for_each_filter(f, p) {
--		if (damon_pa_filter_match(f, folio)) {
-+		if (damon_pa_filter_match(f, folio, pa, ctx)) {
- 			pass = f->allow;
- 			break;
- 		}
-@@ -199,7 +208,7 @@ static unsigned int damon_pa_apply_probe
- 					ctx->addr_unit);
- 			folio = damon_get_folio(PHYS_PFN(pa));
- 			damon_for_each_probe(p, ctx) {
--				if (damon_pa_filter_pass(folio, p))
-+				if (damon_pa_filter_pass(folio, p, pa, ctx))
- 					r->probe_hits[i]++;
- 				i++;
- 			}
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
