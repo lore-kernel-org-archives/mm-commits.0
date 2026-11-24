@@ -1,42 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795514615;
-	b=doZerzftbJNWO+LRnqsjoIBmYHpZ4Pn36YYETk9tSABbREKVQMQKh23cb5T3OLnKmGbR
-	 OSMAi1uUTTcIWzB0cxRrIQpOQWEaEamfB4c8lU+zeaXe4jNTfJjShQZMjecyDdNJ95Y2E
-	 Z46BWPx+sK8KM0iTgw1UuJiwkbbfjMqedJ+8mDNkjS4/rbNHPS6FQI+n1jkEy7nVuUd9o
-	 jcSGYpyZMOiZQ2b0WmNc2CyWovV6/GwiJIa1MVElRC0oSzr/NxGv4SZnH4NXMi2gXXYBD
-	 5HrTPyYZXZENnaCWK3RIv14hqLqYCem/J2onjiSSCOy6hBdAPZKYhxIrIY0K3rEFNcQ==
+	t=1795514619;
+	b=VyoXeXrj2VpxzXZgySPT5CiiDV5+HIbB2m9Tr+sb2pM5f9WhZyEHR8n1vToAHtX1ycme
+	 Pks6PDQ7gvaOiVuvuLCUqSp3tC4C71oP9UN53nNvjlFhrgatQJW5D1EIqNzM3eRziSGwl
+	 L0qNAS5CXdZZF+hhXHxRYa6y0qNi/5D8Jih9+lmrsZxVAgdYfXXz8FLpnb+FyDfPL7Piv
+	 5D0aYSG3w2AjO8XFM5HjdMejsP9sU5JKmm27b+fri+UmyeV4kf89nBHqXufgL4m8trece
+	 Pqw7VyIfSs2OTQgb6JSeGqL4TUM7v+eItBXz2rIxj5ZpV4laDIvct05zHy6GSkYPkCQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795514615;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795514619;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=wMiMVMJhMi9kWzymZXMN0T4Ky9sOHtB0p03KXvBjkN4=;
-	b=P4/ypkygnCGjUoIvEmcUHdPJfE7fkXc5092CEycQjPTqX7xkZ8Hv2tK7KQ7zzQA6IWkM
-	 POzXYKA6CecMDEKzNjukBFUoe6yD3Pv/t0Hjq8SrnsrfkRrgh3IW/dOwI3z/cQGqKSNAS
-	 IrB9ERi2pYAcVXP5/Zm3rIpImIpIzq/eimX9rLV9rC4D1oqChhJO7WXkZ0QXJEg7DaEyb
-	 zQMyOBiGvuIKMoWbkSYi+6DEFEKmqNhVfAnaPrrUd8JI1FucQbz//UUycj/1CI0vJDfdn
-	 jSyelPatBAsLN6UAGvKJjGOybbfg9KROMuVnmVEAjJo6zrvstgBGm+O1DHJ64+kVFdQ==
+	bh=eXf+e1ciPgf1bBffXnNnaSGSp1TmUBCcFB5/nfTktZI=;
+	b=NgNrWvMlPm/tIFMFblhT4RQhj2ACN63khCCWU37OKz4FlKkGXhS44s+FVdpC5Yk7Fb9W
+	 vS5D/s2mpGpWHRrSNp4FSzsapvROovlwtcGVt08EeRY1mZwBoAlKHCwmf3NiK3BwzNy7G
+	 3Tm0f+vbuGIzkgykwX1yIHL2DbvKmF5su/dKfQExWqKYsEgdEFzDKAfdei9q+batkRsvQ
+	 Ju7QLyKdlyRjQRAAXglli10xJOvw/PgEa5epSZsZvgLejEKlBQyassm59P89Piwrdwr03
+	 spu7Y6gIRYYupkD2Ev06XASh67jqaP1Ha6q17PXqrJy9E67IVFlUomZLCBqiNhBZGYw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=gwDfftwY;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=RqdoLFDG;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA075606A331
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 10:03:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B56E2606A322
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 10:03:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=gwDfftwY
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EAF51F000C4;
-	Tue, 24 Nov 2026 10:03:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=RqdoLFDG
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 009BB1F000C4;
+	Tue, 24 Nov 2026 10:03:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795514615;
-	bh=wMiMVMJhMi9kWzymZXMN0T4Ky9sOHtB0p03KXvBjkN4=;
+	d=linux-foundation.org; s=korg; t=1795514619;
+	bh=eXf+e1ciPgf1bBffXnNnaSGSp1TmUBCcFB5/nfTktZI=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=gwDfftwY/k0MJ/HfRgvImB6HBe1LOY/mPhgw7MsFuoj0vnsAGcsifDBTQcqfixcGy
-	 kCtBNwKOICYaphJwkmyzv2TzjLj7kVIrYsELpkjpf4UTdxmsLwDIepjrxZ8uD/shvV
-	 MeP/CBN3zITh+PU3/5ckMcL75oBHtgwHrDCFjSqI=
-Date: Tue, 24 Nov 2026 02:03:34 -0800
+	b=RqdoLFDGWrqtUy1wbGbhwniesbIreeHbtmJEetMgOkFOkFbuxXECGbhenFthubT+i
+	 5JAPThbnHmT7BWd7KdlpQK0nFHhBuwbFIhb4tWRf3GfBmmyoA2TQ5uZUmZorEXyLCA
+	 DCd7RjN+zZ585utZo2ltmniiW/+Vk7jfESIjCJCw=
+Date: Tue, 24 Nov 2026 02:03:38 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,
 	surenb@google.com,smostafa@google.com,skhan@linuxfoundation.org,
 	rppt@kernel.org,rdunlap@infradead.org,praan@google.com,mhocko@suse.com,
@@ -46,10 +46,10 @@ To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,
 	brendan.jackman@linux.dev,baolu.lu@linux.intel.com,songmuchun@bytedance.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261119065812.89959-5-songmuchun@bytedance.com>
-References: <20261119065812.89959-5-songmuchun@bytedance.com>
-Subject: + mm-page_ext-use-common-allocation-and-initialization-entry-points.patch added to mm-new branch
-Message-Id: <20261124100335.2EAF51F000C4@smtp.kernel.org>
+In-Reply-To: <20261119065812.89959-6-songmuchun@bytedance.com>
+References: <20261119065812.89959-6-songmuchun@bytedance.com>
+Subject: + mm-page_ext-allocate-page-extensions-early-for-sparsemem.patch added to mm-new branch
+Message-Id: <20261124100339.009BB1F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -61,12 +61,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/page_ext: use common allocation and initialization entry points
+     Subject: mm/page_ext: allocate page extensions early for SPARSEMEM
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_ext-use-common-allocation-and-initialization-entry-points.patch
+     mm-page_ext-allocate-page-extensions-early-for-sparsemem.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_ext-use-common-allocation-and-initialization-entry-points.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_ext-allocate-page-extensions-early-for-sparsemem.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -96,31 +96,24 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/page_ext: use common allocation and initialization entry points
-Date: Thu, 19 Nov 2026 14:58:09 +0800
+Subject: mm/page_ext: allocate page extensions early for SPARSEMEM
+Date: Thu, 19 Nov 2026 14:58:10 +0800
 
-FLATMEM uses separate page_ext_init_flatmem() and
-page_ext_init_flatmem_late() entry points, while SPARSEMEM performs its
-work through page_ext_init().  This exposes the memory model in the
-generic boot sequence and obscures the allocation and client
-initialization phases.
+KMSAN needs page extensions when kmsan_init_shadow() installs per-page
+metadata, before memblock_free_all() releases memory to the buddy
+allocator.  FLATMEM makes page extensions available by this point,
+whereas SPARSEMEM initializes them later in boot.
 
-Rename the early entry point to page_ext_alloc() and use
-page_ext_init() for client callbacks in both memory models.  SPARSEMEM
-keeps its existing late allocation behavior for now; its
-page_ext_alloc() remains an empty configuration stub.
+Allocate boot-time SPARSEMEM page extensions from memblock to match
+FLATMEM's initialization timing.  This gives early clients the same
+page_ext availability guarantee across both memory models, while runtime
+memory hotplug continues to use vmalloc.
 
-This also moves FLATMEM client callbacks from immediately after
-kmem_cache_init() to after vmalloc_init().  The callbacks still run
-after the buddy and slab allocators are available, as required by
-page_owner.
-
-Link: https://patch.msgid.link/20261119065812.89959-5-songmuchun@bytedance.com
+Link: https://patch.msgid.link/20261119065812.89959-6-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Reviewed-by: Chris Down <chris@chrisdown.name>
-Tested-by: Chris Down <chris@chrisdown.name>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Marco Elver <elver@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -142,101 +135,238 @@ Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Shuah Khan <skhan@linuxfoundation.org>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 
- include/linux/page_ext.h |   20 +++++---------------
- mm/mm_init.c             |    7 +------
- mm/page_ext.c            |    5 ++---
- 3 files changed, 8 insertions(+), 24 deletions(-)
+ include/linux/page_ext.h |    9 --
+ mm/mm_init.c             |    4 -
+ mm/page_ext.c            |  117 ++++++++++++++++++-------------------
+ 3 files changed, 59 insertions(+), 71 deletions(-)
 
---- a/include/linux/page_ext.h~mm-page_ext-use-common-allocation-and-initialization-entry-points
+--- a/include/linux/page_ext.h~mm-page_ext-allocate-page-extensions-early-for-sparsemem
 +++ a/include/linux/page_ext.h
-@@ -62,13 +62,10 @@ static inline bool early_page_ext_enable
+@@ -61,12 +61,10 @@ static inline bool early_page_ext_enable
+ 	return early_page_ext;
  }
  
- #ifdef CONFIG_SPARSEMEM
--static inline void page_ext_init_flatmem(void)
--{
--}
--extern void page_ext_init(void);
--static inline void page_ext_init_flatmem_late(void)
-+static inline void page_ext_alloc(void)
- {
- }
-+void page_ext_init(void);
- 
- static inline bool page_ext_iter_next_fast_possible(unsigned long next_pfn)
- {
-@@ -79,11 +76,8 @@ static inline bool page_ext_iter_next_fa
- 	return next_pfn % PAGES_PER_SECTION;
- }
- #else
--extern void page_ext_init_flatmem(void);
--extern void page_ext_init_flatmem_late(void);
--static inline void page_ext_init(void)
+-#ifdef CONFIG_SPARSEMEM
+-static inline void page_ext_alloc(void)
 -{
 -}
 +void page_ext_alloc(void);
-+void page_ext_init(void);
+ void page_ext_init(void);
  
++#ifdef CONFIG_SPARSEMEM
  static inline bool page_ext_iter_next_fast_possible(unsigned long next_pfn)
  {
-@@ -205,11 +199,7 @@ static inline void page_ext_init(void)
- {
+ 	/*
+@@ -76,9 +74,6 @@ static inline bool page_ext_iter_next_fa
+ 	return next_pfn % PAGES_PER_SECTION;
  }
- 
--static inline void page_ext_init_flatmem_late(void)
--{
--}
+ #else
+-void page_ext_alloc(void);
+-void page_ext_init(void);
 -
--static inline void page_ext_init_flatmem(void)
-+static inline void page_ext_alloc(void)
+ static inline bool page_ext_iter_next_fast_possible(unsigned long next_pfn)
  {
- }
- 
---- a/mm/mm_init.c~mm-page_ext-use-common-allocation-and-initialization-entry-points
+ 	return true;
+--- a/mm/mm_init.c~mm-page_ext-allocate-page-extensions-early-for-sparsemem
 +++ a/mm/mm_init.c
-@@ -2648,7 +2648,7 @@ void __init mm_core_init(void)
- 	 * page_ext requires contiguous pages,
- 	 * bigger than MAX_PAGE_ORDER unless SPARSEMEM.
- 	 */
--	page_ext_init_flatmem();
-+	page_ext_alloc();
+@@ -2644,10 +2644,6 @@ void __init mm_core_init(void)
+ 	build_all_zonelists(NULL);
+ 	page_alloc_init_cpuhp();
+ 	alloc_tag_sec_init();
+-	/*
+-	 * page_ext requires contiguous pages,
+-	 * bigger than MAX_PAGE_ORDER unless SPARSEMEM.
+-	 */
+ 	page_ext_alloc();
  	mem_debugging_and_hardening_init();
  	kfence_alloc_pool_and_metadata();
- 	report_meminit();
-@@ -2664,11 +2664,6 @@ void __init mm_core_init(void)
- 	memblock_free_all();
- 	mem_init();
- 	kmem_cache_init();
--	/*
--	 * page_owner must be initialized after buddy is ready, and also after
--	 * slab is ready so that stack_depot_init() works properly
--	 */
--	page_ext_init_flatmem_late();
- 	kmemleak_init();
- 	ptlock_cache_init();
- 	pgtable_cache_init();
---- a/mm/page_ext.c~mm-page_ext-use-common-allocation-and-initialization-entry-points
+--- a/mm/page_ext.c~mm-page_ext-allocate-page-extensions-early-for-sparsemem
 +++ a/mm/page_ext.c
-@@ -185,7 +185,7 @@ static inline struct page_ext *get_entry
+@@ -12,6 +12,7 @@
+ #include <linux/rcupdate.h>
+ #include <linux/pgalloc_tag.h>
+ #include <linux/iommu-debug-pagealloc.h>
++#include <linux/slab.h>
+ 
+ /*
+  * struct page extension
+@@ -185,11 +186,6 @@ static inline struct page_ext *get_entry
  }
  
  #ifndef CONFIG_SPARSEMEM
--void __init page_ext_init_flatmem_late(void)
-+void __init page_ext_init(void)
+-void __init page_ext_init(void)
+-{
+-	invoke_init_callbacks();
+-}
+-
+ static struct page_ext *lookup_page_ext(const struct page *page)
  {
- 	invoke_init_callbacks();
- }
-@@ -243,9 +243,8 @@ static int __init alloc_node_page_ext(in
+ 	unsigned long pfn = page_to_pfn(page);
+@@ -243,24 +239,16 @@ static int __init alloc_node_page_ext(in
  	return 0;
  }
  
--void __init page_ext_init_flatmem(void)
-+void __init page_ext_alloc(void)
+-void __init page_ext_alloc(void)
++static int __init __page_ext_alloc(void)
  {
+-	int nid, fail;
 -
- 	int nid, fail;
+-	if (!invoke_need_callbacks())
+-		return;
++	int nid;
  
- 	if (!invoke_need_callbacks())
+-	for_each_online_node(nid)  {
+-		fail = alloc_node_page_ext(nid);
+-		if (fail)
+-			goto fail;
++	for_each_online_node(nid) {
++		if (alloc_node_page_ext(nid))
++			return -ENOMEM;
+ 	}
+-	pr_info("allocated %ld bytes of page_ext\n", total_usage);
+-	return;
+ 
+-fail:
+-	pr_crit("allocation of page_ext failed.\n");
+-	panic("Out of memory");
++	return 0;
+ }
+ 
+ #else /* CONFIG_SPARSEMEM */
+@@ -287,10 +275,18 @@ static struct page_ext *lookup_page_ext(
+ 	return get_entry(page_ext, pfn);
+ }
+ 
+-static void *__meminit alloc_page_ext(size_t size, int nid)
++static __ref void *alloc_page_ext(size_t size, int nid)
+ {
+ 	void *addr;
+ 
++	if (!slab_is_available()) {
++		addr = memblock_alloc_try_nid(size, PAGE_SIZE, __pa(MAX_DMA_ADDRESS),
++					      MEMBLOCK_ALLOC_ACCESSIBLE, nid);
++		if (addr)
++			memmap_boot_pages_add(DIV_ROUND_UP(size, PAGE_SIZE));
++		return addr;
++	}
++
+ 	addr = vzalloc_node(size, nid);
+ 	if (addr)
+ 		memmap_pages_add(DIV_ROUND_UP(size, PAGE_SIZE));
+@@ -309,7 +305,7 @@ static int __meminit init_section_page_e
+ 	if (section->page_ext)
+ 		return 0;
+ 
+-	table_size = page_ext_size * PAGES_PER_SECTION;
++	table_size = PAGE_ALIGN(page_ext_size * PAGES_PER_SECTION);
+ 	base = alloc_page_ext(table_size, nid);
+ 
+ 	/*
+@@ -336,11 +332,19 @@ static int __meminit init_section_page_e
+ 
+ static void free_page_ext(void *addr)
+ {
+-	size_t table_size;
++	size_t table_size = PAGE_ALIGN(page_ext_size * PAGES_PER_SECTION);
++	long nr_pages = table_size / PAGE_SIZE;
++
++	if (is_vmalloc_addr(addr)) {
++		memmap_pages_add(-nr_pages);
++		vfree(addr);
++		return;
++	}
+ 
+-	table_size = page_ext_size * PAGES_PER_SECTION;
+-	memmap_pages_add(-1L * (DIV_ROUND_UP(table_size, PAGE_SIZE)));
+-	vfree(addr);
++	VM_WARN_ON_ONCE(!PageReserved(virt_to_page(addr)));
++	memmap_boot_pages_add(-nr_pages);
++	kmemleak_free_part_phys(__pa(addr), table_size);
++	free_reserved_area(addr, addr + table_size, -1, NULL);
+ }
+ 
+ static void __free_page_ext(unsigned long pfn)
+@@ -454,52 +458,45 @@ static int __meminit page_ext_callback(s
+ 	return notifier_from_errno(ret);
+ }
+ 
+-void __init page_ext_init(void)
++static int __init __page_ext_alloc(void)
+ {
+-	unsigned long pfn;
+-	int nid;
+-
+-	if (!invoke_need_callbacks())
+-		return;
+-
+-	for_each_node_state(nid, N_MEMORY) {
+-		unsigned long start_pfn, end_pfn;
+-
+-		start_pfn = node_start_pfn(nid);
+-		end_pfn = node_end_pfn(nid);
+-		/*
+-		 * start_pfn and end_pfn may not be aligned to SECTION and the
+-		 * page->flags of out of node pages are not initialized.  So we
+-		 * scan [start_pfn, the biggest section's pfn < end_pfn) here.
+-		 */
+-		for (pfn = start_pfn; pfn < end_pfn;
+-			pfn = ALIGN(pfn + 1, PAGES_PER_SECTION)) {
++	unsigned long start, end, pfn;
++	int i, nid;
+ 
++	for_each_mem_pfn_range(i, MAX_NUMNODES, &start, &end, &nid) {
++		for (pfn = start; pfn < end; pfn = SECTION_ALIGN_UP(pfn + 1)) {
+ 			if (!pfn_valid(pfn))
+ 				continue;
+-			/*
+-			 * Nodes's pfns can be overlapping.
+-			 * We know some arch can have a nodes layout such as
+-			 * -------------pfn-------------->
+-			 * N0 | N1 | N2 | N0 | N1 | N2|....
+-			 */
+-			if (pfn_to_nid(pfn) != nid)
+-				continue;
+ 			if (init_section_page_ext(pfn, nid))
+-				goto oom;
+-			cond_resched();
++				return -ENOMEM;
+ 		}
+ 	}
+-	hotplug_memory_notifier(page_ext_callback, DEFAULT_CALLBACK_PRI);
+-	pr_info("allocated %ld bytes of page_ext\n", total_usage);
+-	invoke_init_callbacks();
+-	return;
+ 
+-oom:
+-	panic("Out of memory");
++	return 0;
++}
++
++#endif
++
++void __init page_ext_alloc(void)
++{
++	if (!invoke_need_callbacks())
++		return;
++	if (__page_ext_alloc())
++		panic("Out of memory");
++
++	pr_info("allocated %ld bytes of page_ext\n", total_usage);
+ }
+ 
++void __init page_ext_init(void)
++{
++	if (!page_ext_size)
++		return;
++
++#ifdef CONFIG_SPARSEMEM
++	hotplug_memory_notifier(page_ext_callback, DEFAULT_CALLBACK_PRI);
+ #endif
++	invoke_init_callbacks();
++}
+ 
+ /**
+  * page_ext_lookup() - Lookup a page extension for a PFN.
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
