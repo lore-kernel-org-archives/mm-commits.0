@@ -1,42 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795547329;
-	b=z1BdCPBK5hnkGBFp+pXZPxYoF8ORYVHavfrdFsva3rUB7GCoBBCiTmcR1a5JhrBtskd+
-	 +2SMlOApcBRQ6iklol3EXUX3DZQ7N3y4KkXOz21KxjKvOSCt5N6r4oEh32hacmnEZCkdO
-	 /JL/VEvDfkLKiyJqM5KazkDXfMaz9R7/ZDTSMTZHinTNOUuCFPrXBg2CoooXk5Z+yNyJR
-	 PEc8kuvwlaH9b+ZGsW78E9PI1SgUrROqZouUiGYrKJiOrMQRo5WsBxn0VIQAh3hbvIGOM
-	 UXwLy3kNCCNCt0L/C4jbxMno8h9a4ZF5tk/H9D+EQ2Pfkvc4xAqLIDSL5Ecbmzn3hMw==
+	t=1795547333;
+	b=t7JP0Kxcws1S9NeLSh0L5HuOHJdkFpmzo8RvRiNHaNWfxjJn64MsRs1+WkjzwFmEmU6t
+	 yndz8tCJWyJMukhOLq7Q1bJ+sWQLmzbZN/u+8DmHyjlsQL7DF/xgVG2YzldKGzXLnUERr
+	 dAw2uBKcsRYwDAJ0iB/ItGKSnPieTtFoDIEYSsUqZFbkLRYz2tvWAftCRbbuYaHYGXfgA
+	 lrZUh5BP3KUIGSkfkQnR9TdBRFcy0SKqrVO77ImirW0bbBjU3IqJPqnc4IZ8s1xu+jHG2
+	 cPz8DQnEh9fkPfPG74tigrAZdt0xayaZyHY2dMwk3ISFKKqMCpKx+Dnz4QYizYBeCXA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795547329;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795547333;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=GRhi0lNFEfqHMzVRFnQRG0j8Rx78B7r6dpHu4uYmEXA=;
-	b=AavNr3h/wv4xvSH1YNyy8GIZa6Yl1kTcoqrcatAyKK63N+n12KXAkKS0Rcp/B3Pb9qBk
-	 5HHUgsGKa/RhHCTWpmPKhSjntfkyd0/Ak1hPB6QZNBFtW0zSg2DyaQ91gKr69zdLZ080o
-	 XxQFB10s8LtsczdxpeZk9nMA5DOH61HzgAlRNhRNgwDoCxsPMy3d/ycp+ZeRi3nUV4Smf
-	 1AHMydUTrxBGuwwbHhJyxKhYdWVboLna3gKC46id928PUFs1gXUYuDDXviiFMmgJLvF6h
-	 VfoOCLX12kRa88x6y6OHQW2LmHPemLle7f5m1f7HBQHHcsYF5aDo42dWWdv+Hhd8TeA==
+	bh=dQjU96NL5T7cP4bf2YDgIoplrx0hb4jbA+Y187BP72w=;
+	b=TCmp4vVaZCZOqvl3GtWQFuJ9rTuRZPTBtFnGos3zxzpQyJn5jBAC05EmyCFL1GvF2ARn
+	 A/WozVUzg1xW9APdR/YPXwsUhmdkUBbF7H+AZmfDbCLD+//0R2oS9h+Ksnnm+o40aB/Cj
+	 mKWjw8Sl4mQ1q+KVqEjPSkEC6j6okCsbx4dcCjUV7X6hLeOLY85lw5H5fvbQUr/laVFkg
+	 e6DdTcCPTUYF1+fNtJLy4OkMwvZR2u6wOLtL0wZUQdiFM4sSjHWOf4V+7vqnnsCxgjeIj
+	 h752mp14JEaCMGNzsEsgA1MU1PYXgR9EIok9k5Nhi0JpFRjZgGEY2oaw6NYecUBZKcg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Pmqra0hb;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jnzuro6k;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6FB3606A32A
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 19:08:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86F0D606A321
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 19:08:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Pmqra0hb
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F55C1F000D2;
-	Tue, 24 Nov 2026 19:08:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jnzuro6k
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57CFF1F000C0;
+	Tue, 24 Nov 2026 19:08:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795547329;
-	bh=GRhi0lNFEfqHMzVRFnQRG0j8Rx78B7r6dpHu4uYmEXA=;
+	d=linux-foundation.org; s=korg; t=1795547332;
+	bh=dQjU96NL5T7cP4bf2YDgIoplrx0hb4jbA+Y187BP72w=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=Pmqra0hbFPhvDvYVuiZvv7iExO0TE3uCw2vTznIg06sfYuaxp1cAvphxLFQ7hk8PN
-	 EisfXeKR9KrskLGBd/JliorcPd4LC4NHD6ZBZ+J6Jo2nAlwpNkQpqXBlq3JraIz9vM
-	 VGKupIcd9mJGji+d8ZnIiW0zGywk/qlfu4zLAxzk=
-Date: Tue, 24 Nov 2026 11:08:48 -0800
+	b=jnzuro6kUM8TSPcBxPicAoDzi+GTe21q/2/R+ODqhUuajPKg9WnZta9L0kjakHXSH
+	 1XPC3Zqfbq/aM6a1ZtHHlscDAqG8wtEPLHOdFfTl6aplNWOUKoMA/1d2enFqpBELRi
+	 K7Qeg8vnwu4pjJd7K3KmQ2sIIm4vpTw6S4CFSLOo=
+Date: Tue, 24 Nov 2026 11:08:51 -0800
 To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,wei.liu@kernel.org,
 	tglx@kernel.org,sumit.garg@kernel.org,stephen.smalley.work@gmail.com,
 	sstabellini@kernel.org,sshegde@linux.ibm.com,scott.branden@broadcom.com,
@@ -54,10 +54,10 @@ To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,wei.liu@kernel.org,
 	andrew+netdev@lunn.ch,andrew@codeconstruct.com.au,andersson@kernel.org,
 	abel.vesa@oss.qualcomm.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124-late-2026-mmap_prepare-v2-2-0b0d99d655f9@kernel.org>
-References: <20261124-late-2026-mmap_prepare-v2-2-0b0d99d655f9@kernel.org>
-Subject: + kvm-ppc-book3s-convert-spapr-tce-mmap-hook-to-mmap_prepare.patch added to mm-new branch
-Message-Id: <20261124190849.3F55C1F000D2@smtp.kernel.org>
+In-Reply-To: <20261124-late-2026-mmap_prepare-v2-3-0b0d99d655f9@kernel.org>
+References: <20261124-late-2026-mmap_prepare-v2-3-0b0d99d655f9@kernel.org>
+Subject: + mshv_vtl-convert-mmap-hooks-to-mmap_prepare.patch added to mm-new branch
+Message-Id: <20261124190852.57CFF1F000C0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -69,12 +69,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: KVM: PPC: Book3S: convert spapr TCE mmap hook to mmap_prepare
+     Subject: mshv_vtl: convert mmap hooks to mmap_prepare
 has been added to the -mm mm-new branch.  Its filename is
-     kvm-ppc-book3s-convert-spapr-tce-mmap-hook-to-mmap_prepare.patch
+     mshv_vtl-convert-mmap-hooks-to-mmap_prepare.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kvm-ppc-book3s-convert-spapr-tce-mmap-hook-to-mmap_prepare.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mshv_vtl-convert-mmap-hooks-to-mmap_prepare.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -104,15 +104,19 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: KVM: PPC: Book3S: convert spapr TCE mmap hook to mmap_prepare
-Date: Tue, 24 Nov 2026 14:02:45 +0000
+Subject: mshv_vtl: convert mmap hooks to mmap_prepare
+Date: Tue, 24 Nov 2026 14:02:46 +0000
 
-Move from the deprecated mmap hook to the new mmap_prepare hook. The hook
-only sets the VMA operations.
+Move from the deprecated mmap hook to the new mmap_prepare hook for both
+the mshv_vtl and mshv_vtl_low devices. These only set VMA operations and
+flags.
 
-Link: https://patch.msgid.link/20261124-late-2026-mmap_prepare-v2-2-0b0d99d655f9@kernel.org
+Link: https://patch.msgid.link/20261124-late-2026-mmap_prepare-v2-3-0b0d99d655f9@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Tested-by: Kameron Carr <kameroncarr@linux.microsoft.com>
+Reviewed-by: Kameron Carr <kameroncarr@linux.microsoft.com>
+Reviewed-by: Michael Kelley <mhklinux@outlook.com>
 Cc: Juergen Gross <jgross@suse.com>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
@@ -158,36 +162,57 @@ Cc: Paolo Abeni <pabeni@redhat.com>
 Cc: Jens Wiklander <jens.wiklander@oss.qualcomm.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Abel Vesa <abel.vesa@oss.qualcomm.com>
-Cc: Kameron Carr <kameroncarr@linux.microsoft.com>
-Cc: Michael Kelley <mhklinux@outlook.com>
 Cc: David Woodhouse <dwmw@amazon.co.uk>
 
- arch/powerpc/kvm/book3s_64_vio.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/hv/mshv_vtl_main.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/arch/powerpc/kvm/book3s_64_vio.c~kvm-ppc-book3s-convert-spapr-tce-mmap-hook-to-mmap_prepare
-+++ a/arch/powerpc/kvm/book3s_64_vio.c
-@@ -247,9 +247,9 @@ static const struct vm_operations_struct
- 	.fault = kvm_spapr_tce_fault,
+--- a/drivers/hv/mshv_vtl_main.c~mshv_vtl-convert-mmap-hooks-to-mmap_prepare
++++ a/drivers/hv/mshv_vtl_main.c
+@@ -873,9 +873,9 @@ static const struct vm_operations_struct
+ 	.fault = mshv_vtl_fault,
  };
  
--static int kvm_spapr_tce_mmap(struct file *file, struct vm_area_struct *vma)
-+static int kvm_spapr_tce_mmap_prepare(struct vm_area_desc *desc)
+-static int mshv_vtl_mmap(struct file *filp, struct vm_area_struct *vma)
++static int mshv_vtl_mmap_prepare(struct vm_area_desc *desc)
  {
--	vma->vm_ops = &kvm_spapr_tce_vm_ops;
-+	desc->vm_ops = &kvm_spapr_tce_vm_ops;
+-	vma->vm_ops = &mshv_vtl_vm_ops;
++	desc->vm_ops = &mshv_vtl_vm_ops;
+ 
  	return 0;
  }
- 
-@@ -282,7 +282,7 @@ static int kvm_spapr_tce_release(struct
- }
- 
- static const struct file_operations kvm_spapr_tce_fops = {
--	.mmap           = kvm_spapr_tce_mmap,
-+	.mmap_prepare	= kvm_spapr_tce_mmap_prepare,
- 	.release	= kvm_spapr_tce_release,
+@@ -893,7 +893,7 @@ static const struct file_operations mshv
+ 	.owner = THIS_MODULE,
+ 	.unlocked_ioctl = mshv_vtl_ioctl,
+ 	.release = mshv_vtl_release,
+-	.mmap = mshv_vtl_mmap,
++	.mmap_prepare = mshv_vtl_mmap_prepare,
  };
  
+ static void mshv_vtl_synic_mask_vmbus_sint(void *info)
+@@ -1324,10 +1324,10 @@ static const struct vm_operations_struct
+ 	.huge_fault = mshv_vtl_low_huge_fault,
+ };
+ 
+-static int mshv_vtl_low_mmap(struct file *filp, struct vm_area_struct *vma)
++static int mshv_vtl_low_mmap_prepare(struct vm_area_desc *desc)
+ {
+-	vma->vm_ops = &mshv_vtl_low_vm_ops;
+-	vm_flags_set(vma, VM_HUGEPAGE | VM_MIXEDMAP);
++	desc->vm_ops = &mshv_vtl_low_vm_ops;
++	vma_desc_set_flags(desc, VMA_HUGEPAGE_BIT, VMA_MIXEDMAP_BIT);
+ 
+ 	return 0;
+ }
+@@ -1335,7 +1335,7 @@ static int mshv_vtl_low_mmap(struct file
+ static const struct file_operations mshv_vtl_low_file_ops = {
+ 	.owner		= THIS_MODULE,
+ 	.open		= mshv_vtl_low_open,
+-	.mmap		= mshv_vtl_low_mmap,
++	.mmap_prepare	= mshv_vtl_low_mmap_prepare,
+ };
+ 
+ static struct miscdevice mshv_vtl_low = {
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
