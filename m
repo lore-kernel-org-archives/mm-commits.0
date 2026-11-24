@@ -1,42 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795547345;
-	b=v06H+W5auXajNrZkRwVyiiGf0/mG1SXSkjKOOUTFSC3x40ZYzIFcEGNYjo9KS9VAT/JC
-	 XjB4PoGXrOFoe2+qQYc/s0JwT5hztxDBzY6AZd78wsLnnMSjB0D3iVyh0FMFXezEvm7KD
-	 kwhW401GSuQmonGjoIB3sV8Sdz/FnehCAqpPeY5yvYviDm+jLJXbogMm7kMCuGbcU0D/A
-	 ozUZAuCbfetqRqxO8jdeAQ1N0tMB7A9wyO6MM9jYZA4G5HRhTRjpT+y6MATds0nYwPno/
-	 buvNedRphMvdKh91yjxSOS09PrEaPq02kKgGQVSM/FVzWoN77RvqZqDoQ7hgf5y7nsQ==
+	t=1795547348;
+	b=38noVY9uJUHlYIA9ApGWZkVreTxbZTxDJ3NfWkUQD4I1hfEGwM1dpHuX/Weiehjm5zCO
+	 bt2MojA4SHIz4mpJehXaKYrXAr7eauE5YE1qtJ1KCpkB4XRcOWdf5NFU/Ug8ViwcPHUNF
+	 q1V/Et2T122X/6hUZDA/OavG5QWvgc8IxChlpYGWYy0OFagdp8wySatxnRPIjt3DKPlGs
+	 +Z5Pt/wxfSlFzJJs+dACem6LgTarhNnicGgmuzKVUDyh+MfX/rnlzxyOxIx/6vbBtHExN
+	 ALIkJj6GrY+Fk86KZCCeUWvN2XuiNGKQzwvAc/RUfYfLEq4+9RI+VTwXZWHu7+BiMfw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795547345;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795547348;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=LOw9edRM6EU8IIwlh7nQrCE03GWT1e/JvnY9oz/LKFQ=;
-	b=CYnwbgHICGiwWrq+BU1amW5MNocQM6vgMrLGLdg6J7CPV3DMS4z73gxhIqhTM4uY6Z89
-	 lISg2j5bTVNDDg/4vgVuWSQoGD6n6LWcG1CQxaem4m0CmtbjG+yoZcrAo3Dc7CM41eKVU
-	 HMnsrks9kGevWuuUzQIyNfbtRD8iKBMoSXrUG/1y0X/3vW/dCT7Opyjrq2JD2rg0keK6J
-	 pfEZioXzIbbwTaNBhQBXjLVWhVrJubzOzTO0pYhEz48qkcFIBHi1rithZhsovj6Xnje6U
-	 KAdo4rROLWnJuw1U94Yy3M/zW3p59dlfhscWrSD3ZitxUSJZnCzAnhGxlDyqPymEWNA==
+	bh=g1V0rv313k8k0f5rGbXeZi+bmmYs6UFfRvVJBiak/VM=;
+	b=0R8WdLzQRlKoGOcsBOlza3eeQzbqTbpxXkt21xwcg3GFS9KEyWoiqN85tO/67K1V8EWZ
+	 HgnYNdqPm8d6vhHE4kwNBOeFStbznb9s3cj+8BOfE2BTeBCDDE7chIBozJ02Ikd0lg4Go
+	 gLhzvRqzTN6RiTtUZHGFztaYPCnKviZXtnuV//UgrHETBPCe+SU7Lr5oNrUkjcFg2xFuU
+	 0akiuBnJRWS8Kc4s1X7shL17i3ViXHEm5vY06FdRyNIApU9kpBF/m+O1pCYmxQFMdWECN
+	 AnhQ4E3fuc7hlB8ZDpbDFT0jAO3E9XCujK8q9XTRx9OqAInxCbb+H9aEqXB5EpBo9kA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=oD9pL3SK;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xjdqfhTI;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 173D0606A31E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 19:09:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 444F6606A31E
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 19:09:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=oD9pL3SK
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06D9A1F000C4;
-	Tue, 24 Nov 2026 19:09:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xjdqfhTI
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 744771F000C4;
+	Tue, 24 Nov 2026 19:09:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795547344;
-	bh=LOw9edRM6EU8IIwlh7nQrCE03GWT1e/JvnY9oz/LKFQ=;
+	d=linux-foundation.org; s=korg; t=1795547347;
+	bh=g1V0rv313k8k0f5rGbXeZi+bmmYs6UFfRvVJBiak/VM=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=oD9pL3SKqT+vSpQSwmXkTA9ZUIEP9cNZOm81MXIpDeDfqg4NytPP2LE5gvAnMIOQW
-	 ITN7Kp59BZAbiGMHJM0OhrxPTR4FFkohsvZDAHBzI6RTGefqfsciVGZ70a2N/M6eHX
-	 jLlx6yEAMl5uwljxcjXUMXRzENuGK4fLSx1CnxCY=
-Date: Tue, 24 Nov 2026 11:09:03 -0800
+	b=xjdqfhTIj45CLSNUXpS4d8HxBNnApYC2Ios6uvIGYuxFKfLhIrqNkoq4AxsWldPYm
+	 d+wMW3k2qn1Vr4Ehj8wnxMBEc7aafNxePrY2fDG7EtE1lfrABWLsO+iWkwJB1WxLoq
+	 Vt88mysrPfdMN2OABbIJvE43iorCIczDn/kPrF3I=
+Date: Tue, 24 Nov 2026 11:09:07 -0800
 To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,wei.liu@kernel.org,
 	tglx@kernel.org,sumit.garg@kernel.org,stephen.smalley.work@gmail.com,
 	sstabellini@kernel.org,sshegde@linux.ibm.com,scott.branden@broadcom.com,
@@ -54,10 +54,10 @@ To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,wei.liu@kernel.org,
 	andrew+netdev@lunn.ch,andrew@codeconstruct.com.au,andersson@kernel.org,
 	abel.vesa@oss.qualcomm.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124-late-2026-mmap_prepare-v2-7-0b0d99d655f9@kernel.org>
-References: <20261124-late-2026-mmap_prepare-v2-7-0b0d99d655f9@kernel.org>
-Subject: + xen-convert-xenstore-interface-mmap-hooks-to-mmap_prepare.patch added to mm-new branch
-Message-Id: <20261124190904.06D9A1F000C4@smtp.kernel.org>
+In-Reply-To: <20261124-late-2026-mmap_prepare-v2-8-0b0d99d655f9@kernel.org>
+References: <20261124-late-2026-mmap_prepare-v2-8-0b0d99d655f9@kernel.org>
+Subject: + soc-aspeed-convert-lpc-and-p2a-control-mmap-hooks-to-mmap_prepare.patch added to mm-new branch
+Message-Id: <20261124190907.744771F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -69,12 +69,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: xen: convert xenstore interface mmap hooks to mmap_prepare
+     Subject: soc: aspeed: convert LPC and P2A control mmap hooks to mmap_prepare
 has been added to the -mm mm-new branch.  Its filename is
-     xen-convert-xenstore-interface-mmap-hooks-to-mmap_prepare.patch
+     soc-aspeed-convert-lpc-and-p2a-control-mmap-hooks-to-mmap_prepare.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xen-convert-xenstore-interface-mmap-hooks-to-mmap_prepare.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/soc-aspeed-convert-lpc-and-p2a-control-mmap-hooks-to-mmap_prepare.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -104,20 +104,22 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: xen: convert xenstore interface mmap hooks to mmap_prepare
-Date: Tue, 24 Nov 2026 14:02:50 +0000
+Subject: soc: aspeed: convert LPC and P2A control mmap hooks to mmap_prepare
+Date: Tue, 24 Nov 2026 14:02:51 +0000
 
-Move from the deprecated mmap hook to the new mmap_prepare hook for the
-xenfs xsd_kva file and the xenbus_backend device, both of which remap the
-xenstore interface page.
+Move from the deprecated mmap hook to the new mmap_prepare hook for both
+the LPC control and P2A control drivers.
 
-Use the PFN remap mmap action to do so, retaining the -EAGAIN error on
-failure via the action error override.
+Both remap a range of their reserved memory region, so use the PFN remap
+mmap action to do so, retaining the -EAGAIN error on failure via the action
+error override.
 
-Link: https://patch.msgid.link/20261124-late-2026-mmap_prepare-v2-7-0b0d99d655f9@kernel.org
+Link: https://patch.msgid.link/20261124-late-2026-mmap_prepare-v2-8-0b0d99d655f9@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Juergen Gross <jgross@suse.com>
+Acked-by: Andrew Jeffery <andrew@codeconstruct.com.au>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Juergen Gross <jgross@suse.com>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
@@ -143,7 +145,6 @@ Cc: Paul Moore <paul@paul-moore.com>
 Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
 Cc: Ondrej Mosnáček <omosnacek@gmail.com>
 Cc: Joel Stanley <joel@jms.id.au>
-Cc: Andrew Jeffery <andrew@codeconstruct.com.au>
 Cc: Ryan Chen <ryan_chen@aspeedtech.com>
 Cc: Billy Tsai <billy_tsai@aspeedtech.com>
 Cc: Bjorn Andersson <andersson@kernel.org>
@@ -151,7 +152,6 @@ Cc: Konrad Dybcio <konradybcio@kernel.org>
 Cc: Jens Wiklander <jenswi@kernel.org>
 Cc: Sumit Garg <sumit.garg@kernel.org>
 Cc: Scott Branden <scott.branden@broadcom.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Richard Cochran <richardcochran@gmail.com>
 Cc: Andrew Lunn <andrew+netdev@lunn.ch>
@@ -166,79 +166,100 @@ Cc: Kameron Carr <kameroncarr@linux.microsoft.com>
 Cc: Michael Kelley <mhklinux@outlook.com>
 Cc: David Woodhouse <dwmw@amazon.co.uk>
 
- drivers/xen/xenbus/xenbus_dev_backend.c |   14 ++++++--------
- drivers/xen/xenfs/xenstored.c           |   14 ++++++--------
- 2 files changed, 12 insertions(+), 16 deletions(-)
+ drivers/soc/aspeed/aspeed-lpc-ctrl.c |   20 +++++++++-----------
+ drivers/soc/aspeed/aspeed-p2a-ctrl.c |   22 ++++++++--------------
+ 2 files changed, 17 insertions(+), 25 deletions(-)
 
---- a/drivers/xen/xenbus/xenbus_dev_backend.c~xen-convert-xenstore-interface-mmap-hooks-to-mmap_prepare
-+++ a/drivers/xen/xenbus/xenbus_dev_backend.c
-@@ -89,27 +89,25 @@ static long xenbus_backend_ioctl(struct
- 	}
+--- a/drivers/soc/aspeed/aspeed-lpc-ctrl.c~soc-aspeed-convert-lpc-and-p2a-control-mmap-hooks-to-mmap_prepare
++++ a/drivers/soc/aspeed/aspeed-lpc-ctrl.c
+@@ -47,22 +47,20 @@ static struct aspeed_lpc_ctrl *file_aspe
+ 			miscdev);
  }
  
--static int xenbus_backend_mmap(struct file *file, struct vm_area_struct *vma)
-+static int xenbus_backend_mmap_prepare(struct vm_area_desc *desc)
+-static int aspeed_lpc_ctrl_mmap(struct file *file, struct vm_area_struct *vma)
++static int aspeed_lpc_ctrl_mmap_prepare(struct vm_area_desc *desc)
  {
--	size_t size = vma->vm_end - vma->vm_start;
-+	size_t size = vma_desc_size(desc);
+-	struct aspeed_lpc_ctrl *lpc_ctrl = file_aspeed_lpc_ctrl(file);
+-	unsigned long vsize = vma->vm_end - vma->vm_start;
+-	pgprot_t prot = vma->vm_page_prot;
++	struct aspeed_lpc_ctrl *lpc_ctrl = file_aspeed_lpc_ctrl(desc->file);
  
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
- 
--	if ((size > PAGE_SIZE) || (vma->vm_pgoff != 0))
-+	if ((size > PAGE_SIZE) || (desc->pgoff != 0))
+-	if (vma->vm_pgoff + vma_pages(vma) > lpc_ctrl->mem_size >> PAGE_SHIFT)
++	if (desc->pgoff + vma_desc_pages(desc) >
++	    lpc_ctrl->mem_size >> PAGE_SHIFT)
  		return -EINVAL;
  
+ 	/* ast2400/2500 AHB accesses are not cache coherent */
+-	prot = pgprot_noncached(prot);
++	desc->page_prot = pgprot_noncached(desc->page_prot);
+ 
 -	if (remap_pfn_range(vma, vma->vm_start,
--			    virt_to_pfn(xen_store_interface),
--			    size, vma->vm_page_prot))
+-		(lpc_ctrl->mem_base >> PAGE_SHIFT) + vma->vm_pgoff,
+-		vsize, prot))
 -		return -EAGAIN;
-+	mmap_action_remap_full(desc, virt_to_pfn(xen_store_interface));
++	mmap_action_remap_full(desc,
++		(lpc_ctrl->mem_base >> PAGE_SHIFT) + desc->pgoff);
 +	desc->action.error_override = -EAGAIN;
  
  	return 0;
  }
+@@ -216,7 +214,7 @@ static long aspeed_lpc_ctrl_ioctl(struct
  
- static const struct file_operations xenbus_backend_fops = {
- 	.open = xenbus_backend_open,
--	.mmap = xenbus_backend_mmap,
-+	.mmap_prepare = xenbus_backend_mmap_prepare,
- 	.unlocked_ioctl = xenbus_backend_ioctl,
+ static const struct file_operations aspeed_lpc_ctrl_fops = {
+ 	.owner		= THIS_MODULE,
+-	.mmap		= aspeed_lpc_ctrl_mmap,
++	.mmap_prepare	= aspeed_lpc_ctrl_mmap_prepare,
+ 	.unlocked_ioctl	= aspeed_lpc_ctrl_ioctl,
  };
  
---- a/drivers/xen/xenfs/xenstored.c~xen-convert-xenstore-interface-mmap-hooks-to-mmap_prepare
-+++ a/drivers/xen/xenfs/xenstored.c
-@@ -31,24 +31,22 @@ static int xsd_kva_open(struct inode *in
- 	return 0;
+--- a/drivers/soc/aspeed/aspeed-p2a-ctrl.c~soc-aspeed-convert-lpc-and-p2a-control-mmap-hooks-to-mmap_prepare
++++ a/drivers/soc/aspeed/aspeed-p2a-ctrl.c
+@@ -97,29 +97,23 @@ static void aspeed_p2a_disable_bridge(st
+ 	regmap_update_bits(p2a_ctrl->regmap, SCU180, SCU180_ENP2A, 0);
  }
  
--static int xsd_kva_mmap(struct file *file, struct vm_area_struct *vma)
-+static int xsd_kva_mmap_prepare(struct vm_area_desc *desc)
+-static int aspeed_p2a_mmap(struct file *file, struct vm_area_struct *vma)
++static int aspeed_p2a_mmap_prepare(struct vm_area_desc *desc)
  {
--	size_t size = vma->vm_end - vma->vm_start;
-+	size_t size = vma_desc_size(desc);
+-	unsigned long vsize;
+-	pgprot_t prot;
+-	struct aspeed_p2a_user *priv = file->private_data;
++	struct aspeed_p2a_user *priv = desc->file->private_data;
+ 	struct aspeed_p2a_ctrl *ctrl = priv->parent;
  
--	if ((size > PAGE_SIZE) || (vma->vm_pgoff != 0))
-+	if ((size > PAGE_SIZE) || (desc->pgoff != 0))
+ 	if (ctrl->mem_base == 0 && ctrl->mem_size == 0)
  		return -EINVAL;
  
+-	vsize = vma->vm_end - vma->vm_start;
+-	prot = vma->vm_page_prot;
+-
+-	if (vma->vm_pgoff + vma_pages(vma) > ctrl->mem_size >> PAGE_SHIFT)
++	if (desc->pgoff + vma_desc_pages(desc) > ctrl->mem_size >> PAGE_SHIFT)
+ 		return -EINVAL;
+ 
+ 	/* ast2400/2500 AHB accesses are not cache coherent */
+-	prot = pgprot_noncached(prot);
++	desc->page_prot = pgprot_noncached(desc->page_prot);
+ 
 -	if (remap_pfn_range(vma, vma->vm_start,
--			    virt_to_pfn(xen_store_interface),
--			    size, vma->vm_page_prot))
+-		(ctrl->mem_base >> PAGE_SHIFT) + vma->vm_pgoff,
+-		vsize, prot))
 -		return -EAGAIN;
-+	mmap_action_remap_full(desc, virt_to_pfn(xen_store_interface));
++	mmap_action_remap_full(desc,
++		(ctrl->mem_base >> PAGE_SHIFT) + desc->pgoff);
 +	desc->action.error_override = -EAGAIN;
  
  	return 0;
  }
+@@ -308,7 +302,7 @@ static int aspeed_p2a_release(struct ino
  
- const struct file_operations xsd_kva_file_ops = {
- 	.open = xsd_kva_open,
--	.mmap = xsd_kva_mmap,
-+	.mmap_prepare = xsd_kva_mmap_prepare,
- 	.read = xsd_read,
- 	.release = xsd_release,
- };
+ static const struct file_operations aspeed_p2a_ctrl_fops = {
+ 	.owner = THIS_MODULE,
+-	.mmap = aspeed_p2a_mmap,
++	.mmap_prepare = aspeed_p2a_mmap_prepare,
+ 	.unlocked_ioctl = aspeed_p2a_ioctl,
+ 	.open = aspeed_p2a_open,
+ 	.release = aspeed_p2a_release,
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
