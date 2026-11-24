@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795542969;
-	b=B1TQsrAYiHFz7kKqh1rICSV6flzwVHmsxtqCUmM1t8hpP8zxOsP1GZhTNwL8ZFELNyLC
-	 Z4SRxwvljopenHqi+0oQ6TPan92t0/5aeg8jaJJcn4CFj3CUCLGLT3oC3IAVR2difrpPH
-	 tODSg1xKCgE3++mVmcAIDhgMx9yqH44mrZtMSkDfZeycnpyptfJ5T8WfydrtD1mLmPT1E
-	 uF662Kf2IqNesfsr4VRwTh/ieVhqv8hXPq4WKIR5nkCyO3G4RgcCylcIcmntJSxJ4Gibx
-	 3z753LG+3M0TIF4HoSrcE/Lzgm/55aMuWKo3Yv4cWFumIjxNF4e5Td4IM0fXAGd9oIQ==
+	t=1795542972;
+	b=ZDR/TIPsUeP5Ewc3Nf91wdIt1DD1/t2TAXYjjbPI2dRUaoy40rS5xIgbcFJpNBHgbbt1
+	 uakhwaDHolZOL4CSjczXoTd2VKgunQ8OAyxztnPtIYb3nf0D22OwJwh4F2ZZFRHmXuGyR
+	 WPdDystKSXBYP2soEhjQmdkbbdPi1Ve+Xme4AZQQV5k2Adv2fJwBIchbFUw5anhsy7hnA
+	 QCitk2Tu+hcAJnieaNXpLijb/rESdom0IE2xAirAxHhAoQyOUJpTHVZcjEfcUinFzPZJP
+	 z/nm8i8z2h7ce85qiywL0m8PJ144A9LBNxFcnL7fcQoiiIZypb1q1E6szNWIp40p12Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795542969;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795542972;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=+1WvKEH/XXARdweXCf1jWHooeRYAyvF+ulJSMl0Rj3E=;
-	b=Cn4B+7mQJYjpH/ul3MIfFcxb1ewQCgQh9mHY/YIB661D1Z3CVNgZaAROpfFp5qZqOQgw
-	 zcY3MJYaWxFJFX5n9cNdbaNi32kPUNO/0RtaGuvHf94HC+eMte8yhBBcZQbz42f5wtWBP
-	 Wl+OBc0KPSi/+nQecHF9Joka8o/PbfKms5YHHR58I9fnLzE6GiU7wgOwoZLJ1ntWS0sea
-	 BJGXCCS5qysqh3eiz3hAOzN+rxbmoG229IKcKRgkmI5XFYNRQIk9dPporkMyhIsfzIfvP
-	 jtbS261QpU+XP3MIkZ/EXHtAcBIc9jRlY70IYs9u3S6WMo9GUte01b3PUM0+UOZZ2gQ==
+	bh=pJCo7eqlHPxXSJNxqMui3CSnE4Dmhyr3humnXRdSoKE=;
+	b=ppgt09uKo+mc1NqMK1OGCGLaRFjcct2PACPJMcEOwC31HaUB+sMExnWZaLYUSovdCBjp
+	 9Pux5nz3y8Ie/xF6RRrXpOLaEjQ4mpsUcq9PDor74TEFkDVUysAU+sintC3FXZ9F+ARLp
+	 wKaiE1qiHR+3/b3lVoPygqk6EeRi9UueRLa9Skdji/FprlDDJGvT3xwF5cWN52ojg2vHT
+	 cxtWZ3G/ASF5VD4qrIjYXyserIisvoKSHUUjb5r473Dov5BwDINjKuZdyBNQM2BF+yfxc
+	 IFwYEhjy2OCXRGfotyq3WNmKYF3GUvbuBwoPL5IWlzCsQrFU04cHD43oZNaru2w53mw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=DkuG9p4u;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=haGt+q70;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A942F606A31E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:56:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47335606A336
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:56:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=DkuG9p4u
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40B3F1F000CA;
-	Tue, 24 Nov 2026 17:56:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=haGt+q70
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF1191F000D0;
+	Tue, 24 Nov 2026 17:56:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795542969;
-	bh=+1WvKEH/XXARdweXCf1jWHooeRYAyvF+ulJSMl0Rj3E=;
+	d=linux-foundation.org; s=korg; t=1795542972;
+	bh=pJCo7eqlHPxXSJNxqMui3CSnE4Dmhyr3humnXRdSoKE=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=DkuG9p4uYcuknAqK2uW1FRitnRkeu7tPpQlyjgignv0VrLuwm6dxPEYCvJcNbB4q8
-	 x97rmWwYhlX7/tNN9vHpuY1jjd6CDyFqG1auTNZNAUxuPFEn4iUEO3KO65xuIn7Wit
-	 sPERaF0tro8bbgXSO70OM34reIHbEtSBbzP9MAFk=
-Date: Tue, 24 Nov 2026 09:56:08 -0800
+	b=haGt+q70AjbudT2T71zmbxmfIAjX9ghzBUzVClNw3kR9F7hXnWln5Djjx30UFkwMB
+	 XcBDjKsBDgEnFPzWEeGarB0fpe36VVsyA/tnuRU+sHROwtmZAc7u5L4FBOFlfKfkis
+	 WyEzpRERRgaJwHr9AqGT5r2kaujLbae+P4r6mEM8=
+Date: Tue, 24 Nov 2026 09:56:11 -0800
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124-late-2026-vma-flags-v2-4-bf3fade93064@kernel.org>
-References: <20261124-late-2026-vma-flags-v2-4-bf3fade93064@kernel.org>
-Subject: + fs-proc-task_mmu-convert-vma-flag-tests-to-use-vma_flags_t.patch added to mm-new branch
-Message-Id: <20261124175609.40B3F1F000CA@smtp.kernel.org>
+In-Reply-To: <20261124-late-2026-vma-flags-v2-5-bf3fade93064@kernel.org>
+References: <20261124-late-2026-vma-flags-v2-5-bf3fade93064@kernel.org>
+Subject: + fs-coredump-convert-vma_dump_size-to-use-vma_flags_t.patch added to mm-new branch
+Message-Id: <20261124175611.CF1191F000D0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +54,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: fs/proc/task_mmu: convert VMA flag tests to use vma_flags_t
+     Subject: fs/coredump: convert vma_dump_size() to use vma_flags_t
 has been added to the -mm mm-new branch.  Its filename is
-     fs-proc-task_mmu-convert-vma-flag-tests-to-use-vma_flags_t.patch
+     fs-coredump-convert-vma_dump_size-to-use-vma_flags_t.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-convert-vma-flag-tests-to-use-vma_flags_t.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-coredump-convert-vma_dump_size-to-use-vma_flags_t.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -89,28 +89,18 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: fs/proc/task_mmu: convert VMA flag tests to use vma_flags_t
-Date: Tue, 24 Nov 2026 17:07:56 +0000
+Subject: fs/coredump: convert vma_dump_size() to use vma_flags_t
+Date: Tue, 24 Nov 2026 17:07:57 +0000
 
-Replace use of the legacy vm_flags_t flags with vma_flags_t values where
-VMA flags are tested directly in /proc/$pid/[s]maps, pagemap, clear_refs
-and PROCMAP_QUERY.
+Replace use of the legacy vm_flags_t flags with vma_flags_t values when
+determining how much of a VMA to dump.
 
-In replacing vm_flags_clear() (which takes the VMA write lock) with
-vma_clear_flags() (which does not) in clear_refs_write(), we explicitly
-write lock the VMA. The mmap write lock is already held at this point.
-
-Note that vm_flags_clear() asserts that the page tables support soft-dirty
-when clearing VM_SOFTDIRTY, whereas vma_clear_flags() does not. No other
-VMA flag is checked this way, so this assert is intentionally dropped.
-
-The show_vma_header_prefix() and show_smap_vma_flags() output functions and
-the thp_vma_allowable_orders() call continue to use legacy flags for the
-time being.
+The flags copied into struct core_vma_metadata remain legacy flags as they
+are consumed by the binfmt handlers.
 
 No functional change intended.
 
-Link: https://patch.msgid.link/20261124-late-2026-vma-flags-v2-4-bf3fade93064@kernel.org
+Link: https://patch.msgid.link/20261124-late-2026-vma-flags-v2-5-bf3fade93064@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Lance Yang <lance.yang@linux.dev>
@@ -189,146 +179,65 @@ Cc: Fan Wu <wufan@kernel.org>
 Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
 Cc: Ondrej Mosnáček <omosnacek@gmail.com>
 
- fs/proc/task_mmu.c |   43 ++++++++++++++++++++++---------------------
- 1 file changed, 22 insertions(+), 21 deletions(-)
+ fs/coredump.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/fs/proc/task_mmu.c~fs-proc-task_mmu-convert-vma-flag-tests-to-use-vma_flags_t
-+++ a/fs/proc/task_mmu.c
-@@ -570,18 +570,18 @@ next_vma:
+--- a/fs/coredump.c~fs-coredump-convert-vma_dump_size-to-use-vma_flags_t
++++ a/fs/coredump.c
+@@ -1837,15 +1837,15 @@ static unsigned long vma_dump_size(struc
+ 	if (always_dump_vma(vma))
+ 		goto whole;
  
- 	/* VMA permissions should satisfy query flags */
- 	if (flags & PROCMAP_QUERY_VMA_FLAGS) {
--		u32 perm = 0;
-+		vma_flags_t perm = EMPTY_VMA_FLAGS;
+-	if (vma->vm_flags & VM_DONTDUMP)
++	if (vma_test(vma, VMA_DONTDUMP_BIT))
+ 		return 0;
  
- 		if (flags & PROCMAP_QUERY_VMA_READABLE)
--			perm |= VM_READ;
-+			vma_flags_set(&perm, VMA_READ_BIT);
- 		if (flags & PROCMAP_QUERY_VMA_WRITABLE)
--			perm |= VM_WRITE;
-+			vma_flags_set(&perm, VMA_WRITE_BIT);
- 		if (flags & PROCMAP_QUERY_VMA_EXECUTABLE)
--			perm |= VM_EXEC;
-+			vma_flags_set(&perm, VMA_EXEC_BIT);
- 		if (flags & PROCMAP_QUERY_VMA_SHARED)
--			perm |= VM_MAYSHARE;
-+			vma_flags_set(&perm, VMA_MAYSHARE_BIT);
+ 	/* support for DAX */
+ 	if (vma_is_dax(vma)) {
+-		if ((vma->vm_flags & VM_SHARED) &&
++		if (vma_test(vma, VMA_SHARED_BIT) &&
+ 		    COREDUMP_MEMORY_TYPE_INCLUDE(memory_types, DAX_SHARED))
+ 			goto whole;
+-		if (!(vma->vm_flags & VM_SHARED) &&
++		if (!vma_test(vma, VMA_SHARED_BIT) &&
+ 		    COREDUMP_MEMORY_TYPE_INCLUDE(memory_types, DAX_PRIVATE))
+ 			goto whole;
+ 		return 0;
+@@ -1853,21 +1853,21 @@ static unsigned long vma_dump_size(struc
  
--		if ((vma->vm_flags & perm) != perm)
-+		if (!vma_test_all_mask(vma, perm))
- 			goto skip_vma;
+ 	/* Hugetlb memory check */
+ 	if (vma_is_hugetlb(vma)) {
+-		if ((vma->vm_flags & VM_SHARED) &&
++		if (vma_test(vma, VMA_SHARED_BIT) &&
+ 		    COREDUMP_MEMORY_TYPE_INCLUDE(memory_types, HUGETLB_SHARED))
+ 			goto whole;
+-		if (!(vma->vm_flags & VM_SHARED) &&
++		if (!vma_test(vma, VMA_SHARED_BIT) &&
+ 		    COREDUMP_MEMORY_TYPE_INCLUDE(memory_types, HUGETLB_PRIVATE))
+ 			goto whole;
+ 		return 0;
  	}
  
-@@ -648,13 +648,13 @@ static int do_procmap_query(struct mm_st
- 	karg.vma_end = vma->vm_end;
+ 	/* Do not dump I/O mapped devices or special mappings */
+-	if (vma->vm_flags & VM_IO)
++	if (vma_test(vma, VMA_IO_BIT))
+ 		return 0;
  
- 	karg.vma_flags = 0;
--	if (vma->vm_flags & VM_READ)
-+	if (vma_test(vma, VMA_READ_BIT))
- 		karg.vma_flags |= PROCMAP_QUERY_VMA_READABLE;
--	if (vma->vm_flags & VM_WRITE)
-+	if (vma_test(vma, VMA_WRITE_BIT))
- 		karg.vma_flags |= PROCMAP_QUERY_VMA_WRITABLE;
--	if (vma->vm_flags & VM_EXEC)
-+	if (vma_test(vma, VMA_EXEC_BIT))
- 		karg.vma_flags |= PROCMAP_QUERY_VMA_EXECUTABLE;
--	if (vma->vm_flags & VM_MAYSHARE)
-+	if (vma_test(vma, VMA_MAYSHARE_BIT))
- 		karg.vma_flags |= PROCMAP_QUERY_VMA_SHARED;
+ 	/* By default, dump shared memory if mapped from an anonymous file. */
+-	if (vma->vm_flags & VM_SHARED) {
++	if (vma_test(vma, VMA_SHARED_BIT)) {
+ 		if (file_inode(vma->vm_file)->i_nlink == 0 ?
+ 			    COREDUMP_MEMORY_TYPE_INCLUDE(memory_types, ANON_SHARED) :
+ 			    COREDUMP_MEMORY_TYPE_INCLUDE(memory_types, FILE_SHARED))
+@@ -1890,7 +1890,7 @@ static unsigned long vma_dump_size(struc
+ 	 * dump the first page to aid in determining what was mapped here.
+ 	 */
+ 	if (COREDUMP_MEMORY_TYPE_INCLUDE(memory_types, ELF_HEADERS) &&
+-	    vma->vm_pgoff == 0 && (vma->vm_flags & VM_READ)) {
++	    vma->vm_pgoff == 0 && vma_test(vma, VMA_READ_BIT)) {
+ 		if ((READ_ONCE(file_inode(vma->vm_file)->i_mode) & 0111) != 0)
+ 			return PAGE_SIZE;
  
- 	karg.vma_page_size = vma_kernel_pagesize(vma);
-@@ -971,7 +971,7 @@ static void smaps_pte_entry(pte_t *pte,
- {
- 	struct mem_size_stats *mss = walk->private;
- 	struct vm_area_struct *vma = walk->vma;
--	bool locked = !!(vma->vm_flags & VM_LOCKED);
-+	bool locked = vma_test(vma, VMA_LOCKED_BIT);
- 	struct page *page = NULL;
- 	bool present = false, young = false, dirty = false;
- 	pte_t ptent = ptep_get(pte);
-@@ -1018,7 +1018,7 @@ static void smaps_pmd_entry(pmd_t *pmd,
- {
- 	struct mem_size_stats *mss = walk->private;
- 	struct vm_area_struct *vma = walk->vma;
--	bool locked = !!(vma->vm_flags & VM_LOCKED);
-+	bool locked = vma_test(vma, VMA_LOCKED_BIT);
- 	struct page *page = NULL;
- 	bool present = false;
- 	struct folio *folio;
-@@ -1732,7 +1732,7 @@ static int clear_refs_test_walk(unsigned
- 	struct clear_refs_private *cp = walk->private;
- 	struct vm_area_struct *vma = walk->vma;
- 
--	if (vma->vm_flags & VM_PFNMAP)
-+	if (vma_test(vma, VMA_PFNMAP_BIT))
- 		return 1;
- 
- 	/*
-@@ -1802,9 +1802,10 @@ static ssize_t clear_refs_write(struct f
- 
- 		if (type == CLEAR_REFS_SOFT_DIRTY) {
- 			for_each_vma(vmi, vma) {
--				if (!(vma->vm_flags & VM_SOFTDIRTY))
-+				if (!vma_test(vma, VMA_SOFTDIRTY_BIT))
- 					continue;
--				vm_flags_clear(vma, VM_SOFTDIRTY);
-+				vma_start_write(vma);
-+				vma_clear_flags(vma, VMA_SOFTDIRTY_BIT);
- 				vma_set_page_prot(vma);
- 			}
- 
-@@ -1908,7 +1909,7 @@ static int pagemap_pte_hole(unsigned lon
- 			break;
- 
- 		/* Addresses in the VMA. */
--		if (vma->vm_flags & VM_SOFTDIRTY)
-+		if (vma_test(vma, VMA_SOFTDIRTY_BIT))
- 			pme = make_pme(0, PM_SOFT_DIRTY);
- 		for (; addr < min(end, vma->vm_end); addr += PAGE_SIZE) {
- 			err = add_to_pagemap(&pme, pm);
-@@ -1980,7 +1981,7 @@ static pagemap_entry_t pte_to_pagemap_en
- 	}
- 
- out:
--	if (vma->vm_flags & VM_SOFTDIRTY)
-+	if (vma_test(vma, VMA_SOFTDIRTY_BIT))
- 		flags |= PM_SOFT_DIRTY;
- 
- 	return make_pme(frame, flags);
-@@ -1998,7 +1999,7 @@ static int pagemap_pmd_range_thp(pmd_t *
- 	struct folio *folio = NULL;
- 	int err = 0;
- 
--	if (vma->vm_flags & VM_SOFTDIRTY)
-+	if (vma_test(vma, VMA_SOFTDIRTY_BIT))
- 		flags |= PM_SOFT_DIRTY;
- 
- 	if (pmd_none(pmd))
-@@ -2120,7 +2121,7 @@ static int pagemap_hugetlb_range(pte_t *
- 	int err = 0;
- 	pte_t pte;
- 
--	if (vma->vm_flags & VM_SOFTDIRTY)
-+	if (vma_test(vma, VMA_SOFTDIRTY_BIT))
- 		flags |= PM_SOFT_DIRTY;
- 
- 	ptl = huge_pte_lock(hstate_vma(vma), walk->mm, ptep);
-@@ -2629,13 +2630,13 @@ static int pagemap_scan_test_walk(unsign
- 		 */
- 	}
- 
--	if (vma->vm_flags & VM_PFNMAP)
-+	if (vma_test(vma, VMA_PFNMAP_BIT))
- 		return 1;
- 
- 	if (wp_allowed)
- 		vma_category |= PAGE_IS_WPALLOWED;
- 
--	if (vma->vm_flags & VM_SOFTDIRTY)
-+	if (vma_test(vma, VMA_SOFTDIRTY_BIT))
- 		vma_category |= PAGE_IS_SOFT_DIRTY;
- 
- 	if (!pagemap_scan_is_interesting_vma(vma_category, p))
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
