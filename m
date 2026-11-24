@@ -1,42 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795547333;
-	b=t7JP0Kxcws1S9NeLSh0L5HuOHJdkFpmzo8RvRiNHaNWfxjJn64MsRs1+WkjzwFmEmU6t
-	 yndz8tCJWyJMukhOLq7Q1bJ+sWQLmzbZN/u+8DmHyjlsQL7DF/xgVG2YzldKGzXLnUERr
-	 dAw2uBKcsRYwDAJ0iB/ItGKSnPieTtFoDIEYSsUqZFbkLRYz2tvWAftCRbbuYaHYGXfgA
-	 lrZUh5BP3KUIGSkfkQnR9TdBRFcy0SKqrVO77ImirW0bbBjU3IqJPqnc4IZ8s1xu+jHG2
-	 cPz8DQnEh9fkPfPG74tigrAZdt0xayaZyHY2dMwk3ISFKKqMCpKx+Dnz4QYizYBeCXA==
+	t=1795547336;
+	b=FYO1byFRxleLPenoSWDNrxHOGuVdcAlhmO2pN3pt+SdcnX7xuAMWbU41xN1p0TTYLKmm
+	 AOw0LRXFQjHzNtOs2+zf5vdJYkQBkQl36xs1yk8gwKxo9scTrT69eoMmyCNnLFAY3oGI3
+	 UY4nTK+eXWTxwblHmvxc5wlrrqlmdnbH0mDXMwwqwD+fBTacpTl57441VYNhZdThi9OxG
+	 TI4Z/VC2+JgBl2Z28B4lkdGTo+s/CaVej/DExTk0LAy7tvqzEotXMFb4y8rp9LRySmK9X
+	 kGuY7kTaO3zcfuMwRlmsAL/Ydc96F8kwYuCaH78JLHO8azMNMNMV37KKMgK3qwYpakg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795547333;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795547336;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=dQjU96NL5T7cP4bf2YDgIoplrx0hb4jbA+Y187BP72w=;
-	b=TCmp4vVaZCZOqvl3GtWQFuJ9rTuRZPTBtFnGos3zxzpQyJn5jBAC05EmyCFL1GvF2ARn
-	 A/WozVUzg1xW9APdR/YPXwsUhmdkUBbF7H+AZmfDbCLD+//0R2oS9h+Ksnnm+o40aB/Cj
-	 mKWjw8Sl4mQ1q+KVqEjPSkEC6j6okCsbx4dcCjUV7X6hLeOLY85lw5H5fvbQUr/laVFkg
-	 e6DdTcCPTUYF1+fNtJLy4OkMwvZR2u6wOLtL0wZUQdiFM4sSjHWOf4V+7vqnnsCxgjeIj
-	 h752mp14JEaCMGNzsEsgA1MU1PYXgR9EIok9k5Nhi0JpFRjZgGEY2oaw6NYecUBZKcg==
+	bh=RIxNnGQXsluZfyKdJJ5v6wxlzKssfEtz9134IsDy91c=;
+	b=R5Wj3PR9X1sQo2kz1sehRCplDFFAgNK3tJM//sbXjIFCPslQ05A3mk9mmrIIBbCBsU/d
+	 mBl5W7472ctpO/s1PnbEmdLGl+yy3YUR7BP9rzAW00k8hn7enNlpT6/LNkoyGVup8mwIV
+	 qnGUtxT8KCVcGpaIAT0XWrphpQykL9Abqc4N0L38C7/3fzPRBfWpoei93hebOum0JsqU5
+	 8Ivkt+rOOvsu3mmVuSangVPm1ne5I3ORSydcJ7+uEj2WzKI/M9yXPT9ENu5b2tpWsU55l
+	 NfhATdyOkfa3gaQ7WR4OLl+KMQ4In3/MG6nFabj8Xz6umj1+LN4igcZ8xQ1edHZZ7pA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jnzuro6k;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=AFfgaJIS;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86F0D606A321
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 19:08:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30BF1606A337
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 19:08:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jnzuro6k
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57CFF1F000C0;
-	Tue, 24 Nov 2026 19:08:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=AFfgaJIS
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EEFC1F000C0;
+	Tue, 24 Nov 2026 19:08:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795547332;
-	bh=dQjU96NL5T7cP4bf2YDgIoplrx0hb4jbA+Y187BP72w=;
+	d=linux-foundation.org; s=korg; t=1795547335;
+	bh=RIxNnGQXsluZfyKdJJ5v6wxlzKssfEtz9134IsDy91c=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=jnzuro6kUM8TSPcBxPicAoDzi+GTe21q/2/R+ODqhUuajPKg9WnZta9L0kjakHXSH
-	 1XPC3Zqfbq/aM6a1ZtHHlscDAqG8wtEPLHOdFfTl6aplNWOUKoMA/1d2enFqpBELRi
-	 K7Qeg8vnwu4pjJd7K3KmQ2sIIm4vpTw6S4CFSLOo=
-Date: Tue, 24 Nov 2026 11:08:51 -0800
+	b=AFfgaJISg4l7lf1z9gCen7KpsHiy5L92pv5qP8SGiZDIGL4YGqMHgdDe0p9ynwUYq
+	 OdMbh6HP2CpMVV4tZdtKTsasqXHFCQEPo8s/VL8ujrxSNi8cteeFOtHjpNQAjaT8f/
+	 7HAFUPa3q3k9UzMNxAKx1ugx/iOjJR+4zKsVw7Ao=
+Date: Tue, 24 Nov 2026 11:08:54 -0800
 To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,wei.liu@kernel.org,
 	tglx@kernel.org,sumit.garg@kernel.org,stephen.smalley.work@gmail.com,
 	sstabellini@kernel.org,sshegde@linux.ibm.com,scott.branden@broadcom.com,
@@ -50,14 +50,15 @@ To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,wei.liu@kernel.org,
 	hpa@zytor.com,haiyangz@microsoft.com,gregkh@linuxfoundation.org,
 	eperezma@redhat.com,edumazet@kernel.org,dwmw@amazon.co.uk,
 	decui@microsoft.com,davem@davemloft.net,dave.hansen@linux.intel.com,
-	chleroy@kernel.org,bp@alien8.de,billy_tsai@aspeedtech.com,arnd@arndb.de,
-	andrew+netdev@lunn.ch,andrew@codeconstruct.com.au,andersson@kernel.org,
-	abel.vesa@oss.qualcomm.com,ljs@kernel.org,akpm@linux-foundation.org
+	dave.hansen@intel.com,chleroy@kernel.org,bp@alien8.de,
+	billy_tsai@aspeedtech.com,arnd@arndb.de,andrew+netdev@lunn.ch,
+	andrew@codeconstruct.com.au,andersson@kernel.org,abel.vesa@oss.qualcomm.com,
+	ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124-late-2026-mmap_prepare-v2-3-0b0d99d655f9@kernel.org>
-References: <20261124-late-2026-mmap_prepare-v2-3-0b0d99d655f9@kernel.org>
-Subject: + mshv_vtl-convert-mmap-hooks-to-mmap_prepare.patch added to mm-new branch
-Message-Id: <20261124190852.57CFF1F000C0@smtp.kernel.org>
+In-Reply-To: <20261124-late-2026-mmap_prepare-v2-4-0b0d99d655f9@kernel.org>
+References: <20261124-late-2026-mmap_prepare-v2-4-0b0d99d655f9@kernel.org>
+Subject: + x86-sgx-convert-vepc-mmap-hook-to-mmap_prepare.patch added to mm-new branch
+Message-Id: <20261124190855.6EEFC1F000C0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -69,12 +70,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mshv_vtl: convert mmap hooks to mmap_prepare
+     Subject: x86/sgx: convert vepc mmap hook to mmap_prepare
 has been added to the -mm mm-new branch.  Its filename is
-     mshv_vtl-convert-mmap-hooks-to-mmap_prepare.patch
+     x86-sgx-convert-vepc-mmap-hook-to-mmap_prepare.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mshv_vtl-convert-mmap-hooks-to-mmap_prepare.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-sgx-convert-vepc-mmap-hook-to-mmap_prepare.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -104,19 +105,18 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mshv_vtl: convert mmap hooks to mmap_prepare
-Date: Tue, 24 Nov 2026 14:02:46 +0000
+Subject: x86/sgx: convert vepc mmap hook to mmap_prepare
+Date: Tue, 24 Nov 2026 14:02:47 +0000
 
-Move from the deprecated mmap hook to the new mmap_prepare hook for both
-the mshv_vtl and mshv_vtl_low devices. These only set VMA operations and
-flags.
+Move from the deprecated mmap hook to the new mmap_prepare hook. The hook
+only checks that the mapping is shared and sets VMA flags, operations and
+private data.
 
-Link: https://patch.msgid.link/20261124-late-2026-mmap_prepare-v2-3-0b0d99d655f9@kernel.org
+Link: https://patch.msgid.link/20261124-late-2026-mmap_prepare-v2-4-0b0d99d655f9@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Tested-by: Kameron Carr <kameroncarr@linux.microsoft.com>
-Reviewed-by: Kameron Carr <kameroncarr@linux.microsoft.com>
-Reviewed-by: Michael Kelley <mhklinux@outlook.com>
+Reviewed-by: Jarkko Sakkinen <jarkko@kernel.org>
+Acked-by: Dave Hansen <dave.hansen@linux.intel.com> # x86 bits
 Cc: Juergen Gross <jgross@suse.com>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
@@ -133,8 +133,6 @@ Cc: Michael S. Tsirkin <mst@redhat.com>
 Cc: Jason Wang <jasowangio@gmail.com>
 Cc: Eugenio Pérez <eperezma@redhat.com>
 Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
-Cc: Jarkko Sakkinen <jarkko@kernel.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Thomas Gleixner <tglx@kernel.org>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
@@ -162,57 +160,50 @@ Cc: Paolo Abeni <pabeni@redhat.com>
 Cc: Jens Wiklander <jens.wiklander@oss.qualcomm.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Abel Vesa <abel.vesa@oss.qualcomm.com>
+Cc: Kameron Carr <kameroncarr@linux.microsoft.com>
+Cc: Michael Kelley <mhklinux@outlook.com>
 Cc: David Woodhouse <dwmw@amazon.co.uk>
+Cc: Dave Hansen <dave.hansen@intel.com>
 
- drivers/hv/mshv_vtl_main.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ arch/x86/kernel/cpu/sgx/virt.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
---- a/drivers/hv/mshv_vtl_main.c~mshv_vtl-convert-mmap-hooks-to-mmap_prepare
-+++ a/drivers/hv/mshv_vtl_main.c
-@@ -873,9 +873,9 @@ static const struct vm_operations_struct
- 	.fault = mshv_vtl_fault,
+--- a/arch/x86/kernel/cpu/sgx/virt.c~x86-sgx-convert-vepc-mmap-hook-to-mmap_prepare
++++ a/arch/x86/kernel/cpu/sgx/virt.c
+@@ -98,17 +98,18 @@ static const struct vm_operations_struct
+ 	.fault = sgx_vepc_fault,
  };
  
--static int mshv_vtl_mmap(struct file *filp, struct vm_area_struct *vma)
-+static int mshv_vtl_mmap_prepare(struct vm_area_desc *desc)
+-static int sgx_vepc_mmap(struct file *file, struct vm_area_struct *vma)
++static int sgx_vepc_mmap_prepare(struct vm_area_desc *desc)
  {
--	vma->vm_ops = &mshv_vtl_vm_ops;
-+	desc->vm_ops = &mshv_vtl_vm_ops;
+-	struct sgx_vepc *vepc = file->private_data;
++	struct sgx_vepc *vepc = desc->file->private_data;
+ 
+-	if (!(vma->vm_flags & VM_SHARED))
++	if (!vma_desc_test(desc, VMA_SHARED_BIT))
+ 		return -EINVAL;
+ 
+-	vma->vm_ops = &sgx_vepc_vm_ops;
++	desc->vm_ops = &sgx_vepc_vm_ops;
+ 	/* Don't copy VMA in fork() */
+-	vm_flags_set(vma, VM_PFNMAP | VM_IO | VM_DONTDUMP | VM_DONTCOPY);
+-	vma->vm_private_data = vepc;
++	vma_desc_set_flags(desc, VMA_PFNMAP_BIT, VMA_IO_BIT, VMA_DONTDUMP_BIT,
++			   VMA_DONTCOPY_BIT);
++	desc->private_data = vepc;
  
  	return 0;
  }
-@@ -893,7 +893,7 @@ static const struct file_operations mshv
- 	.owner = THIS_MODULE,
- 	.unlocked_ioctl = mshv_vtl_ioctl,
- 	.release = mshv_vtl_release,
--	.mmap = mshv_vtl_mmap,
-+	.mmap_prepare = mshv_vtl_mmap_prepare,
+@@ -315,7 +316,7 @@ static const struct file_operations sgx_
+ 	.unlocked_ioctl	= sgx_vepc_ioctl,
+ 	.compat_ioctl	= sgx_vepc_ioctl,
+ 	.release	= sgx_vepc_release,
+-	.mmap		= sgx_vepc_mmap,
++	.mmap_prepare	= sgx_vepc_mmap_prepare,
  };
  
- static void mshv_vtl_synic_mask_vmbus_sint(void *info)
-@@ -1324,10 +1324,10 @@ static const struct vm_operations_struct
- 	.huge_fault = mshv_vtl_low_huge_fault,
- };
- 
--static int mshv_vtl_low_mmap(struct file *filp, struct vm_area_struct *vma)
-+static int mshv_vtl_low_mmap_prepare(struct vm_area_desc *desc)
- {
--	vma->vm_ops = &mshv_vtl_low_vm_ops;
--	vm_flags_set(vma, VM_HUGEPAGE | VM_MIXEDMAP);
-+	desc->vm_ops = &mshv_vtl_low_vm_ops;
-+	vma_desc_set_flags(desc, VMA_HUGEPAGE_BIT, VMA_MIXEDMAP_BIT);
- 
- 	return 0;
- }
-@@ -1335,7 +1335,7 @@ static int mshv_vtl_low_mmap(struct file
- static const struct file_operations mshv_vtl_low_file_ops = {
- 	.owner		= THIS_MODULE,
- 	.open		= mshv_vtl_low_open,
--	.mmap		= mshv_vtl_low_mmap,
-+	.mmap_prepare	= mshv_vtl_low_mmap_prepare,
- };
- 
- static struct miscdevice mshv_vtl_low = {
+ static struct miscdevice sgx_vepc_dev = {
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
