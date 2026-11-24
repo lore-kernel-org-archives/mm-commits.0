@@ -1,60 +1,59 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795537128;
-	b=Tbn8c+eGkIsTo8+JX0Vbf5n4P8s2tjuH00MaHlx8RzchHiFqSdo7BfiUoulagUy+/OqS
-	 +4b9/hv/aobMsqxS51c0t8T4CBPaPDVBvPVDz79qe7tnSShjp6fQrkHdx/IlkajU+7a45
-	 7B1YOLqs7vcBBKF7NDWtlCoFH8T5LfAg0VzbsORDB12NNiEZH2bGCYCk/04cpdYCsToza
-	 c5PM39whOH+6DD3vv9rfvEiBXs3PZyfQpAVRFxQ5azhsMrv1rOt0tayDR5vnhQEy15iG8
-	 3jrs3Z47NcDpny5VFpmCd4X8Fi6GuPEJVsw1J4hZl4vMVcUnPGlsD9EDajUPw5WLRwg==
+	t=1795537132;
+	b=esrteS+KlTW3Mw7juDQV63xnQjEa5jx03Vf7DeYbN5L5kAGlMMWo7yLHNSzi29n0UtPi
+	 tRRZjsN2schAm8fs8EvEL24OLfA4krnvtLyAREKyPkw0YcZ7Mgsfd2Ho9fJj9avId5qz3
+	 yoDMG2TRP46iByXzNr4y/PFt+zZnHFFT9tV6bwS2o/fKTkV9vQR9xNet5oe2i90LBhdDx
+	 7f6ms8+3XAQMxM1PWs9rLxP4Iq3BNo86HhPr7V8Py3f4t3F1CXXw3sNtMjTWQIhvauyhv
+	 WUDvwjpYAUHc0kOri37ds7TizsVnWE42dLb6JC9d82XE8ifryRHSUv4otT/Bl+MHXYg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795537128;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795537132;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=ujMTuwPOsmr1whJF+yqRvOV96KTaU05Y6dPCwFRLQMs=;
-	b=ds/S9f7xKUwWxUWA/aebqbykd3s6dQyzmvb7WmOimA2TqNewVHZ16tk+B9/7OHM5JLV7
-	 I+I0O8yXH49df+8fe7f2ogJXoPR80Nw0R+JsJyYtwwZ2J51Ze3uoXzNLRXFcIB0VbZKAm
-	 /DIDZB12rKhcSDsf61/a3t6/bCfiqmvYzYMLVBda8CHNgumAlDV17MPeUNu9OpZ+vI/7C
-	 A+3V1mA3jybIKj+AnRh1hXw2r7sbkntL3Ea+ECjNHkD86HU9tEq6CLamQhBRFcwgFBFqv
-	 bSDeC2BS6W9ukobrLcyHj2M7+B4d+/9HKss3B0hCScI+3Kj3I+gJcllL53JJkcpbMFg==
+	bh=XiUPWFu8tBAZXX3FfwvjKy16oiDJTvYwElmUaCKhYo4=;
+	b=FEI81lGu6lFovqUBXH/ps+ILH2M+AmCV830TIWKjyDo1vCQ8OilQftDpkrNR6zfIIO9s
+	 vWubYZrCm+eaYa4ZMwLUq5LuBnkRc+pcWQ23pURHW8xDw53AmEyy6aO0keAkBxYmkJEDO
+	 SmXPcwvia+2zZNi4J2b2/Kzd+gvS2HMvvvyfn37Co4jzctxtYnMZvPE2Zbh5q4JtPj4oA
+	 DP9QdyUtNUsaWe6i8TwK4lJ84aueoMOnALaRjwPj0Oe4a1VPPk4dS/9Auri8+4/sRszuk
+	 xg2VNxDJ+3z5dK7fRbr+ddDZXh+GH6gO9G0f/U1pvBaHukaL8og/nvY4MOV/p2XIu9g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=yjUiG9uA;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WsEN+WYz;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87DC3606A326;
-	Tue, 24 Nov 2026 16:18:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9E44606A32C
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 16:18:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=yjUiG9uA
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C0691F000D4;
-	Tue, 24 Nov 2026 16:18:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WsEN+WYz
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7570E1F000D4;
+	Tue, 24 Nov 2026 16:18:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795537128;
-	bh=ujMTuwPOsmr1whJF+yqRvOV96KTaU05Y6dPCwFRLQMs=;
+	d=linux-foundation.org; s=korg; t=1795537131;
+	bh=XiUPWFu8tBAZXX3FfwvjKy16oiDJTvYwElmUaCKhYo4=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=yjUiG9uABcG5/WVN7CU7nmnxBVAR8rh+AeleR2fTNlZt2khdUKrUs6M+WPghDGsNL
-	 9Rt3ZwfvBF4yNjTfGOz0bOkJCmYEB/KvwzEmQq8dmTJ3cSQ1fzytSBCzWTGCBWtxnD
-	 QKgRzjrIKJpBisoyElYP+k+lvbfyqHy04nRn0yjo=
-Date: Tue, 24 Nov 2026 08:18:47 -0800
+	b=WsEN+WYzXxSLfJ8NGojwQhVw++JmLL5tRc2bV4yoovjh4UMBRUORqvrp5YHRaQGg5
+	 st7qiWwlLM1fLv1nJzvn4IrSeiiyW07xjPjIR7h3pvlAM+j/cm3x93TG6okBae7TVi
+	 /5J1yyPOUk1WmhfPIgow8qWMi8YXwPbMAtCqklG8=
+Date: Tue, 24 Nov 2026 08:18:51 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yu-cheng.yu@intel.com,
 	ying.huang@linux.alibaba.com,willy@infradead.org,vbabka@kernel.org,
-	usama.arif@linux.dev,tj@kernel.org,surenb@google.com,stable@vger.kernel.org,
-	shakeel.butt@linux.dev,rppt@kernel.org,rientjes@google.com,
-	rick.p.edgecombe@intel.com,pfalcato@suse.de,peng.fan@nxp.com,
-	nphamcs@gmail.com,mhocko@suse.com,matthew.brost@intel.com,mason@kernel.org,
-	liam@infradead.org,kasong@tencent.com,kas@kernel.org,joshua.hahnjy@gmail.com,
-	jglisse@redhat.com,jbacik@fb.com,jannh@google.com,jack@suse.cz,
-	hannes@cmpxchg.org,gourry@gourry.net,dennisszhou@gmail.com,dennis@kernel.org,
-	david@kernel.org,dave.hansen@linux.intel.com,cl@gentwo.org,
-	chris@chrisdown.name,byungchul@sk.com,broonie@kernel.org,bp@alien8.de,
-	balbirs@nvidia.com,apopple@nvidia.com,ljs@kernel.org,
-	akpm@linux-foundation.org
+	usama.arif@linux.dev,tj@kernel.org,surenb@google.com,shakeel.butt@linux.dev,
+	rppt@kernel.org,rientjes@google.com,rick.p.edgecombe@intel.com,
+	pfalcato@suse.de,peng.fan@nxp.com,nphamcs@gmail.com,mhocko@suse.com,
+	matthew.brost@intel.com,ljs@kernel.org,liam@infradead.org,kasong@tencent.com,
+	kas@kernel.org,joshua.hahnjy@gmail.com,jglisse@redhat.com,jbacik@fb.com,
+	jannh@google.com,jack@suse.cz,hannes@cmpxchg.org,gourry@gourry.net,
+	dennisszhou@gmail.com,dennis@kernel.org,david@kernel.org,
+	dave.hansen@linux.intel.com,cl@gentwo.org,chris@chrisdown.name,
+	byungchul@sk.com,broonie@kernel.org,bp@alien8.de,balbirs@nvidia.com,
+	apopple@nvidia.com,mason@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261113-mason-migrate-et-al-fixes-v2-12-50a2ed382b61@kernel.org>
-References: <20261113-mason-migrate-et-al-fixes-v2-12-50a2ed382b61@kernel.org>
-Subject: + percpu-search-the-whole-reserved-chunk.patch added to mm-unstable branch
-Message-Id: <20261124161848.2C0691F000D4@smtp.kernel.org>
+In-Reply-To: <20261113-mason-migrate-et-al-fixes-v2-13-50a2ed382b61@kernel.org>
+References: <20261113-mason-migrate-et-al-fixes-v2-13-50a2ed382b61@kernel.org>
+Subject: + percpu-queue-the-balance-work-on-an-unbound-workqueue.patch added to mm-unstable branch
+Message-Id: <20261124161851.7570E1F000D4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -66,12 +65,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: percpu: search the whole reserved chunk
+     Subject: percpu: queue the balance work on an unbound workqueue
 has been added to the -mm mm-unstable branch.  Its filename is
-     percpu-search-the-whole-reserved-chunk.patch
+     percpu-queue-the-balance-work-on-an-unbound-workqueue.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/percpu-search-the-whole-reserved-chunk.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/percpu-queue-the-balance-work-on-an-unbound-workqueue.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -89,38 +88,56 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: percpu: search the whole reserved chunk
-Date: Fri, 13 Nov 2026 21:45:30 +0000
+From: Chris Mason <mason@kernel.org>
+Subject: percpu: queue the balance work on an unbound workqueue
+Date: Fri, 13 Nov 2026 21:45:31 +0000
 
-Loading a module with static percpu data can fail with -ENOMEM even
-though the reserved chunk has a free area that fits the data.
-
-pcpu_find_block_fit() does not scan the allocation bitmap, rather it
-tests the request against hints, starting with the contig_hint of the
-chunk, which describes its largest free area. If that area is too small
-once aligned, the search gives up even if a smaller free area fits.
+A burst of small atomic per-CPU allocations can fail with -ENOMEM while the
+machine has free memory and idle CPUs, as atomic per-CPU allocations are
+only served from pages that are already populated, and those can be used up
+before a worker gets to populate more.
 
 Consider:
 
-    request:      256 bytes, aligned to 256 bytes
-    contig_hint:  260 bytes, starts 4 bytes after a 256-byte boundary,
-                  so 8 bytes remain after alignment
-    also free:    256 bytes, starts on a 256-byte boundary
+    caller on CPU 1                     kworker bound to CPU 1
+    ===============                     ======================
+    allocates 8 bytes, which leaves
+    one empty page and 4088 bytes
+      schedule_work()                   woken, waits for CPU 1
+    allocates 8 bytes, 1023 times
+    next allocation: "no space left"
+    gives up CPU 1                      populates pages
 
-Ordinarily this is fine as the allocator moves on to the next chunk or
-creates a new one, but the static percpu data of modules can only come
-from the reserved chunk.
+The allocator keeps a few empty populated pages in reserve, and the work
+item pcpu_balance_work refills them.
 
-Fix this by searching the allocation bitmap of the reserved chunk
-directly rather than using hints.
+pcpu_alloc_noprof() queues the work item using schedule_work(), so only a
+worker bound to the CPU of the caller can run the work item.
 
-Link: https://patch.msgid.link/20261113-mason-migrate-et-al-fixes-v2-12-50a2ed382b61@kernel.org
-Fixes: 13f966373f92 ("percpu: skip chunks if the alloc does not fit in the contig hint")
-Fixes: b4c2116cfae6 ("percpu: update pcpu_find_block_fit to use an iterator")
+The issue is that the caller keeps that CPU - a task keeps it for the rest
+of its time slice, and a softirq keeps it until the softirq ends.
+
+In that time the caller can use up the reserve, resulting in an atomic
+per-CPU allocation failing.
+
+Fix the issue by queueing the work item on an unbound workqueue so that
+another CPU can populate pages while the caller keeps allocating.
+
+Gregory Price hammered atomic per-CPU allocations from one CPU with
+preemption disabled for about a second, with and without this series:
+
+                           Before     After
+    Successful allocs       1,188   131,072
+    Failed allocs           4,097         0
+    Balance worker runs         0       169
+    Successful retries          0     4,096
+
+[ljs@kernel.org: tweaked commit message, comment]
+Link: https://patch.msgid.link/20261113-mason-migrate-et-al-fixes-v2-13-50a2ed382b61@kernel.org
+Fixes: 1a4d76076cda ("percpu: implement asynchronous chunk population")
+Signed-off-by: Chris Mason <mason@kernel.org>
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Chris Mason <mason@kernel.org>
 Tested-by: Gregory Price (Meta) <gourry@gourry.net>
 Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
 Reviewed-by: Chris Down <chris@chrisdown.name>
@@ -160,38 +177,32 @@ Cc: Borislav Petkov <bp@alien8.de>
 Cc: Mark Brown <broonie@kernel.org>
 Cc: Dennis Zhou (Facebook) <dennisszhou@gmail.com>
 Cc: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Cc: <stable@vger.kernel.org>
 
- mm/percpu.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/percpu.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/percpu.c~percpu-search-the-whole-reserved-chunk
+--- a/mm/percpu.c~percpu-queue-the-balance-work-on-an-unbound-workqueue
 +++ a/mm/percpu.c
-@@ -1778,8 +1778,11 @@ void __percpu *pcpu_alloc_noprof(size_t
- 	if (reserved && pcpu_reserved_chunk) {
- 		chunk = pcpu_reserved_chunk;
+@@ -200,8 +200,9 @@ static bool pcpu_atomic_alloc_failed;
  
--		off = pcpu_find_block_fit(chunk, bits, bit_align, is_atomic);
--		if (off < 0) {
-+		/* No other chunk to fall back on, so don't rely on hints. */
-+		off = bitmap_find_next_zero_area(chunk->alloc_map,
-+						 pcpu_chunk_map_bits(chunk), 0,
-+						 bits, bit_align - 1);
-+		if (off >= pcpu_chunk_map_bits(chunk)) {
- 			err = "alloc from reserved chunk failed";
- 			goto fail_unlock;
- 		}
+ static void pcpu_schedule_balance_work(void)
+ {
++	/* Unbound, so another CPU can populate pgs if caller keeps this one. */
+ 	if (pcpu_async_enabled)
+-		schedule_work(&pcpu_balance_work);
++		queue_work(system_dfl_wq, &pcpu_balance_work);
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from mason@kernel.org are
 
-mm-msync-return-enomem-if-page-aligned-length-overflows.patch
-mm-vma-predicate-vma_assert_stabilised-on-config_debug_vm.patch
-mm-only-assert-mmap-locks-if-config_debug_vm-or-lockdep-is-set.patch
-mm-only-assert-vma-locks-if-config_debug_vm-is-set.patch
-mm-convert-warn_on_onces-to-vm_warn_on_once-in-vma-lock-code.patch
-mm-madvise-zap-markers-from-guard-regions.patch
-mm-mmap-free-gathered-pages-before-mmf_oom_skip.patch
-percpu-fix-contig-hints-that-are-too-low.patch
-percpu-search-the-whole-reserved-chunk.patch
+mm-swap-fix-large-swap-in-across-swap-file-extents.patch
+hugetlbfs-do-not-grow-a-sealed-file-in-mmap.patch
+mm-hugetlb-keep-surplus-folios-that-are-reserved.patch
+mm-hugetlb-fix-reservation-leak-on-min_size=-mounts.patch
+mm-cachestat-count-each-page-only-once.patch
+mm-cachestat-restart-the-walk-after-each-entry.patch
+percpu-queue-the-balance-work-on-an-unbound-workqueue.patch
 
