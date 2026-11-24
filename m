@@ -1,42 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795547354;
-	b=5p8ek5hoPOK+jDs29XAIncti0zWh4rU8Eo/4W1/ADYUnlvnVL8zYnJjL27rAvm9ilCwl
-	 HbA5sustgYZdlK2Ih+7nwDi7qTBBe8r032TOV2Lo1CG0T6rmzCvnLxmBDdiJxL2kwXEbd
-	 XQzhaI7a9wXaEbYBRbIQer7DGeKRIIr3ZeJ+crv60NBM9gOdg6pcgUa+dhEMiZBeXdgaH
-	 3tSNLYQ75OX5OeT1jgswDbp4ig1MQIMIjTJR+fdXgSoICxDXDoitZxlQYizgAR5FdG9rp
-	 CZ0Z97azfGwOatXP445nBepayYU43wKLZP0D2WuRGanCb0fbNuKsrGPoWHfFkgvq6Uw==
+	t=1795547356;
+	b=wb9Jh8/uHYzjs9ZOUP4SDUrDaMiYaqEVV1HuqypXCsO1sci3pG2MOUGMrcUtpqfiZ3Sh
+	 QP2AXUx1RUdfZh/pxfFPpuq0UWMP4/LQs5EjF2vXInbIgxvG4tmKA1n7gnC+5/JHt8ati
+	 yVt0T3YJWmVp8i2xA4Z5crlN7YwdDutTlLy216Mp9wgkgx70pgsmjpcL7knRiHLoHKSR5
+	 C9cyVhRaGpnnzMnu+oLXq5775VlK8uey6/dighCZMmhpoXHWPN1OUkFvpaFk5oItNcqtA
+	 nZU0WRwGVFqyg7nwfdFfPeeP5WuO2bmlK1YhILfGZ1REG5rKlLsn3ocQV0RUl0T0XxA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795547354;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795547356;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=/t9EdAdapQX+hGSYYXfEuqYEHUEjV2iCor7tca8gsYA=;
-	b=vYXObLTpuhlra+AWOgvHwjN2BNbXguS40LonvNw1bKnpt11geDrey3DQtgyu5HLRQ4/t
-	 KEE06szvUSK3JMc9SNo2wliJy+gKNXrXfUZOhfjGjHXuSpf/hYrvCym6mn6EOVPuXEhEw
-	 VIyKS5qVDjS/DUXt1dt3kUPbTfkUflIs8zh72tB9JBCyB5h18faRP9CBKj6apux+XHoXq
-	 JWkx83R7Gsm8njSR89bBnpp9ugNUlMEJb+EhhVHAOPSA7aA1MxnMf4q77BXgD5nICaP/q
-	 6Mrm1/J3+EdnqyhJamLNPsr10MhtNQcijk21rdzx7Ayq4vVsMXQKmgB+I+S8b3DXlPg==
+	bh=DjklhRT2LsCPuTRZhxLdmjDCjzu0JHr0xSBzs4YMOqE=;
+	b=K//UokQhnwqsv1SBq1GdQDVqXjReyJCQv0j42RBytU99bwXbOwIpFrSxd1LwhbjkwXKy
+	 G6Sj2UkUuTe4ck/EFfH8KU1Liaaf1wBin7a8fIBgxBT7IXRNfkEZfko5F4Zfup8/wX6IM
+	 xBlMrkDiXXpSksTC/Pjq8p2OvYWtTnefsxM1asL8/w1AHymefbqd2IS41dqQXDYKmyBWW
+	 9dG9tacYyNPUVE2+0Sq3gXZBNgaoxodQn4NXRtvR/d+M9jOCGciJ9hZ3cb+BcFn8ADUvF
+	 nZhF8ESNKIOEp4NxULfPEwAbGrlgBIpa1oXcIaWWJj+Zb2UnaDorpUEggGmjTCcoIfw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="P/K9qR3Z";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pHXOBfCa;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 503A0606A31E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 19:09:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFEA9606A31E
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 19:09:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=P/K9qR3Z
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E5941F000C0;
-	Tue, 24 Nov 2026 19:09:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pHXOBfCa
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C75F1F000C4;
+	Tue, 24 Nov 2026 19:09:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795547353;
-	bh=/t9EdAdapQX+hGSYYXfEuqYEHUEjV2iCor7tca8gsYA=;
+	d=linux-foundation.org; s=korg; t=1795547356;
+	bh=DjklhRT2LsCPuTRZhxLdmjDCjzu0JHr0xSBzs4YMOqE=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=P/K9qR3Z2Tyflpfz/UxnxoP9wKLI6c5n9nyEK53Jyr2FRLtmZOaYgnX/ZCociBAF0
-	 6WiCTo55sMdh8f531Lxu/fJtxWqVSQ6n3khUvUZ01fuXBIu45JvOcLOJGiP2R6OUUR
-	 R3UetX+KjPzQUHIB1V68v750EKO58XSibulWZxys=
-Date: Tue, 24 Nov 2026 11:09:13 -0800
+	b=pHXOBfCaFVkV5DNA5bnYYJHWXyWKC5LRt6GTgs5Oqxht8abcf32FMkAJmKEZ8+3JC
+	 ZEdhBvO2nuq5+P2FprsbNlpy57kHqCbEkEHEFfPSECgzO1TWjjXVgHjD+ujPGiy1xs
+	 vk2dT8Ud47k8qZkw9QxYhJsIttc60hagBMF+7v54=
+Date: Tue, 24 Nov 2026 11:09:16 -0800
 To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,wei.liu@kernel.org,
 	tglx@kernel.org,sumit.garg@kernel.org,stephen.smalley.work@gmail.com,
 	sstabellini@kernel.org,sshegde@linux.ibm.com,scott.branden@broadcom.com,
@@ -54,10 +54,10 @@ To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,wei.liu@kernel.org,
 	andrew+netdev@lunn.ch,andrew@codeconstruct.com.au,andersson@kernel.org,
 	abel.vesa@oss.qualcomm.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124-late-2026-mmap_prepare-v2-10-0b0d99d655f9@kernel.org>
-References: <20261124-late-2026-mmap_prepare-v2-10-0b0d99d655f9@kernel.org>
-Subject: + tee-convert-shm-mmap-hook-to-mmap_prepare.patch added to mm-new branch
-Message-Id: <20261124190913.8E5941F000C0@smtp.kernel.org>
+In-Reply-To: <20261124-late-2026-mmap_prepare-v2-11-0b0d99d655f9@kernel.org>
+References: <20261124-late-2026-mmap_prepare-v2-11-0b0d99d655f9@kernel.org>
+Subject: + misc-bcm-vk-convert-mmap-hook-to-mmap_prepare.patch added to mm-new branch
+Message-Id: <20261124190916.7C75F1F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -69,12 +69,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: tee: convert shm mmap hook to mmap_prepare
+     Subject: misc: bcm-vk: convert mmap hook to mmap_prepare
 has been added to the -mm mm-new branch.  Its filename is
-     tee-convert-shm-mmap-hook-to-mmap_prepare.patch
+     misc-bcm-vk-convert-mmap-hook-to-mmap_prepare.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tee-convert-shm-mmap-hook-to-mmap_prepare.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/misc-bcm-vk-convert-mmap-hook-to-mmap_prepare.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -104,17 +104,15 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: tee: convert shm mmap hook to mmap_prepare
-Date: Tue, 24 Nov 2026 14:02:53 +0000
+Subject: misc: bcm-vk: convert mmap hook to mmap_prepare
+Date: Tue, 24 Nov 2026 14:02:54 +0000
 
 Move from the deprecated mmap hook to the new mmap_prepare hook, using the
-PFN remap mmap action to map the shared memory.
+I/O PFN remap mmap action to map the BAR.
 
-Link: https://patch.msgid.link/20261124-late-2026-mmap_prepare-v2-10-0b0d99d655f9@kernel.org
+Link: https://patch.msgid.link/20261124-late-2026-mmap_prepare-v2-11-0b0d99d655f9@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Jens Wiklander <jens.wiklander@oss.qualcomm.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Juergen Gross <jgross@suse.com>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
@@ -149,6 +147,7 @@ Cc: Konrad Dybcio <konradybcio@kernel.org>
 Cc: Jens Wiklander <jenswi@kernel.org>
 Cc: Sumit Garg <sumit.garg@kernel.org>
 Cc: Scott Branden <scott.branden@broadcom.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Richard Cochran <richardcochran@gmail.com>
 Cc: Andrew Lunn <andrew+netdev@lunn.ch>
@@ -156,53 +155,64 @@ Cc: David S. Miller <davem@davemloft.net>
 Cc: Eric Dumazet <edumazet@kernel.org>
 Cc: Jakub Kicinski <kuba@kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: Jens Wiklander <jens.wiklander@oss.qualcomm.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Abel Vesa <abel.vesa@oss.qualcomm.com>
 Cc: Kameron Carr <kameroncarr@linux.microsoft.com>
 Cc: Michael Kelley <mhklinux@outlook.com>
 Cc: David Woodhouse <dwmw@amazon.co.uk>
 
- drivers/tee/tee_shm.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/misc/bcm-vk/bcm_vk_dev.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
---- a/drivers/tee/tee_shm.c~tee-convert-shm-mmap-hook-to-mmap_prepare
-+++ a/drivers/tee/tee_shm.c
-@@ -567,10 +567,9 @@ static int tee_shm_fop_release(struct in
- 	return 0;
+--- a/drivers/misc/bcm-vk/bcm_vk_dev.c~misc-bcm-vk-convert-mmap-hook-to-mmap_prepare
++++ a/drivers/misc/bcm-vk/bcm_vk_dev.c
+@@ -1201,9 +1201,9 @@ err_exit:
+ 	return ret;
  }
  
--static int tee_shm_fop_mmap(struct file *filp, struct vm_area_struct *vma)
-+static int tee_shm_fop_mmap_prepare(struct vm_area_desc *desc)
+-static int bcm_vk_mmap(struct file *file, struct vm_area_struct *vma)
++static int bcm_vk_mmap_prepare(struct vm_area_desc *desc)
  {
--	struct tee_shm *shm = filp->private_data;
--	size_t size = vma->vm_end - vma->vm_start;
-+	struct tee_shm *shm = desc->file->private_data;
+-	struct bcm_vk_ctx *ctx = file->private_data;
++	struct bcm_vk_ctx *ctx = desc->file->private_data;
+ 	struct bcm_vk *vk = container_of(ctx->miscdev, struct bcm_vk, miscdev);
+ 	unsigned long pg_size;
  
- 	/* Refuse sharing shared memory provided by application */
- 	if (shm->flags & TEE_SHM_USER_MAPPED)
-@@ -580,17 +579,18 @@ static int tee_shm_fop_mmap(struct file
+@@ -1212,16 +1212,16 @@ static int bcm_vk_mmap(struct file *file
+ 
+ 	pg_size = ((pci_resource_len(vk->pdev, VK_MMAPABLE_BAR) - 1)
+ 		    >> PAGE_SHIFT) + 1;
+-	if (vma->vm_pgoff + vma_pages(vma) > pg_size)
++	if (desc->pgoff + vma_desc_pages(desc) > pg_size)
  		return -EINVAL;
  
- 	/* check for overflowing the buffer's size */
--	if (vma->vm_pgoff + vma_pages(vma) > shm->size >> PAGE_SHIFT)
-+	if (desc->pgoff + vma_desc_pages(desc) > shm->size >> PAGE_SHIFT)
- 		return -EINVAL;
- 
--	return remap_pfn_range(vma, vma->vm_start, shm->paddr >> PAGE_SHIFT,
--			       size, vma->vm_page_prot);
-+	mmap_action_remap_full(desc, shm->paddr >> PAGE_SHIFT);
+-	vma->vm_pgoff += (pci_resource_start(vk->pdev, VK_MMAPABLE_BAR)
+-			  >> PAGE_SHIFT);
+-	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+-
+-	return io_remap_pfn_range(vma, vma->vm_start, vma->vm_pgoff,
+-				  vma->vm_end - vma->vm_start,
+-				  vma->vm_page_prot);
++	desc->pgoff += (pci_resource_start(vk->pdev, VK_MMAPABLE_BAR)
++			>> PAGE_SHIFT);
++	desc->page_prot = pgprot_noncached(desc->page_prot);
++
++	mmap_action_ioremap_full(desc, desc->pgoff);
 +
 +	return 0;
  }
  
- static const struct file_operations tee_shm_fops = {
- 	.owner = THIS_MODULE,
- 	.release = tee_shm_fop_release,
--	.mmap = tee_shm_fop_mmap,
-+	.mmap_prepare = tee_shm_fop_mmap_prepare,
+ static long bcm_vk_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+@@ -1262,7 +1262,7 @@ static const struct file_operations bcm_
+ 	.write = bcm_vk_write,
+ 	.poll = bcm_vk_poll,
+ 	.release = bcm_vk_release,
+-	.mmap = bcm_vk_mmap,
++	.mmap_prepare = bcm_vk_mmap_prepare,
+ 	.unlocked_ioctl = bcm_vk_ioctl,
  };
  
- /**
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
