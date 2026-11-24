@@ -1,59 +1,50 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795537132;
-	b=esrteS+KlTW3Mw7juDQV63xnQjEa5jx03Vf7DeYbN5L5kAGlMMWo7yLHNSzi29n0UtPi
-	 tRRZjsN2schAm8fs8EvEL24OLfA4krnvtLyAREKyPkw0YcZ7Mgsfd2Ho9fJj9avId5qz3
-	 yoDMG2TRP46iByXzNr4y/PFt+zZnHFFT9tV6bwS2o/fKTkV9vQR9xNet5oe2i90LBhdDx
-	 7f6ms8+3XAQMxM1PWs9rLxP4Iq3BNo86HhPr7V8Py3f4t3F1CXXw3sNtMjTWQIhvauyhv
-	 WUDvwjpYAUHc0kOri37ds7TizsVnWE42dLb6JC9d82XE8ifryRHSUv4otT/Bl+MHXYg==
+	t=1795540206;
+	b=jqVqJzbtOz1FMCazOaxObUbqhuq8OgovtCdgWxRlsdUAWGCl3uZtmunNPxR5wcTuH8CR
+	 4JVQM1y/ZeIq7v7+prdPGKorc1RPWc3S0ZYI4p7UsycEozcmH9OsX5clBDLvV4mtTBB0s
+	 qbDRcmbSpteBQf7w/+JmeJtc/yDWNjINhm22iosDPpm0gPIKXI+Jnyfbcm21G3/i7DrNq
+	 opzg2HyTUXIdRh5cffpxAsD83gYSjMr+3v6aAbE7+brPat6E4m1/1cM/OsDOe8ekj6Zu1
+	 spabR31mgBRZks6LUYQ9Gp37YxewtQyfAgL45v5hYOZSouwIk7KsupSPqI3d/+2jyTg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795537132;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795540206;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=XiUPWFu8tBAZXX3FfwvjKy16oiDJTvYwElmUaCKhYo4=;
-	b=FEI81lGu6lFovqUBXH/ps+ILH2M+AmCV830TIWKjyDo1vCQ8OilQftDpkrNR6zfIIO9s
-	 vWubYZrCm+eaYa4ZMwLUq5LuBnkRc+pcWQ23pURHW8xDw53AmEyy6aO0keAkBxYmkJEDO
-	 SmXPcwvia+2zZNi4J2b2/Kzd+gvS2HMvvvyfn37Co4jzctxtYnMZvPE2Zbh5q4JtPj4oA
-	 DP9QdyUtNUsaWe6i8TwK4lJ84aueoMOnALaRjwPj0Oe4a1VPPk4dS/9Auri8+4/sRszuk
-	 xg2VNxDJ+3z5dK7fRbr+ddDZXh+GH6gO9G0f/U1pvBaHukaL8og/nvY4MOV/p2XIu9g==
+	bh=dt79lmLXpJlWuU1T6Hej8BujHea3zOuIrAz1GVd+2ds=;
+	b=28Tv/n8KTpOSFtciUqUAhKrjxY5xDQfVlnE5ehd7ZrUmegZSO42W4ac8kGwG1Q9eW8Z8
+	 nlzBZT+dxRI3i/bpXa06zGEveGrcJ68eFgDqq0vERzuZ4EQ+M3/lzq0J2YIQ2Zaa0kNfQ
+	 V/2eLTT3yv452aCF8GxQ/EQ5kfaB7fCLwfxSihUIlMxdZt+ZWdcfkAd9BZrK8aVC/Ywm0
+	 J7+LWEEe8XIYVLXaFSbVoKbK4IaeUlrWxQ5LXP+e6eNdiqsvF3JTVMRncpK4T8TwPI/3F
+	 Sj2O39Sqp0Ho8sVSYCatlpcFutag28iQyd0PiM2esYiqQ8RYgn+jpv43OB8jZVTASvw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WsEN+WYz;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=MU+qddei;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9E44606A32C
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 16:18:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0763606A330
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:10:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WsEN+WYz
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7570E1F000D4;
-	Tue, 24 Nov 2026 16:18:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=MU+qddei
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD17D1F0089E;
+	Tue, 24 Nov 2026 17:10:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795537131;
-	bh=XiUPWFu8tBAZXX3FfwvjKy16oiDJTvYwElmUaCKhYo4=;
+	d=linux-foundation.org; s=korg; t=1795540205;
+	bh=dt79lmLXpJlWuU1T6Hej8BujHea3zOuIrAz1GVd+2ds=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=WsEN+WYzXxSLfJ8NGojwQhVw++JmLL5tRc2bV4yoovjh4UMBRUORqvrp5YHRaQGg5
-	 st7qiWwlLM1fLv1nJzvn4IrSeiiyW07xjPjIR7h3pvlAM+j/cm3x93TG6okBae7TVi
-	 /5J1yyPOUk1WmhfPIgow8qWMi8YXwPbMAtCqklG8=
-Date: Tue, 24 Nov 2026 08:18:51 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yu-cheng.yu@intel.com,
-	ying.huang@linux.alibaba.com,willy@infradead.org,vbabka@kernel.org,
-	usama.arif@linux.dev,tj@kernel.org,surenb@google.com,shakeel.butt@linux.dev,
-	rppt@kernel.org,rientjes@google.com,rick.p.edgecombe@intel.com,
-	pfalcato@suse.de,peng.fan@nxp.com,nphamcs@gmail.com,mhocko@suse.com,
-	matthew.brost@intel.com,ljs@kernel.org,liam@infradead.org,kasong@tencent.com,
-	kas@kernel.org,joshua.hahnjy@gmail.com,jglisse@redhat.com,jbacik@fb.com,
-	jannh@google.com,jack@suse.cz,hannes@cmpxchg.org,gourry@gourry.net,
-	dennisszhou@gmail.com,dennis@kernel.org,david@kernel.org,
-	dave.hansen@linux.intel.com,cl@gentwo.org,chris@chrisdown.name,
-	byungchul@sk.com,broonie@kernel.org,bp@alien8.de,balbirs@nvidia.com,
-	apopple@nvidia.com,mason@kernel.org,akpm@linux-foundation.org
+	b=MU+qddeidjOFMUZgT4V2GHy0IjBHnN+o06VQIWQSyr7Zn6T/E0eT8iyiSRc5WKy/w
+	 bbbU0T/QbUcPJBpU5rRr1lcoIhWbDwmoNEtwWA69u3dG700HUfT3wU+A2BVXxzeVqC
+	 yaASf1esAixfIOEKOMGhevc0BoN1sA52I1VHLEhI=
+Date: Tue, 24 Nov 2026 09:10:05 -0800
+To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,
+	rdunlap@infradead.org,david@kernel.org,corbet@lwn.net,sj@kernel.org,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261113-mason-migrate-et-al-fixes-v2-13-50a2ed382b61@kernel.org>
-References: <20261113-mason-migrate-et-al-fixes-v2-13-50a2ed382b61@kernel.org>
-Subject: + percpu-queue-the-balance-work-on-an-unbound-workqueue.patch added to mm-unstable branch
-Message-Id: <20261124161851.7570E1F000D4@smtp.kernel.org>
+In-Reply-To: <20261124160124.93482-2-sj@kernel.org>
+References: <20261124160124.93482-2-sj@kernel.org>
+Subject: + maintainers-change-damon-scm-tree-to-mm-damongit.patch added to mm-unstable branch
+Message-Id: <20261124171005.AD17D1F0089E@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -65,12 +56,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: percpu: queue the balance work on an unbound workqueue
+     Subject: MAINTAINERS: change DAMON SCM tree to mm/damon.git
 has been added to the -mm mm-unstable branch.  Its filename is
-     percpu-queue-the-balance-work-on-an-unbound-workqueue.patch
+     maintainers-change-damon-scm-tree-to-mm-damongit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/percpu-queue-the-balance-work-on-an-unbound-workqueue.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-change-damon-scm-tree-to-mm-damongit.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -88,121 +79,111 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Chris Mason <mason@kernel.org>
-Subject: percpu: queue the balance work on an unbound workqueue
-Date: Fri, 13 Nov 2026 21:45:31 +0000
+From: SJ Park <sj@kernel.org>
+Subject: MAINTAINERS: change DAMON SCM tree to mm/damon.git
+Date: Tue, 24 Nov 2026 08:01:19 -0800
 
-A burst of small atomic per-CPU allocations can fail with -ENOMEM while the
-machine has free memory and idle CPUs, as atomic per-CPU allocations are
-only served from pages that are already populated, and those can be used up
-before a worker gets to populate more.
+Patch series "mm/damon: update documents for mm-next onboarding".
 
-Consider:
+Right after the 7.5-rc1 release, DAMON will onboard the mm-next transition
+[1].  The major change is that it will use mm/damon.git [2] and
+mm/linux.git [3] instead of sj/linux.git [4] and akpm/mm.git [5].
 
-    caller on CPU 1                     kworker bound to CPU 1
-    ===============                     ======================
-    allocates 8 bytes, which leaves
-    one empty page and 4088 bytes
-      schedule_work()                   woken, waits for CPU 1
-    allocates 8 bytes, 1023 times
-    next allocation: "no space left"
-    gives up CPU 1                      populates pages
+Update MAINTAINERS file to capture the change, via patch 1.  Further
+update DAMON maintainer-profile document for the change, step by step, via
+patches 2-4.
 
-The allocator keeps a few empty populated pages in reserve, and the work
-item pcpu_balance_work refills them.
 
-pcpu_alloc_noprof() queues the work item using schedule_work(), so only a
-worker bound to the CPU of the caller can run the work item.
+This patch (of 4):
 
-The issue is that the caller keeps that CPU - a task keeps it for the rest
-of its time slice, and a softirq keeps it until the softirq ends.
+Right after 7.5-rc1, DAMON will onboard the mm-next transition.  The
+major change is that it will use mm/damon.git [2] as its SCM tree.
+Update the DAMON subsystem SCM tree section on the MAINTAINERS file for
+that.  Together, rename the section to have 'MEMORY MANAGEMENT - '
+prefix, to be consistent with other mm components.  Because the name is
+changed, move the section on the file to be alphabetically sorted.
 
-In that time the caller can use up the reserve, resulting in an atomic
-per-CPU allocation failing.
-
-Fix the issue by queueing the work item on an unbound workqueue so that
-another CPU can populate pages while the caller keeps allocating.
-
-Gregory Price hammered atomic per-CPU allocations from one CPU with
-preemption disabled for about a second, with and without this series:
-
-                           Before     After
-    Successful allocs       1,188   131,072
-    Failed allocs           4,097         0
-    Balance worker runs         0       169
-    Successful retries          0     4,096
-
-[ljs@kernel.org: tweaked commit message, comment]
-Link: https://patch.msgid.link/20261113-mason-migrate-et-al-fixes-v2-13-50a2ed382b61@kernel.org
-Fixes: 1a4d76076cda ("percpu: implement asynchronous chunk population")
-Signed-off-by: Chris Mason <mason@kernel.org>
-Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Link: https://lore.kernel.org/20261124160124.93482-1-sj@kernel.org
+Link: https://patch.msgid.link/20261124160124.93482-2-sj@kernel.org
+Link: https://lore.kernel.org/bed81e01-7303-4957-bd7d-38e3a094e96f@kernel.org/ [1]
+Link: https://git.kernel.org/pub/scm/linux/kernel/git/mm/damon.git/ [2]
+Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Tested-by: Gregory Price (Meta) <gourry@gourry.net>
-Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
-Reviewed-by: Chris Down <chris@chrisdown.name>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Jann Horn <jannh@google.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Ying Huang <ying.huang@linux.alibaba.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Usama Arif <usama.arif@linux.dev>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Balbir Singh <balbirs@nvidia.com>
-Cc: Jérôme Glisse <jglisse@redhat.com>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Yu, Yu-cheng <yu-cheng.yu@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Christoph Lameter <cl@gentwo.org>
-Cc: Peng Fan <peng.fan@nxp.com>
-Cc: Josef Bacik <jbacik@fb.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Dennis Zhou (Facebook) <dennisszhou@gmail.com>
-Cc: Rick Edgecombe <rick.p.edgecombe@intel.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
 
- mm/percpu.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ MAINTAINERS |   36 +++++++++++++++++-------------------
+ 1 file changed, 17 insertions(+), 19 deletions(-)
 
---- a/mm/percpu.c~percpu-queue-the-balance-work-on-an-unbound-workqueue
-+++ a/mm/percpu.c
-@@ -200,8 +200,9 @@ static bool pcpu_atomic_alloc_failed;
+--- a/MAINTAINERS~maintainers-change-damon-scm-tree-to-mm-damongit
++++ a/MAINTAINERS
+@@ -7366,25 +7366,6 @@ S:	Maintained
+ W:	https://docs.dasharo.com/
+ F:	drivers/platform/x86/dasharo-acpi.c
  
- static void pcpu_schedule_balance_work(void)
- {
-+	/* Unbound, so another CPU can populate pgs if caller keeps this one. */
- 	if (pcpu_async_enabled)
--		schedule_work(&pcpu_balance_work);
-+		queue_work(system_dfl_wq, &pcpu_balance_work);
- }
+-DAMON
+-M:	SJ Park <sj@kernel.org>
+-L:	damon@lists.linux.dev
+-L:	linux-mm@kvack.org
+-S:	Maintained
+-W:	https://damonitor.github.io
+-P:	Documentation/mm/damon/maintainer-profile.rst
+-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+-T:	quilt git://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new
+-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/sj/linux.git damon/next
+-F:	Documentation/ABI/testing/sysfs-kernel-mm-damon
+-F:	Documentation/admin-guide/mm/damon/
+-F:	Documentation/mm/damon/
+-F:	include/linux/damon.h
+-F:	include/trace/events/damon.h
+-F:	mm/damon/
+-F:	samples/damon/
+-F:	tools/testing/selftests/damon/
+-
+ DAVICOM FAST ETHERNET (DMFE) NETWORK DRIVER
+ L:	netdev@vger.kernel.org
+ S:	Orphan
+@@ -17563,6 +17544,23 @@ F:	mm/vmstat.c
+ F:	scripts/gdb/linux/mm.py
+ N:	include\/linux\/page[-_][a-zA-Z]*
  
- /**
++MEMORY MANAGEMENT - DAMON
++M:	SJ Park <sj@kernel.org>
++L:	damon@lists.linux.dev
++L:	linux-mm@kvack.org
++S:	Maintained
++W:	https://damonitor.github.io
++P:	Documentation/mm/damon/maintainer-profile.rst
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mm/damon.git for-next
++F:	Documentation/ABI/testing/sysfs-kernel-mm-damon
++F:	Documentation/admin-guide/mm/damon/
++F:	Documentation/mm/damon/
++F:	include/linux/damon.h
++F:	include/trace/events/damon.h
++F:	mm/damon/
++F:	samples/damon/
++F:	tools/testing/selftests/damon/
++
+ MEMORY MANAGEMENT - EXECMEM
+ M:	Andrew Morton <akpm@linux-foundation.org>
+ M:	Mike Rapoport <rppt@kernel.org>
 _
 
-Patches currently in -mm which might be from mason@kernel.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-swap-fix-large-swap-in-across-swap-file-extents.patch
-hugetlbfs-do-not-grow-a-sealed-file-in-mmap.patch
-mm-hugetlb-keep-surplus-folios-that-are-reserved.patch
-mm-hugetlb-fix-reservation-leak-on-min_size=-mounts.patch
-mm-cachestat-count-each-page-only-once.patch
-mm-cachestat-restart-the-walk-after-each-entry.patch
-percpu-queue-the-balance-work-on-an-unbound-workqueue.patch
+mm-damon-core-copy-only-installed-probe-in-damon_split_region_at.patch
+mm-damon-core-add-damos_filter_type_age_ms.patch
+mm-damon-sysfs-schemes-support-damos_filter_type_age_ms.patch
+docs-mm-damon-design-update-for-age_ms-damos-core-filter-type.patch
+docs-admin-guide-mm-damon-usage-update-for-age_ms-damos-core-filter.patch
+mm-damon-api-define-damon_filter_type_active.patch
+mm-damon-ops-common-implement-damon_filter_type_active-operation.patch
+mm-damon-sysfs-support-lru-activeness-based-damon-filter-setup.patch
+docs-mm-damon-design-update-for-damon_filter_type_active.patch
+maintainers-change-damon-scm-tree-to-mm-damongit.patch
+docs-mm-damon-maintainer-profile-use-damongit-for-patch-baselines.patch
+docs-mm-damon-maintainer-profile-drop-scm-trees-section.patch
+docs-mm-damon-maintainer-profile-update-key-cycle-dates-for-damongit.patch
 
