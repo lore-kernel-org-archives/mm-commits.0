@@ -1,50 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795497001;
-	b=E9EfMemiXTb4RlGTAlu0AFU8lygJn/+uC+w8pdIvZ0Vsw2J82k7maIUt2KKUl5ZQS7h1
-	 Gt62iPILQZb2H09v88mDa2VaaJDdAGcCExGUYqRQkL0BUES6VQORHPLB1Vpr6+t2KNlPi
-	 NczbzHHQfBvvG8bw4rA6ngplHQHDYa5TmtxPBT8BVE083xrKzBU5/ppiXuY18FsZxaARX
-	 p6B61lLngcFNPAJW6bVIeAeqGzrIJPe1r5SoNtmpF9LiQWyfLSQqHQ5BKsVy+vGZ/ZXJ0
-	 3n5N2G+DWFaf8ks21TAgnvDoc0BWqyXjS2yJA0OgXfpQNq9uYY6itbHj3k7HJMNqOIw==
+	t=1795497696;
+	b=E35rsQ85o18kl6dRIuQKeREMEcbksEnxLPDfrX496KcefyfGRsffJrUjAiR8nTEEqgNf
+	 b3Fl/EOqzFbBry6t2CXAmR7wv2cEDT2giBfTOzYC7SLp0sH1NT/ZembOTlA3vxvt9jbuj
+	 yHzYzQUYhh/Hy+VuQfCAZ27MxnJeGKxeHtdBmcynUJv+rJTPDXIGLygMQdoC3JyyO8DT2
+	 S7wVViQWl/db4OclLB4FDCHnnCJ6OH84ZzLrqssO3ac/GTn9u1cEsggkOo6tH0jOKnICg
+	 zm8P8CYsoPSYwc0TZErAlKsHCy/aqhROn8PluJo7eZTsRvUl8+GNGT0EQeXMEL1ZP5A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795497001;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795497696;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=PIa4e3ro05GVm5OGheLvgJaTBkxCWGAHAPRrk92kfxk=;
-	b=bKKxN4fjIsUGtcL+iha1bXwj8aCPQz/3mpzc5+cmnl7FnCxnTVVioMtLLutxXpX8UtGS
-	 AgjcyeIYOy87kEH3fc49XUEuqOwAnfXsIn3rM8qjWhGYvhoQzt3uCo9q/2GaL/p4RSrZ2
-	 RqK0iYlbtg8chhyNHFLRFsw1fSeZuNI7FF2bDRGv7O1WfVbHVq5P9/xiwrF59OCFiLZ+R
-	 iDZMCvmm/DT+h/MWGZJSo9AAi5b2FxbYeQUzJ44fZ3n+YQ93q4z/wU/LlzcD9YaW1v58Q
-	 7gNqvkULTDZ4Br+4uRpNC0RD943BTZwVDPKQsRzEtM3AkeT/bWzVTZqtUqKajN35iBw==
+	bh=9xQqiKKOqpe8NYoFkh19kBq35dfonM2FubbicrLc7sw=;
+	b=jshti0Lgk+ilR+y2TBnxCtInJDVBgYOWMp9hVcMmVwQvarn14DivqveP9tmcJR7rH9zo
+	 8lKV6fdLcI+/z4J7h4B2up3NA+zJzER5hsy8jiY9a+bXpILYKgrmnETWlkavtfXN4sNL6
+	 J3jtaBBfHaDdk6LVEshJCQBVhJpJXvA58L9GpVJPSHqTI+uq+rHPSQg0/PNxhGKInl58u
+	 twTgIi+6PGYzRGvgaTFWRsPYdqsUmbsf7EiS5mChxY01RqvuHkcj5med/CKB3AQzHtWZP
+	 fOERK3XDYY3VhqXfOVA1MmiPSeqn4XhDR6GYhnFte871nyz7lOX5Bk1CpP+y+Wdnhlw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=BX1FgUiY;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=UZzFunOa;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18AF0606A31E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 05:10:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1877606A31E
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 05:21:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=BX1FgUiY
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 102F61F000D0;
-	Tue, 24 Nov 2026 05:10:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=UZzFunOa
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78B1A1F000C0;
+	Tue, 24 Nov 2026 05:21:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795497000;
-	bh=PIa4e3ro05GVm5OGheLvgJaTBkxCWGAHAPRrk92kfxk=;
+	d=linux-foundation.org; s=korg; t=1795497695;
+	bh=9xQqiKKOqpe8NYoFkh19kBq35dfonM2FubbicrLc7sw=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=BX1FgUiY49RuiYJEyHschskHQhespJ55Sgizmucm7ZZGumj71/o7aaDWwoGChwqGp
-	 ZB9E5CkJl+Vj6etC89smt3UP15muwWl0W4SdM0XaEX/qCz1PonbrETJ6U7hlQeZ4Hm
-	 CfxUUU2dyVvK8MkvymhwmH+cZfaos2vFtd3F4Ipc=
-Date: Mon, 23 Nov 2026 21:09:59 -0800
-To: mm-commits@vger.kernel.org,tj@kernel.org,roman.gushchin@linux.dev,
-	muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,
-	shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=UZzFunOaDO5cbKhTZuex4wASmcsJPmUkLfyOTg+Xmn9K9bFztymk/RoZ8TbsODh2W
+	 2AAphz+VPTP0K+ddlLvpQ2NRe5mw0i3DtiWMAztFuDw8PEsu5gwVs/QrVQA+I9R3Eo
+	 31P9OJIvQ2bZ6d7rp+5WHWdH/sulzBIQcOmKJjGs=
+Date: Mon, 23 Nov 2026 21:21:34 -0800
+To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,
+	david@kernel.org,lihongfu@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124020800.2313930-1-shakeel.butt@linux.dev>
-References: <20261124020800.2313930-1-shakeel.butt@linux.dev>
-Subject: + memcg-warn-when-memory-cgroup-ids-run-out.patch added to mm-new branch
-Message-Id: <20261124051000.102F61F000D0@smtp.kernel.org>
+In-Reply-To: <20261124-for-gather-surplus-v1-1-231e5660f3d8@kylinos.cn>
+References: <20261124-for-gather-surplus-v1-1-231e5660f3d8@kylinos.cn>
+Subject: + mm-hugetlb-fix-nr_hugetlb-accounting-for-kept-surplus-folios.patch added to mm-new branch
+Message-Id: <20261124052135.78B1A1F000C0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: memcg: warn when memory cgroup IDs run out
+     Subject: mm/hugetlb: fix NR_HUGETLB accounting for kept surplus folios
 has been added to the -mm mm-new branch.  Its filename is
-     memcg-warn-when-memory-cgroup-ids-run-out.patch
+     mm-hugetlb-fix-nr_hugetlb-accounting-for-kept-surplus-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-warn-when-memory-cgroup-ids-run-out.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-nr_hugetlb-accounting-for-kept-surplus-folios.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -90,66 +89,55 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: warn when memory cgroup IDs run out
-Date: Mon, 23 Nov 2026 18:08:00 -0800
+From: Hongfu Li <lihongfu@kylinos.cn>
+Subject: mm/hugetlb: fix NR_HUGETLB accounting for kept surplus folios
+Date: Tue, 24 Nov 2026 12:41:02 +0800
 
-Every memory cgroup gets a 16-bit private ID, so a host can have at most
-65,535 of them at a time, counting dead ones.  A dead memcg keeps its ID
-as long as any swap slot still records it.  On Meta hosts that create many
-short-lived cgroups, dead cgroups held this way filled the whole ID space.
-After that, every mkdir of a cgroup with the memory controller failed
-with -EBUSY: systemd could not start units, and container setup failed.
+Commit a11a13ebbc5d ("mm/hugetlb: account restored reservations before
+freeing folios") reworked the free path of gather_surplus_pages(): when
+the pool was resized concurrently, folios that are no longer surplus are
+kept and enqueued directly instead of being freed.
 
-This was hard to see:
+However, folios on the surplus list are accounted in NR_HUGETLB when
+allocated in alloc_surplus_hugetlb_folio(), and every other path that
+returns an already accounted folio to the free list decrements NR_HUGETLB
+first, as folios on the free list must not be counted.  The new enqueue
+branch skips that decrement, so the folio remains counted while on the
+free list, leaving NR_HUGETLB permanently overcounted by
+pages_per_huge_page for each kept folio.  Nothing corrects that later,
+whichever path the folio takes next.
 
-- Nothing is logged when the ID allocation fails. The only sign is
-  -EBUSY from mkdir.
-- Since commit 8290f45995f5 ("memcg: move memcg private ID refcount to
-  objcg"), a dead memcg is freed even while swap still holds its ID. So
-  nr_dying_subsys_memory in cgroup.stat can be 0 while the IDs run out.
+Fix this by decrementing NR_HUGETLB before enqueueing the folio, as done
+in the other enqueue paths.
 
-Print a rate limited warning when the ID allocation fails because all IDs
-are in use.
-
-Link: https://patch.msgid.link/20261124020800.2313930-1-shakeel.butt@linux.dev
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Link: https://patch.msgid.link/20261124-for-gather-surplus-v1-1-231e5660f3d8@kylinos.cn
+Fixes: a11a13ebbc5d ("mm/hugetlb: account restored reservations before freeing folios")
+Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Muchun Song (ByteDance) <muchun.song@linux.dev>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: David Hildenbrand <david@kernel.org>
 
- mm/memcontrol.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/memcontrol.c~memcg-warn-when-memory-cgroup-ids-run-out
-+++ a/mm/memcontrol.c
-@@ -4307,8 +4307,12 @@ static struct mem_cgroup *mem_cgroup_all
- 
- 	error = xa_alloc(&mem_cgroup_private_ids, &memcg->private_id, NULL,
- 			 XA_LIMIT(1, MEM_CGROUP_ID_MAX), GFP_KERNEL);
--	if (error)
-+	if (error) {
-+		if (error == -EBUSY)
-+			pr_warn_ratelimited("memcg: all %lu memory cgroup IDs are in use, cannot create a new memory cgroup\n",
-+					    MEM_CGROUP_ID_MAX);
- 		goto fail;
-+	}
- 	error = -ENOMEM;
- 
- 	memcg->vmstats = kzalloc_obj(struct memcg_vmstats, GFP_KERNEL_ACCOUNT);
+--- a/mm/hugetlb.c~mm-hugetlb-fix-nr_hugetlb-accounting-for-kept-surplus-folios
++++ a/mm/hugetlb.c
+@@ -2489,6 +2489,8 @@ free:
+ 		 * count as persistent and we must keep them.
+ 		 */
+ 		if (!h->surplus_huge_pages_node[folio_nid(folio)]) {
++			mod_node_page_state(folio_pgdat(folio), NR_HUGETLB,
++					    -(long)pages_per_huge_page(h));
+ 			enqueue_hugetlb_folio(h, folio);
+ 			continue;
+ 		}
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from lihongfu@kylinos.cn are
 
-memcg-free-the-private-id-of-a-memcg-that-never-comes-online.patch
-memcg-move-memoryhigh-enforcement-out-of-try_charge_memcg.patch
-memcg-force-charges-from-reclaim-before-trying-the-limits.patch
-memcg-use-high_work-for-kernel-threads.patch
-memcg-use-high_work-for-remote-charges.patch
-memcg-simplify-high-limit-handling-after-a-charge.patch
-memcg-warn-when-memory-cgroup-ids-run-out.patch
+mm-hugetlb-charge-hugetlb-cgroup-and-memcg-in-alloc_hugetlb_folio_reserve.patch
+selftests-mm-mlock2-tests-fix-fclosenull-in-is_vmflag_set.patch
+selftests-mm-protection_keys-use-_exit-in-aarch64-ptrace-tracee.patch
+mm-hugetlb-fix-nr_hugetlb-accounting-for-kept-surplus-folios.patch
 
