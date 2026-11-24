@@ -1,42 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795547327;
-	b=pTASpKSuFFaz3iGVt66yL8yALBjOhoF5Fdpy1znmXXGzY7rMWB+hqZ+ajJbgJ9dcF+5L
-	 fkald5jCXN3MqPqe/FP1RrahJPJ3Fson100BdAtO3y2cD4EQ0YX66QF1LCTCcBC0mpwiw
-	 JXROvLV2zgNR1DR9yEfqIRfUdhroxHD1ed7iqDcFNT+Mo1mSLt9+CDxYeKRYW9fR/hpOe
-	 0vclrNAEImsZY6zFeKoOAf+Eq+86TJ8EhtfA79FOkIaxuhwRwxkCq9tcL/cUglsllM9/H
-	 0OpaGgi7R+KtLF97DONp1I5q7W6D3R4vabPjKm/rEZFOZGkCf3Ayic/KvzlYqXBRvyg==
+	t=1795547329;
+	b=z1BdCPBK5hnkGBFp+pXZPxYoF8ORYVHavfrdFsva3rUB7GCoBBCiTmcR1a5JhrBtskd+
+	 +2SMlOApcBRQ6iklol3EXUX3DZQ7N3y4KkXOz21KxjKvOSCt5N6r4oEh32hacmnEZCkdO
+	 /JL/VEvDfkLKiyJqM5KazkDXfMaz9R7/ZDTSMTZHinTNOUuCFPrXBg2CoooXk5Z+yNyJR
+	 PEc8kuvwlaH9b+ZGsW78E9PI1SgUrROqZouUiGYrKJiOrMQRo5WsBxn0VIQAh3hbvIGOM
+	 UXwLy3kNCCNCt0L/C4jbxMno8h9a4ZF5tk/H9D+EQ2Pfkvc4xAqLIDSL5Ecbmzn3hMw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795547327;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795547329;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=41gyaxHgiKIzx6v97O8PoiA7qBgUHK8/BCwoyD5dvFk=;
-	b=Wt/q464aYUlD0iw1eEW/Ek4tzmhLPCfu5vgKMiNYHFLoHm6l1sj+h/DohImFUjcoqbHh
-	 vX3gxWYIRBPM7kABGYyoUe68wf/ESn5Z27am4fKDazIYBpxbBIdpdM+uyGpBIs1KkgJ2j
-	 coBTzlc47cG8Cjyqn47+R8SUzHnMH1ucZyPI4Ixe32rjuicm/2Iv+DijVQhrjpzYgVPuO
-	 /ox4mRF37MgBcS5AbMCWdnPNlv/mu8txGLa7/Lj/0d4TqQSGG827uc0HdB0nhrQEfeevl
-	 Jxf4jdQsrsWLFNTHYTjYM2wKIvmCE/L6RAsecMvWfdlGUlsmrscHk1JfHXhw+f0AluQ==
+	bh=GRhi0lNFEfqHMzVRFnQRG0j8Rx78B7r6dpHu4uYmEXA=;
+	b=AavNr3h/wv4xvSH1YNyy8GIZa6Yl1kTcoqrcatAyKK63N+n12KXAkKS0Rcp/B3Pb9qBk
+	 5HHUgsGKa/RhHCTWpmPKhSjntfkyd0/Ak1hPB6QZNBFtW0zSg2DyaQ91gKr69zdLZ080o
+	 XxQFB10s8LtsczdxpeZk9nMA5DOH61HzgAlRNhRNgwDoCxsPMy3d/ycp+ZeRi3nUV4Smf
+	 1AHMydUTrxBGuwwbHhJyxKhYdWVboLna3gKC46id928PUFs1gXUYuDDXviiFMmgJLvF6h
+	 VfoOCLX12kRa88x6y6OHQW2LmHPemLle7f5m1f7HBQHHcsYF5aDo42dWWdv+Hhd8TeA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Nt3pL33i;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Pmqra0hb;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76067606A329
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 19:08:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6FB3606A32A
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 19:08:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Nt3pL33i
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 550041F000D0;
-	Tue, 24 Nov 2026 19:08:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Pmqra0hb
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F55C1F000D2;
+	Tue, 24 Nov 2026 19:08:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795547326;
-	bh=41gyaxHgiKIzx6v97O8PoiA7qBgUHK8/BCwoyD5dvFk=;
+	d=linux-foundation.org; s=korg; t=1795547329;
+	bh=GRhi0lNFEfqHMzVRFnQRG0j8Rx78B7r6dpHu4uYmEXA=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=Nt3pL33ixZPEsd1YNGFXzPwFwCtkPC0Ck2vW5bZXyaK/H3TT3UgkOdn47yOJawHQA
-	 sdkUuPRrNizVIO1hgX4kbjF5DA91dCwbW+RFYIXSjyIKzGZonfl3688GeOps7Ehrj9
-	 TEiVWIoflWyfT7KehIvB0iwbLZLuC8Y/tJgUydYc=
-Date: Tue, 24 Nov 2026 11:08:45 -0800
+	b=Pmqra0hbFPhvDvYVuiZvv7iExO0TE3uCw2vTznIg06sfYuaxp1cAvphxLFQ7hk8PN
+	 EisfXeKR9KrskLGBd/JliorcPd4LC4NHD6ZBZ+J6Jo2nAlwpNkQpqXBlq3JraIz9vM
+	 VGKupIcd9mJGji+d8ZnIiW0zGywk/qlfu4zLAxzk=
+Date: Tue, 24 Nov 2026 11:08:48 -0800
 To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,wei.liu@kernel.org,
 	tglx@kernel.org,sumit.garg@kernel.org,stephen.smalley.work@gmail.com,
 	sstabellini@kernel.org,sshegde@linux.ibm.com,scott.branden@broadcom.com,
@@ -54,10 +54,10 @@ To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,wei.liu@kernel.org,
 	andrew+netdev@lunn.ch,andrew@codeconstruct.com.au,andersson@kernel.org,
 	abel.vesa@oss.qualcomm.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124-late-2026-mmap_prepare-v2-1-0b0d99d655f9@kernel.org>
-References: <20261124-late-2026-mmap_prepare-v2-1-0b0d99d655f9@kernel.org>
-Subject: + xen-privcmd-convert-mmap-hook-to-mmap_prepare.patch added to mm-new branch
-Message-Id: <20261124190846.550041F000D0@smtp.kernel.org>
+In-Reply-To: <20261124-late-2026-mmap_prepare-v2-2-0b0d99d655f9@kernel.org>
+References: <20261124-late-2026-mmap_prepare-v2-2-0b0d99d655f9@kernel.org>
+Subject: + kvm-ppc-book3s-convert-spapr-tce-mmap-hook-to-mmap_prepare.patch added to mm-new branch
+Message-Id: <20261124190849.3F55C1F000D2@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -69,12 +69,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: xen/privcmd: convert mmap hook to mmap_prepare
+     Subject: KVM: PPC: Book3S: convert spapr TCE mmap hook to mmap_prepare
 has been added to the -mm mm-new branch.  Its filename is
-     xen-privcmd-convert-mmap-hook-to-mmap_prepare.patch
+     kvm-ppc-book3s-convert-spapr-tce-mmap-hook-to-mmap_prepare.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xen-privcmd-convert-mmap-hook-to-mmap_prepare.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kvm-ppc-book3s-convert-spapr-tce-mmap-hook-to-mmap_prepare.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -104,30 +104,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: xen/privcmd: convert mmap hook to mmap_prepare
-Date: Tue, 24 Nov 2026 14:02:44 +0000
+Subject: KVM: PPC: Book3S: convert spapr TCE mmap hook to mmap_prepare
+Date: Tue, 24 Nov 2026 14:02:45 +0000
 
-Patch series "mm: convert further simple mmap hooks to mmap_prepare", v2.
+Move from the deprecated mmap hook to the new mmap_prepare hook. The hook
+only sets the VMA operations.
 
-Continue the conversion of users of the deprecated f_op->mmap callback to
-f_op->mmap_prepare. Keep things gentle this cycle by targeting simple
-cases.
-
-No functional change intended.
-
-
-This patch (of 13):
-
-Move from the deprecated mmap hook to the new mmap_prepare hook.
-
-The hook only sets VMA flags and operations. The VMA private data is
-already NULL at this point, so we no longer explicitly clear it.
-
-Link: https://lore.kernel.org/20261124-late-2026-mmap_prepare-v2-0-0b0d99d655f9@kernel.org
-Link: https://patch.msgid.link/20261124-late-2026-mmap_prepare-v2-1-0b0d99d655f9@kernel.org
+Link: https://patch.msgid.link/20261124-late-2026-mmap_prepare-v2-2-0b0d99d655f9@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Juergen Gross <jgross@suse.com>
+Cc: Juergen Gross <jgross@suse.com>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
@@ -176,38 +162,31 @@ Cc: Kameron Carr <kameroncarr@linux.microsoft.com>
 Cc: Michael Kelley <mhklinux@outlook.com>
 Cc: David Woodhouse <dwmw@amazon.co.uk>
 
- drivers/xen/privcmd.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ arch/powerpc/kvm/book3s_64_vio.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/drivers/xen/privcmd.c~xen-privcmd-convert-mmap-hook-to-mmap_prepare
-+++ a/drivers/xen/privcmd.c
-@@ -1645,14 +1645,13 @@ static const struct vm_operations_struct
- 	.fault = privcmd_fault
+--- a/arch/powerpc/kvm/book3s_64_vio.c~kvm-ppc-book3s-convert-spapr-tce-mmap-hook-to-mmap_prepare
++++ a/arch/powerpc/kvm/book3s_64_vio.c
+@@ -247,9 +247,9 @@ static const struct vm_operations_struct
+ 	.fault = kvm_spapr_tce_fault,
  };
  
--static int privcmd_mmap(struct file *file, struct vm_area_struct *vma)
-+static int privcmd_mmap_prepare(struct vm_area_desc *desc)
+-static int kvm_spapr_tce_mmap(struct file *file, struct vm_area_struct *vma)
++static int kvm_spapr_tce_mmap_prepare(struct vm_area_desc *desc)
  {
- 	/* DONTCOPY is essential for Xen because copy_page_range doesn't know
- 	 * how to recreate these mappings */
--	vm_flags_set(vma, VM_IO | VM_PFNMAP | VM_DONTCOPY |
--			 VM_DONTEXPAND | VM_DONTDUMP);
--	vma->vm_ops = &privcmd_vm_ops;
--	vma->vm_private_data = NULL;
-+	vma_desc_set_flags(desc, VMA_IO_BIT, VMA_PFNMAP_BIT, VMA_DONTCOPY_BIT,
-+			   VMA_DONTEXPAND_BIT, VMA_DONTDUMP_BIT);
-+	desc->vm_ops = &privcmd_vm_ops;
- 
+-	vma->vm_ops = &kvm_spapr_tce_vm_ops;
++	desc->vm_ops = &kvm_spapr_tce_vm_ops;
  	return 0;
  }
-@@ -1681,7 +1680,7 @@ const struct file_operations xen_privcmd
- 	.unlocked_ioctl = privcmd_ioctl,
- 	.open = privcmd_open,
- 	.release = privcmd_release,
--	.mmap = privcmd_mmap,
-+	.mmap_prepare = privcmd_mmap_prepare,
+ 
+@@ -282,7 +282,7 @@ static int kvm_spapr_tce_release(struct
+ }
+ 
+ static const struct file_operations kvm_spapr_tce_fops = {
+-	.mmap           = kvm_spapr_tce_mmap,
++	.mmap_prepare	= kvm_spapr_tce_mmap_prepare,
+ 	.release	= kvm_spapr_tce_release,
  };
- EXPORT_SYMBOL_GPL(xen_privcmd_fops);
  
 _
 
