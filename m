@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795563245;
-	b=APJVHg6dxJAs7jsQGbAQahZmkLMTis1dTd40gvBzCkleDtpwE2Z98fH51hEKpaiM+iZT
-	 W7FmwpFYaUii6zfUSeyT1cAm2a12nUj6kgLSOw3b1xt4vOA4BdhWJ6oZKwkG4b57avZJi
-	 /M0fnpYfcQc7bykSAOOsHoI0S54AgHhz5BXcNxEvWhlMTjACEedt1Cm1aKrpNAzM/8HGK
-	 fAkLeEIKM82rt5Yap6kPz7/9bg7kqKpWsHBq3eBWRk4XvB2/2ePSBtj8lrc/At5kbH/0j
-	 AEKf7AnX2LRQYL79QQ4X//lUjFfPsm+9o1ZH8gdDJFSf3FUqP7j8AiVkD0LA1lDubmg==
+	t=1795563248;
+	b=BlPy300DqSdC2wk6hEEhjZ9DQqpZ9WY1Byzsup2mJ+KHd3M1b9HYseraXA1xCeIlK5a8
+	 ijyrjzoQCV4cdALoSGwsFez3mKiNn+bIUJcc9vZMwwM/xAqf32+FXl/J450XQF++s+tdI
+	 JNuTCx0IUAcjbfcLctkaVtn6r38aPpNUY74MwvF69h0h0xfE/4LHyvwXRWhP7FKuU52yf
+	 wf3ud13E2A9WS5/OkVKk9D0RTN5hWmFWTf4x95w6XM6ZsvsxnSpcO7kA1fE1xMGqbhcLT
+	 mSXgBq9iLVDp065l/WoN3qh0pX/ECAUE4mP2GAxZ7jz747UrV38YPluXGgQqK8KN7Vg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795563245;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795563248;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=LoX4e9LB5wW7p8QXBM30MIPyUrixWQHAyI+jO6IxGYo=;
-	b=xVjBHQoTTXXQHuUrg44rBD8FotUdHtKWJmvVgMHspgja1VT3GwRVAoQkbIbQ2rEgiRSe
-	 zKrBPM5gnvvASXFT3v0f4loobDHaVlowCnnDH4sB4g62mknPuC0oNntOLcdavMztGwio+
-	 07Dwp8/LzmQqWM3MN+LD/OvA2R65awj9jXwJEm2QX0TffOrDMLC3z5SJJtr91T+DIYk1g
-	 F39fAt50a51qpq+937PuYqk9rwmWizUSc/x8rONW4op75IjlkC2G+NP68bIhdm5AD7Wt3
-	 UvKVVZPhirZTClKprsGjYcA4H/bRhsGJz0bBFDKF2CjWWhfX5UHXQ1nB+OPcynUOCOw==
+	bh=MBWQ6a8p94SYQlBcvzYJUwmyw6cHdyiUCNfkIB21NvQ=;
+	b=25K4wZxx/A2EIykboZ/XpLkxT9FlH9XO9sS6yMbx8gU48TqnXojZ7iSc16pkTglO0pKq
+	 aPEaxujCYHMslYH3DoFkw40Or55w/y5opH7EYK+lVLJjVNKWrDSdr6cL0uXoPEc3gn0dU
+	 b+xE/52biwSxCkiN5qsaNMS1Tc6iWkR9qk7gL1QqodmDAVF6z+kDlyIcRcrNm4R/cHqLl
+	 ZmdM3x6yu+Z1a8Qek9nq9UFr2KekJZ6xDEtrOY14tEwUrt4eMJ3/UdJ83vDy3ozBVPQf2
+	 U2mXR4SeXfDwvmtg/CWroHOkapgdBEfW6AVVO7mKoOCQ2H494SNa1SIIl4jdXcixfcQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="Ss6sZ/aD";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=qT9kJzdb;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64E60606A31E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 23:34:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1481E606A31E
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 23:34:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ss6sZ/aD
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 103281F000CA;
-	Tue, 24 Nov 2026 23:34:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=qT9kJzdb
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80CE51F000C6;
+	Tue, 24 Nov 2026 23:34:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795563245;
-	bh=LoX4e9LB5wW7p8QXBM30MIPyUrixWQHAyI+jO6IxGYo=;
+	d=linux-foundation.org; s=korg; t=1795563247;
+	bh=MBWQ6a8p94SYQlBcvzYJUwmyw6cHdyiUCNfkIB21NvQ=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=Ss6sZ/aDJFeKEyoDqwPwLKHL9zGIkiNAN1dlJD0UPTEzb5TjW84U9xYUAdkqEt262
-	 UrrGKAelXOGS7i5Dn79I3qW9wQuJsS6FhLQxWETDCErKOg6UMTua4gbeBdETDU03Xs
-	 WAF2nO6cqEMR5t1d/mrv4jNoU7/UFZQ+GvNSUef0=
-Date: Tue, 24 Nov 2026 15:34:04 -0800
+	b=qT9kJzdbuZ+Ejq33ICzT8XF1hN9X3qSgT6994Ka5xkkjhfwzfRfOiAVIjVgcrUmr2
+	 7v1n9hEOg3CVEozWzJLNb7HSKJ7cLGvlUBr8TwqPIy5VXtUfYccXCJtVa/saKwpq7H
+	 VHHb0QWl1tK7BUKTUfgKIqgW/Zu0mxAo9q2hn2jQ=
+Date: Tue, 24 Nov 2026 15:34:07 -0800
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
 	shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,peterx@redhat.com,
 	mhocko@suse.com,lokeshgidra@google.com,ljs@kernel.org,liam@infradead.org,
 	david@kernel.org,kaleshsingh@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261122082020.1255434-2-kaleshsingh@google.com>
-References: <20261122082020.1255434-2-kaleshsingh@google.com>
-Subject: + selftests-mm-uffd-wp-mremap-skip-unsupported-shmem-and-hugetlb-cases.patch added to mm-new branch
-Message-Id: <20261124233405.103281F000CA@smtp.kernel.org>
+In-Reply-To: <20261122082020.1255434-3-kaleshsingh@google.com>
+References: <20261122082020.1255434-3-kaleshsingh@google.com>
+Subject: + selftests-mm-uffd-unit-tests-filter-required-features-per-memory-type.patch added to mm-new branch
+Message-Id: <20261124233407.80CE51F000C6@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -57,12 +57,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: selftests/mm: uffd-wp-mremap: skip unsupported shmem and hugetlb cases
+     Subject: selftests/mm: uffd-unit-tests: filter required features per memory type
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-uffd-wp-mremap-skip-unsupported-shmem-and-hugetlb-cases.patch
+     selftests-mm-uffd-unit-tests-filter-required-features-per-memory-type.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-uffd-wp-mremap-skip-unsupported-shmem-and-hugetlb-cases.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-uffd-unit-tests-filter-required-features-per-memory-type.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -92,34 +92,23 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Kalesh Singh <kaleshsingh@google.com>
-Subject: selftests/mm: uffd-wp-mremap: skip unsupported shmem and hugetlb cases
-Date: Sun, 22 Nov 2026 08:20:17 +0000
+Subject: selftests/mm: uffd-unit-tests: filter required features per memory type
+Date: Sun, 22 Nov 2026 08:20:18 +0000
 
-Patch series "selftests/mm: fix userfaultfd tests with
-CONFIG_PTE_MARKER_UFFD_WP=n".
+CONFIG_PTE_MARKER_UFFD_WP defaults to y but can be turned off, and
+userfaultfd write protection then works only on anonymous memory.  The
+kernel still reports UFFD_FEATURE_PAGEFAULT_FLAG_WP but no longer
+UFFD_FEATURE_WP_HUGETLBFS_SHMEM.
 
-With CONFIG_PTE_MARKER_UFFD_WP=n, userfaultfd write protection only works
-on anonymous memory.  uffd-wp-mremap then fails its shmem and hugetlb
-cases, and uffd-unit-tests skips anonymous runs that would pass.  Patch 1
-skips the unsupported uffd-wp-mremap cases and patch 2 filters
-uffd-unit-tests' required features per memory type.
+uffd-unit-tests checks a test's whole feature mask for every memory type,
+so the tests that run on all memory types and require
+UFFD_FEATURE_WP_HUGETLBFS_SHMEM (register-ioctls, the wp-fork tests,
+rwp-wp-exclusive, sigbus-wp and events-wp) skip their anonymous runs too. 
+Check and request only the features that apply to the memory type under
+test, and make minor-wp require UFFD_FEATURE_WP_HUGETLBFS_SHMEM, as it
+write-protects shmem and hugetlbfs.
 
-Tested on arm64 device: with CONFIG_PTE_MARKER_UFFD_WP=n,
-uffd-wp-mremap goes from 26 failures to none and uffd-unit-tests
-passes 78 tests instead of 70; with =y, the results are unchanged.
-
-
-This patch (of 2):
-
-uffd-wp-mremap checks only for UFFD_FEATURE_PAGEFAULT_FLAG_WP before it
-runs. With CONFIG_PTE_MARKER_UFFD_WP=n the kernel keeps that feature
-but supports write protection on anonymous memory only, so the shmem
-and hugetlb cases fail with EINVAL from UFFDIO_REGISTER instead of
-skipping. Skip them when UFFD_FEATURE_WP_HUGETLBFS_SHMEM is missing.
-
-Link: https://lore.kernel.org/20261122082020.1255434-1-kaleshsingh@google.com
-Link: https://patch.msgid.link/20261122082020.1255434-2-kaleshsingh@google.com
-Fixes: b2466bb3b495 ("selftests/mm: introduce uffd-wp-mremap regression test")
+Link: https://patch.msgid.link/20261122082020.1255434-3-kaleshsingh@google.com
 Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Liam R. Howlett (Google) <liam@infradead.org>
@@ -134,43 +123,90 @@ Cc: Michal Hocko <mhocko@suse.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 
- tools/testing/selftests/mm/uffd-wp-mremap.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ tools/testing/selftests/mm/uffd-unit-tests.c |   42 ++++++++++++++---
+ 1 file changed, 37 insertions(+), 5 deletions(-)
 
---- a/tools/testing/selftests/mm/uffd-wp-mremap.c~selftests-mm-uffd-wp-mremap-skip-unsupported-shmem-and-hugetlb-cases
-+++ a/tools/testing/selftests/mm/uffd-wp-mremap.c
-@@ -18,15 +18,14 @@ static int nr_thpsizes;
- static unsigned long thpsizes[20];
- static int nr_hugetlbsizes;
- static unsigned long hugetlbsizes[10];
-+static uint64_t uffd_features;
- 
- static void check_uffd_wp_feature_supported(void)
- {
--	uint64_t features = 0;
--
--	if (uffd_get_features(&features))
-+	if (uffd_get_features(&uffd_features))
- 		ksft_exit_skip("failed to get available features (%d)\n", errno);
- 
--	if (!(features & UFFD_FEATURE_PAGEFAULT_FLAG_WP))
-+	if (!(uffd_features & UFFD_FEATURE_PAGEFAULT_FLAG_WP))
- 		ksft_exit_skip("uffd-wp feature not supported\n");
+--- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-uffd-unit-tests-filter-required-features-per-memory-type
++++ a/tools/testing/selftests/mm/uffd-unit-tests.c
+@@ -176,15 +176,44 @@ out:
  }
  
-@@ -180,6 +179,12 @@ static void test_one_folio(uffd_global_t
- 				swapout ? "true" : "false",
- 				hugetlb ? "true" : "false");
  
-+	if ((!private || hugetlb) &&
-+	    !(uffd_features & UFFD_FEATURE_WP_HUGETLBFS_SHMEM)) {
-+		ksft_test_result_skip("uffd-wp on shmem and hugetlbfs is not supported\n");
-+		return;
-+	}
+-static bool uffd_feature_supported(uffd_test_case_t *test)
++/*
++ * Filter test->uffd_feature_required down to the features needed for @mem_type.
++ * For example, UFFD_FEATURE_WP_HUGETLBFS_SHMEM (gated on
++ * CONFIG_PTE_MARKER_UFFD_WP) only applies to shmem and hugetlbfs, so anonymous
++ * subtests should still run when it is absent.
++ */
++static uint64_t uffd_test_features(const uffd_test_case_t *test,
++				   const mem_type_t *mem_type)
++{
++	const uint64_t shmem = UFFD_FEATURE_MISSING_SHMEM |
++			       UFFD_FEATURE_MINOR_SHMEM;
++	const uint64_t hugetlb = UFFD_FEATURE_MISSING_HUGETLBFS |
++				 UFFD_FEATURE_MINOR_HUGETLBFS;
++	uint64_t features = test->uffd_feature_required;
 +
- 	/* Allocate a folio of required size and type. */
- 	mem = alloc_one_folio(size, private, hugetlb);
- 	if (!mem) {
++	switch (mem_type->mem_flag) {
++	case MEM_ANON:
++		return features & ~(shmem | hugetlb |
++				    UFFD_FEATURE_WP_HUGETLBFS_SHMEM);
++	case MEM_SHMEM:
++	case MEM_SHMEM_PRIVATE:
++		return features & ~hugetlb;
++	case MEM_HUGETLB:
++	case MEM_HUGETLB_PRIVATE:
++		return features & ~shmem;
++	default:
++		return features;
++	}
++}
++
++static bool uffd_feature_supported(uint64_t required)
+ {
+ 	uint64_t features;
+ 
+ 	if (uffd_get_features(&features))
+ 		return false;
+ 
+-	return (features & test->uffd_feature_required) ==
+-	    test->uffd_feature_required;
++	return (features & required) == required;
+ }
+ 
+ static int pagemap_open(void)
+@@ -2742,6 +2771,7 @@ uffd_test_case_t uffd_tests[] = {
+ 		.uffd_feature_required =
+ 		UFFD_FEATURE_MINOR_HUGETLBFS | UFFD_FEATURE_MINOR_SHMEM |
+ 		UFFD_FEATURE_PAGEFAULT_FLAG_WP |
++		UFFD_FEATURE_WP_HUGETLBFS_SHMEM |
+ 		/*
+ 		 * HACK: here we leveraged WP_UNPOPULATED to detect whether
+ 		 * minor mode supports wr-protect.  There's no feature flag
+@@ -2961,6 +2991,7 @@ int main(int argc, char *argv[])
+ 	mem_type_t *mem_type;
+ 	uffd_test_args_t args;
+ 	const char *errmsg;
++	uint64_t features;
+ 	int i, j, opt;
+ 
+ 	while ((opt = getopt(argc, argv, "f:hl")) != -1) {
+@@ -3036,11 +3067,12 @@ int main(int argc, char *argv[])
+ 			/* Initialize test arguments */
+ 			args.mem_type = mem_type;
+ 
+-			if (!uffd_feature_supported(test)) {
++			features = uffd_test_features(test, mem_type);
++			if (!uffd_feature_supported(features)) {
+ 				uffd_test_skip("feature missing");
+ 				continue;
+ 			}
+-			if (uffd_test_ctx_init(&gopts, test->uffd_feature_required, &errmsg)) {
++			if (uffd_test_ctx_init(&gopts, features, &errmsg)) {
+ 				uffd_test_skip(errmsg);
+ 				continue;
+ 			}
 _
 
 Patches currently in -mm which might be from kaleshsingh@google.com are
