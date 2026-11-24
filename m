@@ -1,42 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795559261;
-	b=ed1uIAbBg/2dUqS/4uvTeNDcVaidK2eHS13D5QoCq7N9g4rG0SFnbO78C538tNnwNXwr
-	 yOI4U53GAO/w4q+ftiGDo9AslIziHdjhJh9OOMio1EFH02zBW03/BsjK1L7AMPO2RFBnp
-	 pMn7n8+dmWmAm7+bbqE8kWHW0JoQQ0vcu/GIoe56ZrGJ4cV0NpQUyDCwp5+6EQyJ3r+Jg
-	 ZI8o0UdFTpitO4ZNSsE/cOWVQ3g/PvoyCmWfTactNLdGkdXGHLI56CjF9lgt+D2mh7PZA
-	 An2+jpzYeWKXpolqpTx5e1MZXVtfpOu4GVSJx1STWubDtpAzfDV5gnSH+kPUc6gA/Pw==
+	t=1795559265;
+	b=fhjWV25GqRrZ5aIbmyAiAwSv5056ddQfTfEJlTG9/bBrPL73xFr4VI5b9exeKDETO9Wr
+	 HMrvAJCp6oFp8QS/FgP9jYGKd0hEZ78WYl05SRXmpB20e5D11RHAzrBe8VLSXJMuHXoo6
+	 XjiMcox9R/LCJoYxaYQTU8yrOy4Utcr8QU6lsizPY+39Am7vtn8dKBRYLAjetbQWGFO4Y
+	 xVyiemVY3DDSenLh2ccwvx1CkzaE7r+4o53evSrdd1H0ZMLDY1F/kTeXA2jx3ycE/f0Rm
+	 pZpz8yVvoqynsW8x7JF6AX/DcBfE0cJEjsaWSBsWVjk7nLO49ZC2MzNGPGn8NdRQ+mg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795559261;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795559265;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=c3gIo6JRrIKBUDgaKM6HxNJg7yEK/J7Iwi5UH9Lr71I=;
-	b=qs9DiARHRNtw5Z6Msvew/TG6kzqHTxBo3b2p2YJ5y5C+Hq0ix9pdYZXSBORXNpEBpmwR
-	 aXWIVgTHHIwqLHuGwlUqgH7mnJqfQLW+t2xs2TzbXTsAKsza6AzC3h97AF6Cf1+gZnW1P
-	 vVIOVLfv6vgYFGNiMxphDpoSoUggn/b9QtL3Cg8jNZalVMHvosfohiNKt3iNO8xWdpCtZ
-	 ZioaONxjdLlBfvCI5MHjA5zNNN8VPyI872TY2qBqfiExMQyhN67A0Su2o8PPlI/kN5d3w
-	 YH47lpu4iaxJQeLB4svYDqdHSuxbAmA3h+G5YTojzclvp8YcCewK8F4FuyQeVM7vV3w==
+	bh=P2tCcFi2xm5hjYD9SdsyW9lugSeBC/jp3KNM15GOOXw=;
+	b=EMq7W6ajleD8Zr9Z7/KkONSpSU2IDTLYDwjGbhxoa6fWlaqkM1HDr1hEOAyJ4g3Y0Lyx
+	 BoL04GnbGw7iDrZPZAqp+S18G9bFf9Cdp1rj2N0iANnbp933FI9Wfb0HI3rl+DuKqpp2d
+	 2EhG/KSqSlq/GYRxvy3U94/0N2ieFrftldm111ENKAXzhgsie1UMlmERTV6nVGLID4rHe
+	 NligYWxpUEvaLhU4bEmsdjSPSWJ6LFW6XCY0w/rm3YAf8V6uSUxIwp3PSqfBlGAA9QcmH
+	 ePT8a4JIQr28RE6Ms1TrpMK7odfgPXTJBOQ75pEjs2hglgU4mRxU+1Ianva0FNCfKOQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=aH0iuCG0;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="JAwWLq/x";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4D46606A31E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 22:27:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 212C5606A31E
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 22:27:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=aH0iuCG0
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3843E1F000C0;
-	Tue, 24 Nov 2026 22:27:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=JAwWLq/x
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CB071F000D0;
+	Tue, 24 Nov 2026 22:27:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795559260;
-	bh=c3gIo6JRrIKBUDgaKM6HxNJg7yEK/J7Iwi5UH9Lr71I=;
+	d=linux-foundation.org; s=korg; t=1795559264;
+	bh=P2tCcFi2xm5hjYD9SdsyW9lugSeBC/jp3KNM15GOOXw=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=aH0iuCG0NQq518rhgYGRWFvmJtwk24MSe1KrFkaarVpn9Pg18IWHHJ/Dnea3uAC3H
-	 Qq8U1gGSzsVE7AgXj+l9x2sINg0d8arZoDvHGhxzu7KHU46HuYTuLxKMi/Cs4i/GdT
-	 0Hb79WFem5fVDe+FrXjEA5VUWf1/Bbe5PAJPtXPU=
-Date: Tue, 24 Nov 2026 14:27:39 -0800
+	b=JAwWLq/xJfeHhkKuZEGpDF8HPW6ONHPprUnIpVrgk/sCZ4SPjNSQDwsE8rLIMnJu8
+	 xRlkCGPI52iX6cvDnotAwo1ptIdEkXocLZW2cacflWLy3miOswgPq8MoHhZvBeam3g
+	 NGkr4rjYf8F/LHYya/blNe39T0v2WXFIxgbqLOX4=
+Date: Tue, 24 Nov 2026 14:27:44 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
 	vbabka@kernel.org,usama.arif@linux.dev,usama.anjum@arm.com,surenb@google.com,
 	sfr@canb.auug.org.au,ryan.roberts@arm.com,rppt@kernel.org,pfalcato@suse.de,
@@ -50,10 +50,10 @@ To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
 	apopple@nvidia.com,aarcange@redhat.com,tz2294@columbia.edu,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261117-uffd-state-fixes-v3-7-b617009d1a4a@columbia.edu>
-References: <20261117-uffd-state-fixes-v3-7-b617009d1a4a@columbia.edu>
-Subject: + mm-mremap-resolve-uffd-state-when-the-context-is-dropped-not-during-the-move.patch added to mm-new branch
-Message-Id: <20261124222740.3843E1F000C0@smtp.kernel.org>
+In-Reply-To: <20261117-uffd-state-fixes-v3-9-b617009d1a4a@columbia.edu>
+References: <20261117-uffd-state-fixes-v3-9-b617009d1a4a@columbia.edu>
+Subject: + mm-userfaultfd-check-the-hugetlb-alignment-of-every-vma-in-the-pre-scan.patch added to mm-new branch
+Message-Id: <20261124222744.8CB071F000D0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -65,12 +65,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/mremap: resolve uffd state when the context is dropped, not during the move
+     Subject: mm/userfaultfd: check the hugetlb alignment of every VMA in the pre-scan
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mremap-resolve-uffd-state-when-the-context-is-dropped-not-during-the-move.patch
+     mm-userfaultfd-check-the-hugetlb-alignment-of-every-vma-in-the-pre-scan.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-resolve-uffd-state-when-the-context-is-dropped-not-during-the-move.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-check-the-hugetlb-alignment-of-every-vma-in-the-pre-scan.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -100,49 +100,54 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm/mremap: resolve uffd state when the context is dropped, not during the move
-Date: Tue, 17 Nov 2026 23:28:47 -0500
+Subject: mm/userfaultfd: check the hugetlb alignment of every VMA in the pre-scan
+Date: Tue, 17 Nov 2026 23:28:49 -0500
 
-Without UFFD_FEATURE_EVENT_REMAP, the new VMA of an mremap() is not
-registered with userfaultfd, so the uffd state of its entries is cleared
-while they are moved. If the move fails halfway, the entries are moved
-back into the old VMA, which is still registered, without their uffd
-state. Writes and accesses to them are then no longer reported.
+UFFDIO_REGISTER and UFFDIO_UNREGISTER both scan the VMAs of the range
+before changing anything. For a hugetlb VMA, userfaultfd_register()
+rejects a range whose start or end is not huge page aligned there.
+However, userfaultfd_unregister() only checks the start.
 
-To fix it, leave the entries alone during the move and clear the uffd
-state of the new VMA in mremap_userfaultfd_prep(), right before dropping
-the context, like unregistering does. This walks the page tables of the
-new VMA a second time.
+An unaligned end only fails later, when vma_modify_flags_uffd() cannot
+split the VMA there. At that point, userfaultfd_clear_vma() already
+cleared the WP or RWP protection. The ioctl returns -EINVAL and the VMA
+stays registered, but accesses to its pages are no longer reported. This
+requires a caller passing a misaligned range.
 
-This is done with userfaultfd_clear_ptes(), which also makes the PTEs
-writable again where that is safe. That removes a spurious write fault
-per protected page on private anonymous memory, but adds spurious write
-faults on shmem and hugetlb, as change_protection() makes writable pages
-that were never protected read-only. UFFDIO_UNREGISTER and
-UFFDIO_WRITEPROTECT already behave this way. This will be fixed in
-change_protection() separately.
+To fix it, move the alignment checks into vma_uffd_range_aligned() and
+call it for every VMA in the pre-scan of both ioctls. UFFDIO_UNREGISTER
+still returns -EINVAL for such a range, but no longer unregisters the
+VMAs before the misaligned one first.
 
-The entries no longer need per-entry handling during the move, so drop
-uffd_supports_page_table_move() and clear_uffd_wp_pmd(). Whole page
-tables of these VMAs can be moved again.
+Checking every VMA the same way also changes the following:
 
-Link: https://patch.msgid.link/20261117-uffd-state-fixes-v3-7-b617009d1a4a@columbia.edu
-Fixes: 0cef0bb836e3 ("mm: clear uffd-wp PTE/PMD state on mremap()")
-Fixes: 763f43865fc4 ("mm: preserve RWP marker across PTE rewrites")
+- UFFDIO_UNREGISTER now returns -EINVAL if the end is not huge page
+  aligned in a hugetlb VMA that is not registered. It used to skip that
+  VMA and succeed.
+
+- Both ioctls now accept a start that is not huge page aligned if it is
+  not inside any VMA and the first VMA of the range is a hugetlb one.
+  They used to return -EINVAL, although such a range covers that VMA
+  from its start, which is always huge page aligned.
+
+- UFFDIO_REGISTER now returns -EINVAL rather than -EPERM if the end is
+  not huge page aligned in a hugetlb VMA without VM_MAYWRITE.
+
+Link: https://patch.msgid.link/20261117-uffd-state-fixes-v3-9-b617009d1a4a@columbia.edu
+Fixes: cab350afcbc9 ("userfaultfd: hugetlbfs: allow registration of ranges containing huge pages")
+Fixes: f369b07c8614 ("mm/uffd: reset write protection when unregister with wp-mode")
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Tested-by: Gregory Price (Meta) <gourry@gourry.net>
-Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
+Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: James Houghton <jthoughton@google.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Balbir Singh <balbirs@nvidia.com>
 Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: Pedro Falcato <pfalcato@suse.de>
@@ -156,6 +161,7 @@ Cc: Zi Yan <ziy@nvidia.com>
 Cc: Matthew Brost <matthew.brost@intel.com>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
 Cc: Ying Huang <ying.huang@linux.alibaba.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
@@ -165,194 +171,113 @@ Cc: Dev Jain <dev.jain@arm.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Usama Arif <usama.arif@linux.dev>
+Cc: Kiryl Shutsemau <kas@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Mikołaj Lenczewski <miko.lenczewski@arm.com>
 Cc: Breno Leitao <leitao@debian.org>
 
- mm/huge_memory.c |   25 ------------------------
- mm/hugetlb.c     |   27 --------------------------
- mm/mremap.c      |   46 ---------------------------------------------
- mm/userfaultfd.c |    1 
- 4 files changed, 3 insertions(+), 96 deletions(-)
+ mm/userfaultfd.c |   54 +++++++++++++++------------------------------
+ 1 file changed, 18 insertions(+), 36 deletions(-)
 
---- a/mm/huge_memory.c~mm-mremap-resolve-uffd-state-when-the-context-is-dropped-not-during-the-move
-+++ a/mm/huge_memory.c
-@@ -2634,18 +2634,6 @@ static pmd_t move_soft_dirty_pmd(pmd_t p
- 	return pmd;
- }
- 
--static pmd_t clear_uffd_wp_pmd(pmd_t pmd)
--{
--	if (pmd_none(pmd))
--		return pmd;
--	if (pmd_present(pmd))
--		pmd = pmd_clear_uffd(pmd);
--	else
--		pmd = pmd_swp_clear_uffd(pmd);
--
--	return pmd;
--}
--
- bool move_huge_pmd(struct vm_area_struct *vma, unsigned long old_addr,
- 		  unsigned long new_addr, pmd_t *old_pmd, pmd_t *new_pmd)
- {
-@@ -2681,19 +2669,6 @@ bool move_huge_pmd(struct vm_area_struct
- 			pgtable_trans_huge_deposit(mm, new_pmd, pgtable);
- 		}
- 		pmd = move_soft_dirty_pmd(pmd);
--		if (vma_has_uffd_without_event_remap(vma)) {
--			/*
--			 * See __copy_present_ptes(): normalise the RWP marker
--			 * so the destination starts accessible instead of
--			 * taking a numa-hinting fault on first access. Only the
--			 * marker (protnone + uffd) needs it; leave other present
--			 * PMDs in the VMA untouched.
--			 */
--			if (pmd_present(pmd) && userfaultfd_rwp(vma) &&
--			    pmd_uffd(pmd))
--				pmd = pmd_modify(pmd, vma->vm_page_prot);
--			pmd = clear_uffd_wp_pmd(pmd);
--		}
- 		set_pmd_at(mm, new_addr, new_pmd, pmd);
- 		if (force_flush)
- 			flush_pmd_tlb_range(vma, old_addr, old_addr + PMD_SIZE);
---- a/mm/hugetlb.c~mm-mremap-resolve-uffd-state-when-the-context-is-dropped-not-during-the-move
-+++ a/mm/hugetlb.c
-@@ -5189,7 +5189,6 @@ static void move_huge_pte(struct vm_area
- 			  unsigned long new_addr, pte_t *src_pte, pte_t *dst_pte,
- 			  unsigned long sz)
- {
--	bool need_clear_uffd_wp = vma_has_uffd_without_event_remap(vma);
- 	struct hstate *h = hstate_vma(vma);
- 	struct mm_struct *mm = vma->vm_mm;
- 	spinlock_t *src_ptl, *dst_ptl;
-@@ -5200,31 +5199,7 @@ static void move_huge_pte(struct vm_area
- 	double_pt_lock(dst_ptl, src_ptl);
- 
- 	pte = huge_ptep_get_and_clear(mm, old_addr, src_pte, sz);
--
--	if (need_clear_uffd_wp && pte_is_uffd_wp_marker(pte)) {
--		huge_pte_clear(mm, new_addr, dst_pte, sz);
--	} else {
--		if (need_clear_uffd_wp) {
--			if (pte_present(pte)) {
--				/*
--				 * See __copy_present_ptes(): normalise the RWP
--				 * marker so the destination starts accessible
--				 * instead of taking a numa-hinting fault on
--				 * first access. Only the marker (protnone + uffd)
--				 * needs it; leave other present PTEs untouched.
--				 */
--				if (userfaultfd_rwp(vma) && huge_pte_uffd(pte)) {
--					pte = huge_pte_modify(pte, vma->vm_page_prot);
--					pte = arch_make_huge_pte(pte, huge_page_shift(h),
--								 vma->vm_flags);
--				}
--				pte = huge_pte_clear_uffd(pte);
--			} else {
--				pte = pte_swp_clear_uffd(pte);
--			}
--		}
--		set_huge_pte_at(mm, new_addr, dst_pte, pte, sz);
--	}
-+	set_huge_pte_at(mm, new_addr, dst_pte, pte, sz);
- 
- 	double_pt_unlock(dst_ptl, src_ptl);
- }
---- a/mm/mremap.c~mm-mremap-resolve-uffd-state-when-the-context-is-dropped-not-during-the-move
-+++ a/mm/mremap.c
-@@ -199,7 +199,6 @@ static int move_ptes(struct pagetable_mo
- 		unsigned long extent, pmd_t *old_pmd, pmd_t *new_pmd)
- {
- 	struct vm_area_struct *vma = pmc->old;
--	bool need_clear_uffd_wp = vma_has_uffd_without_event_remap(vma);
- 	struct mm_struct *mm = vma->vm_mm;
- 	pte_t *old_ptep, *new_ptep;
- 	pte_t old_pte, pte;
-@@ -291,27 +290,7 @@ static int move_ptes(struct pagetable_mo
- 		pte = get_and_clear_ptes(mm, old_addr, old_ptep, nr_ptes);
- 		pte = move_pte(pte, old_addr, new_addr);
- 		pte = move_soft_dirty_pte(pte);
--
--		if (need_clear_uffd_wp && pte_is_uffd_wp_marker(pte))
--			pte_clear(mm, new_addr, new_ptep);
--		else {
--			if (need_clear_uffd_wp) {
--				if (pte_present(pte)) {
--					/*
--					 * See __copy_present_ptes(): normalise
--					 * RWP PTEs so the destination starts
--					 * accessible instead of taking a
--					 * numa-hinting fault on first access.
--					 */
--					if (userfaultfd_rwp(vma) && pte_uffd(pte))
--						pte = pte_modify(pte, vma->vm_page_prot);
--					pte = pte_clear_uffd(pte);
--				} else {
--					pte = pte_swp_clear_uffd(pte);
--				}
--			}
--			set_ptes(mm, new_addr, new_ptep, pte, nr_ptes);
--		}
-+		set_ptes(mm, new_addr, new_ptep, pte, nr_ptes);
- 	}
- 
- 	lazy_mmu_mode_disable();
-@@ -335,25 +314,6 @@ static inline bool arch_supports_page_ta
- }
- #endif
- 
--static inline bool uffd_supports_page_table_move(struct pagetable_move_control *pmc)
--{
--	/*
--	 * If we are moving a VMA that has uffd-wp registered but with
--	 * remap events disabled (new VMA will not be registered with uffd), we
--	 * need to ensure that the uffd-wp state is cleared from all pgtables.
--	 * This means recursing into lower page tables in move_page_tables().
--	 *
--	 * We might get called with VMAs reversed when recovering from a
--	 * failed page table move. In that case, the
--	 * "old"-but-actually-"originally new" VMA during recovery will not have
--	 * a uffd context. Recursing into lower page tables during the original
--	 * move but not during the recovery move will cause trouble, because we
--	 * run into already-existing page tables. So check both VMAs.
--	 */
--	return !vma_has_uffd_without_event_remap(pmc->old) &&
--	       !vma_has_uffd_without_event_remap(pmc->new);
--}
--
- #ifdef CONFIG_HAVE_MOVE_PMD
- static bool move_normal_pmd(struct pagetable_move_control *pmc,
- 			pmd_t *old_pmd, pmd_t *new_pmd)
-@@ -366,8 +326,6 @@ static bool move_normal_pmd(struct paget
- 
- 	if (!arch_supports_page_table_move())
- 		return false;
--	if (!uffd_supports_page_table_move(pmc))
--		return false;
- 	/*
- 	 * The destination pmd shouldn't be established, free_pgtables()
- 	 * should have released it.
-@@ -435,8 +393,6 @@ static bool move_normal_pud(struct paget
- 
- 	if (!arch_supports_page_table_move())
- 		return false;
--	if (!uffd_supports_page_table_move(pmc))
--		return false;
- 	/*
- 	 * The destination pud shouldn't be established, free_pgtables()
- 	 * should have released it.
---- a/mm/userfaultfd.c~mm-mremap-resolve-uffd-state-when-the-context-is-dropped-not-during-the-move
+--- a/mm/userfaultfd.c~mm-userfaultfd-check-the-hugetlb-alignment-of-every-vma-in-the-pre-scan
 +++ a/mm/userfaultfd.c
-@@ -3179,6 +3179,7 @@ void mremap_userfaultfd_prep(struct vm_a
- 		up_write(&ctx->map_changing_lock);
- 	} else {
- 		/* Drop uffd context if remap feature not enabled */
-+		userfaultfd_clear_ptes(vma, vma->vm_start, vma->vm_end);
- 		userfaultfd_reset_ctx(vma);
- 	}
+@@ -3710,6 +3710,20 @@ static __always_inline int validate_rang
+ 	return validate_unaligned_range(mm, start, len);
  }
+ 
++static bool vma_uffd_range_aligned(struct vm_area_struct *vma,
++				   unsigned long start, unsigned long end)
++{
++	unsigned long size;
++
++	if (!vma_is_hugetlb(vma))
++		return true;
++
++	/* A hugetlb VMA can only be split at a huge page boundary. */
++	size = huge_page_size(hstate_vma(vma));
++	return IS_ALIGNED(max(start, vma->vm_start), size) &&
++	       IS_ALIGNED(min(end, vma->vm_end), size);
++}
++
+ static int userfaultfd_register(struct userfaultfd_ctx *ctx,
+ 				unsigned long arg)
+ {
+@@ -3789,17 +3803,6 @@ static int userfaultfd_register(struct u
+ 		goto out_unlock;
+ 
+ 	/*
+-	 * If the first vma contains huge pages, make sure start address
+-	 * is aligned to huge page size.
+-	 */
+-	if (vma_is_hugetlb(vma)) {
+-		unsigned long vma_hpagesize = vma_kernel_pagesize(vma);
+-
+-		if (start & (vma_hpagesize - 1))
+-			goto out_unlock;
+-	}
+-
+-	/*
+ 	 * Search for not compatible vmas.
+ 	 */
+ 	found = false;
+@@ -3815,6 +3818,8 @@ static int userfaultfd_register(struct u
+ 		ret = -EINVAL;
+ 		if (!vma_can_userfault(cur, vm_flags, wp_async))
+ 			goto out_unlock;
++		if (!vma_uffd_range_aligned(cur, start, end))
++			goto out_unlock;
+ 
+ 		/*
+ 		 * RWP uses protnone as an access-tracking marker. PROT_NONE
+@@ -3838,20 +3843,6 @@ static int userfaultfd_register(struct u
+ 		ret = -EPERM;
+ 		if (unlikely(!(cur->vm_flags & VM_MAYWRITE)))
+ 			goto out_unlock;
+-
+-		/*
+-		 * If this vma contains ending address, and huge pages
+-		 * check alignment.
+-		 */
+-		if (vma_is_hugetlb(cur) && end <= cur->vm_end &&
+-		    end > cur->vm_start) {
+-			unsigned long vma_hpagesize = vma_kernel_pagesize(cur);
+-
+-			ret = -EINVAL;
+-
+-			if (end & (vma_hpagesize - 1))
+-				goto out_unlock;
+-		}
+ 		if ((vm_flags & VM_UFFD_WP) && !(cur->vm_flags & VM_MAYWRITE))
+ 			goto out_unlock;
+ 
+@@ -3962,17 +3953,6 @@ static int userfaultfd_unregister(struct
+ 		goto out_unlock;
+ 
+ 	/*
+-	 * If the first vma contains huge pages, make sure start address
+-	 * is aligned to huge page size.
+-	 */
+-	if (vma_is_hugetlb(vma)) {
+-		unsigned long vma_hpagesize = vma_kernel_pagesize(vma);
+-
+-		if (start & (vma_hpagesize - 1))
+-			goto out_unlock;
+-	}
+-
+-	/*
+ 	 * Search for not compatible vmas.
+ 	 */
+ 	found = false;
+@@ -4000,6 +3980,8 @@ static int userfaultfd_unregister(struct
+ 		 */
+ 		if (!vma_can_userfault(cur, cur->vm_flags, wp_async))
+ 			goto out_unlock;
++		if (!vma_uffd_range_aligned(cur, start, end))
++			goto out_unlock;
+ 
+ 		found = true;
+ 	} for_each_vma_range(vmi, cur, end);
 _
 
 Patches currently in -mm which might be from tz2294@columbia.edu are
