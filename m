@@ -1,49 +1,50 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795540995;
-	b=WEvkfBz7hm09hmguMweta4ZfBWEItaozrXcMDUz902S3RvFKYByqiil8nhxIjsh58jaI
-	 GmPqr3k18Cjkgj22yHJAFKoXvmpoQ2FZWFItoIPah7SYKFLjPq1kfVnALwJ24yuihrMSE
-	 cKAQ86QvHeTI1LnIzo75ACJc8+e1ZEot7yi2QZPVk4mIb+7Afts25jRQ51xovxnp8Lqlj
-	 9s5wCU0R21XCbBVyGyosPDqp/Lv/Ofik093XQLoYxQzlyx09D6WHzFsyAOBGXyFGCPlyo
-	 nu4o8Rpab9QNn4L2rzbnl+tkAOTMCPY0WfCIrFfAm8sT0OMxZ5HMmoopv4qiXrqSoHg==
+	t=1795540999;
+	b=hz9ZcTNGegLSijDOYLyhGSz0J8cvJ27rj4nlUqG8hej7IA3qPFo1XNNQow6RIFhN3+D4
+	 A53FPvxlabRlFr9tUgN/m0HX35vx6duGqnCXdanp6ozP/Z+OCSQGedAE5isl4I0J49BOH
+	 V1THE1rMqI8tduKP8p/++s6n7G1NC+NJGfhO7DmC6eziVZ7XKvUDf76SzFZJl7L/0uoel
+	 24Z+RN+X0u3WB9mZZqzufQ4GqX6A5VYTvchyOMYHPws7uons+tuYjSpw0PhHRtXxlRx9Q
+	 dDS/5qub1GwCMQ3WudKTOMGk73AcXhNzLP+KKF9fZPpmwXCRsKMJycfkPNoJaCQnEKg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795540995;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795540999;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=2vF8u1qwlQPVkliwG8W3WdujDwc7D7yxlpwqntEzbio=;
-	b=0OAuJgnQoAX/+UZbMAxRpVv0v0nLQNro0Hi4PwCX0owQHN2UjkIU2zCkyP3eU+zqWGqv
-	 d6ISKjANfOIUDdsHbGL7mE0hGKeEce/yWH3IjJxYtCE6VOieuVmYWGelEvAE0Bm2+tuBL
-	 iErowIsLCHVKRywophCGrnujv73EItxKBbkA7OjszWt2c1g+34dIvL4bbyNAfBvrPnYAE
-	 yQ914tyrEg8K9U5NRT+HfvI2BKRTEQsIgOKlr/wlymLkpxoJzJ+PAGOoS1S+HFzXDQmz5
-	 8kUaEGTOf6EaHBd94hQ0d58jzVRuTdhTrX4JKrtRhge8oNNiQPcVDXDNE6vctOKjR+g==
+	bh=0sF6w2sasLdpNesEoG3Yv51HjwkPgIFS5sSdL6yIBs4=;
+	b=2xMTN6ooUFojEs9rLfD8tHVCnH9sVqI6UOO26UIFYKUspaKvW/vsWiI8f2Gbm/7uNuKf
+	 0faZqNc8l0OghgTdh4pFgQrSPbRauD92lQzKV5kCzMkOpI8/eHW/8EomK0Euky9ukePEi
+	 591ZUNXQMDA2GnO1uTHTwpIMa52P6VQhVnY6Bhr9LJ6FccstGZx2ttFdnrN2gTfcLEm7A
+	 sq8WJ+XKjWZToWU/+sLVaF4G+JgwhJjdA3Tp1dxhGrt8MotWBHLy5tHn5FMd1QosSsyci
+	 xfTjL84rp8iZraBNw7AbsRNPNX/7mg5RpvOqkwMzttZ6aT475hpjcJW8gvZFWPDvjTw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=RODWklCb;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=afkSJQoC;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDCFA606A33B
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:23:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69412606A32A
+	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 17:23:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=RODWklCb
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 998F11F000D4;
-	Tue, 24 Nov 2026 17:23:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=afkSJQoC
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0B161F008B2;
+	Tue, 24 Nov 2026 17:23:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795540995;
-	bh=2vF8u1qwlQPVkliwG8W3WdujDwc7D7yxlpwqntEzbio=;
+	d=linux-foundation.org; s=korg; t=1795540998;
+	bh=0sF6w2sasLdpNesEoG3Yv51HjwkPgIFS5sSdL6yIBs4=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=RODWklCbEml9HzpC7p3oQdJiDoTWuRbuO1gM50RO00AYChvWFqA4YUGTDUB2400MD
-	 OWneDrNxS5j/HXezlMzncOWiPu0RitvO8c+QXuZ4Tt5EeGMeu9UQsvm2WQTVo0jqwF
-	 2YxyMRjJFCqhG5T3uBMooLLpMfiD/0cWsBOTQKik=
-Date: Tue, 24 Nov 2026 09:23:15 -0800
-To: mm-commits@vger.kernel.org,lianux.mm@gmail.com,jm5905938@gmail.com,
+	b=afkSJQoCWkAnbpxjyQSqtFuSHXUjf9LkrJzNvV70XB86o1imVJdMmifEy9o6jY7/m
+	 dzqNOMHhSQo7iTE3P6cnw0XWvEGYvkSE280/7rOqB4E2G1N3/T7etnNnTx8FJX0clC
+	 DtuYqkV97/6FNY2nUpTAY9qzAOhFRFrN+0yINvgs=
+Date: Tue, 24 Nov 2026 09:23:18 -0800
+To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,
+	rdunlap@infradead.org,lianux.mm@gmail.com,jm5905938@gmail.com,corbet@lwn.net,
 	sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124153636.91854-9-sj@kernel.org>
-References: <20261124153636.91854-9-sj@kernel.org>
-Subject: + mm-damon-sysfs-implement-report-producer-type-and-state-files.patch added to mm-new branch
-Message-Id: <20261124172315.998F11F000D4@smtp.kernel.org>
+In-Reply-To: <20261124153636.91854-10-sj@kernel.org>
+References: <20261124153636.91854-10-sj@kernel.org>
+Subject: + docs-mm-damon-design-update-for-report-system.patch added to mm-new branch
+Message-Id: <20261124172318.A0B161F008B2@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,12 +56,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/damon/sysfs: implement report producer type and state files
+     Subject: Docs/mm/damon/design: update for report system
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-implement-report-producer-type-and-state-files.patch
+     docs-mm-damon-design-update-for-report-system.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-implement-report-producer-type-and-state-files.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-update-for-report-system.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -90,127 +91,58 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs: implement report producer type and state files
-Date: Tue, 24 Nov 2026 07:36:14 -0800
+Subject: Docs/mm/damon/design: update for report system
+Date: Tue, 24 Nov 2026 07:36:15 -0800
 
-Implement report_type and producer_state files under the report producer
-directory.  The type file receives the type of the reports that the
-producer will generate and submit to DAMON.  The producer_state file
-enables and disables the producer.
+Update DAMON design for the data attribute report system.
 
-Link: https://patch.msgid.link/20261124153636.91854-9-sj@kernel.org
+Link: https://patch.msgid.link/20261124153636.91854-10-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Aveline Noir <jm5905938@gmail.com>
 Reviewed-by: Lian Wang <lianux.mm@gmail.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
 
- mm/damon/sysfs.c |   80 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 80 insertions(+)
+ Documentation/mm/damon/design.rst |   26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-implement-report-producer-type-and-state-files
-+++ a/mm/damon/sysfs.c
-@@ -2983,6 +2983,8 @@ static const struct kobj_type damon_sysf
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-update-for-report-system
++++ a/Documentation/mm/damon/design.rst
+@@ -356,6 +356,32 @@ monitoring.
+ Refer to the :ref:`admin guide <damon_usage_sysfs_probes>` to know how users
+ can use the mode.
  
- struct damon_sysfs_producer {
- 	struct kobject kobj;
-+	enum damon_report_type report_type;
-+	bool enabled;
- };
++.. _damon_design_attr_reporting:
++
++Data Attributes Reporting
++~~~~~~~~~~~~~~~~~~~~~~~~~
++
++DAMON-external entities such as other kernel components and users may have
++special data attribute information.  DAMON provides a system that let them
++report such information to DAMON.
++
++DAMON provides the kernel API for submitting a report of data attribute
++information to DAMON.  A report describes what type of the report is,
++representing the reporting data attribute type.  A report also describes the
++address range of the memory that the report is made for.  Depending on the
++report type, the report can have additional information.  The report is saved
++in DAMON's internal queue.  The queue is automatically managed by DAMON with
++its best effort.
++
++DAMON provides the user :ref:`ABI <damon_usage_sysfs_reports_producers>` for
++configuring report producers.  Each producer is configured for a specific
++report type.  Users can dynamically enable and disable those.  When enabled, it
++can generate and submit reports of the given type.  The generations and
++submissions could be done automatically by the kernel or manually by the user,
++depending on the type of the report.
++
++For now, no report type is supported.
++
+ Dynamic Target Space Updates Handling
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  
- static struct damon_sysfs_producer *damon_sysfs_producer_alloc(void)
-@@ -2990,6 +2992,77 @@ static struct damon_sysfs_producer *damo
- 	return kzalloc_obj(struct damon_sysfs_producer);
- }
- 
-+struct damon_sysfs_report_type_name {
-+	enum damon_report_type type;
-+	char *name;
-+};
-+
-+static const struct damon_sysfs_report_type_name
-+damon_sysfs_report_type_names[] = {
-+};
-+
-+static ssize_t report_type_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
-+{
-+	struct damon_sysfs_producer *producer = container_of(kobj,
-+			struct damon_sysfs_producer, kobj);
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(damon_sysfs_report_type_names); i++) {
-+		const struct damon_sysfs_report_type_name *type_name;
-+
-+		type_name = &damon_sysfs_report_type_names[i];
-+		if (type_name->type == producer->report_type)
-+			return sysfs_emit(buf, "%s\n", type_name->name);
-+	}
-+	return -EINVAL;
-+}
-+
-+static ssize_t report_type_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
-+{
-+	struct damon_sysfs_producer *producer = container_of(kobj,
-+			struct damon_sysfs_producer, kobj);
-+	ssize_t ret = -EINVAL;
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(damon_sysfs_report_type_names); i++) {
-+		const struct damon_sysfs_report_type_name *type_name;
-+
-+		type_name = &damon_sysfs_report_type_names[i];
-+		if (sysfs_streq(buf, type_name->name)) {
-+			producer->report_type = type_name->type;
-+			ret = count;
-+			break;
-+		}
-+	}
-+	return ret;
-+}
-+
-+static ssize_t producer_state_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
-+{
-+	struct damon_sysfs_producer *producer = container_of(kobj,
-+			struct damon_sysfs_producer, kobj);
-+
-+	return sysfs_emit(buf, "%s\n", producer->enabled ? "on" : "off");
-+}
-+
-+static ssize_t producer_state_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
-+{
-+	struct damon_sysfs_producer *producer = container_of(kobj,
-+			struct damon_sysfs_producer, kobj);
-+
-+	if (sysfs_streq(buf, "on"))
-+		producer->enabled = true;
-+	else if (sysfs_streq(buf, "off"))
-+		producer->enabled = false;
-+	else
-+		return -EINVAL;
-+	return count;
-+}
-+
- static void damon_sysfs_producer_release(struct kobject *kobj)
- {
- 	struct damon_sysfs_producer *producer = container_of(kobj,
-@@ -2997,7 +3070,14 @@ static void damon_sysfs_producer_release
- 	kfree(producer);
- }
- 
-+static struct kobj_attribute damon_sysfs_producer_report_type_attr =
-+		__ATTR_RW_MODE(report_type, 0600);
-+static struct kobj_attribute damon_sysfs_producer_producer_state_type_attr =
-+		__ATTR_RW_MODE(producer_state, 0600);
-+
- static struct attribute *damon_sysfs_producer_attrs[] = {
-+	&damon_sysfs_producer_report_type_attr.attr,
-+	&damon_sysfs_producer_producer_state_type_attr.attr,
- 	NULL,
- };
- ATTRIBUTE_GROUPS(damon_sysfs_producer);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
