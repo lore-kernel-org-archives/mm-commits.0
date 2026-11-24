@@ -1,42 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795562975;
-	b=JBxaNhL3RJNQypwjayvbTwyte39UDR2/ldnVY+2BLL/+fzn+gIqBRpFL0ZlgCehwE/K4
-	 sLZlDiPWTvlyGEfweIaMiOrUYZFakLn/YCPhvPjTX1vW54hca38IDCoKdduC8M54pU+zq
-	 K+WCyMTeBEo/gVAkqDWm83cHK7nvuHNadR7a/O/fCNF0NRXk3w7NXnP2ugxBJJb+MZqCK
-	 oEgWp0XqhDbjKUJdnCSeINzee8txpsC7LOs7cz8PJ/UmXqikXBLyLmJ7P7Wh1ggacRCnB
-	 417DkuBPG3LwN4Ip7eCpy3xd8rep9sIsgt6nWn46HofKE9kKQgoA96gT0YQlwy8E4ZQ==
+	t=1795562972;
+	b=YGEDlBnf99Irv2wyIKtE1k7gxCW4Kn5gKqbLLnIYWPJjfxapkK8SgkgMArAkOIsY7cW7
+	 rACbElzOC+Cyzoxwbogy6y4AwOGG71ubcTyxC5kn6Yh8ztYew8xj/VwK8SuF03dTPLTai
+	 ruQ4DO1aIzidcIM6B5XZZz2iWz/jB+HYSSnODGUAmJmxLWBLziyk9EHF0xYgovzupFnRi
+	 E6nlhtdbD6tTX9it5eke6PPZ92g95AO0P+MM2/XU9/zCZM0FU3Dt+3xWsXdfOJNxUGXsJ
+	 SS3O5jkKfbOR2fdvZjNlm3iM/WZpb4p5CbhBoIjAvX8WWd1QueB+T4MRZHlNP4+ESeg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795562975;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795562972;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=t4p3u8d+ae8UVe9PRoAfBUoHdT8H/ibmkp4iTz/PGGA=;
-	b=Lmklo7d1OZ/7ubgOmV6CAC5kxcARbT/BrTvCgYuzfW1f0VpHQ7+vxqVxz6GQl6PoxP8u
-	 I5wehlUW5DHrixefCTRDTQ9LNjltb8RsRxxMNiu6ZSaae/bEdtodtClc3JUSUHMcpbgqd
-	 BQTPN8wCYWjqqDY7/y+uZaD14Kfgaq0baX9G0qTenO7AOX9wYzWzgXQRX/iFTyC1RM/BU
-	 ybG0+6nACWNLVIHe7B5t/VdsstaWWB73sCEx4zcKzQu6ruKz7oCBMWfqgrQ06iXQiWhXb
-	 ZPaljEqM9Tv2IFhutHnZSi3PsMqL7i60h6pZ7BbFUvX5j+1MKyCB7Uf7UrUfzEN/9gw==
+	bh=Bf+XBPyChdHiXT7CR8kI8PmkqJa/ocekJYhEnaM1zK0=;
+	b=coAuTxOajAliHyCdCDI4jUU6X9pkJbSxZbRDPcO59lzRkmrxNnjMM7PhO8OXkaDFsMdy
+	 wORWXElmmeM5hLbVT6sAhpBgK+ID8Ewgo+wNc741zH5fSmk5RvuCeBNBc07LGtB7LEzPe
+	 evH7Wd4uN0gkEpZUoxDkvZJhG88TAYZHoM1Knl1bxefyBjksEjaqRdfhUWsiLaqb23QvU
+	 UBryTssCY7H2pvkXMPhmyxi9mfsu0faYwGxkukfX4dPcwWt2RsNxLvFSvuDDGa8qx17go
+	 flMRn4WLd4YtMOoyW8AE67ym9ELrWx7ljYyvPPbcLK4BI/3ml/8Ab96HS+YzKtoYrXA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mCeULJEm;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mYlq0kUW;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 910D4606A326;
-	Tue, 24 Nov 2026 23:29:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E643606A321;
+	Tue, 24 Nov 2026 23:29:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mCeULJEm
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4B591F000C4;
-	Tue, 24 Nov 2026 23:29:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mYlq0kUW
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA9941F000D0;
+	Tue, 24 Nov 2026 23:29:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795562975;
-	bh=t4p3u8d+ae8UVe9PRoAfBUoHdT8H/ibmkp4iTz/PGGA=;
+	d=linux-foundation.org; s=korg; t=1795562972;
+	bh=Bf+XBPyChdHiXT7CR8kI8PmkqJa/ocekJYhEnaM1zK0=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=mCeULJEmlg6NGkS/L/P0nyr0wr1+i38ZVbS9bypfSVGdKH7CEf5dNn/WpSJ0scI6t
-	 gDVj/kdYJTz+x48lChmIfSEm+kkxzN0qa982SAAeMNOlxAOYEZsHWfkV7gdMremYsL
-	 21sLUaihViEDJL8C5vtNor3qJSanGCIBbwC5nzGY=
-Date: Tue, 24 Nov 2026 15:29:34 -0800
+	b=mYlq0kUW2IRakdostg7qCwA2d6dNIH6zs6v5Ej1s3zTVRkpw8rOdzZFhar4+W75Gx
+	 FYjx23UTd6ktLaQqmEKRhYXFvOGrqNdM/UEbfaPm3uYwRb43rLfee+W4TXidXuFTX4
+	 +71scsIZ4YIJur9mwNZj7zOtuB/QTQYoOm8wCkhQ=
+Date: Tue, 24 Nov 2026 15:29:31 -0800
 To: mm-commits@vger.kernel.org,xu.xin@linux.dev,willy@infradead.org,
 	vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,
 	shakeel.butt@linux.dev,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,
@@ -46,10 +46,10 @@ To: mm-commits@vger.kernel.org,xu.xin@linux.dev,willy@infradead.org,
 	bunk@stusta.de,azpijr@gmail.com,a.p.zijlstra@chello.nl,aaw@google.com,
 	mason@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261121-some-more-ai-fixes-v1-5-236e925d9b64@kernel.org>
-References: <20261121-some-more-ai-fixes-v1-5-236e925d9b64@kernel.org>
-Subject: + mm-mremap-apply-the-mmap-offset-limits-on-expansion.patch added to mm-new branch
-Message-Id: <20261124232934.D4B591F000C4@smtp.kernel.org>
+In-Reply-To: <20261121-some-more-ai-fixes-v1-4-236e925d9b64@kernel.org>
+References: <20261121-some-more-ai-fixes-v1-4-236e925d9b64@kernel.org>
+Subject: + mm-vma-fix-uncharge-after-failed-stack-relocation.patch added to mm-new branch
+Message-Id: <20261124232931.EA9941F000D0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -61,12 +61,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/mremap: apply the mmap() offset limits on expansion
+     Subject: mm/vma: fix uncharge after failed stack relocation
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mremap-apply-the-mmap-offset-limits-on-expansion.patch
+     mm-vma-fix-uncharge-after-failed-stack-relocation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-apply-the-mmap-offset-limits-on-expansion.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-fix-uncharge-after-failed-stack-relocation.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -96,40 +96,48 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Chris Mason <mason@kernel.org>
-Subject: mm/mremap: apply the mmap() offset limits on expansion
-Date: Sat, 21 Nov 2026 16:02:31 +0000
+Subject: mm/vma: fix uncharge after failed stack relocation
+Date: Sat, 21 Nov 2026 16:02:30 +0000
 
-Commit be83bbf80682 ("mmap: introduce sane default mmap limits") made
-do_mmap() reject file mappings which extend beyond the maximum offset the
-file can support, via file_mmap_ok().
+An execve() that fails to relocate its stack can underflow
+vm_committed_as, and the commit limit of vm.overcommit_memory=2 then no
+longer holds.
 
-However mremap() can expand a file mapping and only checks that the page
-offset does not wrap, so a mapping can be grown past the limit that mmap()
-would have enforced.
+exit_mmap() uncharges vma_pages() of each VMA with VMA_ACCOUNT_BIT, so
+the charge has to match the size of the VMA. relocate_vma_down() expands
+the stack VMA by the relocation distance without a charge, and relies on
+its vma_shrink() to make the two match again. But it returns with the
+VMA still expanded if move_page_tables() can't allocate a page table,
+for example at the memory cgroup limit, or if vma_shrink() fails:
 
-Fault handlers rely on that limit. For instance dax_iomap_pte_fault()
-converts vmf->pgoff into a loff_t, which overflows for such an offset and
-defeats its i_size check.
+    relocate_vma_down()             charged    vma_pages()
+    ===================             =======    ===========
+                                    L          L
+    vma_expand()                    L          L + shift
+    move_page_tables() fails
+      return -ENOMEM
 
-Fix the issue by applying file_mmap_ok() to the expanded range in
-check_prep_vma(), failing the mremap() with -EINVAL if it exceeds the
-limit.
+    exit_mmap()
+      tear_down_vmas()
+      vm_unacct_memory(L + shift)   -shift
 
-This means that mremap() now refuses expansions it previously permitted,
-however no file can have data at these offsets, and mmap() already refuses
-the equivalent mapping.
+On x86-64 with 4-level page tables, the distance is up to 16 GiB for a
+64-bit program, and about 128 TiB for a 32-bit one.
 
-[ljs@kernel.org: fixed up commit msg]
-Link: https://patch.msgid.link/20261121-some-more-ai-fixes-v1-5-236e925d9b64@kernel.org
-Fixes: be83bbf80682 ("mmap: introduce sane default mmap limits")
+Fix the issue by giving back the charge of the stack VMA where its
+relocation fails, and excluding the VMA from what exit_mmap() uncharges.
+The argument pages of the dying task are then outside the commit charge
+until exit_mmap() frees them.
+
+Link: https://patch.msgid.link/20261121-some-more-ai-fixes-v1-4-236e925d9b64@kernel.org
+Fixes: b6a2fea39318 ("mm: variable length argument support")
 Signed-off-by: Chris Mason <mason@kernel.org>
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Tested-by: Gregory Price (Meta) <gourry@gourry.net>
-  Link: https://lore.kernel.org/179536260304.412063.8485838901368834162.b4-reply@b4
+  Link: https://lore.kernel.org/179536262938.412063.9413830491196612418.b4-reply@b4
 Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
-Reviewed-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
@@ -149,59 +157,57 @@ Cc: Hugh Dickins <hughd@google.com>
 Cc: Joey Gouly <joey.gouly@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: "Jose A. Perez de Azpillaga" <azpijr@gmail.com>
 Cc: <stable@vger.kernel.org>
 
- mm/internal.h |    2 ++
- mm/mmap.c     |    4 ++--
- mm/mremap.c   |    6 ++++++
- 3 files changed, 10 insertions(+), 2 deletions(-)
+ mm/vma_exec.c |   22 +++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
 
---- a/mm/internal.h~mm-mremap-apply-the-mmap-offset-limits-on-expansion
-+++ a/mm/internal.h
-@@ -950,6 +950,8 @@ extern long faultin_page_range(struct mm
- 		unsigned long end, bool write, int *locked);
- bool mlock_future_ok(const struct mm_struct *mm, bool is_vma_locked,
- 		unsigned long bytes);
-+bool file_mmap_ok(struct file *file, struct inode *inode, unsigned long pgoff,
-+		  unsigned long len);
+--- a/mm/vma_exec.c~mm-vma-fix-uncharge-after-failed-stack-relocation
++++ a/mm/vma_exec.c
+@@ -45,6 +45,7 @@ int relocate_vma_down(struct vm_area_str
+ 	struct vm_area_struct *next;
+ 	struct mmu_gather tlb;
+ 	PAGETABLE_MOVE(pmc, vma, vma, old_start, new_start, length);
++	int err;
  
- /*
-  * NOTE: This function can't tell whether the folio is "fully mapped" in the
---- a/mm/mmap.c~mm-mremap-apply-the-mmap-offset-limits-on-expansion
-+++ a/mm/mmap.c
-@@ -265,8 +265,8 @@ static inline u64 file_mmap_size_max(str
- 	return ULONG_MAX;
+ 	BUG_ON(new_start > new_end);
+ 
+@@ -68,8 +69,10 @@ int relocate_vma_down(struct vm_area_str
+ 	 * process cleanup to remove whatever mess we made.
+ 	 */
+ 	pmc.for_stack = true;
+-	if (length != move_page_tables(&pmc))
+-		return -ENOMEM;
++	if (length != move_page_tables(&pmc)) {
++		err = -ENOMEM;
++		goto err_unacct;
++	}
+ 
+ 	tlb_gather_mmu(&tlb, mm);
+ 	next = vma_next(&vmi);
+@@ -93,7 +96,20 @@ int relocate_vma_down(struct vm_area_str
+ 
+ 	vma_prev(&vmi);
+ 	/* Shrink the vma to just the new range */
+-	return vma_shrink(&vmi, vma, new_end);
++	err = vma_shrink(&vmi, vma, new_end);
++	if (err)
++		goto err_unacct;
++
++	return 0;
++
++err_unacct:
++	/*
++	 * The vma now spans more than was charged, so exit_mmap() must not
++	 * derive the uncharge from its size.
++	 */
++	vm_unacct_memory(length >> PAGE_SHIFT);
++	vma_clear_flags(vma, VMA_ACCOUNT_BIT);
++	return err;
  }
  
--static inline bool file_mmap_ok(struct file *file, struct inode *inode,
--				unsigned long pgoff, unsigned long len)
-+bool file_mmap_ok(struct file *file, struct inode *inode, unsigned long pgoff,
-+		  unsigned long len)
- {
- 	u64 maxsize = file_mmap_size_max(file, inode);
- 
---- a/mm/mremap.c~mm-mremap-apply-the-mmap-offset-limits-on-expansion
-+++ a/mm/mremap.c
-@@ -1748,6 +1748,7 @@ static int check_prep_vma(struct vma_rem
- 	struct mm_struct *mm = current->mm;
- 	unsigned long addr = vrm->addr;
- 	unsigned long old_len, new_len, pgoff;
-+	struct file *file;
- 
- 	if (!vma)
- 		return -EFAULT;
-@@ -1827,6 +1828,11 @@ static int check_prep_vma(struct vma_rem
- 	if (vma_is_fixed_mapping(vma))
- 		return -EFAULT;
- 
-+	/* The expanded range must obey the same offset limits as mmap(). */
-+	file = vma->vm_file;
-+	if (file && !file_mmap_ok(file, file_inode(file), pgoff, new_len))
-+		return -EINVAL;
-+
- 	if (!mlock_future_ok(mm, vma_test(vma, VMA_LOCKED_BIT), vrm->delta))
- 		return -EAGAIN;
- 
+ /*
 _
 
 Patches currently in -mm which might be from mason@kernel.org are
