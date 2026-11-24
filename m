@@ -1,42 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795559248;
-	b=YbRAQ/eZ6lX7fiPNNqjE8+l4KIPNuodJjDDcsX4G4CWVCSge8lf4vLWz0fdOSxzU6TEk
-	 nLXjn15v50IPcTLu119COR1wgaQswn7LK3aeyp4tRFhqPyIPlRxMNUa2klGb/5oJYaR3B
-	 PiA/dwHnynW6kE/7bp/K4oElVRnVRaa0+LOTB4dLhEq0e6Wj4J/t3q657s/x5xsncCDx4
-	 1S0ZLizaUbwfOyy8Ed8Zj9CSimH2f5QI0URVwI6OY/24WYzUMGd4rhodDuXDGdUL7epUQ
-	 +HZoo+Ss86DvszXDCmS/MDAHBsD7v28XpDhzHJoAjRmUs1B7krsnhWUSB0gjlSkokIg==
+	t=1795559251;
+	b=FhTx/5LxUJuSWuidPGyD5qBnbFAPXs1513gRBOH/eoGrstHcnj7ZJ7kgVx5BaLAwD4iu
+	 wFYfJC+siIb4YE6z8wpEfGRbA/u5yo0EeDFDS+68MkzEGmspBMmYYJwZbpHM4VNQap2QJ
+	 wwEDKH5pKcPOQF4BYkP4FD+pqWX5Ncc/ttiEpwfoZLVV8xfT++GAyClPcKcJGGTpPX12R
+	 aojPIGFQZ6u0l7ARt9fgM+WiFUO/MEttHO6tCY0WcB3AlkplB1k7evv23pjplL9ByEpue
+	 7CO1bXWrIuS6wXRlg1EvhYhr22sTmO+JD/kRWK8nzVAegzlnRNUY6WZ0PMWMx7OBDqg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795559248;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795559251;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=PnDn6MXywSFQcmmUQEGx/g+btSDB8dbMSpRvgJfbF/I=;
-	b=cV7tPJb66COk1/ufY1thFmH+g4CPsrcDeVVLC8bPjsHUiuVR5RMmWV4Tj/hfmXuLl4Wi
-	 I+2JaLp0NiShH6Lv/Feg5eZYoMf7bsAUhVWYV6AQYa9J3R7Fx46UXlj8j23BfZJFXSR1V
-	 bItJhyjaE+aIbQ5ZXSkwvWKiYJnlBxMYySZWffkc1WLTIRA+lmFo3qXqgjDt6tX0aedny
-	 rN+ekZOEsYtYW1AdeXixxIpz2ZhwEZ1JmLafimDzfwNaKP8HOuF3RuXIu0AXbY92v8NEU
-	 ukIOOXA0auv43CdEzf+TLTTSfZrkeJssNzMXF8xO3eNzJpTqyCLomB80HCwi1soVGWA==
+	bh=D7B7g5kpmxkfVM81aGQfim/MUcsVKL78GDiqH5BYNkw=;
+	b=u/cC7WqCY1wpNLrK3ZgCG+fEvd6AdMYS0qMixzh4Ha0H4VK5D+a8s9e8RkW4Y/OL38VD
+	 lG3bRIs5vVoLpgJzA+AIGO/4BNyTRHgZY/ae4kgtXcNHFAiaLrlxf/1Gg+42pMnChwEW6
+	 +eZVGFsrlKpVVHVbee3vrFwfMarVv3nzfVSMcBzvOcKCoQbgwYuu9LTV5K6zPls0Mxe2i
+	 KrgWTBeS82Ud3JZ8j3wPSzc8SaoBXYyRZY/qwepEAKxC+hfVtSRC4QOW5XzgY2Yz8heHp
+	 7iaDV44OQWE3IJL0F0fn/PM28pfgrT0ujowLPFQhxmZ7US2bus8w3+HKAMVVkwRScyw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=W1roVZUj;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=dFPWROPy;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5858E606A321;
-	Tue, 24 Nov 2026 22:27:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4668606A31E;
+	Tue, 24 Nov 2026 22:27:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=W1roVZUj
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9B7E1F000C6;
-	Tue, 24 Nov 2026 22:27:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=dFPWROPy
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A95711F000C0;
+	Tue, 24 Nov 2026 22:27:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795559248;
-	bh=PnDn6MXywSFQcmmUQEGx/g+btSDB8dbMSpRvgJfbF/I=;
+	d=linux-foundation.org; s=korg; t=1795559250;
+	bh=D7B7g5kpmxkfVM81aGQfim/MUcsVKL78GDiqH5BYNkw=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=W1roVZUjLGCsoYxH23Gj8CDgp5eoebcMo6dlABseUDjweTmHoYb+tpY9jaNO0n+3G
-	 wOL6x7Zi15iJTntL59NU3Nbr1xyX4YhxoECeCpa/zB6BDJ27Ei7pJFBvs11TKK4l/m
-	 uVnP8i41eXO+MgtC1GBmVts1gIdPFUda11el7IL0=
-Date: Tue, 24 Nov 2026 14:27:27 -0800
+	b=dFPWROPy5s4NcrZew+naJ4mhFap7HkqjApTbw9/vcY6voRdSZxfqWGMiNfpaKQVrF
+	 3LWrHWmyGb6+3q22DincNmNNw1p7Z8ESi7ZtaPthTSvyXeDP9QzvgL0M+YmwIdjcHS
+	 WxypL9tToW9jTq16QinfOOWw3cu7hoXVFYyONqWc=
+Date: Tue, 24 Nov 2026 14:27:30 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
 	vbabka@kernel.org,usama.arif@linux.dev,usama.anjum@arm.com,surenb@google.com,
 	stable@vger.kernel.org,sfr@canb.auug.org.au,ryan.roberts@arm.com,
@@ -50,10 +50,10 @@ To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
 	balbirs@nvidia.com,avagin@gmail.com,arnd@arndb.de,apopple@nvidia.com,
 	aarcange@redhat.com,tz2294@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261117-uffd-state-fixes-v3-2-b617009d1a4a@columbia.edu>
-References: <20261117-uffd-state-fixes-v3-2-b617009d1a4a@columbia.edu>
-Subject: + userfaultfd-refuse-uffdio_move-into-a-non-present-huge-destination-pmd.patch added to mm-new branch
-Message-Id: <20261124222727.E9B7E1F000C6@smtp.kernel.org>
+In-Reply-To: <20261117-uffd-state-fixes-v3-3-b617009d1a4a@columbia.edu>
+References: <20261117-uffd-state-fixes-v3-3-b617009d1a4a@columbia.edu>
+Subject: + fs-proc-task_mmu-downgrade-writable-migration-entries-in-pagemap_scan-write-protect.patch added to mm-new branch
+Message-Id: <20261124222730.A95711F000C0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -65,12 +65,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: userfaultfd: refuse UFFDIO_MOVE into a non-present huge destination PMD
+     Subject: fs/proc/task_mmu: downgrade writable migration entries in PAGEMAP_SCAN write-protect
 has been added to the -mm mm-new branch.  Its filename is
-     userfaultfd-refuse-uffdio_move-into-a-non-present-huge-destination-pmd.patch
+     fs-proc-task_mmu-downgrade-writable-migration-entries-in-pagemap_scan-write-protect.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-refuse-uffdio_move-into-a-non-present-huge-destination-pmd.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-downgrade-writable-migration-entries-in-pagemap_scan-write-protect.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -100,46 +100,51 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: userfaultfd: refuse UFFDIO_MOVE into a non-present huge destination PMD
-Date: Tue, 17 Nov 2026 23:28:42 -0500
+Subject: fs/proc/task_mmu: downgrade writable migration entries in PAGEMAP_SCAN write-protect
+Date: Tue, 17 Nov 2026 23:28:43 -0500
 
-move_pages() refuses to move into a destination PMD that already maps a
-THP, but checks for that with pmd_trans_huge(), which is only true for a
-present THP. A device-private THP or a THP under migration is a PMD
-softleaf entry and is not refused.
+PAGEMAP_SCAN with PM_SCAN_WP_MATCHING write-protects pages in a VMA
+registered for async uffd-wp, and sets the uffd bit on non-present
+entries as they are. An entry with the uffd bit set must not be
+writable, so that the page is write-protected once it is mapped again.
+change_protection() therefore downgrades writable migration and
+device-private entries to readable ones first, but PAGEMAP_SCAN does
+not.
 
-The destination PMD is then treated as if it pointed to a PTE table. It
-is not empty, so pte_alloc() leaves it alone, and move_pages_ptes()
-fails to map a PTE table from it and returns -EAGAIN. move_pages()
-retries on -EAGAIN, with both VMA read locks held. If the source is a
-THP, it is split first for nothing.
+For a writable migration entry at the PTE level,
+remove_migration_pte() restores a writable PTE without the uffd bit. So
+if a page is under migration while PAGEMAP_SCAN write-protects it, the
+write protection is lost. A user tracking writes with async uffd-wp
+sees the page reported as written on the next scan although nothing
+wrote to it.
 
-For a THP under migration, the loop ends once the migration finishes.
-A device-private THP can remain in device memory indefinitely, so the
-caller of UFFDIO_MOVE hangs until it receives a fatal signal, and
-anything in the mm that needs to write-lock one of the VMAs blocks along
-with it. This requires a driver that migrates THPs to device memory.
+With CONFIG_PAGE_TABLE_CHECK, setting the uffd bit on a writable
+non-present PTE or PMD also triggers a warning.
 
-To fix it, check the destination with pmd_is_huge(), which is true for
-a present THP and for a PMD softleaf entry. UFFDIO_MOVE now fails with
--EEXIST in these cases, as it already does for a present THP.
+To fix it, downgrade writable migration and device-private entries
+before setting the uffd bit, as change_protection() does, at the PTE,
+PMD, and hugetlb levels.
 
-Link: https://patch.msgid.link/20261117-uffd-state-fixes-v3-2-b617009d1a4a@columbia.edu
-Fixes: adef440691ba ("userfaultfd: UFFDIO_MOVE uABI")
-Fixes: a30b48bf1b24 ("mm/migrate_device: implement THP migration of zone device pages")
+Add softleaf_is_writable() and softleaf_mkreadable() to leafops.h for
+the downgrade. The open-coded copies in change_protection() can be
+converted to them separately.
+
+Link: https://patch.msgid.link/20261117-uffd-state-fixes-v3-3-b617009d1a4a@columbia.edu
+Fixes: 52526ca7fdb9 ("fs/proc/task_mmu: implement IOCTL to get and optionally clear info about PTEs")
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reported-by: Breno Leitao <leitao@debian.org>
+Closes: https://lore.kernel.org/all/avNEgmvYdoukt6MS@gmail.com/
 Tested-by: Gregory Price (Meta) <gourry@gourry.net>
-Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: James Houghton <jthoughton@google.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Balbir Singh <balbirs@nvidia.com>
 Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: Pedro Falcato <pfalcato@suse.de>
@@ -166,33 +171,149 @@ Cc: Kiryl Shutsemau <kas@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Mikołaj Lenczewski <miko.lenczewski@arm.com>
-Cc: Breno Leitao <leitao@debian.org>
 Cc: <stable@vger.kernel.org>
 
- mm/userfaultfd.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ fs/proc/task_mmu.c      |   40 +++++++++++++++++++++++++++--
+ include/linux/leafops.h |   51 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 88 insertions(+), 3 deletions(-)
 
---- a/mm/userfaultfd.c~userfaultfd-refuse-uffdio_move-into-a-non-present-huge-destination-pmd
-+++ a/mm/userfaultfd.c
-@@ -2036,12 +2036,13 @@ static ssize_t move_pages(struct userfau
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmu-downgrade-writable-migration-entries-in-pagemap_scan-write-protect
++++ a/fs/proc/task_mmu.c
+@@ -2400,6 +2400,25 @@ static unsigned long pagemap_page_catego
+ 	return categories;
+ }
  
- 		dst_pmdval = pmdp_get_lockless(dst_pmd);
- 		/*
--		 * If the dst_pmd is mapped as THP don't override it and just
--		 * be strict. If dst_pmd changes into TPH after this check, the
--		 * move_pages_huge_pmd() will detect the change and retry
--		 * while move_pages_pte() will detect the change and fail.
-+		 * If the dst_pmd is a huge leaf, present or not, don't
-+		 * override it and just be strict. If dst_pmd changes into a
-+		 * leaf after this check, move_pages_huge_pmd() will detect the
-+		 * change and retry while move_pages_ptes() will fail to map
-+		 * the PTE table and the next iteration will see the leaf.
- 		 */
--		if (unlikely(pmd_trans_huge(dst_pmdval))) {
-+		if (unlikely(pmd_is_huge(dst_pmdval))) {
- 			err = -EEXIST;
- 			break;
- 		}
++/*
++ * An armed entry must not come back writable, so downgrade a writable
++ * migration or device-private entry before giving it the bit, as
++ * change_softleaf_pte() does.
++ */
++static pte_t set_uffd_wp_softleaf_pte(pte_t pte)
++{
++	softleaf_t entry = softleaf_from_pte(pte);
++	pte_t newpte;
++
++	if (!softleaf_is_writable(entry))
++		return pte_swp_mkuffd(pte);
++
++	newpte = softleaf_to_pte(softleaf_mkreadable(entry));
++	if (pte_swp_soft_dirty(pte))
++		newpte = pte_swp_mksoft_dirty(newpte);
++	return pte_swp_mkuffd(newpte);
++}
++
+ static void make_uffd_wp_pte(struct vm_area_struct *vma,
+ 			     unsigned long addr, pte_t *pte, pte_t ptent)
+ {
+@@ -2413,7 +2432,7 @@ static void make_uffd_wp_pte(struct vm_a
+ 		set_pte_at(vma->vm_mm, addr, pte,
+ 			   make_pte_marker(PTE_MARKER_UFFD_WP));
+ 	} else {
+-		ptent = pte_swp_mkuffd(ptent);
++		ptent = set_uffd_wp_softleaf_pte(ptent);
+ 		set_pte_at(vma->vm_mm, addr, pte, ptent);
+ 	}
+ }
+@@ -2472,6 +2491,21 @@ static unsigned long pagemap_thp_categor
+ 	return categories;
+ }
+ 
++/* Same as set_uffd_wp_softleaf_pte(), for a PMD. */
++static pmd_t set_uffd_wp_softleaf_pmd(pmd_t pmd)
++{
++	softleaf_t entry = softleaf_from_pmd(pmd);
++	pmd_t newpmd;
++
++	if (!softleaf_is_writable(entry))
++		return pmd_swp_mkuffd(pmd);
++
++	newpmd = softleaf_to_pmd(softleaf_mkreadable(entry));
++	if (pmd_swp_soft_dirty(pmd))
++		newpmd = pmd_swp_mksoft_dirty(newpmd);
++	return pmd_swp_mkuffd(newpmd);
++}
++
+ static void make_uffd_wp_pmd(struct vm_area_struct *vma,
+ 			     unsigned long addr, pmd_t *pmdp)
+ {
+@@ -2482,7 +2516,7 @@ static void make_uffd_wp_pmd(struct vm_a
+ 		pmd = pmd_mkuffd(old);
+ 		set_pmd_at(vma->vm_mm, addr, pmdp, pmd);
+ 	} else if (pmd_is_migration_entry(pmd)) {
+-		pmd = pmd_swp_mkuffd(pmd);
++		pmd = set_uffd_wp_softleaf_pmd(pmd);
+ 		set_pmd_at(vma->vm_mm, addr, pmdp, pmd);
+ 	}
+ }
+@@ -2552,7 +2586,7 @@ static void make_uffd_wp_huge_pte(struct
+ 
+ 	if (softleaf_is_migration(entry)) {
+ 		set_huge_pte_at(vma->vm_mm, addr, ptep,
+-				pte_swp_mkuffd(ptent), psize);
++				set_uffd_wp_softleaf_pte(ptent), psize);
+ 	} else {
+ 		pte_t old_pte, new_pte;
+ 
+--- a/include/linux/leafops.h~fs-proc-task_mmu-downgrade-writable-migration-entries-in-pagemap_scan-write-protect
++++ a/include/linux/leafops.h
+@@ -435,6 +435,57 @@ static inline struct folio *softleaf_to_
+ }
+ 
+ /**
++ * softleaf_is_writable() - Is this leaf entry writable?
++ * @entry: Leaf entry.
++ *
++ * Returns: true for a writable migration or device private entry.
++ */
++static inline bool softleaf_is_writable(softleaf_t entry)
++{
++	return softleaf_is_migration_write(entry) ||
++	       softleaf_is_device_private_write(entry);
++}
++
++/**
++ * softleaf_migration_mkreadable() - Downgrade a writable migration entry to a
++ * readable one.
++ * @entry: Leaf entry, softleaf_is_migration_write(@entry) must return true.
++ *
++ * Returns: A readable migration entry for the same PFN, which is exclusive if
++ * the folio is anonymous.
++ */
++static inline softleaf_t softleaf_migration_mkreadable(softleaf_t entry)
++{
++	const pgoff_t offset = swp_offset(entry);
++
++	VM_WARN_ON_ONCE(!softleaf_is_migration_write(entry));
++
++	/* A writable anon migration entry implies AnonExclusive. */
++	if (folio_test_anon(softleaf_to_folio(entry)))
++		return make_readable_exclusive_migration_entry(offset);
++	return make_readable_migration_entry(offset);
++}
++
++/**
++ * softleaf_mkreadable() - Downgrade a writable leaf entry to a readable one.
++ * @entry: Leaf entry.
++ *
++ * Returns: A readable entry if @entry is a writable migration or device
++ * private entry, otherwise @entry unchanged.
++ */
++static inline softleaf_t softleaf_mkreadable(softleaf_t entry)
++{
++	switch (softleaf_type(entry)) {
++	case SOFTLEAF_DEVICE_PRIVATE_WRITE:
++		return make_readable_device_private_entry(swp_offset(entry));
++	case SOFTLEAF_MIGRATION_WRITE:
++		return softleaf_migration_mkreadable(entry);
++	default:
++		return entry;
++	}
++}
++
++/**
+  * softleaf_is_poison_marker() - Is this leaf entry a poison marker?
+  * @entry: Leaf entry.
+  *
 _
 
 Patches currently in -mm which might be from tz2294@columbia.edu are
