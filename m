@@ -1,51 +1,64 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795640921;
-	b=uAR2qSiylk5r80XV5qJM3KKbCy3vQ15kEQCN6ChXWnuHInpYlaWOQGIWgD27vehtEw3R
-	 2FNKk5KjaTu9Zj2FfNZVo2SiccoKzreLd5QgK71L++TGLmIgUNKGOh+F3QGtwIN1ebbN9
-	 6tfzfCkZbriRS/Psvhk3ne6fYECE5iovHUBbGKTZjPUolJzCXvOatvF22hYPL/TOW29au
-	 NYTRM64i1dQTz5/51f1BSWG67tAtYIk5qcIdVbe1pLpp6H8IAA3VkguVSidDk2orP2M8D
-	 dMs4fPm+LiZvtXYyH0JOjJbPNB/yROXqYdZL2miOV2VxtAX3KInLDY2XT2V+/LJetNA==
+	t=1795649472;
+	b=U0OOChNJebMaP5E36XfdTm61HVguJuTz1ftZIB/9k1e1Vxgkor2jvv/B1MtMzGssDgDv
+	 wMzr35kjXgNL815dY/mrTfsojNOQs7C/3wI+oy4Udqha7727i06niRGiaPVRVDlqv0ORi
+	 Ba+s0tLQfFTO1XWWmgznTwGeABZvI/NpC4K/Wi/bnlorkMi+vxCsgNQWgQQIfPk6nLGSK
+	 NIbXE/buUL5Zixicg5S83N8frk2qo96BWGVxzsCD1G2gr7sVDnNu4T66eJT0G+VSRl2Zl
+	 t8cFBnppRm01YflSO4ZFiHqHogUMQEULCYLGUxkZLcDN0xr5q6OFtAWIRt/2mrveXLw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795640921;
-	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
-	 Message-Id;
-	bh=9pTM1f0slv7juZylMVenTImMnweK3kkZ0NenR+uz0+c=;
-	b=EW+mRw7dOEcaOAsRp2+DyAtXtRRW3YqQFvtTv0yPWH1EnZQjq68nhlOGlu8MVpfnJ4rU
-	 yP4Zj/iE1v45EsrPgpbD7Cs4RF0SEnAF+LeL7jG8SDVSahfFVkcPd5gVbQnaTMXR8WK8H
-	 6bvrdesdCTbMdLfHsOg6jJnwhEIIRoAlEfOMaaDKUQLkiP1R/lPSx2qAF9/PF7FD8T3gp
-	 6+lo9+v6qqfR2oEeuaDXQgw0MvcVyuIL8aFzpCI8MFcJwgYmy0uoLzgZX4oynmtqCEYPG
-	 DQXkTEleqraBhbmuvjYXsmP5/qokDym27ZjE/sq7tZRzCOczVxOqX3OAyV1fd9yKPCQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795649472;
+	h=Received:DKIM-Signature:Received:Subject:From:In-Reply-To:References:
+	 X-PR-Tracked-List-Id:X-PR-Tracked-Message-Id:X-PR-Tracked-Remote:
+	 X-PR-Tracked-Commit-Id:X-PR-Merge-Tree:X-PR-Merge-Refname:
+	 X-PR-Merge-Commit-Id:Message-Id:Date:To:Cc;
+	bh=IaQ8G7FsZ0ue/JnonyL9MzaOsIPjfxBpTMXEtTIO4eM=;
+	b=cpxfQxQftPB9OGuCC1sjt3I+Ovkji6uBSwJSQzgZ/PVDPe28LynWWckgFvckbXD+Vj1B
+	 3GrpDncRs+jtCHIqRJuu8azmHgES576YcsCR4uRTHf57s3/B2cWSBK3w9Qm70SzNKVFIN
+	 wuTCeyDrVEMP6SQiGfdgJyIWSJ82KnS+AV//DO8syo77JWNMIUjFSZcIZPQwh887ABWqb
+	 Z8GwjGPxf2zMp/Xaa3sWDWS1suWs7jRza74F4f234CrakbksGnrxFUiDJhuu3feIP+hlY
+	 efWPtop/lWAWBzqzcBJX2MbUNHHv0xI5TlUePkE3Thody00tE1xdvWxG/OzNk1cY4Tw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=x6fjlJjH;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nFlEGBr3;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94F58606A31E
-	for <mm-commits@vger.kernel.org>; Wed, 25 Nov 2026 21:08:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3935606A31E;
+	Wed, 25 Nov 2026 23:31:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=x6fjlJjH
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8076A1F000C0;
-	Wed, 25 Nov 2026 21:08:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795640920;
-	bh=9pTM1f0slv7juZylMVenTImMnweK3kkZ0NenR+uz0+c=;
-	h=Date:To:From:In-Reply-To:References:Subject;
-	b=x6fjlJjHygbNL7L0w9Ns+d9EGzFpiHxI7cUpIIlbFY1dFrrDMbLb6Vcr5YNcNfu4/
-	 pdykStBcqEyul6DqSOmF1qsQ+imvPsoCvfgYA/cOo8QZm+PEJpSIRV49562YwVAshm
-	 EM3+5kqNk7S2u3g4Bzk06b7uKB852n7SltKjS2eI=
-Date: Wed, 25 Nov 2026 13:08:39 -0800
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
-	sj@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,
-	liam@infradead.org,david@kernel.org,chansen3@cisco.com,wangxuewen@kylinos.cn,
-	akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261125091408.1584017-1-wangxuewen_ky@163.com>
-References: <20261125091408.1584017-1-wangxuewen_ky@163.com>
-Subject: + tools-mm-page-types-flush-pending-idle-bitmap-bits-after-walking.patch added to mm-new branch
-Message-Id: <20261125210840.8076A1F000C0@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nFlEGBr3
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 896A61F000CF;
+	Wed, 25 Nov 2026 23:31:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795649472;
+	bh=IaQ8G7FsZ0ue/JnonyL9MzaOsIPjfxBpTMXEtTIO4eM=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc;
+	b=nFlEGBr3DuFs0gttzSMUwUrwo0VdEDEAH4Lwp/lblcB1ELqPskzCFSaoBcKHQ+VhY
+	 tVQbDZ/RREyJenVJAGV+IYXDJDYdMKTG2H2BKsRnQdUpc53CcHB1OhI5ubpm5GTMW9
+	 GQURxM2/UEE2s9xTTpA4WLK9bZ0N+B7ML19O3uymOO8yHsvpLWTsY+Mmq+ob8+qjzY
+	 qgrNsTrsF18Gb6m1hZKAADv2x3Fx2I6mhLNdTj0vPt2ScL84DJlE4ZxEGSKGYbiK4I
+	 p7Mx+Heq8KdTclXd63wjHXQEemH3O921guuo9QCGHzyzjkXsAe6hMke1q4kR8J5KzY
+	 GarDrwnscPXKg==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 7772C3809A29;
+	Wed, 25 Nov 2026 23:31:12 +0000 (UTC)
+Subject: Re: [GIT PULL] MM hotfixes for 7.4-rc5
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <20261124224409.56e65d8ff1f72a1d485450ad@linux-foundation.org>
+References: <20261124224409.56e65d8ff1f72a1d485450ad@linux-foundation.org>
+X-PR-Tracked-List-Id: <mm-commits.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20261124224409.56e65d8ff1f72a1d485450ad@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2026-11-24-22-39
+X-PR-Tracked-Commit-Id: 448293c44d86abaff45d6f6919e6056ad97eaa31
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: b312ada03437d5874a8dbac6b4a1d479c2af3da9
+Message-Id: <179564947119.1391833.9076043211055122022.pr-tracker-bot@kernel.org>
+Date: Wed, 25 Nov 2026 23:31:11 +0000
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, David Hildenbrand <david@kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,157 +68,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
+The pull request you sent on Tue, 24 Nov 2026 22:44:09 -0800:
 
-The patch titled
-     Subject: tools/mm: page-types: flush pending idle bitmap bits after walking
-has been added to the -mm mm-new branch.  Its filename is
-     tools-mm-page-types-flush-pending-idle-bitmap-bits-after-walking.patch
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2026-11-24-22-39
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-page-types-flush-pending-idle-bitmap-bits-after-walking.patch
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/b312ada03437d5874a8dbac6b4a1d479c2af3da9
 
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+Thank you!
 
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Xuewen Wang <wangxuewen@kylinos.cn>
-Subject: tools/mm: page-types: flush pending idle bitmap bits after walking
-Date: Wed, 25 Nov 2026 17:14:08 +0800
-
-mark_page_idle() buffers bits for one 64-page bitmap word and writes that
-word when a page in another word is encountered.
-
-walk_addr_ranges() tries to flush the final word by marking PFN 0.  If the
-last buffered PFN is below 64, this only adds a bit to the same word and
-nothing is written.  Otherwise it writes the pending word but leaves an
-unwanted PFN 0 bit buffered.  walk_page_cache() does not flush at all, so
-its final pending bits are not written.
-
-Extract the write operation into flush_page_idle() and use it both when
-changing words and after either walker returns to main().  Clear the
-buffer after a successful write and skip writes when it is empty.  Place
-the final flush before the no-summary early return and return EXIT_FAILURE
-if it fails.
-
-Use 1ULL for the bit mask so shifts by 32 through 63 are also valid on
-32-bit hosts.
-
-Link: https://patch.msgid.link/20261125091408.1584017-1-wangxuewen_ky@163.com
-Fixes: 59ae96ffc3a6 ("tools/vm/page-types.c: add support for idle page tracking")
-Signed-off-by: Xuewen Wang <wangxuewen@kylinos.cn>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Christian Hansen <chansen3@cisco.com>
-Cc: SJ Park <sj@kernel.org>
-
- tools/mm/page-types.c |   38 +++++++++++++++++++++++++-------------
- 1 file changed, 25 insertions(+), 13 deletions(-)
-
---- a/tools/mm/page-types.c~tools-mm-page-types-flush-pending-idle-bitmap-bits-after-walking
-+++ a/tools/mm/page-types.c
-@@ -575,27 +575,39 @@ static int unpoison_page(unsigned long o
- 	return 0;
- }
- 
--static int mark_page_idle(unsigned long offset)
-+static unsigned long page_idle_offset;
-+static uint64_t page_idle_buf;
-+
-+static int flush_page_idle(void)
- {
--	static unsigned long off;
--	static uint64_t buf;
- 	int len;
- 
--	if ((offset / 64 == off / 64) || buf == 0) {
--		buf |= 1UL << (offset % 64);
--		off = offset;
-+	if (!page_idle_buf)
- 		return 0;
--	}
- 
--	len = pwrite(page_idle_fd, &buf, 8, 8 * (off / 64));
-+	len = pwrite(page_idle_fd, &page_idle_buf, 8,
-+		     8 * (page_idle_offset / 64));
- 	if (len < 0) {
- 		perror("mark page idle");
- 		return len;
- 	}
- 
--	buf = 1UL << (offset % 64);
--	off = offset;
-+	page_idle_buf = 0;
-+	return 0;
-+}
- 
-+static int mark_page_idle(unsigned long offset)
-+{
-+	int ret;
-+
-+	if (offset / 64 != page_idle_offset / 64) {
-+		ret = flush_page_idle();
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	page_idle_buf |= 1ULL << (offset % 64);
-+	page_idle_offset = offset;
- 	return 0;
- }
- 
-@@ -798,9 +810,6 @@ static void walk_addr_ranges(void)
- 		else
- 			walk_task(opt_offset[i], opt_size[i]);
- 
--	if (opt_mark_idle)
--		mark_page_idle(0);
--
- 	close(kpageflags_fd);
- }
- 
-@@ -1364,6 +1373,9 @@ int main(int argc, char *argv[])
- 	else
- 		walk_addr_ranges();
- 
-+	if (opt_mark_idle && flush_page_idle() < 0)
-+		return EXIT_FAILURE;
-+
- 	if (opt_list == 1)
- 		flush_page_range();
- 
-_
-
-Patches currently in -mm which might be from wangxuewen@kylinos.cn are
-
-mm-shrinker-stop-counting-when-the-seq-buffer-overflows.patch
-tools-mm-page-types-flush-pending-idle-bitmap-bits-after-walking.patch
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
