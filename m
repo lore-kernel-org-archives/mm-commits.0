@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795638969;
-	b=BvGgDPcxrUCLMluDNiklMKMGb7kSmQhRD0lVsFgC13C8xqr+UfR+wgtsjYpYbu4+HlBF
-	 pXuB6CvbAA2sEndCmiZ9W1LrBL2OK6ciWOEeQ8VpZJ1uKPSLa1Rk2jT7YzIATHphJTv3w
-	 yag/FawJdL9Nc72k4nTxZ7GKigYCJWOz1fSWItN0PoXikwOpJ09xsbMBxnGPXOV6zQKeZ
-	 I+zUMRDdlznaJ5C2AkyjB8CvAYatU+jmfry9mJFrsI9P7qp91L84GfGhqEJd5gyf7XM+Z
-	 8ka+OOAxbnbDxv01IteYta8wCUiT62yemaEPn3UioMyT4BhPm3peMhTs0kyNMmcLcXw==
+	t=1795638971;
+	b=pFUSYDmJPaPZLVwI5FEvxYPpMvJ2aeAKKk4BpYkQQnbvqn7T476DGnDmOb3p7Iat6y9Z
+	 LuzWoz+fNQ6an8nrcIUlAKO31iLEKpPqHGqcIxcDrVfzNbmqu9XW2gJ0tZYQF7JnkxGGs
+	 4GV9H2URbETfbCkUoi14gojasw2PevOMaLb37SQAH4EblDYs5y3NOWyQjCvmEI1fkL1py
+	 OKtskTBXlBJ51C/DJ5tWrorQ0+D45EkY5eT2E4xwjhRXE5sTc2ouKogQOOGECk4t5bDmx
+	 lKlnh7mUV359EQOHSaezUINgxHFLdZYT3k16fg6g90acZyNTnteyIAfKJSiVtuJV2PA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795638969;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795638971;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=8w1kDv9Y8BTJ7AnoekVHVwC4+UH60Jeoc1NrTBtqcIs=;
-	b=Qhk++EIxjRcngXFmFdBdDVaiG5AaX0EmJJs7KhLJnUma+vj6DfW3SlEZ9x4xqnM92Xnj
-	 qoLwu7bY8XSVnQbPamB9fal2wqnB5EmXvRiGShXXiGUYZ9oatlBtOT4KE869phkFJ04Q5
-	 E9DlNU476WjD5epgnfV1xIiwC5an6cfnA1eyX6MDqZnT44F4HiDUHtl3j4WXcAU1gZOzO
-	 SXghsawyPAKQ/naJ0DV41q3T0DM05w+X9mpXeHveukOqC3M19+mLatm+UrO5OGnJ9w+W/
-	 1pjh6UQGSf8TjulpGZrYegSwnOdVINsscgAnDGanQ1B6rRlZcTodrQcWlkWT8PhLFag==
+	bh=di4WNOA8s6gd3Z9egB1KHYJVbECTwr9tLSpxnolmYWM=;
+	b=YDcE4Hb0i3oLnJMK75mx2JHP9WUByqt6uGdqJhmbHaG8vMlANoAgB7uUDzWkGXzu5NLJ
+	 uzt/RM2L2N77TaJm1toKW7klCGW/m6OmeD0vUUUMkMrMwBdWQTrkiOd49hLmw5OEeiVS+
+	 kEbPjXTmbBhaeEVKiPHa9b4+7oBBaaoHrtAUcyX/MDEKMI9F5kF/RhA7TLdjzxmaM5Nd0
+	 RcFi6TXXPbdjbxE++Oaj0sRiykCQpiDIw+03QNlC0fo34/o3FfCuJwn7l84dCE71JZ4Il
+	 /SPpAeF/2wT3dAEU3gBiboPUIXaeTC6WSe6dhrUqfBBq96LSbFMM+kOCRqmFK4hCxgg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PTHnPOha;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=sz7oI5fj;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A77F4606A321
-	for <mm-commits@vger.kernel.org>; Wed, 25 Nov 2026 20:36:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B3D5606A321
+	for <mm-commits@vger.kernel.org>; Wed, 25 Nov 2026 20:36:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PTHnPOha
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CDCB1F000C0;
-	Wed, 25 Nov 2026 20:36:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=sz7oI5fj
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D28B1F000C4;
+	Wed, 25 Nov 2026 20:36:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795638969;
-	bh=8w1kDv9Y8BTJ7AnoekVHVwC4+UH60Jeoc1NrTBtqcIs=;
+	d=linux-foundation.org; s=korg; t=1795638971;
+	bh=di4WNOA8s6gd3Z9egB1KHYJVbECTwr9tLSpxnolmYWM=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=PTHnPOha4qcFGioDDkRtflbHdGQu//+DZAjzvtxpyovk4i7lZ2pemjcvBUBWetSYR
-	 Rmb749NveznmBkYIDCroANO6Rmit/lbFV5GInICW8Vvvbu+POKBPbAdD0Ntv6HdZT3
-	 ajIFeB2tUm8xsj1Nn+U5XzRq/8Dqvw/QfMyEcy4I=
-Date: Wed, 25 Nov 2026 12:36:08 -0800
+	b=sz7oI5fjQSxj5/ohgLMMwI3s2q0LPgZBqm0i9vpZSLhojmIQlT5ZgqP+nTJKvejkO
+	 KPresmDxnRKOgCxOxcYCrWlccQ0IvRYDemWZB6beyKIQH5h1qR3QWlEZ7d+5L4GQjg
+	 LxdD8IKBNREge8stZsz6zQO13yo9GPVqIrznM6Sg=
+Date: Wed, 25 Nov 2026 12:36:10 -0800
 To: mm-commits@vger.kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124-mglru-fg-v6-12-8ffea39934a6@tencent.com>
-References: <20261124-mglru-fg-v6-12-8ffea39934a6@tencent.com>
-Subject: [to-be-updated] mm-damon-convert-to-lru-refs-based-operations-for-mglru.patch removed from -mm tree
-Message-Id: <20261125203609.3CDCB1F000C0@smtp.kernel.org>
+In-Reply-To: <20261124-mglru-fg-v6-13-8ffea39934a6@tencent.com>
+References: <20261124-mglru-fg-v6-13-8ffea39934a6@tencent.com>
+Subject: [to-be-updated] mm-khugepaged-convert-to-lru-refs-based-operations-for-mglru.patch removed from -mm tree
+Message-Id: <20261125203611.0D28B1F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,24 +54,27 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/damon: convert to LRU refs based operations for MGLRU
+     Subject: mm/khugepaged: convert to LRU refs based operations for MGLRU
 has been removed from the -mm tree.  Its filename was
-     mm-damon-convert-to-lru-refs-based-operations-for-mglru.patch
+     mm-khugepaged-convert-to-lru-refs-based-operations-for-mglru.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm/damon: convert to LRU refs based operations for MGLRU
-Date: Tue, 24 Nov 2026 02:53:04 +0800
+Subject: mm/khugepaged: convert to LRU refs based operations for MGLRU
+Date: Tue, 24 Nov 2026 02:53:05 +0800
 
-damon_pa_pageout() cleared PG_referenced directly, which under MGLRU
-corrupts the folio's refs count. That flag is now
-bit 0 of the count (LRU_REFS_FLAGS).
+For MGLRU, PG_referenced is only the lowest bit of the folio LRU refs
+count, so folios with nonzero even refs no longer have the bit set.
+folio_pte_referenced() testing the raw bit misses hot folios at
+refs 2, 4 or 6, under-counting the referenced folios of a candidate range
+and aborting otherwise good collapses with SCAN_LACK_REFERENCED_PAGE.
 
-Reset the count instead under MGLRU.
+Test the refs count directly when MGLRU is enabled, mirroring the
+smaps conversion.  The classical LRU keeps the plain bit test.
 
-Link: https://patch.msgid.link/20261124-mglru-fg-v6-12-8ffea39934a6@tencent.com
+Link: https://patch.msgid.link/20261124-mglru-fg-v6-13-8ffea39934a6@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Tested-by: Zhao Zhenzhuo <zhaozhengzhuo@uniontech.com>
@@ -124,21 +127,22 @@ Cc: Tianyi Chen <hi@tychen.cc>
 Cc: Ridong Chen <ridong.chen@linux.dev>
 Cc: Harry Yoo <harry@kernel.org>
 
- mm/damon/paddr.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/khugepaged.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/damon/paddr.c~mm-damon-convert-to-lru-refs-based-operations-for-mglru
-+++ a/mm/damon/paddr.c
-@@ -279,7 +279,8 @@ static unsigned long damon_pa_pageout(st
- 		else
- 			*sz_filter_passed += folio_size(folio) / addr_unit;
- 
--		folio_clear_referenced(folio);
-+		/* The region is cold, better drop the hotness info. */
-+		folio_clear_lru_refs(folio);
- 		folio_test_clear_young(folio);
- 		if (!folio_isolate_lru(folio))
- 			goto put_folio;
+--- a/mm/khugepaged.c~mm-khugepaged-convert-to-lru-refs-based-operations-for-mglru
++++ a/mm/khugepaged.c
+@@ -579,7 +579,9 @@ static bool folio_pte_referenced(struct
+ 		struct vm_area_struct *vma, unsigned long addr, pte_t pteval)
+ {
+ 	/* The folio was referenced previously ... */
+-	if (folio_test_young(folio) || folio_test_referenced(folio))
++	if (folio_test_young(folio))
++		return true;
++	if (folio_check_lru_refs(folio))
+ 		return true;
+ 	/* ... or the PTE mapping was recently used */
+ 	return pte_young(pteval) || mmu_notifier_test_young(vma->vm_mm, addr);
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
@@ -151,7 +155,6 @@ mm-mglru-skip-zones-above-reclaim_idx-instead-of-rotating-them.patch
 mm-mglru-return-for-unavailable-anon-reclaim-earlier.patch
 mm-mglru-balance-anon-and-file-scan-budget-by-refault-rate.patch
 mm-mglru-lift-youngest-gen-protection-for-higher-priority.patch
-mm-khugepaged-convert-to-lru-refs-based-operations-for-mglru.patch
 mm-madvise-adapt-for-lru-refs-based-operations-for-mglru.patch
 mm-huge_memory-mark-folio-as-accessed-more-accurately-on-split.patch
 mm-mglru-make-pg_workingset-helpers-work-based-on-folio-lru-refs.patch
