@@ -1,49 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795589051;
-	b=JGccD69Y1KDQNWtTFEtLxCfMNcSzjdl0eauanRvpOdlYi4bhAuinLKwRlSGPeIL7enyK
-	 v94PnhBRGXNVb+57tMttmvbOOHW24o2BYA/t9w9navEuhGsI2mscOAiT2G5pBjFx77BEU
-	 104ZoFUhDVPkRXDX+rgszM70i//Pkc0HCBNNiRdqUYdM/B//FsTk2NOmJZwxhD+UVIBe2
-	 3Io2ilPO580dAVlHwbZDNSXFlLA3sHPOWpOYjAmL7hothosKQkLo8x5C3q97ocB/m7rl1
-	 bjU+5a3EQpBdAmnA7kDqhXeVW8bO/bk7yWUJ4HHdPLdh04gUZZiCFPPM7rxOwLst5OQ==
+	t=1795589532;
+	b=bEQvaAlF+beZ2f7rSmrXYWkW4BNoBLMPJ0Wh+HHgW2HTrlau1eDt4bwsrKjBXm+1ZJqZ
+	 Zdu5A9yqYTJ9ft6OjLqMQRPwtFNlVx5ha2Npy+k5vLwG/0M94wR8KwlWXtwUt6IEBjWK8
+	 T+BFfDwJ2kBlfJjUkzChkSayRvj3nXjfYXspJKkv6tuVaJudQnerCTOofb0ViTFZxey1o
+	 Pq0co7yKprryqRXXTtljLvDNNyYhb8qfvo/44vHM/lPkrZVGV8bXwstHX1mh1lHy+RqU7
+	 8vMuYcV3ICUTI6IfflmeJZ3pm3TOWlv7apfXMmsCQkYAO7gWNEsT4NEOMOOhQ6Dlhog==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795589051;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-Id:X-Mailer:
-	 Mime-Version:Content-Type:Content-Transfer-Encoding;
-	bh=LMQAj09bQbCYq864JFAOM1F6lLxWDCCM05N91L35IgQ=;
-	b=omgtq+p+ZzLKehGCakikFuigVflyWkztq604HHCqgrt9QMSzdQ9WmtclZPNY5Ei00w8G
-	 QrFA1M0KSMGg9HeLyFa2qCt9hzj+4c1HQbtTqsCuDduDQTcmjuyP6HusOYCfy0In1iFwK
-	 Wx1nlUUgWx7lIYTVEHoAScIVhSPMXv0hOd8xoGlJBK6SVPSJYiMyFk/Zg5NzmtdvDxpmF
-	 zvxI7AgTr2mO/Ary2tCFrCuCL1DUJWy35AVekc+NfpfLTxvdLZe899WZM7fAhZq9DPRBG
-	 bFDCuHuhz8V2gPPAMWnk6HxgOC9VFKs+DGwMuYB0vtY+hK0V+dM2hD1do4UVewiuvFw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795589532;
+	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
+	bh=int0CE+GrC4t+Em4g7mSk1k4sf918h+g7daBqpZK1iU=;
+	b=APLh73HHEHmC0M1HR0r7SGG3Pj6TRFR+Mzs0dXxUF97CfO7QESe/ku4WojIqzUkMjwqu
+	 xl+pRxZnNhdad1VgQCV7nBMPVwCYHZlAMXvGPtiR5zIgfswwTnBXXGnu184SvO9WCei1b
+	 SLRIuEGceR95GrbfUqD9dmgaFPEfE6X1w2SIMM+9/uZejm2TBOPd9gCLcyzN7qH5d6j+o
+	 x72i1bcSvchhode6jnyme8pL63s+fSSbdWHjCrNXTSF3nLeWiApdzXx2kRXsk8lIXRmNS
+	 H96Hwf+IGdc9coYHhwkX211Oq07v9KSafgAX08QyU3onF+owZTdf9sABPb3Zv/CV1Kg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=aaRG5jvB;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WCpC4tqL;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CCFE606A321;
-	Wed, 25 Nov 2026 06:44:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BD80606A31E;
+	Wed, 25 Nov 2026 06:52:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=aaRG5jvB
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04B741F000CF;
-	Wed, 25 Nov 2026 06:44:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WCpC4tqL
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83E151F000C0;
+	Wed, 25 Nov 2026 06:52:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795589050;
-	bh=LMQAj09bQbCYq864JFAOM1F6lLxWDCCM05N91L35IgQ=;
-	h=Date:From:To:Cc:Subject;
-	b=aaRG5jvBSWj5PNceuyAf4rFfTBdAlBAysT2A6X4VVO6wsWN0puOJZr/etsbm6f/Tn
-	 Sx7262mKxmXayfSJXi+2TlBG1qFuOam48b1vC73fcR/l/OCr4C+D4t3d+KKiZiPh6e
-	 EhMRW0NwdgrZsfyDw2TNx27Yscjj9YkavfS2KyMk=
-Date: Tue, 24 Nov 2026 22:44:09 -0800
+	d=linux-foundation.org; s=korg; t=1795589531;
+	bh=int0CE+GrC4t+Em4g7mSk1k4sf918h+g7daBqpZK1iU=;
+	h=Date:To:From:Subject;
+	b=WCpC4tqLN2qiNWrUR5f1sDKB8WkBiaGpCW1vbhgCHPoVQKfKeq8vTHJhbhlkBIy+W
+	 I5ZyfRfqiBS8B0vYL7DR03FFIkwj48ftRvgCKeNsZrkc8zZFsPNdXbBgAHsKDfPEqW
+	 pZStoGhD3ib4yDU3kOVZORgX5Zzt4lmdH+gKuf8s=
+Date: Tue, 24 Nov 2026 22:52:11 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,
+	shuah@kernel.org,rppt@kernel.org,rcampbell@nvidia.com,mpenttil@redhat.com,
+	mhocko@suse.com,liam@infradead.org,leon@kernel.org,jm5905938@gmail.com,
+	jgg@ziepe.ca,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
- mm-commits@vger.kernel.org, David Hildenbrand <david@kernel.org>
-Subject: [GIT PULL] MM hotfixes for 7.4-rc5
-Message-Id: <20261124224409.56e65d8ff1f72a1d485450ad@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: [folded-merged] lib-test_hmm-invalidate-all-mirrors-on-device-private-migration-fix.patch removed from -mm tree
+Message-Id: <20261125065211.83E151F000C0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,170 +51,94 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
 
 
-Linus, please merge this batch of MM hotfixes, thanks.
+The quilt patch titled
+     Subject: lib/test_hmm: fix device-private backing subpage selection
+has been removed from the -mm tree.  Its filename was
+     lib-test_hmm-invalidate-all-mirrors-on-device-private-migration-fix.patch
 
+This patch was dropped because it was folded into lib-test_hmm-invalidate-all-mirrors-on-device-private-migration.patch
 
-The following changes since commit 4405c18c95d2d0f99f6c581ef0ee8591a1aa6ccd:
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib/test_hmm: fix device-private backing subpage selection
+Date: Sun, 22 Nov 2026 11:22:16 -0800
 
-  Merge tag 'mm-nonmm-hotfixes-stable-2026-11-18-00-06' of git://git.kernel=
-.org/pub/scm/linux/kernel/git/akpm/mm (2026-11-18 09:51:04 -0800)
+BACKING_PAGE() evaluates to void * because zone_device_data is void *. 
+Adding folio_page_idx() to it advances by bytes, so a device-private PMD
+subpage can select the wrong RAM backing page.  The new
+migrate_anon_huge_fault() selftest fails when it reads the last subpage.
 
-are available in the Git repository at:
+Assign the backing address to a struct page * before adding the subpage
+index.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-st=
-able-2026-11-24-22-39
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Aveline Noir <jm5905938@gmail.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: Mika Penttilä <mpenttil@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: <stable@vger.kernel.org>
 
-for you to fetch changes up to 448293c44d86abaff45d6f6919e6056ad97eaa31:
+ lib/test_hmm.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-  mm/mglru: fix a no-op lru_gen_clear_refs() call in lru_lazyfree() (2026-1=
-1-22 22:24:15 -0800)
+--- a/lib/test_hmm.c~lib-test_hmm-invalidate-all-mirrors-on-device-private-migration-fix
++++ a/lib/test_hmm.c
+@@ -294,9 +294,9 @@ static int dmirror_do_fault(struct dmirr
+ 
+ 		if (is_device_private_page(page)) {
+ 			struct folio *folio = page_folio(page);
++			struct page *backing = BACKING_PAGE(&folio->page);
+ 
+-			page = BACKING_PAGE(&folio->page) +
+-				folio_page_idx(folio, page);
++			page = backing + folio_page_idx(folio, page);
+ 		}
+ 		entry = page;
+ 		if (*pfns & HMM_PFN_WRITE)
+_
 
-----------------------------------------------------------------
-mm.git review status for linus..mm-hotfixes-stable
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-Everything:
-
-Total patches:       26
-Fixes: tags:         18
-cc:stable patches:   17
-Reviews/patch:       3.88
-Reviewed rate:       96%
-
-Summary of patch series in this merge:
-
-- "mm: fix swapcache writeout and cluster table races" (Nhat Pham):
-
-  Let reclaim write dirty swapcache folios without anon mappings.
-  Publish swap cluster tables under the allocator locks and keep
-  stale reclaimers from relocating clusters being populated.
-
-- "mm/hugetlb: various fixes" (David Hildenbrand):
-
-  Prevent fallocate() overflow from consuming and leaking huge pages.
-  Serialize mremap() with migration before flushing stale TLB entries,
-  and avoid corrupting private hugetlb VMA state during unmapping.
-
-- "MAINTAINERS: remove my reviewerships, add CREDITS entry for THP"
-  (Lorenzo Stoakes):
-
-  Remove Lorenzo's MM reviewership entries and record his THP
-  maintenance in CREDITS.
-
-- "MAINTAINERS: MM updates (2)" (David Hildenbrand):
-
-  Add Kairui as an MGLRU maintainer, move Barry to the top of its
-  reviewer list and remove David from reclaim reviewership.
-
-Summary of the 14 singletons in this merge:
-
-Two list_lru fixes prevent a cgroup's reused ID from making a folio unlink
-from the wrong list, which can corrupt the list and later access freed
-memory.  They also avoid a NULL dereference if a folio moves to the root
-cgroup between the allocation path's two lookups.  MGLRU now moves every
-generation when reparenting a cgroup; a skipped list could otherwise
-remain in a freed cgroup and cause a use-after-free.  Clearing MGLRU
-references before removing a MADV_FREE folio from its generation also
-stops reclaim from repeatedly protecting a discardable folio.
-
-The memcg object stock now flushes pending charged bytes when its lock
-cannot be taken.  Otherwise memory.current could grow without matching
-usage, causing unnecessary reclaim, throttling or OOM kills, and a counter
-wrap could leave a permanent charge.  The memcg OOM scan also keeps an
-exiting victim visible until it releases its memory, avoiding an
-unnecessary second kill that could take down an entire workload.
-
-Swap allocation again prefers free clusters on nonsynchronous devices,
-keeping writes mergeable.  In the reported NVMe mysql/sysbench workload,
-the prior policy reduced throughput by 19% with iocost; the revised policy
-improved throughput by 33% against its base.  The change keeps the old
-nonfull-cluster preference for synchronous devices such as zram.  A
-separate fix corrects /proc/swaps and swapon() size reporting for
-multi-terabyte swap areas.  DAMON's estimated bandwidth calculation no
-longer overflows on 32-bit systems.
-
-UFFDIO_MOVE now clears a stale userfaultfd bit when moving a swapped page
-into an unregistered VMA.  The old bit could cause MADV_COLLAPSE to fail
-or trigger a page-table-check warning on fault-in.  Buffered writes
-starting beyond EOF now check an unreadable source buffer before some
-filesystems extend the file, avoiding a failed EFAULT write that leaves a
-larger file.  On 32-bit systems with 64-bit physical addresses, /dev/mem
-now makes the correct uncached mapping decision above 4 GiB.
-
-----------------------------------------------------------------
-Alexandre Ghiti (1):
-      mm, swap: only prefer nonfull clusters on synchronous devices
-
-Andrew Morton (1):
-      MAINTAINERS: add page_ext.h to MEMORY MANAGEMENT - PAGE ALLOCATOR
-
-Chris Down (1):
-      mm: memcontrol: don't lose track of exiting OOM victims
-
-David Hildenbrand (Arm) (4):
-      MAINTAINERS: MEMORY MANAGEMENT - MGLRU (MULTI-GEN LRU) update
-      MAINTAINERS: remove myself from MEMORY MANAGEMENT - RECLAIM
-      hugetlbfs: fix integer overflow in fallocate()
-      mm/hugetlb: fix mremap() racing with page migration
-
-Donggeun Yoo (1):
-      userfaultfd: clear the inherited uffd bit in move_swap_pte()
-
-Hui Zhu (1):
-      mm/mglru: fix a no-op lru_gen_clear_refs() call in lru_lazyfree()
-
-Hungyu Lin (1):
-      filemap: prefault writes starting beyond EOF
-
-Iv=E1n Ezequiel Rodriguez (1):
-      mm: use PFN_PHYS() in phys_mem_access_prot()
-
-Josef Bacik (1):
-      hugetlbfs: fix unmapping folios from private VMAs
-
-Lorenzo Stoakes (ARM) (5):
-      MAINTAINERS: remove myself from MM core reviewership
-      MAINTAINERS: remove myself from MM misc, reclaim reviewership
-      MAINTAINERS: remove myself from MM rust reviewerships
-      CREDITS: add entry for THP maintenance
-      MAINTAINERS: consolidate the memory mapping entries into a VMA entry
-
-Nhat Pham (3):
-      mm: vmscan: allow writeout of swapcache folios without anon mappings
-      mm/swap: publish cluster tables after reacquiring allocator locks
-      mm/swap: skip relocation of tableless clusters
-
-Oleksandr Natalenko (1):
-      mm/swapfile: really fix integer overflow in swap_show() and swapon()
-
-Shakeel Butt (4):
-      mm: mglru: splice all generations when reparenting a memcg
-      memcg: flush nr_charged_bytes when the obj stock trylock fails
-      mm: list_lru: fix NULL deref when a folio moves to the root memcg
-      mm: list_lru: don't use a new memcg's lists for an offline memcg
-
-Wang Guangke (1):
-      mm/damon/stat: avoid overflow in estimated_memory_bandwidth calculati=
-on
-
- CREDITS                  |   6 +++
- MAINTAINERS              |  62 ++++++---------------
- fs/hugetlbfs/inode.c     |  18 +++++--
- include/linux/list_lru.h |   2 +
- mm/char-mem.c            |   2 +-
- mm/damon/stat.c          |  15 +++---
- mm/filemap.c             |  10 ++++
- mm/folio.c               |   6 +--
- mm/hugetlb.c             |  21 +++++++-
- mm/list_lru.c            |  41 ++++++++++----
- mm/memcontrol.c          |  10 +++-
- mm/swapfile.c            | 138 +++++++++++++++++++++++++++++++++----------=
-----
- mm/userfaultfd.c         |   1 +
- mm/vmscan.c              |  15 ++++--
- 14 files changed, 230 insertions(+), 117 deletions(-)
+mm-vma-drop-mm-asynchronously-in-vma_start_read-fix.patch
+mm-vma-drop-mm-asynchronously-in-vma_start_read-fix-2.patch
+kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize-fix.patch
+selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
+alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
+alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
+selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
+selftests-mm-allocate-nr_pages-based-on-pmd-size-for-uffd-pmd_move-tests-fix.patch
+selftests-mm-retain-move-pmd-coverage-and-verify-huge-pmds.patch
+lib-test_xarray-check-unused-spare-node-after-range-creation.patch
+mm-memory-failure-dont-unpoison-a-leaked-raw_hwp_unreliable-folio-fix.patch
+mm-vmstat_kunit-add-synthetic-benchmark-for-mm-stats-fix.patch
+lib-test_hmm-invalidate-all-mirrors-on-device-private-migration.patch
+mm-prevent-pre-content-bypass-through-mremap-and-remap_file_pages.patch
+afs-do-not-put-error-pointer-after-address-lookup-failure.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-0.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-1.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-2.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-3.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-4.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-5.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-6.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-7.patch
+ocfs2-unregister-the-jbd2-shrinker-before-journal-shutdown.patch
+ipc-msg-clamp-negative-msg_info-usage-counts.patch
+squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix.patch
+ocfs2-skip-network-flush-when-no-domain-handlers-are-registered.patch
+selftests-ptrace-check-that-ptrace_set_syscall_info-rejects-invalid-error-values-fix.patch
+lib-asn1_encoder-fix-encoding-of-zero-oid-components.patch
+proc-serialize-task-owner-updates.patch
+proc-dont-lock-task-inodes-whose-owner-has-not-changed.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
