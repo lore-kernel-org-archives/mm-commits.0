@@ -1,50 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795639699;
-	b=zSXyD+7dP6//8Mz3yvbfDOGX+SQkcGAhHpMgW25hWCtPMfTXgwyMLkBhxh+FXMJYGPz1
-	 eoC4JC65LnRKnOz/+4JRs71N8eQBDpI06jVZN0JfXdzDnMDBT0RduwNOF4SI2HBHKunxj
-	 cojdI/kr4/XvmpGw/XDNmG+ju3L/ptHcrPq8RtuHG5yYZqSjY4st0/FHwh08bBQjMGV7h
-	 7BGPA4ivIV1UJyCnLqOkGVhsssN38jmVX+8WFL/3fFp578k+BZfl/FcjIQ8vCNWERyb2z
-	 ikqqMRB/goaiXcg3oWs2uXlLRLX9GYG5vrDs7nLT4m3DxI3G22CsJuYhTcAfU1w/Z3w==
+	t=1795640921;
+	b=uAR2qSiylk5r80XV5qJM3KKbCy3vQ15kEQCN6ChXWnuHInpYlaWOQGIWgD27vehtEw3R
+	 2FNKk5KjaTu9Zj2FfNZVo2SiccoKzreLd5QgK71L++TGLmIgUNKGOh+F3QGtwIN1ebbN9
+	 6tfzfCkZbriRS/Psvhk3ne6fYECE5iovHUBbGKTZjPUolJzCXvOatvF22hYPL/TOW29au
+	 NYTRM64i1dQTz5/51f1BSWG67tAtYIk5qcIdVbe1pLpp6H8IAA3VkguVSidDk2orP2M8D
+	 dMs4fPm+LiZvtXYyH0JOjJbPNB/yROXqYdZL2miOV2VxtAX3KInLDY2XT2V+/LJetNA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795639699;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795640921;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=zDfIFTuxY9sMxl8pG0cnplIOmfvZtrsWweEREbvVxVM=;
-	b=TBIiw96AtHSCNiOVcg27z78FRVZ1cNH8D1KHjYvuf+dFkZkxXkPF7vMmfq/xmcMiNU4S
-	 LNuCJUgjssnhYT8ISY7DgYFG7tX/PFp1yArxgUyTuoxMEo0unonAgfEGbUq1nlzNDfLVC
-	 dUvNZKnsTDN8hoOZr2sSFtK65qD3aHnIjRZ9i8N3yLS0cemKysimw5HrIJfaOHH5OFM+h
-	 8FPzEx3p029kY2ydK0FbiDN/PAHAKcjpr+Yyc4/k0h8Nu1VVeAVqmty18NCvXLgnCRgqs
-	 w5ZjEL1J7yvAiAlBCVHtniV4WHdmbeNKa134G4oNQBq/zAaTUxdxfDR0/YGgLygB4oA==
+	bh=9pTM1f0slv7juZylMVenTImMnweK3kkZ0NenR+uz0+c=;
+	b=EW+mRw7dOEcaOAsRp2+DyAtXtRRW3YqQFvtTv0yPWH1EnZQjq68nhlOGlu8MVpfnJ4rU
+	 yP4Zj/iE1v45EsrPgpbD7Cs4RF0SEnAF+LeL7jG8SDVSahfFVkcPd5gVbQnaTMXR8WK8H
+	 6bvrdesdCTbMdLfHsOg6jJnwhEIIRoAlEfOMaaDKUQLkiP1R/lPSx2qAF9/PF7FD8T3gp
+	 6+lo9+v6qqfR2oEeuaDXQgw0MvcVyuIL8aFzpCI8MFcJwgYmy0uoLzgZX4oynmtqCEYPG
+	 DQXkTEleqraBhbmuvjYXsmP5/qokDym27ZjE/sq7tZRzCOczVxOqX3OAyV1fd9yKPCQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1CCakkzK;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=x6fjlJjH;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C961606A321;
-	Wed, 25 Nov 2026 20:48:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94F58606A31E
+	for <mm-commits@vger.kernel.org>; Wed, 25 Nov 2026 21:08:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1CCakkzK
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2885E1F000C6;
-	Wed, 25 Nov 2026 20:48:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=x6fjlJjH
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8076A1F000C0;
+	Wed, 25 Nov 2026 21:08:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795639698;
-	bh=zDfIFTuxY9sMxl8pG0cnplIOmfvZtrsWweEREbvVxVM=;
+	d=linux-foundation.org; s=korg; t=1795640920;
+	bh=9pTM1f0slv7juZylMVenTImMnweK3kkZ0NenR+uz0+c=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=1CCakkzKq97aSuIxLd0QJyJUk2/QvIFntVR9EOpiX82n8QSYrKCwE/LoR/QoYAYVs
-	 gBbwIX4q4l1ItH7+t+sQh3KkLxquh6akEVCoUlMOGuSI5jyySCQZRaNoKTfMGHXRhd
-	 MFIF7raNdPA4TsPfjPhC7k3sPi9gEqy+DTsCvaQs=
-Date: Wed, 25 Nov 2026 12:48:17 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,
-	nphamcs@gmail.com,jack@suse.cz,hannes@cmpxchg.org,bsdhenrymartin@gmail.com,
+	b=x6fjlJjHygbNL7L0w9Ns+d9EGzFpiHxI7cUpIIlbFY1dFrrDMbLb6Vcr5YNcNfu4/
+	 pdykStBcqEyul6DqSOmF1qsQ+imvPsoCvfgYA/cOo8QZm+PEJpSIRV49562YwVAshm
+	 EM3+5kqNk7S2u3g4Bzk06b7uKB852n7SltKjS2eI=
+Date: Wed, 25 Nov 2026 13:08:39 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
+	sj@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,
+	liam@infradead.org,david@kernel.org,chansen3@cisco.com,wangxuewen@kylinos.cn,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261125030432.274396-1-bsdhenrymartin@gmail.com>
-References: <20261125030432.274396-1-bsdhenrymartin@gmail.com>
-Subject: + mm-report-all-zero-cachestat-for-dax-mappings.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261125204818.2885E1F000C6@smtp.kernel.org>
+In-Reply-To: <20261125091408.1584017-1-wangxuewen_ky@163.com>
+References: <20261125091408.1584017-1-wangxuewen_ky@163.com>
+Subject: + tools-mm-page-types-flush-pending-idle-bitmap-bits-after-walking.patch added to mm-new branch
+Message-Id: <20261125210840.8076A1F000C0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,15 +57,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm: report all-zero cachestat for DAX mappings
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-report-all-zero-cachestat-for-dax-mappings.patch
+     Subject: tools/mm: page-types: flush pending idle bitmap bits after walking
+has been added to the -mm mm-new branch.  Its filename is
+     tools-mm-page-types-flush-pending-idle-bitmap-bits-after-walking.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-report-all-zero-cachestat-for-dax-mappings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-page-types-flush-pending-idle-bitmap-bits-after-walking.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -79,72 +91,121 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Henry Martin <bsdhenrymartin@gmail.com>
-Subject: mm: report all-zero cachestat for DAX mappings
-Date: Wed, 25 Nov 2026 11:04:32 +0800
+From: Xuewen Wang <wangxuewen@kylinos.cn>
+Subject: tools/mm: page-types: flush pending idle bitmap bits after walking
+Date: Wed, 25 Nov 2026 17:14:08 +0800
 
-filemap_cachestat() treats every xarray value entry as a workingset
-shadow.  On DAX mappings, value entries are DAX exceptional entries: same
-value bit, different bit layout (flags in the low bits, pfn above). 
-Decoded as a shadow, a DAX entry yields a bogus node id; NODE_DATA() for
-it can be NULL, and lru_gen_test_recent() then dereferences it:
+mark_page_idle() buffers bits for one 64-page bitmap word and writes that
+word when a page in another word is encountered.
 
-  Oops: general protection fault
-  RIP: 0010:lru_gen_test_recent+0xde/0x300
-  Call Trace:
-   workingset_test_recent
-   filemap_cachestat
-   __x64_sys_cachestat
+walk_addr_ranges() tries to flush the final word by marking PFN 0.  If the
+last buffered PFN is below 64, this only adds a bit to the same word and
+nothing is written.  Otherwise it writes the pending word but leaves an
+unwanted PFN 0 bit buffered.  walk_page_cache() does not flush at all, so
+its final pending bits are not written.
 
-Any writable file on a DAX mount triggers this once an mmap write fault
-has populated entries.
+Extract the write operation into flush_page_idle() and use it both when
+changing words and after either walker returns to main().  Clear the
+buffer after a successful write and skip writes when it is empty.  Place
+the final flush before the no-summary early return and return EXIT_FAILURE
+if it fails.
 
-DAX mappings have no page cache, so none of the cachestat fields make
-sense for them.  Skip the xarray walk for them and report all zeros, and
-document the behaviour in the syscall's kernel-doc.
+Use 1ULL for the bit mask so shifts by 32 through 63 are also valid on
+32-bit hosts.
 
-This issue was discovered by Tencent CodeBuddy Security.
-
-Link: https://patch.msgid.link/20261125030432.274396-1-bsdhenrymartin@gmail.com
-Fixes: cf264e1329fb ("cachestat: implement cachestat syscall")
-Signed-off-by: Henry Martin <bsdhenrymartin@gmail.com>
+Link: https://patch.msgid.link/20261125091408.1584017-1-wangxuewen_ky@163.com
+Fixes: 59ae96ffc3a6 ("tools/vm/page-types.c: add support for idle page tracking")
+Signed-off-by: Xuewen Wang <wangxuewen@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Christian Hansen <chansen3@cisco.com>
+Cc: SJ Park <sj@kernel.org>
 
- mm/filemap.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ tools/mm/page-types.c |   38 +++++++++++++++++++++++++-------------
+ 1 file changed, 25 insertions(+), 13 deletions(-)
 
---- a/mm/filemap.c~mm-report-all-zero-cachestat-for-dax-mappings
-+++ a/mm/filemap.c
-@@ -4789,7 +4789,8 @@ static inline bool can_do_cachestat(stru
-  * The `flags` argument is unused for now, but is included for future
-  * extensibility. User should pass 0 (i.e no flag specified).
-  *
-- * Currently, hugetlbfs is not supported.
-+ * Currently, hugetlbfs is not supported.  DAX mappings have no page
-+ * cache, so cachestat() always reports all zeros for them.
-  *
-  * Because the status of a page can change after cachestat() checks it
-  * but before it returns to the application, the returned values may
-@@ -4834,7 +4835,10 @@ SYSCALL_DEFINE4(cachestat, unsigned int,
- 		csr.len == 0 ? ULONG_MAX : (csr.off + csr.len - 1) >> PAGE_SHIFT;
- 	memset(&cs, 0, sizeof(struct cachestat));
- 	mapping = fd_file(f)->f_mapping;
--	filemap_cachestat(mapping, first_index, last_index, &cs);
-+
-+	/* DAX mappings have no page cache; report all zeros. */
-+	if (!dax_mapping(mapping))
-+		filemap_cachestat(mapping, first_index, last_index, &cs);
+--- a/tools/mm/page-types.c~tools-mm-page-types-flush-pending-idle-bitmap-bits-after-walking
++++ a/tools/mm/page-types.c
+@@ -575,27 +575,39 @@ static int unpoison_page(unsigned long o
+ 	return 0;
+ }
  
- 	if (copy_to_user(cstat, &cs, sizeof(struct cachestat)))
- 		return -EFAULT;
+-static int mark_page_idle(unsigned long offset)
++static unsigned long page_idle_offset;
++static uint64_t page_idle_buf;
++
++static int flush_page_idle(void)
+ {
+-	static unsigned long off;
+-	static uint64_t buf;
+ 	int len;
+ 
+-	if ((offset / 64 == off / 64) || buf == 0) {
+-		buf |= 1UL << (offset % 64);
+-		off = offset;
++	if (!page_idle_buf)
+ 		return 0;
+-	}
+ 
+-	len = pwrite(page_idle_fd, &buf, 8, 8 * (off / 64));
++	len = pwrite(page_idle_fd, &page_idle_buf, 8,
++		     8 * (page_idle_offset / 64));
+ 	if (len < 0) {
+ 		perror("mark page idle");
+ 		return len;
+ 	}
+ 
+-	buf = 1UL << (offset % 64);
+-	off = offset;
++	page_idle_buf = 0;
++	return 0;
++}
+ 
++static int mark_page_idle(unsigned long offset)
++{
++	int ret;
++
++	if (offset / 64 != page_idle_offset / 64) {
++		ret = flush_page_idle();
++		if (ret < 0)
++			return ret;
++	}
++
++	page_idle_buf |= 1ULL << (offset % 64);
++	page_idle_offset = offset;
+ 	return 0;
+ }
+ 
+@@ -798,9 +810,6 @@ static void walk_addr_ranges(void)
+ 		else
+ 			walk_task(opt_offset[i], opt_size[i]);
+ 
+-	if (opt_mark_idle)
+-		mark_page_idle(0);
+-
+ 	close(kpageflags_fd);
+ }
+ 
+@@ -1364,6 +1373,9 @@ int main(int argc, char *argv[])
+ 	else
+ 		walk_addr_ranges();
+ 
++	if (opt_mark_idle && flush_page_idle() < 0)
++		return EXIT_FAILURE;
++
+ 	if (opt_list == 1)
+ 		flush_page_range();
+ 
 _
 
-Patches currently in -mm which might be from bsdhenrymartin@gmail.com are
+Patches currently in -mm which might be from wangxuewen@kylinos.cn are
 
-mm-report-all-zero-cachestat-for-dax-mappings.patch
+mm-shrinker-stop-counting-when-the-seq-buffer-overflows.patch
+tools-mm-page-types-flush-pending-idle-bitmap-bits-after-walking.patch
 
