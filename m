@@ -1,45 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795585293;
-	b=JAoj/IqSgiBjcHdz5scerFrimqL7HV9T45PP9x+sJtAxpP64QZhMNIYVhsAu/tqb7Ta7
-	 cKeCTkt7e87J1wIID/1wANXIya8cB17Uw7zDxl7mZYsCsHxKZo0Nd3JXlXivC77OoRuCD
-	 VE/eXjG88OOmcq3WrecZtqLQ/gbAvmwCVQamZp2tNjh8nMOZ5HF7SPi2rb1oCurQH+FvS
-	 7NKL0TQ7gJahdLiexaD6G24M6D6Ckxp0VneH27v+UeX2TXzSMfID4QhCypnEorzNzF9TN
-	 ZKJ20+liPL4w4tgqx/j5M46CuAP95K+vTDbuHvjNPENlLN4QR/qqKBuVxQKziOs5SZw==
+	t=1795585295;
+	b=PHNTLUIIe1vlHpG3FAeizECCiZEDIxLK3whQ+swoE7haoFNFvQB/mXuvttjXbIeJ4ypt
+	 Th6uqWqfLJ0G2a6Wi46F8/MunkJSw1+3KH7VDKZwE5q8b1ECXeapQaeNNTtyO0azpbEoA
+	 O5i3BxtQTWs1B/jsN6tQEYPqYPrpAqBBJhYc89j21zeGunNJC5/9tb73fbKj2dZpKwTjb
+	 8mMWDhz6krWpz063PYVX0e8NMZravHC9FpHtk2QnvOK9H2uS6gV8r9Y33QvTxCf26prZ0
+	 a0AtXg5jAwGJuHX90FE/A7C59OTr8qMHIJ15VurWzOe0Xson0jWiEcA2+sOWT8IgLtQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795585293;
-	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=EVZmPFbWw5QOR6pMGlxFDh3pktPdk5x+UPUwGlITswQ=;
-	b=OqyK3oQ5EXNf9kekGSy98yNVDF+/kZOijeUkhnlcYeFVX7SqWO8WIbQn0uTJMmfh6XNk
-	 jHVr/ESZu1hD2UnlAEF6ieGD5wvi0HJnflAp5PjQR0FTM9KwQU2AO2qKhXJ9bFzuFMYlN
-	 R08eNkbFZpGWA9sgUaN+afycnB2dpDdUlVtMCh+hlDqCAbZVmoHTouC0Rkma9Z6HvIiec
-	 qZxOgW3Selq2BxZgnHGepyvQKEe+Q+QJK9Wkb6pSwB7l/9WJ1JaBMAffbAvq1M0YeyjMO
-	 zxEDdLAancqnHmJnuBSZzO2dkSOliXB0PnK68qa7WZIbUp0wwoDNGyuZGmttdokWvcQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795585295;
+	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
+	 Message-Id;
+	bh=64eXlF0cYerdU1vnCsaA/rl2M3g1VrjATgAC4a3uVAw=;
+	b=mZdpuPK7Gd7sAInZRjG3AWE1SU7XyyOgp0wjZf5R+PF7Apir33EUohKQZdOFb5kQlv3l
+	 /GeVQLwbAjlQV/HlAp0AClef0A6kB36mMqlcH5gvKT53HlzE5uK9pRw5v9io+tMeHncHX
+	 aotrq7iNGBllN16DvbiyMDxTSr3BK0qiIg5z1OVHUrFfD098PZDM3AEz80V/oykHrpQzd
+	 tiTeuM6SDh9r1TVEYJh6/5cz9GImn2XfJTjnt3XraLFWnugAYh0R0u/AhUkfAuv69HMc1
+	 ZnEEZoT3QjmOZ7AB6eRlyBnRKMIyxccOBl4Lry1M6SXXmB8LsooGI5iEN99QgPtD5EQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=gSje84Hr;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=glR9KSv0;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8186A606A32A
-	for <mm-commits@vger.kernel.org>; Wed, 25 Nov 2026 05:41:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23E4C606A31E
+	for <mm-commits@vger.kernel.org>; Wed, 25 Nov 2026 05:41:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=gSje84Hr
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 574D01F000C4;
-	Wed, 25 Nov 2026 05:41:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=glR9KSv0
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DC901F000C4;
+	Wed, 25 Nov 2026 05:41:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795585292;
-	bh=EVZmPFbWw5QOR6pMGlxFDh3pktPdk5x+UPUwGlITswQ=;
-	h=Date:To:From:Subject;
-	b=gSje84HrYvFeD2xTVXJ3kEns5UJV8szmD3wRJ8u7A+F/HMHQ//Ze4RlKaiBd9xCRv
-	 Rue4qiAk9uvNxXetZwI1KXZdvmVjT52JG0EMplrb/CXttvD3yf0jz3+QgwcYgC7ENa
-	 yVTgwE7k9S1iGwfPoDDIIAqVvhfsit1SGYiOnNLs=
-Date: Tue, 24 Nov 2026 21:41:31 -0800
-To: mm-commits@vger.kernel.org,akpm@linux-foundation.org
+	d=linux-foundation.org; s=korg; t=1795585294;
+	bh=64eXlF0cYerdU1vnCsaA/rl2M3g1VrjATgAC4a3uVAw=;
+	h=Date:To:From:In-Reply-To:References:Subject;
+	b=glR9KSv0GNb02BpCVddfu4xHxncmex7ouGTmACdWmviKrtZ1xEyLWGehHf2/x3NYK
+	 9vcHRG+7kfyxs9Ul4J8exzVRufnb2zpFZTH9hIn/eqnatkSoo1GxO35hkrI/nrMrHH
+	 rXz0q8UvCjvVxvxdLOjryItOzzKonXvL8Bg9oLuI=
+Date: Tue, 24 Nov 2026 21:41:33 -0800
+To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index-fix.patch removed from -mm tree
-Message-Id: <20261125054132.574D01F000C4@smtp.kernel.org>
+In-Reply-To: <20261123034304.261742-10-phillip@squashfs.org.uk>
+References: <20261123034304.261742-10-phillip@squashfs.org.uk>
+Subject: [to-be-updated] squashfs-fix-fragment-bytes-overflow-on-32-bit-architectures.patch removed from -mm tree
+Message-Id: <20261125054134.5DC901F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,78 +55,161 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index-fix
+     Subject: Squashfs: fix fragment bytes overflow on 32-bit architectures
 has been removed from the -mm tree.  Its filename was
-     squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index-fix.patch
+     squashfs-fix-fragment-bytes-overflow-on-32-bit-architectures.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index-fix
-Date: Sun Nov 22 11:49:59 PM PST 2026
+From: Phillip Lougher <phillip@squashfs.org.uk>
+Subject: Squashfs: fix fragment bytes overflow on 32-bit architectures
+Date: Mon, 23 Nov 2026 03:42:50 +0000
 
-s/inode/dir/ in TRACE statement
+In helper function squashfs_fragment_bytes() the u32 fragments
+variable is multiplied by sizeof(struct squashfs_fragment_enty).
 
+On a 32-bit architecture the type of sizeof() is a 32-bit unsigned
+integer, which means the computation will overflow for fragments
+values above 268435455.
+
+The knock-on effect is the size of the in memory fragment index
+table will be incorrectly computed, and a much smaller than expected
+index table will be allocated and read into memory.
+
+Later when a fragment index beyond this is looked up in this table,
+this will produce an out of bounds access.
+
+The fix is to explicitly widen the fragments variable to a long long
+in the squashfs_fragment_bytes() helper function.
+
+Reproducer
+=========
+
+The following script when run on a 32-bit x86 kernel (which lacks
+KASAN support) will produce an I/O error.  On a 32-bit ARM kernel
+with KASAN enabled, the out of bounds access will also produce a
+KASAN report.
+
+[  193.817260] ==================================================================
+[  193.818057] BUG: KASAN: slab-out-of-bounds in squashfs_frag_lookup+0x23c/0x264
+[  193.820408] Read of size 8 at addr cc126708 by task stat/357
+[  193.820720]
+[  193.821675] CPU: 3 UID: 0 PID: 357 Comm: stat Not tainted 7.2.0-13187-g66498c75b4f8 #113 VOLUNTARY
+
+=================================================================
+#!/bin/bash
+
+ARGS="-no-duplicates -no-sparse -no-hardlinks -quiet -no-progress"
+
+finish() {
+	popd 2>&1 > /dev/null
+	rm -rf $DIR
+	exit 1
+}
+
+# Create a Squashfs filesystem with 1026 files and 513 fragments.
+# This will create a two entry Squashfs fragment index table.
+#
+DIR=$(mktemp -d)
+
+pushd $DIR 2>&1 > /dev/null
+
+# Create a Squashfs pseudo file which is fed to Mksquashfs
+echo Create a Squashfs pseudo file which is fed to Mksquashfs
+
+dd if=/dev/urandom of=urandom bs=1024 count=50 status=none
+for i in $(seq 1 1026); do
+	echo "$i l urandom" >> pseudo
+done
+
+# Create the Squashfs filesystem
+echo Create the Squashfs filesystem
+
+if ! mksquashfs - img.sqsh -pf pseudo -p "/ d 0777 0 0" $ARGS; then
+	echo Failed to create Squashfs filesystem
+	finish
+
+fi
+
+# The fragments field (fragment count) in the superblock is at offset
+# 16 bytes.
+#
+# Over-write the fragments count with 268,435,457 little-endian.  On a
+# 32-bit architecture, this when multiplied by 16 will overflow, giving
+# the value 16.
+#
+# Ultimately this will cause the kernel code to create and read a single
+# entry index table (where in fact the table has two entries).
+#
+# Then stating file 999 which has a fragment id in the second index,
+# will cause an out of bounds access.
+
+# Write 268,435,457 in little-endian format to file
+/usr/bin/echo -en "\x01\x00\x00\x10" > file
+
+# Over-write the fragments count in the superblock
+echo Over-write the fragments count in the superblock
+
+dd bs=1 seek=16 if=file of=img.sqsh count=4 conv=notrunc status=none
+
+# Mount the filesystem to /mnt
+echo Mount the filesystem to /mnt
+
+if ! mount -t squashfs img.sqsh /mnt; then
+	echo Mount of Squashfs filesystem failed
+	finish
+fi
+
+# Stat file 999
+echo Stat file 999
+
+stat /mnt/999
+
+popd 2>&1 > /dev/null
+
+rm -rf $DIR
+=================================================================
+
+Link: https://patch.msgid.link/20261123034304.261742-10-phillip@squashfs.org.uk
+Fixes: ffae2cd73a9e ("Squashfs: header files")
+Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Christian Loehle <christian.loehle@arm.com>
 Cc: Dan Carpenter <error27@gmail.com>
 Cc: Phillip Lougher <phillip.lougher@gmail.com>
-Cc: Phillip Lougher <phillip@squashfs.org.uk>
 Cc: syzbot ci <syzbot+ci04e7314748e3f6be@syzkaller.appspotmail.com>
 
- fs/squashfs/namei.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/squashfs/squashfs_helpers.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/squashfs/namei.c~squashfs-dont-compute-start-or-alloc-memory-on-empty-directory-or-index-fix
-+++ a/fs/squashfs/namei.c
-@@ -134,8 +134,8 @@ static struct dentry *squashfs_lookup(st
- 	int offset, err, length;
- 	unsigned int dir_count, size;
+--- a/fs/squashfs/squashfs_helpers.h~squashfs-fix-fragment-bytes-overflow-on-32-bit-architectures
++++ a/fs/squashfs/squashfs_helpers.h
+@@ -55,7 +55,7 @@ static inline s64 squashfs_mkinode(u32 s
+ /* fragment and fragment table defines */
+ static inline s64 squashfs_fragment_bytes(u32 fragments)
+ {
+-	return fragments * sizeof(struct squashfs_fragment_entry);
++	return (s64) fragments * sizeof(struct squashfs_fragment_entry);
+ }
  
--	TRACE("Entered squashfs_lookup [%llx:%x]\n", squashfs_i(inode)->start,
--			squashfs_i(inode)->offset);
-+	TRACE("Entered squashfs_lookup [%llx:%x]\n", squashfs_i(dir)->start,
-+			squashfs_i(dir)->offset);
- 
- 	if (len > SQUASHFS_NAME_LEN)
- 		return ERR_PTR(-ENAMETOOLONG);
+ static inline s32 squashfs_fragment_index(u32 fragments)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from phillip@squashfs.org.uk are
 
-mm-vma-drop-mm-asynchronously-in-vma_start_read-fix.patch
-mm-vma-drop-mm-asynchronously-in-vma_start_read-fix-2.patch
-kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize-fix.patch
-selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
-selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
-selftests-mm-allocate-nr_pages-based-on-pmd-size-for-uffd-pmd_move-tests-fix.patch
-selftests-mm-retain-move-pmd-coverage-and-verify-huge-pmds.patch
-lib-test_xarray-check-unused-spare-node-after-range-creation.patch
-mm-memory-failure-dont-unpoison-a-leaked-raw_hwp_unreliable-folio-fix.patch
-mm-vmstat_kunit-add-synthetic-benchmark-for-mm-stats-fix.patch
-lib-test_hmm-invalidate-all-mirrors-on-device-private-migration.patch
-lib-test_hmm-invalidate-all-mirrors-on-device-private-migration-fix.patch
-mm-prevent-pre-content-bypass-through-mremap-and-remap_file_pages.patch
-afs-do-not-put-error-pointer-after-address-lookup-failure.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-0.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-1.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-2.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-3.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-4.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-5.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-6.patch
-selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-7.patch
-ocfs2-unregister-the-jbd2-shrinker-before-journal-shutdown.patch
-ipc-msg-clamp-negative-msg_info-usage-counts.patch
-squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix.patch
-ocfs2-skip-network-flush-when-no-domain-handlers-are-registered.patch
-selftests-ptrace-check-that-ptrace_set_syscall_info-rejects-invalid-error-values-fix.patch
-lib-asn1_encoder-fix-encoding-of-zero-oid-components.patch
-proc-serialize-task-owner-updates.patch
-proc-dont-lock-task-inodes-whose-owner-has-not-changed.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+squashfs-fix-fragment-index-table-length-too-large-exploit.patch
+squashfs-sanity-check-inode-metadata-block-location.patch
+squashfs-sanity-check-directory-metadata-block-location.patch
+squashfs-widen-xattr-count-variables-and-add-sanity-check.patch
+squashfs-very-large-files-can-exceed-an-int-or-size_t.patch
+squashfs-add-more-sanity-checking-to-squashfs_block_size.patch
+squashfs-sanity-check-fragment-block-location-and-range.patch
+squashfs-sanity-check-block-list-sizes-and-range.patch
+squashfs-dont-store-large-export-table-indexes-in-memory.patch
+squashfs-dont-store-large-fragment-table-indexes-in-memory.patch
+squashfs-dont-store-large-xattr-id-table-indexes-in-memory.patch
+squashfs-fix-variables-in-directory-code-and-add-more-sanity-checks.patch
+squashfs-fix-regression-in-squashfs_copy_cache.patch
+squashfs-check-index-isnt-greater-than-s64_max-in-squashfs_read_data.patch
 
