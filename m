@@ -1,50 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795588452;
-	b=SblbhKg45u1Z8yf5I85F1Rv1PH9QBS1nc/PWUurfy1ye3FAWECFOZ4X93xQkZIZabngA
-	 qb8z8C6btkUaYyJTrgWmlsIL49vBe7TZ9Vi2OYif7DUV35QLZIGXID5kbvVJg+vTW4LuK
-	 EQzXfLWwDaq3O2SusPmV98E5enAFQxfGvvN28JeOmSwJUPK5Lk5ccIrJz00rdL72noj0v
-	 mwwtTQb9F6zvdzkNbBJpvY8g687+MH9HJwazGNDT3M3J5KOxVrvfPARYonvfhKnCBJxA3
-	 5bqdfyTDwH667jjVOH+ZqGA3PpuEqXd21fQ2PtBuZ5wiaq8kpt+Q/NzsElrjn6GsQDQ==
+	t=1795589051;
+	b=JGccD69Y1KDQNWtTFEtLxCfMNcSzjdl0eauanRvpOdlYi4bhAuinLKwRlSGPeIL7enyK
+	 v94PnhBRGXNVb+57tMttmvbOOHW24o2BYA/t9w9navEuhGsI2mscOAiT2G5pBjFx77BEU
+	 104ZoFUhDVPkRXDX+rgszM70i//Pkc0HCBNNiRdqUYdM/B//FsTk2NOmJZwxhD+UVIBe2
+	 3Io2ilPO580dAVlHwbZDNSXFlLA3sHPOWpOYjAmL7hothosKQkLo8x5C3q97ocB/m7rl1
+	 bjU+5a3EQpBdAmnA7kDqhXeVW8bO/bk7yWUJ4HHdPLdh04gUZZiCFPPM7rxOwLst5OQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795588452;
-	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
-	 Message-Id;
-	bh=n/zZbeTEmtRjgltbrbK4zyGuMoWTia6UK5Mbbt+l6wk=;
-	b=BCxU2oHRF1A7y15L8XuXs6YQejmhGY7BS0KMNpjEv6wtqHR0KK/t968iVRFGsg6C8wGo
-	 oX4pRMliYAlXAqeKmNf5L3ZDnSOTRuiLzPS69YCQeAf5076gwBZ8KH/a9o4wmdbuqk0kG
-	 J3ejmRqJltIYSp7E3FQkWBNxnw0KteSx94upDABNmeWbxJi9+Ot6NsiESvo01azMn0ULj
-	 6WxwD8GdRBZTUpQBbv97VX6YhA6HMAU2YAuhddUOSD+6o/JC1XKT/Bikq9As2Sh6ZIgSV
-	 fWUv+GzELU5QKLcYaCHGb3ePk0GyJPfgsFxp3MvIsc9v1BJ2F3NQ0dderTZG30Ek1jg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795589051;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-Id:X-Mailer:
+	 Mime-Version:Content-Type:Content-Transfer-Encoding;
+	bh=LMQAj09bQbCYq864JFAOM1F6lLxWDCCM05N91L35IgQ=;
+	b=omgtq+p+ZzLKehGCakikFuigVflyWkztq604HHCqgrt9QMSzdQ9WmtclZPNY5Ei00w8G
+	 QrFA1M0KSMGg9HeLyFa2qCt9hzj+4c1HQbtTqsCuDduDQTcmjuyP6HusOYCfy0In1iFwK
+	 Wx1nlUUgWx7lIYTVEHoAScIVhSPMXv0hOd8xoGlJBK6SVPSJYiMyFk/Zg5NzmtdvDxpmF
+	 zvxI7AgTr2mO/Ary2tCFrCuCL1DUJWy35AVekc+NfpfLTxvdLZe899WZM7fAhZq9DPRBG
+	 bFDCuHuhz8V2gPPAMWnk6HxgOC9VFKs+DGwMuYB0vtY+hK0V+dM2hD1do4UVewiuvFw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=rrKMG2NX;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=aaRG5jvB;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 707D3606A31E
-	for <mm-commits@vger.kernel.org>; Wed, 25 Nov 2026 06:34:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CCFE606A321;
+	Wed, 25 Nov 2026 06:44:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=rrKMG2NX
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E44A51F000C4;
-	Wed, 25 Nov 2026 06:34:11 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=aaRG5jvB
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04B741F000CF;
+	Wed, 25 Nov 2026 06:44:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795588452;
-	bh=n/zZbeTEmtRjgltbrbK4zyGuMoWTia6UK5Mbbt+l6wk=;
-	h=Date:To:From:In-Reply-To:References:Subject;
-	b=rrKMG2NX2KVfwVZ/vdBeSce8kV07AISPrp0mNREZGecFUfpe9wXzLf2dPaqPP77Sk
-	 r8SNcolDk2DD43rdZT5OytpMOs5Ywq0O+FFms0OetaqAA14nhrV8CmWdyw2sxhGx4R
-	 JhxYXQz3JoSoNRAG2BrGZZXgqTkzB70WbOOZKN1U=
-Date: Tue, 24 Nov 2026 22:34:11 -0800
-To: mm-commits@vger.kernel.org,shuah@kernel.org,joe@perches.com,
-	apw@canonical.com,akpm@linux-foundation.org,adobriyan@gmail.com,
-	fuqingshuang@kylinos.cn
+	d=linux-foundation.org; s=korg; t=1795589050;
+	bh=LMQAj09bQbCYq864JFAOM1F6lLxWDCCM05N91L35IgQ=;
+	h=Date:From:To:Cc:Subject;
+	b=aaRG5jvBSWj5PNceuyAf4rFfTBdAlBAysT2A6X4VVO6wsWN0puOJZr/etsbm6f/Tn
+	 Sx7262mKxmXayfSJXi+2TlBG1qFuOam48b1vC73fcR/l/OCr4C+D4t3d+KKiZiPh6e
+	 EhMRW0NwdgrZsfyDw2TNx27Yscjj9YkavfS2KyMk=
+Date: Tue, 24 Nov 2026 22:44:09 -0800
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261120062933.3169112-1-fuqingshuang@kylinos.cn>
-References: <20261120062933.3169112-1-fuqingshuang@kylinos.cn>
-Subject: + selftests-proc-skip-fd-003-kthread-if-run-as-non-root.patch added to mm-nonmm-unstable branch
-Message-Id: <20261125063411.E44A51F000C4@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+ mm-commits@vger.kernel.org, David Hildenbrand <david@kernel.org>
+Subject: [GIT PULL] MM hotfixes for 7.4-rc5
+Message-Id: <20261124224409.56e65d8ff1f72a1d485450ad@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,95 +52,170 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
 
-The patch titled
-     Subject: selftests/proc: skip fd-003-kthread if run as non-root
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     selftests-proc-skip-fd-003-kthread-if-run-as-non-root.patch
+Linus, please merge this batch of MM hotfixes, thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-proc-skip-fd-003-kthread-if-run-as-non-root.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following changes since commit 4405c18c95d2d0f99f6c581ef0ee8591a1aa6ccd:
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+  Merge tag 'mm-nonmm-hotfixes-stable-2026-11-18-00-06' of git://git.kernel=
+.org/pub/scm/linux/kernel/git/akpm/mm (2026-11-18 09:51:04 -0800)
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+are available in the Git repository at:
 
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-st=
+able-2026-11-24-22-39
 
-------------------------------------------------------
-From: Qingshuang Fu <fuqingshuang@kylinos.cn>
-Subject: selftests/proc: skip fd-003-kthread if run as non-root
-Date: Fri, 20 Nov 2026 14:29:33 +0800
+for you to fetch changes up to 448293c44d86abaff45d6f6919e6056ad97eaa31:
 
-/proc/$KERNEL_THREAD/fd can only be opened with ptrace access, so
-openat() on the "fd" directory of a kernel thread returns EACCES
-when the test is run as non-root.  kernel_thread_fd() conflates this
-with "process is userspace process", the scan over /proc runs to
-completion without finding a usable descriptor and the test exits
-with 1 (KSFT_FAIL) instead of 4 (KSFT_SKIP):
+  mm/mglru: fix a no-op lru_gen_clear_refs() call in lru_lazyfree() (2026-1=
+1-22 22:24:15 -0800)
 
-  $ ./fd-003-kthread; echo $?
-  1
+----------------------------------------------------------------
+mm.git review status for linus..mm-hotfixes-stable
 
-Distinguish the two cases and skip the test like the rest of
-selftests/proc does when privileges are missing, so that unprivileged
-runs report "skip" instead of a false failure.
+Everything:
 
-Link: https://patch.msgid.link/20261120062933.3169112-1-fuqingshuang@kylinos.cn
-Fixes: b2f5de0334f0 ("tools/testing/selftests/proc: test /proc/*/fd a bit (+ PF_KTHREAD is ABI!)")
-Signed-off-by: Qingshuang Fu <fuqingshuang@kylinos.cn>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Total patches:       26
+Fixes: tags:         18
+cc:stable patches:   17
+Reviews/patch:       3.88
+Reviewed rate:       96%
 
- tools/testing/selftests/proc/fd-003-kthread.c |    5 +++++
- 1 file changed, 5 insertions(+)
+Summary of patch series in this merge:
 
---- a/tools/testing/selftests/proc/fd-003-kthread.c~selftests-proc-skip-fd-003-kthread-if-run-as-non-root
-+++ a/tools/testing/selftests/proc/fd-003-kthread.c
-@@ -36,6 +36,7 @@
-  *
-  * Return /proc/$PID/fd descriptor if process is kernel thread.
-  * Return -1 if a process is userspace process.
-+ * Return -EACCES if run as non-root.
-  */
- static int kernel_thread_fd(unsigned int pid)
- {
-@@ -88,6 +89,8 @@ static int kernel_thread_fd(unsigned int
- 	fd = -1;
- 	if (flags & PF_KHTREAD) {
- 		fd = openat(dir_fd, "fd", O_RDONLY|O_DIRECTORY);
-+		if (fd == -1 && errno == EACCES)
-+			fd = -EACCES;
- 	}
- 	close(dir_fd);
- 	return fd;
-@@ -168,6 +171,8 @@ int main(void)
- 		pid++;
- 	}
- 	/* EACCES if run as non-root. */
-+	if (fd == -EACCES)
-+		return 4;
- 	if (pid >= 1024)
- 		return 1;
- 
-_
+- "mm: fix swapcache writeout and cluster table races" (Nhat Pham):
 
-Patches currently in -mm which might be from fuqingshuang@kylinos.cn are
+  Let reclaim write dirty swapcache folios without anon mappings.
+  Publish swap cluster tables under the allocator locks and keep
+  stale reclaimers from relocating clusters being populated.
 
-selftests-proc-include-linux-mmanh-for-mremap_dontunmap.patch
-selftests-proc-skip-fd-003-kthread-if-run-as-non-root.patch
+- "mm/hugetlb: various fixes" (David Hildenbrand):
+
+  Prevent fallocate() overflow from consuming and leaking huge pages.
+  Serialize mremap() with migration before flushing stale TLB entries,
+  and avoid corrupting private hugetlb VMA state during unmapping.
+
+- "MAINTAINERS: remove my reviewerships, add CREDITS entry for THP"
+  (Lorenzo Stoakes):
+
+  Remove Lorenzo's MM reviewership entries and record his THP
+  maintenance in CREDITS.
+
+- "MAINTAINERS: MM updates (2)" (David Hildenbrand):
+
+  Add Kairui as an MGLRU maintainer, move Barry to the top of its
+  reviewer list and remove David from reclaim reviewership.
+
+Summary of the 14 singletons in this merge:
+
+Two list_lru fixes prevent a cgroup's reused ID from making a folio unlink
+from the wrong list, which can corrupt the list and later access freed
+memory.  They also avoid a NULL dereference if a folio moves to the root
+cgroup between the allocation path's two lookups.  MGLRU now moves every
+generation when reparenting a cgroup; a skipped list could otherwise
+remain in a freed cgroup and cause a use-after-free.  Clearing MGLRU
+references before removing a MADV_FREE folio from its generation also
+stops reclaim from repeatedly protecting a discardable folio.
+
+The memcg object stock now flushes pending charged bytes when its lock
+cannot be taken.  Otherwise memory.current could grow without matching
+usage, causing unnecessary reclaim, throttling or OOM kills, and a counter
+wrap could leave a permanent charge.  The memcg OOM scan also keeps an
+exiting victim visible until it releases its memory, avoiding an
+unnecessary second kill that could take down an entire workload.
+
+Swap allocation again prefers free clusters on nonsynchronous devices,
+keeping writes mergeable.  In the reported NVMe mysql/sysbench workload,
+the prior policy reduced throughput by 19% with iocost; the revised policy
+improved throughput by 33% against its base.  The change keeps the old
+nonfull-cluster preference for synchronous devices such as zram.  A
+separate fix corrects /proc/swaps and swapon() size reporting for
+multi-terabyte swap areas.  DAMON's estimated bandwidth calculation no
+longer overflows on 32-bit systems.
+
+UFFDIO_MOVE now clears a stale userfaultfd bit when moving a swapped page
+into an unregistered VMA.  The old bit could cause MADV_COLLAPSE to fail
+or trigger a page-table-check warning on fault-in.  Buffered writes
+starting beyond EOF now check an unreadable source buffer before some
+filesystems extend the file, avoiding a failed EFAULT write that leaves a
+larger file.  On 32-bit systems with 64-bit physical addresses, /dev/mem
+now makes the correct uncached mapping decision above 4 GiB.
+
+----------------------------------------------------------------
+Alexandre Ghiti (1):
+      mm, swap: only prefer nonfull clusters on synchronous devices
+
+Andrew Morton (1):
+      MAINTAINERS: add page_ext.h to MEMORY MANAGEMENT - PAGE ALLOCATOR
+
+Chris Down (1):
+      mm: memcontrol: don't lose track of exiting OOM victims
+
+David Hildenbrand (Arm) (4):
+      MAINTAINERS: MEMORY MANAGEMENT - MGLRU (MULTI-GEN LRU) update
+      MAINTAINERS: remove myself from MEMORY MANAGEMENT - RECLAIM
+      hugetlbfs: fix integer overflow in fallocate()
+      mm/hugetlb: fix mremap() racing with page migration
+
+Donggeun Yoo (1):
+      userfaultfd: clear the inherited uffd bit in move_swap_pte()
+
+Hui Zhu (1):
+      mm/mglru: fix a no-op lru_gen_clear_refs() call in lru_lazyfree()
+
+Hungyu Lin (1):
+      filemap: prefault writes starting beyond EOF
+
+Iv=E1n Ezequiel Rodriguez (1):
+      mm: use PFN_PHYS() in phys_mem_access_prot()
+
+Josef Bacik (1):
+      hugetlbfs: fix unmapping folios from private VMAs
+
+Lorenzo Stoakes (ARM) (5):
+      MAINTAINERS: remove myself from MM core reviewership
+      MAINTAINERS: remove myself from MM misc, reclaim reviewership
+      MAINTAINERS: remove myself from MM rust reviewerships
+      CREDITS: add entry for THP maintenance
+      MAINTAINERS: consolidate the memory mapping entries into a VMA entry
+
+Nhat Pham (3):
+      mm: vmscan: allow writeout of swapcache folios without anon mappings
+      mm/swap: publish cluster tables after reacquiring allocator locks
+      mm/swap: skip relocation of tableless clusters
+
+Oleksandr Natalenko (1):
+      mm/swapfile: really fix integer overflow in swap_show() and swapon()
+
+Shakeel Butt (4):
+      mm: mglru: splice all generations when reparenting a memcg
+      memcg: flush nr_charged_bytes when the obj stock trylock fails
+      mm: list_lru: fix NULL deref when a folio moves to the root memcg
+      mm: list_lru: don't use a new memcg's lists for an offline memcg
+
+Wang Guangke (1):
+      mm/damon/stat: avoid overflow in estimated_memory_bandwidth calculati=
+on
+
+ CREDITS                  |   6 +++
+ MAINTAINERS              |  62 ++++++---------------
+ fs/hugetlbfs/inode.c     |  18 +++++--
+ include/linux/list_lru.h |   2 +
+ mm/char-mem.c            |   2 +-
+ mm/damon/stat.c          |  15 +++---
+ mm/filemap.c             |  10 ++++
+ mm/folio.c               |   6 +--
+ mm/hugetlb.c             |  21 +++++++-
+ mm/list_lru.c            |  41 ++++++++++----
+ mm/memcontrol.c          |  10 +++-
+ mm/swapfile.c            | 138 +++++++++++++++++++++++++++++++++----------=
+----
+ mm/userfaultfd.c         |   1 +
+ mm/vmscan.c              |  15 ++++--
+ 14 files changed, 230 insertions(+), 117 deletions(-)
 
