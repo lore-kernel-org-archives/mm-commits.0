@@ -1,49 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795585990;
-	b=w8VyHTlRPg/gVfP/nAU9t67SE8NdGXm8ggil+PJo49EviHoOVIvHXbxuEHH/3J/fN6b0
-	 LKLYzUxhLAgP/PXA4GLe5f3Aki085W4vkmcfur6Clh4vzibDzVZVmXnxN7X/ZmsFAWQ9o
-	 PINyAcqL4SOo9p5nt97M+AJXp6c+0gGiQhZVLogStkYLNfCrsc1UkYyzQZEWyMoQ7ppk0
-	 SOO8X7mG9k91sz/C7JoSJfv9IKREhUihbklvF/Y1W3y/joxlDQeWx0+A+ybTdb5eXgaCq
-	 kj49M8boWPlB+pO0EVY8EyIvA95gq1PAuvuHrFoQFLDNykI9fxyXQkMdvFWNYtdZrsg==
+	t=1795585995;
+	b=3Bd1BZHDopB/vgK4MSo5kaNlE1BV2t2JfR+S+JrlFpfRDrx6cLcNE/smIKYdG0TU3uQr
+	 U9l/3ky+2/PwuBxfHNNVaUAI3uqPOj30rJm1cWd/kO7aZa3u9HRUt5pGmYKc/srdjLnTZ
+	 8rpTsgMVlQI+K1WuDlpQeBmg63tfmBy1SkhDmIF/q9zNEhAUD7Z4TyscNLBFx1cvK8B/M
+	 rZFG1J2fxoSvHGGXv6/7QwxkMYBlyCKp7DhgC/BxgURvne1aX2D/uKOW3p1rNhqrBw9p9
+	 IfuF41ZmkJObdwcbuc5E34W9kY6jcASQLaH2VMkux0lMKnL3iXVvVaUdzQUPqjn7Law==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795585990;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795585995;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=9/nCxQUR5iCUF2wyXahYnqEtCrfSdjdvrVNOW3wq0vA=;
-	b=vUGn9U3twIj7CGyOO8efg2QKwwV6JwzfLU5DYgABDeiWtqJZ7m1sYOUSE/+4qETd8Ev4
-	 dfK4g8el7HhnxM/H0oMPaaUnyidJu1VXhKSx0XWZVvSUbUp1KrCZzfiBcmbzAgSZY4TcP
-	 96Y6UrWXqkHLldUYAzj2cIPM63sA0zJywDSaDltekURRbe73D46eRIAKkYQV4RPZgpsJ/
-	 4ze2Yenb+LCCMerZGm9Hduwb5Y9FPwdeQV467YAc5RXphowm4zuS30D22SHdAGDW5p2aH
-	 LFISHPYXhszNYOYuJzCwfh1jqiw5OskHmkBv1IOeMdrGW8LOfN0hnfmW0un9ymlIzTQ==
+	bh=wmJULvNaqXsA8wpEwdgEBu4AMD8uMZNhFJVGYIRKQUk=;
+	b=5Wx7kd0aUpOdp7n182UzwKG8KP8lEbxlro+aGvcKOtBRJnHcxYzxyqGeNoCJFWvVCID9
+	 x+GNo+s8Z+SH6+M5FdRdVkw+SuJ9Bwc6984vBffLsghLHQHi/B5CaLBYMKKa3vpWenUrF
+	 0xvHQ2iYEjoHNuumfd/9FKqjVkCRbJbxCXLJcWaPlTitJbVhtvcmoiJJS6H0jRKKnWdn2
+	 BQ94Ryqk/xYsIppqIg6pIDIsfNi7WRXa82QOlq8UGFTQezbga9LCjYdmLcc/jFPBwmcE3
+	 TZGiUZ9JOr1pquBFHofR4sF7Sw45BV9aCSLD6WAoTaRMXvS4XdAqqxlPyLUC2fXW2tw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=RHNVKwTT;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=rnUbvOHE;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55133606A31E
-	for <mm-commits@vger.kernel.org>; Wed, 25 Nov 2026 05:53:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEE6F606A31E
+	for <mm-commits@vger.kernel.org>; Wed, 25 Nov 2026 05:53:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=RHNVKwTT
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C94F61F000C6;
-	Wed, 25 Nov 2026 05:53:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=rnUbvOHE
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C85B1F000C4;
+	Wed, 25 Nov 2026 05:53:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795585989;
-	bh=9/nCxQUR5iCUF2wyXahYnqEtCrfSdjdvrVNOW3wq0vA=;
+	d=linux-foundation.org; s=korg; t=1795585994;
+	bh=wmJULvNaqXsA8wpEwdgEBu4AMD8uMZNhFJVGYIRKQUk=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=RHNVKwTTnkkBEiSz43Oaxe2Z7Q1QhDX61KzEStlJDIighyZuFc9+nq6SfreR19P+T
-	 yO6MSSKPg1OIoJYcyXU7UEaYGlop4Qx/Sguhk4EI16WYAxstCCo8RkfFWkyXzE/9lC
-	 Xxxp923qVN7G0zQ39KpdyKdWNQX8qIQuJEJNG6t4=
-Date: Tue, 24 Nov 2026 21:53:09 -0800
+	b=rnUbvOHEgWT2VZZIZBhd9zbLtbhTa1TcPB3J9eFlIZFF23M8iM6RWrXu2/0tdRtmj
+	 kWgzNsppxjdEqop8ommndD5i6U4rlNX9j/ZgDiMK6V9ykvo1Z8Rd5t/YYHVg4zgLQx
+	 ATSbcLFj/symTop6b+eWj8hhY/WAIGBRi4qm1tQk=
+Date: Tue, 24 Nov 2026 21:53:13 -0800
 To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261125014737.347231-2-phillip@squashfs.org.uk>
-References: <20261125014737.347231-2-phillip@squashfs.org.uk>
-Subject: + squashfs-convert-squashfs_compressed_-to-inline-functions.patch added to mm-nonmm-unstable branch
-Message-Id: <20261125055309.C94F61F000C6@smtp.kernel.org>
+In-Reply-To: <20261125014737.347231-3-phillip@squashfs.org.uk>
+References: <20261125014737.347231-3-phillip@squashfs.org.uk>
+Subject: + squashfs-convert-squashfs_inode_-and-squashfs_mkinode-to-inline-functions.patch added to mm-nonmm-unstable branch
+Message-Id: <20261125055314.6C85B1F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: Squashfs: convert SQUASHFS_COMPRESSED_* to inline functions
+     Subject: Squashfs: convert SQUASHFS_INODE_* and SQUASHFS_MKINODE to inline functions
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-convert-squashfs_compressed_-to-inline-functions.patch
+     squashfs-convert-squashfs_inode_-and-squashfs_mkinode-to-inline-functions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-convert-squashfs_compressed_-to-inline-functions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-convert-squashfs_inode_-and-squashfs_mkinode-to-inline-functions.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,71 +79,8 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: Squashfs: convert SQUASHFS_COMPRESSED_* to inline functions
-Date: Wed, 25 Nov 2026 01:47:15 +0000
-
-Patch series "Squashfs: fix a lot of AI issues and AI style issues", v4.
-
-Note: this is an intermediary patch-set, and not the final patch-set.
-It is intended to see if the issues Sashiko AI reported on the V3 patch-
-set have been dealt with in a way that stops the AI from complaining.
-
-If that has been achieved then the next step will be to deal wih
-additional issues raised by other AIs, and which could cause Sashiko to
-start complaining again.
-
-This is not so much see androids fighting but see androids conflicting
-which is much more boring.  Your understanding is appreciated.
-
-This large patch-set is inspired by the recent spate of AI generated
-code reports.  Four of the patches directly fix AI reported issues, and
-the rest have been found manually by a read-through and testing of the
-code.
-
-In all cases (except patches 1 - 8, 18 - 20) the patches deal with
-over-sights relating to variable overflow, arithmetic overflow, variable
-signedness or just lack of sanity checking of data read from disk.
-These can cause the code to fail, and which could be used as a potential
-exploit.
-
-Patches 18, 19, and 20 fix potential excessive memory use exploits.  The
-code in question was written in the early days when Squashfs filesystems
-were small, but with very large filesystems it could try to allocate
-memory in excess of 4 MiB, and up to 64 MiB.
-
-The patches can be broken down as follows:
-
-Patches 1 - 6 are preparatory patches.  They convert old fashioned
-#define macros into inline functions.  These being typed make widths and
-signedness explicit, and allow additional checking to be added in later
-patches.
-
-Patch 7 fixes an incorrect offset value in TRACE statements in
-squashfs_read_inode().  This was new to the v2 patch-set.
-
-Patch 8 was new to the v3 patch-set.  The patch is an attempt to stop
-Sashiko from getting stuck in logical contradictions when some
-sanity checks are introduced later.
-
-Patches 9 - 17 fix various issues relating to variable overflow,
-arithmetic overflow and add additional sanity checking to prevent these
-issues from occurring.
-
-Patches 18 - 20 remove the excessive allocation of memory by introducing
-caches, which limit the maximum usage to 4 pages.
-
-Patches 21 - 22 were new to the v2 patch-set.  They deal with some
-issues Sashiko reported in the original patch-set.
-
-Patch 23 was also new to the v2 patch-set.  It adds an additional belts
-and braces sanity check.
-
-Patches 9 - 21 have reproducers which show how the existing code faults
-can be exploited, in some cases which can allow a Squashfs filesystem
-to be tampered with to make files readable by unprivileged users.
-
-
-This patch (of 23):
+Subject: Squashfs: convert SQUASHFS_INODE_* and SQUASHFS_MKINODE to inline functions
+Date: Wed, 25 Nov 2026 01:47:16 +0000
 
 Convert old fashioned #define macros into inline functions.  This has
 the following improvements:
@@ -157,159 +94,197 @@ the following improvements:
 3. Inline functions are easier to read than #define macros, which
    improves code comprehension.
 
-Link: https://lore.kernel.org/20261125014737.347231-1-phillip@squashfs.org.uk
-Link: https://patch.msgid.link/20261125014737.347231-2-phillip@squashfs.org.uk
+Link: https://patch.msgid.link/20261125014737.347231-3-phillip@squashfs.org.uk
 Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
- fs/squashfs/block.c            |   11 +++++----
- fs/squashfs/cache.c            |    1 
- fs/squashfs/file.c             |    3 +-
- fs/squashfs/squashfs_fs.h      |   17 ---------------
- fs/squashfs/squashfs_helpers.h |   35 +++++++++++++++++++++++++++++++
- 5 files changed, 44 insertions(+), 23 deletions(-)
+ fs/squashfs/inode.c            |   24 +++++++++++++-----------
+ fs/squashfs/namei.c            |    3 ++-
+ fs/squashfs/squashfs_fs.h      |   11 -----------
+ fs/squashfs/squashfs_helpers.h |   19 +++++++++++++++++++
+ fs/squashfs/super.c            |    3 ++-
+ 5 files changed, 36 insertions(+), 24 deletions(-)
 
---- a/fs/squashfs/block.c~squashfs-convert-squashfs_compressed_-to-inline-functions
-+++ a/fs/squashfs/block.c
-@@ -23,6 +23,7 @@
- 
- #include "squashfs_fs.h"
- #include "squashfs_fs_sb.h"
-+#include "squashfs_helpers.h"
- #include "squashfs.h"
- #include "decompressor.h"
- #include "page_actor.h"
-@@ -292,7 +293,7 @@ int squashfs_read_data(struct super_bloc
- {
- 	struct squashfs_sb_info *msblk = sb->s_fs_info;
- 	struct bio *bio = NULL;
--	int compressed;
-+	bool compressed;
- 	int res;
- 	int offset;
- 
-@@ -300,8 +301,8 @@ int squashfs_read_data(struct super_bloc
- 		/*
- 		 * Datablock.
- 		 */
--		compressed = SQUASHFS_COMPRESSED_BLOCK(length);
--		length = SQUASHFS_COMPRESSED_SIZE_BLOCK(length);
-+		compressed = squashfs_compressed_block(length);
-+		length = squashfs_compressed_size_block(length);
- 		TRACE("Block @ 0x%llx, %scompressed size %d, src size %d\n",
- 			index, compressed ? "" : "un", length, output->length);
- 	} else {
-@@ -341,8 +342,8 @@ int squashfs_read_data(struct super_bloc
- 		bio_uninit(bio);
- 		kfree(bio);
- 
--		compressed = SQUASHFS_COMPRESSED(length);
--		length = SQUASHFS_COMPRESSED_SIZE(length);
-+		compressed = squashfs_compressed(length);
-+		length = squashfs_compressed_size(length);
- 		index += 2;
- 
- 		TRACE("Block @ 0x%llx, %scompressed size %d\n", index - 2,
---- a/fs/squashfs/cache.c~squashfs-convert-squashfs_compressed_-to-inline-functions
-+++ a/fs/squashfs/cache.c
-@@ -42,6 +42,7 @@
- 
- #include "squashfs_fs.h"
- #include "squashfs_fs_sb.h"
-+#include "squashfs_helpers.h"
- #include "squashfs.h"
- #include "page_actor.h"
- 
---- a/fs/squashfs/file.c~squashfs-convert-squashfs_compressed_-to-inline-functions
-+++ a/fs/squashfs/file.c
-@@ -39,6 +39,7 @@
+--- a/fs/squashfs/inode.c~squashfs-convert-squashfs_inode_-and-squashfs_mkinode-to-inline-functions
++++ a/fs/squashfs/inode.c
+@@ -33,6 +33,7 @@
  #include "squashfs_fs.h"
  #include "squashfs_fs_sb.h"
  #include "squashfs_fs_i.h"
 +#include "squashfs_helpers.h"
  #include "squashfs.h"
- #include "page_actor.h"
+ #include "xattr.h"
  
-@@ -188,7 +189,7 @@ static long long read_indexes(struct sup
- 				err = size;
- 				goto failure;
- 			}
--			block += SQUASHFS_COMPRESSED_SIZE_BLOCK(size);
-+			block += squashfs_compressed_size_block(size);
- 		}
- 		n -= blocks;
- 	}
---- a/fs/squashfs/squashfs_fs.h~squashfs-convert-squashfs_compressed_-to-inline-functions
-+++ a/fs/squashfs/squashfs_fs.h
-@@ -101,22 +101,6 @@
- #define SQUASHFS_XATTR_VALUE_OOL        256
- #define SQUASHFS_XATTR_PREFIX_MASK      0xff
- 
--/* Flag whether block is compressed or uncompressed, bit is set if block is
-- * uncompressed */
--#define SQUASHFS_COMPRESSED_BIT		(1 << 15)
--
--#define SQUASHFS_COMPRESSED_SIZE(B)	(((B) & ~SQUASHFS_COMPRESSED_BIT) ? \
--		(B) & ~SQUASHFS_COMPRESSED_BIT :  SQUASHFS_COMPRESSED_BIT)
--
--#define SQUASHFS_COMPRESSED(B)		(!((B) & SQUASHFS_COMPRESSED_BIT))
--
--#define SQUASHFS_COMPRESSED_BIT_BLOCK	(1 << 24)
--
--#define SQUASHFS_COMPRESSED_SIZE_BLOCK(B)	((B) & \
--						~SQUASHFS_COMPRESSED_BIT_BLOCK)
--
--#define SQUASHFS_COMPRESSED_BLOCK(B)	(!((B) & SQUASHFS_COMPRESSED_BIT_BLOCK))
--
- static inline int squashfs_block_size(__le32 raw)
+@@ -108,8 +109,9 @@ int squashfs_read_inode(struct inode *in
  {
- 	u32 size = le32_to_cpu(raw);
-@@ -449,5 +433,4 @@ struct squashfs_xattr_id_table {
- 	__le32			xattr_ids;
- 	__le32			unused;
- };
+ 	struct super_block *sb = inode->i_sb;
+ 	struct squashfs_sb_info *msblk = sb->s_fs_info;
+-	u64 block = SQUASHFS_INODE_BLK(ino) + msblk->inode_table;
+-	int err, type, offset = SQUASHFS_INODE_OFFSET(ino);
++	u64 block = squashfs_inode_blk(ino) + msblk->inode_table;
++	int offset = squashfs_inode_offset(ino);
++	int err, type;
+ 	union squashfs_inode squashfs_ino;
+ 	struct squashfs_base_inode *sqshb_ino = &squashfs_ino.base;
+ 	int xattr_id = SQUASHFS_INVALID_XATTR;
+@@ -128,8 +130,8 @@ int squashfs_read_inode(struct inode *in
+ 	if (err)
+ 		goto failed_read;
+ 
+-	block = SQUASHFS_INODE_BLK(ino) + msblk->inode_table;
+-	offset = SQUASHFS_INODE_OFFSET(ino);
++	block = squashfs_inode_blk(ino) + msblk->inode_table;
++	offset = squashfs_inode_offset(ino);
+ 
+ 	type = le16_to_cpu(sqshb_ino->inode_type);
+ 	switch (type) {
+@@ -181,7 +183,7 @@ int squashfs_read_inode(struct inode *in
+ 		inode->i_data.a_ops = &squashfs_aops;
+ 
+ 		TRACE("File inode %x:%x, start_block %llx, block_list_start "
+-			"%llx, offset %x\n", SQUASHFS_INODE_BLK(ino),
++			"%llx, offset %x\n", squashfs_inode_blk(ino),
+ 			offset, squashfs_i(inode)->start, block, offset);
+ 		break;
+ 	}
+@@ -241,7 +243,7 @@ int squashfs_read_inode(struct inode *in
+ 		inode->i_data.a_ops = &squashfs_aops;
+ 
+ 		TRACE("File inode %x:%x, start_block %llx, block_list_start "
+-			"%llx, offset %x\n", SQUASHFS_INODE_BLK(ino),
++			"%llx, offset %x\n", squashfs_inode_blk(ino),
+ 			offset, squashfs_i(inode)->start, block, offset);
+ 		break;
+ 	}
+@@ -264,7 +266,7 @@ int squashfs_read_inode(struct inode *in
+ 		squashfs_i(inode)->parent = le32_to_cpu(sqsh_ino->parent_inode);
+ 
+ 		TRACE("Directory inode %x:%x, start_block %llx, offset %x\n",
+-				SQUASHFS_INODE_BLK(ino), offset,
++				squashfs_inode_blk(ino), offset,
+ 				squashfs_i(inode)->start,
+ 				le16_to_cpu(sqsh_ino->offset));
+ 		break;
+@@ -291,7 +293,7 @@ int squashfs_read_inode(struct inode *in
+ 		squashfs_i(inode)->parent = le32_to_cpu(sqsh_ino->parent_inode);
+ 
+ 		TRACE("Long directory inode %x:%x, start_block %llx, offset "
+-				"%x\n", SQUASHFS_INODE_BLK(ino), offset,
++				"%x\n", squashfs_inode_blk(ino), offset,
+ 				squashfs_i(inode)->start,
+ 				le16_to_cpu(sqsh_ino->offset));
+ 		break;
+@@ -335,7 +337,7 @@ int squashfs_read_inode(struct inode *in
+ 		}
+ 
+ 		TRACE("Symbolic link inode %x:%x, start_block %llx, offset "
+-				"%x\n", SQUASHFS_INODE_BLK(ino), offset,
++				"%x\n", squashfs_inode_blk(ino), offset,
+ 				block, offset);
+ 		break;
+ 	}
+@@ -359,7 +361,7 @@ int squashfs_read_inode(struct inode *in
+ 		squashfs_i(inode)->parent = 0;
+ 
+ 		TRACE("Device inode %x:%x, rdev %x\n",
+-				SQUASHFS_INODE_BLK(ino), offset, rdev);
++				squashfs_inode_blk(ino), offset, rdev);
+ 		break;
+ 	}
+ 	case SQUASHFS_LBLKDEV_TYPE:
+@@ -384,7 +386,7 @@ int squashfs_read_inode(struct inode *in
+ 		squashfs_i(inode)->parent = 0;
+ 
+ 		TRACE("Device inode %x:%x, rdev %x\n",
+-				SQUASHFS_INODE_BLK(ino), offset, rdev);
++				squashfs_inode_blk(ino), offset, rdev);
+ 		break;
+ 	}
+ 	case SQUASHFS_FIFO_TYPE:
+--- a/fs/squashfs/namei.c~squashfs-convert-squashfs_inode_-and-squashfs_mkinode-to-inline-functions
++++ a/fs/squashfs/namei.c
+@@ -49,6 +49,7 @@
+ #include "squashfs_fs.h"
+ #include "squashfs_fs_sb.h"
+ #include "squashfs_fs_i.h"
++#include "squashfs_helpers.h"
+ #include "squashfs.h"
+ #include "xattr.h"
+ 
+@@ -197,7 +198,7 @@ static struct dentry *squashfs_lookup(st
+ 				off = le16_to_cpu(dire->offset);
+ 				ino_num = le32_to_cpu(dirh.inode_number) +
+ 					(short) le16_to_cpu(dire->inode_number);
+-				ino = SQUASHFS_MKINODE(blk, off);
++				ino = squashfs_mkinode(blk, off);
+ 
+ 				TRACE("calling squashfs_iget for directory "
+ 					"entry %s, inode  %x:%x, %d\n", name,
+--- a/fs/squashfs/squashfs_fs.h~squashfs-convert-squashfs_inode_-and-squashfs_mkinode-to-inline-functions
++++ a/fs/squashfs/squashfs_fs.h
+@@ -107,17 +107,6 @@ static inline int squashfs_block_size(__
+ 	return (size >> 25) ? -EIO : size;
+ }
+ 
+-/*
+- * Inode number ops.  Inodes consist of a compressed block number, and an
+- * uncompressed offset within that block
+- */
+-#define SQUASHFS_INODE_BLK(A)		((unsigned int) ((A) >> 16))
 -
- #endif
-diff --git a/fs/squashfs/squashfs_helpers.h a/fs/squashfs/squashfs_helpers.h
-new file mode 100644
---- /dev/null
+-#define SQUASHFS_INODE_OFFSET(A)	((unsigned int) ((A) & 0xffff))
+-
+-#define SQUASHFS_MKINODE(A, B)		((long long)(((long long) (A)\
+-					<< 16) + (B)))
+-
+ /* fragment and fragment table defines */
+ #define SQUASHFS_FRAGMENT_BYTES(A)	\
+ 				((A) * sizeof(struct squashfs_fragment_entry))
+--- a/fs/squashfs/squashfs_helpers.h~squashfs-convert-squashfs_inode_-and-squashfs_mkinode-to-inline-functions
 +++ a/fs/squashfs/squashfs_helpers.h
-@@ -0,0 +1,35 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
-+#ifndef SQUASHFS_HELPERS_H
-+#define SQUASHFS_HELPERS_H
+@@ -32,4 +32,23 @@ static inline bool squashfs_compressed_b
+ {
+ 	return (size & SQUASHFS_COMPRESSED_BIT_BLOCK) == 0;
+ }
++
 +/*
-+ * Copyright (c) 2026
-+ * Phillip Lougher <phillip@squashfs.org.uk>
++ * Inode number ops.  Inodes consist of a compressed block number, and an
++ * uncompressed  offset within that block
 + */
-+
-+/* Flag whether block is compressed or uncompressed, bit is set if block is
-+ * uncompressed
-+ */
-+#define SQUASHFS_COMPRESSED_BIT		(1 << 15)
-+
-+static inline s16 squashfs_compressed_size(s16 size)
++static inline u32 squashfs_inode_blk(s64 inode)
 +{
-+	return size & ~SQUASHFS_COMPRESSED_BIT;
++	return inode >> 16;
 +}
 +
-+static inline bool squashfs_compressed(s16 size)
++static inline u16 squashfs_inode_offset(s64 inode)
 +{
-+	return (size & SQUASHFS_COMPRESSED_BIT) == 0;
++	return inode & 0xffff;
 +}
 +
-+#define SQUASHFS_COMPRESSED_BIT_BLOCK		(1 << 24)
-+
-+static inline s32 squashfs_compressed_size_block(s32 size)
++static inline s64 squashfs_mkinode(u32 start, u16 offset)
 +{
-+	return size & ~SQUASHFS_COMPRESSED_BIT_BLOCK;
++	return ((s64)start << 16) | offset;
 +}
-+
-+static inline bool squashfs_compressed_block(s32 size)
-+{
-+	return (size & SQUASHFS_COMPRESSED_BIT_BLOCK) == 0;
-+}
-+#endif
+ #endif
+--- a/fs/squashfs/super.c~squashfs-convert-squashfs_inode_-and-squashfs_mkinode-to-inline-functions
++++ a/fs/squashfs/super.c
+@@ -33,6 +33,7 @@
+ #include "squashfs_fs.h"
+ #include "squashfs_fs_sb.h"
+ #include "squashfs_fs_i.h"
++#include "squashfs_helpers.h"
+ #include "squashfs.h"
+ #include "decompressor.h"
+ #include "xattr.h"
+@@ -286,7 +287,7 @@ static int squashfs_fill_super(struct su
+ 
+ 	/* Check the root inode for sanity */
+ 	root_inode = le64_to_cpu(sblk->root_inode);
+-	if (SQUASHFS_INODE_OFFSET(root_inode) > SQUASHFS_METADATA_SIZE)
++	if (squashfs_inode_offset(root_inode) > SQUASHFS_METADATA_SIZE)
+ 		goto insanity;
+ 
+ 	msblk->inode_table = le64_to_cpu(sblk->inode_table_start);
 _
 
 Patches currently in -mm which might be from phillip@squashfs.org.uk are
