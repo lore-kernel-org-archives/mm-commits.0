@@ -1,49 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795586056;
-	b=VOKYxaFCpOy7N1GzuRhQSmphCgVh1Kc0XadK2DVUllu33qakkG3ABnSPuGRsBsqXWMLS
-	 mw3ORMDp+kydlEI6c3gpY+Sqes/HqCLE2lQxpfcth/FKerIMnz7l69RsMnp9bxT+zi8vn
-	 Ue6u/Kb2CB3r7w4yLbsVWT4JJw2VuYDOBlUE4zrKCFG8APkTwylficetFVZFZcSKYCvtB
-	 euahA/zqfIodoIx/6RZHl4wkYWHqQ/cckGBJVWAfQeLhGtxgUsreiQSR2U+wuZyQyrvKc
-	 kVINSzgOf9Li5B8LlpcEPaOLswec67UkCtpg+My8vF+/MuXZaFWtCnGDSWK3lrQQzFg==
+	t=1795586061;
+	b=4Rm2nxK2wAh/+1BN5OjcVxGCOzqK/y23qDNY11Hxy/jQUo7KUXbovgkLS/y/h2EaLgvb
+	 z5p+X+4NXryj3Huh22E/SUwJa/DI9go6ZzWSFYJ5jEX/z2X77pqzLSwp4+mRxPIHCVyve
+	 cb6wK6Od3sEfcxYMSebZp9B7hlexKa0gRfTB4Qld0uuO29b5NTCqT2Hz40ibQtCk4DaS6
+	 5sITp0Rk0YmzDKrrs/b7TYm1FKavwvF11LY2ZRVjx9Byxirv+EBXn4yj/P8YCxnpnwE7J
+	 aI/wyalgEtI39FbuocUCfSnWIIm/IWuX1sHuvBn2sFBn3FezacPAT6PJeOD6+nbwIjQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795586056;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795586061;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=vmXKJo3jhmr5Szyh49WV4vfx+EwBARjbzgTXFQ1jyI8=;
-	b=T/hxChT19t40epyb2LrYpE8sVHTosR0IzjcooTD56cdNG9x+FYr4755fnakRcrIur2GE
-	 bVFssPHrUY7/ZYzA/yGmwkOU4UVh3Dw1ARhHY6cFb3et+ky/Sg/tcCwp3jj0uY1gxRGq0
-	 jwv1SP97CD5lB9isKg5pCNUvm5JgXVRA1JYi6aj0RUS50dRpvMBhyrClqfEho4OZCU6Tw
-	 oHmBkz6xya3kaa2u1YR2acCmRgxSKnuodNyKnuuGlV47huedtSUbuMqDEsBGqvZc7iAVi
-	 SeicynN/oHPDoYT9aWLKVylDFOthKLdx3TWKpmesIIq5KJcFxrPdSfCfvPJiTfMZ7jg==
+	bh=dLinanArroGzXQyaFHEV3rZjDDoQbaEVs52o7SEAmT0=;
+	b=OQV8uXCc6Ty7Ibq29gh1r1QqvM6yCfGQyTz3OsfFc5mNmngd5vPOGFpqZp6b/VWxJa+Q
+	 I/wCW9vth4tnHvAOtOUJgN6yOdf+gNmX08w9QdofIJX98kw0nb40+dQa91nRYJcKBL6hC
+	 /VBSp5MHVxpe5NfdJobdRgf09FgdcOv9qGSEcQB13I6rEepL5WNk4vxeQUEvGETq+TV4F
+	 R05ntoBsqxeSDd6l9Lws4ue6AiXZZ5YiVY0DHTNijag7R16ormf6YuYQU9EqsAiMnWb80
+	 wth9HLYYUZ962dUzX3Q9FBYhMX5A9ou4al+ZZVqBhZvZI4Ggxh0TsNs3BgTbbJruKKw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Lw2+PWsU;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=dCNpEGTD;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3E6D606A321
-	for <mm-commits@vger.kernel.org>; Wed, 25 Nov 2026 05:54:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5ED7E606A32A
+	for <mm-commits@vger.kernel.org>; Wed, 25 Nov 2026 05:54:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Lw2+PWsU
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A2451F000C6;
-	Wed, 25 Nov 2026 05:54:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=dCNpEGTD
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7FF71F000EE;
+	Wed, 25 Nov 2026 05:54:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795586056;
-	bh=vmXKJo3jhmr5Szyh49WV4vfx+EwBARjbzgTXFQ1jyI8=;
+	d=linux-foundation.org; s=korg; t=1795586061;
+	bh=dLinanArroGzXQyaFHEV3rZjDDoQbaEVs52o7SEAmT0=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=Lw2+PWsUBB0Ow3sUkCuULJRIG9PshkKbxR75Cw4CeOQvRAiEfcDoqnvhAuqqMCa3Q
-	 EVwCTNI2En9TJXNZIYV6+ZrdvG9pyWDVdvKgmpzTVlzixbuI7D3N/pv6qggyFHzAR/
-	 20eXdEcvqOAUribBhxkTqYUMkKwtzhzLAC4qfbyQ=
-Date: Tue, 24 Nov 2026 21:54:15 -0800
+	b=dCNpEGTD+3gWuQmt3oBuIYw+Vj92rBmh7uKfn3BsD+ADY9KrxCwnW6y4bsbJwFC8x
+	 BzbvJFXX2JA2Aeje62cHN7ot9RGMpirhdLvo2pFzVpJP0lshOBw+2TpQ4ifCzCDCXd
+	 WDUDnbxtICCDcIao3tIyPZzf1ZBiAlayrmoTXtu4=
+Date: Tue, 24 Nov 2026 21:54:20 -0800
 To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261125014737.347231-20-phillip@squashfs.org.uk>
-References: <20261125014737.347231-20-phillip@squashfs.org.uk>
-Subject: + squashfs-dont-store-large-fragment-table-indexes-in-memory.patch added to mm-nonmm-unstable branch
-Message-Id: <20261125055416.4A2451F000C6@smtp.kernel.org>
+In-Reply-To: <20261125014737.347231-21-phillip@squashfs.org.uk>
+References: <20261125014737.347231-21-phillip@squashfs.org.uk>
+Subject: + squashfs-dont-store-large-xattr-id-table-indexes-in-memory.patch added to mm-nonmm-unstable branch
+Message-Id: <20261125055420.D7FF71F000EE@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: Squashfs: don't store large fragment table indexes in memory
+     Subject: Squashfs: don't store large xattr id table indexes in memory
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-dont-store-large-fragment-table-indexes-in-memory.patch
+     squashfs-dont-store-large-xattr-id-table-indexes-in-memory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-dont-store-large-fragment-table-indexes-in-memory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-dont-store-large-xattr-id-table-indexes-in-memory.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,22 +79,22 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: Squashfs: don't store large fragment table indexes in memory
-Date: Wed, 25 Nov 2026 01:47:33 +0000
+Subject: Squashfs: don't store large xattr id table indexes in memory
+Date: Wed, 25 Nov 2026 01:47:34 +0000
 
-When mounting a Squashfs filesystem, the code reads the entire fragment
+When mounting a Squashfs filesystem, the code reads the entire xattr id
 table indexes into memory.  Their size is determined by the number of
-fragments in the filesystem, where the maximum number of fragments is
+xattr ids in the filesystem, where the maximum number of xattr ids is
 2^32, and this will allocate and read 64 MiB.
 
-This is an execessive and unnecessary amount of memory because the
+This is an excessive and unnecessary amount of memory because the
 indexes do not need to be read into memory in their entirety.  In
 addition kmalloc() is used to allocate memory, and this can fail when
 large amounts of memory are requested.  Kmalloc() on modern kernels is
-usually limited to 4096 KiB. If panic-on-warn is set, then failure to
-allocate memory willl result in a kernel panic.
+usually limited to 4096 KiB.  If panic-on-warn is set, then failure to
+allocate memory will result in a kernel panic.
 
-This commit uses a 4 page cache if the size of the fragment table
+This commit uses a 4 page cache if the size of the xattr id table
 indexes are 4 pages or larger.  A simple and fast lookup array is
 retained where the total index size is less than 4 pages in size, which
 is the vast majority of Squashfs filesystems.
@@ -103,12 +103,15 @@ Reproducer
 ==========
 
 The following reproducer will create a Squashfs filesystem with
-280 million fragments, which will cause the fragment table indexes to
+280 million xattr ids, which will cause the xattr id table indexes to
 exceed 4096 KiB, and the kmalloc() should fail when the filesystem is
 mounted.
 
 =====================================================================
 #!/bin/bash
+
+ARGS="-pf pseudo -mem 100m -no-hardlinks -no-sparse -no-duplicates "
+ARGS+="-no-exports -no-recovery -no-progress -no-xattr-dups"
 
 finish() {
 	popd 2>&1 > /dev/null
@@ -125,15 +128,16 @@ fi
 
 pushd $DIR 2>&1 > /dev/null
 
-# create 20 million pseudo file links to file 2049 bytes in size
-truncate -s 2049 a
+# create 20 million pseudo file links to empty file
+touch a
 a=0
 while [ $a -le 19 ]; do
 	b=0
 	while [ $b -le 999 ]; do
 		c=0
 		while [ $c -le 999 ]; do
-			echo "x/$a/$b/$c l a" >> file
+			echo "X/$a/$b/$c l a" >> file
+			echo "X/$a/$b/$c x user.x=1" >> file
 			(( c ++ ))
 		done
 		(( b ++ ))
@@ -142,11 +146,11 @@ while [ $a -le 19 ]; do
 done
 
 for i in $(seq 1 14); do
-	sed "s/x/$i/g" file > pseudo
+	sed "s/X/$i/g" file > pseudo
 	echo
 	echo Iteration $i - appending 20 million files to Squashfs filesystem
 	echo
-	if ! mksquashfs - $IMG -pf pseudo -mem 100m -no-hardlinks -no-sparse -no-duplicates -no-exports -pd "d 0777 0 0" -no-recovery -b 4096; then
+	if ! mksquashfs - $IMG -pd "d 0777 0 0" $ARGS; then
 		echo Appending to Squashfs filesystem failed
 		finish
 	fi
@@ -158,41 +162,303 @@ rm -rf $DIR
 echo Generated Squashfs filesystem $IMG
 =====================================================================
 
-Link: https://patch.msgid.link/20261125014737.347231-20-phillip@squashfs.org.uk
+Link: https://patch.msgid.link/20261125014737.347231-21-phillip@squashfs.org.uk
 Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
- fs/squashfs/fragment.c         |   99 ++++++++++++++++++++++++-------
- fs/squashfs/squashfs.h         |    3 
- fs/squashfs/squashfs_fs_sb.h   |    8 ++
- fs/squashfs/squashfs_helpers.h |   28 ++++++++
- fs/squashfs/super.c            |   32 ++++++----
- 5 files changed, 136 insertions(+), 34 deletions(-)
+ fs/squashfs/inode.c            |    2 
+ fs/squashfs/squashfs_fs_sb.h   |    8 +
+ fs/squashfs/squashfs_helpers.h |   29 +++++
+ fs/squashfs/super.c            |   26 ++--
+ fs/squashfs/xattr.c            |   22 ++--
+ fs/squashfs/xattr.h            |   15 ++
+ fs/squashfs/xattr_id.c         |  167 ++++++++++++++++++++++---------
+ 7 files changed, 197 insertions(+), 72 deletions(-)
 
---- a/fs/squashfs/fragment.c~squashfs-dont-store-large-fragment-table-indexes-in-memory
-+++ a/fs/squashfs/fragment.c
-@@ -29,26 +29,67 @@
- #include "squashfs_helpers.h"
- #include "squashfs.h"
+--- a/fs/squashfs/inode.c~squashfs-dont-store-large-xattr-id-table-indexes-in-memory
++++ a/fs/squashfs/inode.c
+@@ -454,7 +454,7 @@ int squashfs_read_inode(struct inode *in
+ 		return -EINVAL;
+ 	}
  
-+s64 squashfs_frag_lookup_start(struct super_block *sb, u32 fragment)
+-	if (xattr_id != SQUASHFS_INVALID_XATTR && msblk->xattr_id_table) {
++	if (xattr_id != SQUASHFS_INVALID_XATTR && msblk->xattr_id_array) {
+ 		err = squashfs_xattr_lookup(sb, xattr_id,
+ 					&squashfs_i(inode)->xattr_count,
+ 					&squashfs_i(inode)->xattr_size,
+--- a/fs/squashfs/squashfs_fs_sb.h~squashfs-dont-store-large-xattr-id-table-indexes-in-memory
++++ a/fs/squashfs/squashfs_fs_sb.h
+@@ -63,7 +63,10 @@ struct squashfs_sb_info {
+ 		__le64				*fragment_index_array;
+ 		struct squashfs_cache		*fragment_index_cache;
+ 	};
+-	__le64					*xattr_id_table;
++	union {
++		__le64				*xattr_id_array;
++		struct squashfs_cache		*xattr_id_cache;
++	};
+ 	struct mutex				meta_index_mutex;
+ 	struct meta_index			*meta_index;
+ 	void					*stream;
+@@ -79,6 +82,8 @@ struct squashfs_sb_info {
+ 	u64					xattr_table;
+ 	u64					lookup_table;
+ 	u64					lookup_table_start;
++	u64					xattr_id_table;
++	u64					xattr_id_table_start;
+ 	unsigned int				block_size;
+ 	unsigned short				block_log;
+ 	long long				bytes_used;
+@@ -91,5 +96,6 @@ struct squashfs_sb_info {
+ 	int					max_thread_num;
+ 	bool					lookup_table_is_cache;
+ 	bool					fragment_index_is_cache;
++	bool					xattr_id_is_cache;
+ };
+ #endif
+--- a/fs/squashfs/squashfs_helpers.h~squashfs-dont-store-large-xattr-id-table-indexes-in-memory
++++ a/fs/squashfs/squashfs_helpers.h
+@@ -241,11 +241,38 @@ static inline s32 squashfs_xattr_blocks(
+ 		SQUASHFS_METADATA_SIZE;
+ }
+ 
+-static inline s32 squashfs_xattr_block_bytes(u32 xattrs)
++static inline s32 squashfs_xattr_blocks_bytes(u32 xattrs)
+ {
+ 	return squashfs_xattr_blocks(xattrs) * sizeof(long long);
+ }
+ 
++static inline s32 squashfs_xattr_blocks_base(u32 xattrs)
++{
++	return (squashfs_xattr_block(xattrs) * sizeof(long long)) & ~(PAGE_SIZE - 1);
++}
++
++static inline s64 squashfs_xattr_blocks_start(u32 xattrs, struct squashfs_sb_info *msblk)
++{
++	s32 base = squashfs_xattr_blocks_base(xattrs);
++	s64 table_start = msblk->xattr_id_table + sizeof(struct squashfs_xattr_id_table);
++	s64 start;
++
++	if (S64_MAX - table_start < base)
++		return -EINVAL;
++
++	start = table_start + base;
++
++	if (start > msblk->bytes_used)
++		return -EINVAL;
++
++	return start;
++}
++
++static inline s32 squashfs_xattr_blocks_offset(u32 xattrs)
++{
++	return (squashfs_xattr_block(xattrs) * sizeof(long long)) & (PAGE_SIZE - 1);
++}
++
+ static inline u32 squashfs_xattr_blk(s64 xattr)
+ {
+ 	return xattr >> 16;
+--- a/fs/squashfs/super.c~squashfs-dont-store-large-xattr-id-table-indexes-in-memory
++++ a/fs/squashfs/super.c
+@@ -193,6 +193,14 @@ static void squashfs_free_fragment_index
+ 		kfree(msblk->fragment_index_array);
+ }
+ 
++static void squashfs_free_xattr_indexes(struct squashfs_sb_info *msblk)
++{
++	if (msblk->xattr_id_is_cache)
++		squashfs_cache_delete(msblk->xattr_id_cache);
++	else
++		kfree(msblk->xattr_id_array);
++}
++
+ static int squashfs_fill_super(struct super_block *sb, struct fs_context *fc)
+ {
+ 	struct squashfs_mount_opts *opts = fc->fs_private;
+@@ -202,7 +210,7 @@ static int squashfs_fill_super(struct su
+ 	long long root_inode;
+ 	unsigned short flags;
+ 	unsigned int fragments;
+-	u64 xattr_id_table_start, next_table;
++	u64 next_table;
+ 	s64 err;
+ 	int devblksize = sb_min_blocksize(sb, SQUASHFS_DEVBLK_SIZE);
+ 
+@@ -376,19 +384,17 @@ static int squashfs_fill_super(struct su
+ 
+ 	/* Handle xattrs */
+ 	sb->s_xattr = squashfs_xattr_handlers;
+-	xattr_id_table_start = le64_to_cpu(sblk->xattr_id_table_start);
+-	if (xattr_id_table_start == SQUASHFS_INVALID_BLK) {
++	msblk->xattr_id_table = le64_to_cpu(sblk->xattr_id_table_start);
++	if (msblk->xattr_id_table == SQUASHFS_INVALID_BLK) {
+ 		next_table = msblk->bytes_used;
+ 		goto allocate_id_index_table;
+ 	}
+ 
+ 	/* Allocate and read xattr id lookup table */
+-	msblk->xattr_id_table = squashfs_read_xattr_id_table(sb,
+-		xattr_id_table_start, &msblk->xattr_table, &msblk->xattr_ids);
+-	if (IS_ERR(msblk->xattr_id_table)) {
++	err = squashfs_read_xattr_id_table(sb, msblk->xattr_id_table,
++				&msblk->xattr_table, &msblk->xattr_ids);
++	if (err < 0) {
+ 		errorf(fc, "unable to read xattr id index table");
+-		err = PTR_ERR(msblk->xattr_id_table);
+-		msblk->xattr_id_table = NULL;
+ 		if (err != -ENOTSUPP)
+ 			goto failed_mount;
+ 	}
+@@ -507,7 +513,7 @@ failed_mount:
+ 	squashfs_free_inode_table(msblk);
+ 	squashfs_free_fragment_indexes(msblk);
+ 	kfree(msblk->id_table);
+-	kfree(msblk->xattr_id_table);
++	squashfs_free_xattr_indexes(msblk);
+ 	kfree(sb->s_fs_info);
+ 	sb->s_fs_info = NULL;
+ 	kfree(sblk);
+@@ -628,7 +634,7 @@ static void squashfs_put_super(struct su
+ 		squashfs_free_fragment_indexes(sbi);
+ 		kfree(sbi->meta_index);
+ 		squashfs_free_inode_table(sbi);
+-		kfree(sbi->xattr_id_table);
++		squashfs_free_xattr_indexes(sbi);
+ 		kfree(sb->s_fs_info);
+ 		sb->s_fs_info = NULL;
+ 	}
+--- a/fs/squashfs/xattr.c~squashfs-dont-store-large-xattr-id-table-indexes-in-memory
++++ a/fs/squashfs/xattr.c
+@@ -30,10 +30,9 @@ ssize_t squashfs_listxattr(struct dentry
+ 	struct inode *inode = d_inode(d);
+ 	struct super_block *sb = inode->i_sb;
+ 	struct squashfs_sb_info *msblk = sb->s_fs_info;
+-	u64 start = squashfs_xattr_blk(squashfs_i(inode)->xattr)
+-						+ msblk->xattr_table;
+-	int offset = squashfs_xattr_offset(squashfs_i(inode)->xattr);
+-	unsigned int count = squashfs_i(inode)->xattr_count;
++	u64 start;
++	int offset;
++	unsigned int count;
+ 	size_t rest = buffer_size;
+ 	int err;
+ 
+@@ -41,9 +40,13 @@ ssize_t squashfs_listxattr(struct dentry
+ 	if (squashfs_i(inode)->xattr == SQUASHFS_INVALID_BLK)
+ 		return 0;
+ 
++	count = squashfs_i(inode)->xattr_count;
+ 	if (count == 0 || count > squashfs_i(inode)->xattr_size)
+ 		return -EIO;
+ 
++	start = squashfs_xattr_blk(squashfs_i(inode)->xattr) + msblk->xattr_table;
++	offset = squashfs_xattr_offset(squashfs_i(inode)->xattr);
++
+ 	/* loop reading each xattr name */
+ 	while (count--) {
+ 		struct squashfs_xattr_entry entry;
+@@ -111,10 +114,9 @@ static int squashfs_xattr_get(struct ino
+ {
+ 	struct super_block *sb = inode->i_sb;
+ 	struct squashfs_sb_info *msblk = sb->s_fs_info;
+-	u64 start = squashfs_xattr_blk(squashfs_i(inode)->xattr)
+-						+ msblk->xattr_table;
+-	int offset = squashfs_xattr_offset(squashfs_i(inode)->xattr);
+-	unsigned int count = squashfs_i(inode)->xattr_count;
++	u64 start;
++	int offset;
++	unsigned int count;
+ 	int name_len = strlen(name);
+ 	int err, vsize;
+ 	char *target;
+@@ -123,6 +125,7 @@ static int squashfs_xattr_get(struct ino
+ 	if (squashfs_i(inode)->xattr == SQUASHFS_INVALID_BLK)
+ 		return -ENODATA;
+ 
++	count = squashfs_i(inode)->xattr_count;
+ 	if (count == 0 || count > squashfs_i(inode)->xattr_size)
+ 		return -EIO;
+ 
+@@ -130,6 +133,9 @@ static int squashfs_xattr_get(struct ino
+ 	if (target == NULL)
+ 		return -ENOMEM;
+ 
++	start = squashfs_xattr_blk(squashfs_i(inode)->xattr) + msblk->xattr_table;
++	offset = squashfs_xattr_offset(squashfs_i(inode)->xattr);
++
+ 	/* loop reading each xattr name */
+ 	for (; count; count--) {
+ 		struct squashfs_xattr_entry entry;
+--- a/fs/squashfs/xattr.h~squashfs-dont-store-large-xattr-id-table-indexes-in-memory
++++ a/fs/squashfs/xattr.h
+@@ -9,25 +9,26 @@
+  */
+ 
+ #ifdef CONFIG_SQUASHFS_XATTR
+-extern __le64 *squashfs_read_xattr_id_table(struct super_block *, u64,
++extern int squashfs_read_xattr_id_table(struct super_block *, u64,
+ 		u64 *, unsigned int *);
+ extern int squashfs_xattr_lookup(struct super_block *, unsigned int,
+ 		unsigned int *, unsigned int *, unsigned long long *);
++extern s64 squashfs_xattr_lookup_start(struct super_block *sb, u32 index);
+ #else
+-static inline __le64 *squashfs_read_xattr_id_table(struct super_block *sb,
++static inline int squashfs_read_xattr_id_table(struct super_block *sb,
+ 		u64 start, u64 *xattr_table_start, unsigned int *xattr_ids)
+ {
+ 	struct squashfs_xattr_id_table *id_table;
+ 
+ 	id_table = squashfs_read_table(sb, start, sizeof(*id_table));
+ 	if (IS_ERR(id_table))
+-		return (__le64 *) id_table;
++		return PTR_ERR(id_table);
+ 
+ 	*xattr_table_start = le64_to_cpu(id_table->xattr_table_start);
+ 	kfree(id_table);
+ 
+ 	ERROR("Xattrs in filesystem, these will be ignored\n");
+-	return ERR_PTR(-ENOTSUPP);
++	return -ENOTSUPP;
+ }
+ 
+ static inline int squashfs_xattr_lookup(struct super_block *sb,
+@@ -36,6 +37,12 @@ static inline int squashfs_xattr_lookup(
+ {
+ 	return 0;
+ }
++
++static inline s64 squashfs_xattr_lookup_start(struct super_block *sb, u32 index)
++{
++	return 0;
++}
++
+ #define squashfs_listxattr NULL
+ #define squashfs_xattr_handlers NULL
+ #endif
+--- a/fs/squashfs/xattr_id.c~squashfs-dont-store-large-xattr-id-table-indexes-in-memory
++++ a/fs/squashfs/xattr_id.c
+@@ -23,6 +23,45 @@
+ #include "squashfs.h"
+ #include "xattr.h"
+ 
++s64 squashfs_xattr_lookup_start(struct super_block *sb, u32 index)
 +{
 +	struct squashfs_sb_info *msblk = sb->s_fs_info;
 +	s64 start;
 +
-+	if (msblk->fragment_index_is_cache) {
-+		s32 length = squashfs_fragment_indexes_bytes(msblk->fragments);
-+		s32 base = squashfs_fragment_indexes_base(fragment);
-+		s32 offset = squashfs_fragment_indexes_offset(fragment);
++	if (msblk->xattr_id_is_cache) {
++		s32 length = squashfs_xattr_blocks_bytes(msblk->xattr_ids);
++		s32 base = squashfs_xattr_blocks_base(index);
++		s32 offset = squashfs_xattr_blocks_offset(index);
 +		s32 avail = min_t(int, length - base, PAGE_SIZE);
 +		struct squashfs_cache_entry *entry;
 +
-+		start = squashfs_fragment_indexes_start(fragment, msblk);
++		start = squashfs_xattr_blocks_start(index, msblk);
 +		if (start < 0)
 +			return start;
 +
-+		entry = squashfs_cache_get(sb, msblk->fragment_index_cache,
-+				start, avail | SQUASHFS_COMPRESSED_BIT_BLOCK);
++		entry = squashfs_cache_get(sb, msblk->xattr_id_cache, start,
++				avail | SQUASHFS_COMPRESSED_BIT_BLOCK);
 +		if (entry->error < 0) {
 +			int err = entry->error;
 +
@@ -203,278 +469,196 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +		start = le64_to_cpu(((__le64 *)entry->data[0])[offset >> 3]);
 +		squashfs_cache_put(entry);
 +	} else {
-+		s32 block = squashfs_fragment_index(fragment);
++		s32 block = squashfs_xattr_block(index);
 +
-+		start = le64_to_cpu(msblk->fragment_index_array[block]);
++		start = le64_to_cpu(msblk->xattr_id_array[block]);
 +	}
 +
-+	if (start < msblk->fragment_table_start || start >= msblk->fragment_table)
++	if (start < msblk->xattr_id_table_start || start >= msblk->xattr_id_table)
 +		return -EIO;
 +
 +	return start;
 +}
 +
  /*
-  * Look-up fragment using the fragment index table.  Return the on disk
-  * location of the fragment and its compressed size
+  * Map xattr id using the xattr id look up table
   */
-+
- int squashfs_frag_lookup(struct super_block *sb, unsigned int fragment,
- 				u64 *fragment_block, int *fragment_size)
+@@ -31,19 +70,19 @@ int squashfs_xattr_lookup(struct super_b
+ 		unsigned long long *xattr)
  {
  	struct squashfs_sb_info *msblk = sb->s_fs_info;
--	int block, offset, size;
-+	s32 offset, size;
- 	struct squashfs_fragment_entry fragment_entry;
+-	int block = squashfs_xattr_block(index);
+-	int offset = squashfs_xattr_block_offset(index);
 -	u64 start_block;
++	s32 offset = squashfs_xattr_block_offset(index);
 +	s64 start;
+ 	struct squashfs_xattr_id id;
+ 	int err;
  
- 	if (fragment >= msblk->fragments)
- 		return -EIO;
--	block = squashfs_fragment_index(fragment);
--	offset = squashfs_fragment_index_offset(fragment);
+ 	if (index >= msblk->xattr_ids)
+ 		return -EINVAL;
  
--	start_block = le64_to_cpu(msblk->fragment_index[block]);
-+	start = squashfs_frag_lookup_start(sb, fragment);
+-	start_block = le64_to_cpu(msblk->xattr_id_table[block]);
++	start = squashfs_xattr_lookup_start(sb, index);
 +	if (start < 0)
 +		return start;
  
--	size = squashfs_read_metadata(sb, &fragment_entry, &start_block,
-+	offset = squashfs_fragment_index_offset(fragment);
-+	size = squashfs_read_metadata(sb, &fragment_entry, &start,
- 					&offset, sizeof(fragment_entry));
- 	if (size < 0)
- 		return size;
-@@ -57,16 +98,14 @@ int squashfs_frag_lookup(struct super_bl
- 	*fragment_size = le32_to_cpu(fragment_entry.size);
- 	return 0;
- }
--
--
- /*
-  * Read the uncompressed fragment lookup table indexes off disk into memory
-  */
--__le64 *squashfs_read_fragment_index_table(struct super_block *sb,
-+int squashfs_read_fragment_index_table(struct super_block *sb,
- 	u64 fragment_table_start, u64 next_table, unsigned int fragments)
- {
--	unsigned int length = squashfs_fragment_index_bytes(fragments);
--	__le64 *table;
-+	struct squashfs_sb_info *msblk = sb->s_fs_info;
-+	s32 length = squashfs_fragment_indexes_bytes(fragments);
+-	err = squashfs_read_metadata(sb, &id, &start_block, &offset,
+-							sizeof(id));
++	err = squashfs_read_metadata(sb, &id, &start, &offset, sizeof(id));
+ 	if (err < 0)
+ 		return err;
  
- 	/*
- 	 * The computed size of the index table (length bytes) should exactly
-@@ -74,18 +113,36 @@ __le64 *squashfs_read_fragment_index_tab
- 	 */
- 	if (fragment_table_start >= next_table ||
- 				length != (next_table - fragment_table_start))
+@@ -57,19 +96,19 @@ int squashfs_xattr_lookup(struct super_b
+ /*
+  * Read uncompressed xattr id lookup table indexes from disk into memory
+  */
+-__le64 *squashfs_read_xattr_id_table(struct super_block *sb, u64 table_start,
++int squashfs_read_xattr_id_table(struct super_block *sb, u64 table_start,
+ 		u64 *xattr_table_start, unsigned int *xattr_ids)
+ {
+ 	struct squashfs_sb_info *msblk = sb->s_fs_info;
+-	unsigned int len, indexes;
++	s32 len;
+ 	struct squashfs_xattr_id_table *id_table;
+-	__le64 *table;
+ 	u64 start, end;
+-	int n;
++	s64 res;
+ 
++	/* Untrusted table_start will be validated by squashfs_read_data() */
+ 	id_table = squashfs_read_table(sb, table_start, sizeof(*id_table));
+ 	if (IS_ERR(id_table))
+-		return (__le64 *) id_table;
++		return PTR_ERR(id_table);
+ 
+ 	*xattr_table_start = le64_to_cpu(id_table->xattr_table_start);
+ 	*xattr_ids = le32_to_cpu(id_table->xattr_ids);
+@@ -79,10 +118,9 @@ __le64 *squashfs_read_xattr_id_table(str
+ 
+ 	/* there is always at least one xattr id */
+ 	if (*xattr_ids == 0)
 -		return ERR_PTR(-EINVAL);
 +		return -EINVAL;
  
--	table = squashfs_read_table(sb, fragment_table_start, length);
-+	if (length <= (PAGE_SIZE * 4)) {
-+		/* Read fragment index into memory */
-+		__le64 *array = squashfs_read_table(sb, fragment_table_start, length);
+-	len = squashfs_xattr_block_bytes(*xattr_ids);
+-	indexes = squashfs_xattr_blocks(*xattr_ids);
++	len = squashfs_xattr_blocks_bytes(*xattr_ids);
+ 
+ 	/*
+ 	 * The computed size of the index table (len bytes) should exactly
+@@ -92,43 +130,78 @@ __le64 *squashfs_read_xattr_id_table(str
+ 	end = msblk->bytes_used;
+ 
+ 	if (len != (end - start))
+-		return ERR_PTR(-EINVAL);
++		return -EINVAL;
+ 
+-	table = squashfs_read_table(sb, start, len);
+-	if (IS_ERR(table))
+-		return table;
+-
+-	/* table[0], table[1], ... table[indexes - 1] store the locations
+-	 * of the compressed xattr id blocks.  Each entry should be less than
+-	 * the next (i.e. table[0] < table[1]), and the difference between them
+-	 * should be SQUASHFS_METADATA_SIZE or less.  table[indexes - 1]
+-	 * should be less than table_start, and again the difference
+-	 * shouls be SQUASHFS_METADATA_SIZE or less.
+-	 *
+-	 * Finally xattr_table_start should be less than table[0].
+-	 */
+-	for (n = 0; n < (indexes - 1); n++) {
+-		start = le64_to_cpu(table[n]);
+-		end = le64_to_cpu(table[n + 1]);
+-
+-		if (start >= end || (end - start) >
+-				(SQUASHFS_METADATA_SIZE + SQUASHFS_BLOCK_OFFSET)) {
+-			kfree(table);
+-			return ERR_PTR(-EINVAL);
++	if (len <= (PAGE_SIZE * 4)) {
++		/* Read fragment indexes into memory */
++		s32 n, indexes = squashfs_xattr_blocks(*xattr_ids);
++		__le64 *array = squashfs_read_table(sb, start, len);
 +
 +		if (IS_ERR(array))
 +			return PTR_ERR(array);
 +
-+		/*
-+		 * table[0] points to the first fragment table metadata block, this
-+		 * should be less than fragment_table_start
++		/* array[0], array[1], ... array[indexes - 1] store the locations
++		 * of the compressed xattr id blocks.  Each entry should be less than
++		 * the next (i.e. array[0] < array[1]), and the difference between them
++		 * should be SQUASHFS_METADATA_SIZE or less.  array[indexes - 1]
++		 * should be less than array_start, and again the difference
++		 * shouls be SQUASHFS_METADATA_SIZE or less.
++		 *
++		 * Finally xattr_array_start should be less than array[0].
 +		 */
-+		if (le64_to_cpu(array[0]) >= fragment_table_start) {
++		for (n = 0; n < (indexes - 1); n++) {
++			start = le64_to_cpu(array[n]);
++			end = le64_to_cpu(array[n + 1]);
++
++			if (start >= end || (end - start) >
++					(SQUASHFS_METADATA_SIZE + SQUASHFS_BLOCK_OFFSET)) {
++				kfree(array);
++				return -EINVAL;
++			}
+ 		}
+-	}
+ 
+-	start = le64_to_cpu(table[indexes - 1]);
+-	if (start >= table_start || (table_start - start) >
+-				(SQUASHFS_METADATA_SIZE + SQUASHFS_BLOCK_OFFSET)) {
+-		kfree(table);
+-		return ERR_PTR(-EINVAL);
+-	}
++		start = le64_to_cpu(array[indexes - 1]);
++		if (start >= table_start || (table_start - start) >
++					(SQUASHFS_METADATA_SIZE + SQUASHFS_BLOCK_OFFSET)) {
++			kfree(array);
++			return -EINVAL;
++		}
+ 
+-	if (*xattr_table_start >= le64_to_cpu(table[0])) {
+-		kfree(table);
+-		return ERR_PTR(-EINVAL);
++		msblk->xattr_id_table_start = le64_to_cpu(array[0]);
++		if (*xattr_table_start >= msblk->xattr_id_table_start) {
 +			kfree(array);
 +			return -EINVAL;
 +		}
 +
-+		msblk->fragment_index_array = array;
-+		msblk->fragment_index_is_cache = false;
++		msblk->xattr_id_array = array;
++		msblk->xattr_id_is_cache = false;
 +	} else {
 +		/* Use a cache to store the last 16Kbytes of indexes read */
-+		struct squashfs_cache *cache = squashfs_cache_init("fragment index", 4, PAGE_SIZE);
- 
--	/*
--	 * table[0] points to the first fragment table metadata block, this
--	 * should be less than fragment_table_start
--	 */
--	if (!IS_ERR(table) && le64_to_cpu(table[0]) >= fragment_table_start) {
--		kfree(table);
--		return ERR_PTR(-EINVAL);
++		struct squashfs_cache *cache = squashfs_cache_init("xattr index", 4, PAGE_SIZE);
++
 +		if (IS_ERR(cache))
 +			return PTR_ERR(cache);
 +
-+		msblk->fragment_index_cache = cache;
-+		msblk->fragment_index_is_cache = true;
++		msblk->xattr_id_cache = cache;
++		msblk->xattr_id_is_cache = true;
++		msblk->xattr_id_table_start = 0;
++
++		res = squashfs_xattr_lookup_start(sb, 0);
++		if (res < 0)
++			goto corrupted;
++
++		if (*xattr_table_start >= res) {
++			res = -EINVAL;
++			goto corrupted;
++		}
++
++		msblk->xattr_id_table_start = res;
  	}
  
 -	return table;
 +	return 0;
++
++corrupted:
++	squashfs_cache_delete(msblk->xattr_id_cache);
++	msblk->xattr_id_cache = NULL;
++	return res;
  }
---- a/fs/squashfs/squashfs_fs_sb.h~squashfs-dont-store-large-fragment-table-indexes-in-memory
-+++ a/fs/squashfs/squashfs_fs_sb.h
-@@ -59,7 +59,10 @@ struct squashfs_sb_info {
- 	struct address_space			*cache_mapping;
- 	int					next_meta_index;
- 	__le64					*id_table;
--	__le64					*fragment_index;
-+	union {
-+		__le64				*fragment_index_array;
-+		struct squashfs_cache		*fragment_index_cache;
-+	};
- 	__le64					*xattr_id_table;
- 	struct mutex				meta_index_mutex;
- 	struct meta_index			*meta_index;
-@@ -71,6 +74,8 @@ struct squashfs_sb_info {
- 	u64					inode_table;
- 	u64					directory_table;
- 	u64					directory_table_end;
-+	u64					fragment_table;
-+	u64					fragment_table_start;
- 	u64					xattr_table;
- 	u64					lookup_table;
- 	u64					lookup_table_start;
-@@ -85,5 +90,6 @@ struct squashfs_sb_info {
- 	const struct squashfs_decompressor_thread_ops *thread_ops;
- 	int					max_thread_num;
- 	bool					lookup_table_is_cache;
-+	bool					fragment_index_is_cache;
- };
- #endif
---- a/fs/squashfs/squashfs.h~squashfs-dont-store-large-fragment-table-indexes-in-memory
-+++ a/fs/squashfs/squashfs.h
-@@ -71,8 +71,9 @@ extern s64 squashfs_inode_lookup_start(s
- /* fragment.c */
- extern int squashfs_frag_lookup(struct super_block *sb, unsigned int fragment,
- 				u64 *fragment_block, int *fragment_size);
--extern __le64 *squashfs_read_fragment_index_table(struct super_block *,
-+extern int squashfs_read_fragment_index_table(struct super_block *,
- 				u64, u64, unsigned int);
-+extern s64 squashfs_frag_lookup_start(struct super_block *sb, u32 fragment);
- 
- /* file.c */
- void squashfs_copy_cache(struct folio *, struct squashfs_cache_entry *,
---- a/fs/squashfs/squashfs_helpers.h~squashfs-dont-store-large-fragment-table-indexes-in-memory
-+++ a/fs/squashfs/squashfs_helpers.h
-@@ -108,11 +108,37 @@ static inline s32 squashfs_fragment_inde
- 		SQUASHFS_METADATA_SIZE;
- }
- 
--static inline s32 squashfs_fragment_index_bytes(u32 fragments)
-+static inline s32 squashfs_fragment_indexes_bytes(u32 fragments)
- {
- 	return squashfs_fragment_indexes(fragments) * sizeof(long long);
- }
- 
-+static inline s32 squashfs_fragment_indexes_base(u32 fragments)
-+{
-+	return (squashfs_fragment_index(fragments) * sizeof(long long)) & ~(PAGE_SIZE - 1);
-+}
-+
-+static inline s64 squashfs_fragment_indexes_start(u32 fragments, struct squashfs_sb_info *msblk)
-+{
-+	s32 base = squashfs_fragment_indexes_base(fragments);
-+	s64 start;
-+
-+	if (S64_MAX - msblk->fragment_table < base)
-+		return -EINVAL;
-+
-+	start = msblk->fragment_table + base;
-+
-+	if (start > msblk->bytes_used)
-+		return -EINVAL;
-+
-+	return start;
-+}
-+
-+static inline s32 squashfs_fragment_indexes_offset(u32 fragments)
-+{
-+	return (squashfs_fragment_index(fragments) * sizeof(long long)) & (PAGE_SIZE - 1);
-+}
-+
- /* inode lookup table defines */
- static inline s64 squashfs_lookup_bytes(u32 inodes)
- {
---- a/fs/squashfs/super.c~squashfs-dont-store-large-fragment-table-indexes-in-memory
-+++ a/fs/squashfs/super.c
-@@ -185,6 +185,14 @@ static void squashfs_free_inode_table(st
- 		kfree(msblk->inode_lookup_array);
- }
- 
-+static void squashfs_free_fragment_indexes(struct squashfs_sb_info *msblk)
-+{
-+	if (msblk->fragment_index_is_cache)
-+		squashfs_cache_delete(msblk->fragment_index_cache);
-+	else
-+		kfree(msblk->fragment_index_array);
-+}
-+
- static int squashfs_fill_super(struct super_block *sb, struct fs_context *fc)
- {
- 	struct squashfs_mount_opts *opts = fc->fs_private;
-@@ -300,6 +308,7 @@ static int squashfs_fill_super(struct su
- 
- 	msblk->inode_table = le64_to_cpu(sblk->inode_table_start);
- 	msblk->directory_table = le64_to_cpu(sblk->directory_table_start);
-+	msblk->fragment_table = le64_to_cpu(sblk->fragment_table_start);
- 	msblk->inodes = le32_to_cpu(sblk->inodes);
- 	msblk->fragments = le32_to_cpu(sblk->fragments);
- 	msblk->ids = le16_to_cpu(sblk->no_ids);
-@@ -317,8 +326,7 @@ static int squashfs_fill_super(struct su
- 	TRACE("Number of ids %d\n", msblk->ids);
- 	TRACE("sblk->inode_table_start %llx\n", msblk->inode_table);
- 	TRACE("sblk->directory_table_start %llx\n", msblk->directory_table);
--	TRACE("sblk->fragment_table_start %llx\n",
--		(u64) le64_to_cpu(sblk->fragment_table_start));
-+	TRACE("sblk->fragment_table_start %llx\n", msblk->fragment_table);
- 	TRACE("sblk->id_table_start %llx\n",
- 		(u64) le64_to_cpu(sblk->id_table_start));
- 
-@@ -433,15 +441,19 @@ handle_fragments:
- 	}
- 
- 	/* Allocate and read fragment index table */
--	msblk->fragment_index = squashfs_read_fragment_index_table(sb,
--		le64_to_cpu(sblk->fragment_table_start), next_table, fragments);
--	if (IS_ERR(msblk->fragment_index)) {
-+	err = squashfs_read_fragment_index_table(sb, msblk->fragment_table,
-+			next_table, fragments);
-+	if (err < 0) {
-+		errorf(fc, "unable to read fragment index table");
-+		goto failed_mount;
-+	}
-+
-+	err = squashfs_frag_lookup_start(sb, 0);
-+	if (err < 0) {
- 		errorf(fc, "unable to read fragment index table");
--		err = PTR_ERR(msblk->fragment_index);
--		msblk->fragment_index = NULL;
- 		goto failed_mount;
- 	}
--	next_table = le64_to_cpu(msblk->fragment_index[0]);
-+	next_table = msblk->fragment_table_start = err;
- 
- check_directory_table:
- 	/* Sanity check directory_table */
-@@ -493,7 +505,7 @@ failed_mount:
- 		iput(msblk->cache_mapping->host);
- 	msblk->thread_ops->destroy(msblk);
- 	squashfs_free_inode_table(msblk);
--	kfree(msblk->fragment_index);
-+	squashfs_free_fragment_indexes(msblk);
- 	kfree(msblk->id_table);
- 	kfree(msblk->xattr_id_table);
- 	kfree(sb->s_fs_info);
-@@ -613,7 +625,7 @@ static void squashfs_put_super(struct su
- 			iput(sbi->cache_mapping->host);
- 		sbi->thread_ops->destroy(sbi);
- 		kfree(sbi->id_table);
--		kfree(sbi->fragment_index);
-+		squashfs_free_fragment_indexes(sbi);
- 		kfree(sbi->meta_index);
- 		squashfs_free_inode_table(sbi);
- 		kfree(sbi->xattr_id_table);
 _
 
 Patches currently in -mm which might be from phillip@squashfs.org.uk are
