@@ -1,50 +1,52 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795572383;
-	b=a4fPEXKKDnfXinhDdt8CfJ6FuUZdx8CXq0uuQ8kKVuGmVjrh/GyCG6lCnaH4pvTg2aJe
-	 Cubjfh99mSB10qWTkZ0cte8F21X/iGMgevCjeFRjbFM1Cmt2g61ghiKmpK0OVlzncn3iy
-	 ABuWQvEHSuyC+S+vQ0UL8Qn2abTmEvx9LnYgykc7FOGLpHPelA5GtiK6GELEThipAMkie
-	 5vidlCgvM0wAW07xZvy9FEdDjiEDy5QXfTawQri+/7R0/3R5cDzM6QOEAjx8AskCh1FI7
-	 p1UvdUG70+j7LPANgTmf1jnjXbpXU4yRkjqRrlEqkn1th4Z/ENbCpcV8NQGnh/nEaQg==
+	t=1795572515;
+	b=r3oal3rbnJ8+mGf7D+LjCQEA+uCgusbtbfhaCVjjisdRVb4bI9hHprzeH1PVGKOJ2e9N
+	 ix8lOA6tw+dXinh9KAL9HLu5zf3DEH+eN9TBgxFcZQN87psGO/GWspZRbvMrLt6NZyR9L
+	 rcieZLNupeb+RWT2w9lOa00c7tSa4Tje6qtgcfbtcFsbN7nvnRWgtAGeK1+H+IQ0CADTe
+	 cxJcDalfXybHXAC7B1lJss0hpj+9cexMeTgSa2V465FIMI0v31opWYtLZz6HJ0snRmtWj
+	 Qi1U0XakkqyQV2vNcwiq0MQnp4WPMWr7U85vIBvi1MTJLeHSsK+p3J+dN7mK8Ke1zAw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795572383;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795572515;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=DzW4OywvkIOQHGkkTkQSg2ROpxDIzTr7rPoVXr8Svq8=;
-	b=Vroo6B81LoBOx5vtPEw3VXPjV6SpZx68cWYfP5/16EX1uvwBpzkIIzO6U937AXn7aECh
-	 LEe3tJE7YBmSbUhm56D3gNROudFNDzL3hkFD75/b+r3Tzus0B6BBneuL0RojkbRl62p7x
-	 3fXzQEfswqFYbuZwv92db0JsguVImZl0pg83I31Q/v9sRgcQ/NssDrQb4wSUdGNXv+WNW
-	 6Xas4tdOgbtBvy7h9wBV53145K3e8YXjOj+w29aCUNss9FuH8Q0WsY+IT/LvQSfyLB78U
-	 RYx1QC+1Y2a8NxuvHlUfeFIHROT6RB6/9KMxiev9LM5RXhM5wW45JWEZR6NnXI+I1ag==
+	bh=clGi9PECA0RWLMu72USQq8GH3np4DpJBdzSWo6nl+dQ=;
+	b=cqgkYxsYkhf7sh+3v4Kg6H9uUHOyWnIfd7Z8IBdy5WQLq41/yh9DJ+0E4uqAekWxtt4E
+	 +nIdErGehgLjwHj7r/o6y8G7pqkcZo97dRJLedWFtqW/tBY/b4UIB84GP79IeiejvqTZP
+	 tZQZF3uqy0hhSkw9TQAegy2AKNWzxyCKz4y2uZEKvWwC4ZydRjDLxAqVVywLKQYBP0AsV
+	 vW2LtKXLshCiW2RT/gBZxTQj1MTK0mvPLzx5SFxAOTdK9A5h8JdXbEWYh/8D1qVCNir7i
+	 QwMbVCDWtl44v4yCH+5PcWVVMuUv3dXnKmqQbGlFJFYWfMq2cZP/X0h2dzVLplx3J6A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vYdEjZG0;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SJQQXZIf;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2414F606A330;
-	Wed, 25 Nov 2026 02:06:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3889606A321
+	for <mm-commits@vger.kernel.org>; Wed, 25 Nov 2026 02:08:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vYdEjZG0
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A580A1F01577;
-	Wed, 25 Nov 2026 02:06:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SJQQXZIf
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 934441F000CF;
+	Wed, 25 Nov 2026 02:08:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795572382;
-	bh=DzW4OywvkIOQHGkkTkQSg2ROpxDIzTr7rPoVXr8Svq8=;
+	d=linux-foundation.org; s=korg; t=1795572514;
+	bh=clGi9PECA0RWLMu72USQq8GH3np4DpJBdzSWo6nl+dQ=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=vYdEjZG0oeOxfkKo1PsnF7vRFjCxdjjSkIB7az8bY4Hxyt2UG9lmLNUeMu1vNoo3B
-	 F9SOiLv6HHePCF9bOAGT6qX58FD3Dj6vt5qUVJT7JeSwWj/MG+vc7pv6VC/U+0lEtf
-	 9hiclU3+jeTixb5OBax1CDrhP9yCN9kVJSfZdb3A=
-Date: Tue, 24 Nov 2026 18:06:22 -0800
-To: mm-commits@vger.kernel.org,tj@kernel.org,stable@vger.kernel.org,
-	roman.gushchin@linux.dev,dennis@kernel.org,cl@gentwo.org,
-	chriswiseman@google.com,akpm@linux-foundation.org
+	b=SJQQXZIfezpeVwwBhumoTRJbvzq+dZ6EKMGH3tMhYdJtTGYZHJ5hV+c1S2+ShmDe3
+	 aDEwgcXEkIL1zmK/q31mE4vR1Pk3mfh6IF+hRme1vCN2SQ+Mfjn2FITZF6VcZgKMBu
+	 m6LLqNovhG58/WA+LdJFn+CJwkgP4PpZCbEd3JWE=
+Date: Tue, 24 Nov 2026 18:08:34 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,tz2294@columbia.edu,
+	surenb@google.com,skhan@linuxfoundation.org,rppt@kernel.org,
+	rdunlap@infradead.org,peterx@redhat.com,mhocko@suse.com,liam@infradead.org,
+	kas@kernel.org,david@kernel.org,corbet@lwn.net,azpijr@gmail.com,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <18e88cd2a725491b.3137322e32332e3235332e313736.c1dd7.0000sendgmr@google.com>
-References: <18e88cd2a725491b.3137322e32332e3235332e313736.c1dd7.0000sendgmr@google.com>
-Subject: + percpu-skip-sidelined-slot-in-pcpu_balance_populated.patch added to mm-new branch
-Message-Id: <20261125020622.A580A1F01577@smtp.kernel.org>
+In-Reply-To: <20261117210423.11598-1-azpijr@gmail.com>
+References: <20261117210423.11598-1-azpijr@gmail.com>
+Subject: + documentation-userfaultfd-document-rwp-behavior-when-the-pte-is-dropped.patch added to mm-new branch
+Message-Id: <20261125020834.934441F000CF@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,12 +58,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: percpu: skip sidelined slot in pcpu_balance_populated()
+     Subject: Documentation/userfaultfd: document RWP behavior when the PTE is dropped
 has been added to the -mm mm-new branch.  Its filename is
-     percpu-skip-sidelined-slot-in-pcpu_balance_populated.patch
+     documentation-userfaultfd-document-rwp-behavior-when-the-pte-is-dropped.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/percpu-skip-sidelined-slot-in-pcpu_balance_populated.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-userfaultfd-document-rwp-behavior-when-the-pte-is-dropped.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -90,65 +92,170 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Chris Wiseman <chriswiseman@google.com>
-Subject: percpu: skip sidelined slot in pcpu_balance_populated()
-Date: Mon, 16 Nov 2026 14:28:07 +0000
+From: "Jose A. Perez de Azpillaga" <azpijr@gmail.com>
+Subject: Documentation/userfaultfd: document RWP behavior when the PTE is dropped
+Date: Tue, 17 Nov 2026 22:04:10 +0100
 
-Commit f183324133ea ("percpu: implement partial chunk depopulation")
-placed pcpu_sidelined_slot at __pcpu_size_to_slot(pcpu_unit_size) + 1 and
-moved pcpu_free_slot to pcpu_sidelined_slot + 1 so pcpu_alloc() checks
-sidelined chunks before free chunks.  pcpu_balance_populated() also loops
-from pcpu_size_to_slot(PAGE_SIZE) through pcpu_free_slot, but was not
-updated to skip pcpu_sidelined_slot.
+"Scope of protection" lists only the PTE drops requested by the user and
+says the range has to be re-armed afterwards.  On shmem the kernel can
+drop the PTE at any time (page reclaim and collapse are examples), and RWP
+has no marker by design: the next access is a minor or a missing fault,
+and the user is expected to register for those.  Document this, together
+with the modes that sync and async tracking need.
 
-When pcpu_nr_empty_pop_pages drops below PCPU_EMPTY_POP_PAGES_HIGH and
-active chunks have no unpopulated pages, pcpu_balance_populated() walks
-into pcpu_sidelined_slot and repopulates chunks that were just sidelined
-to save memory.  Because chunk->isolated is still true on sidelined
-chunks, pcpu_update_empty_pages() does not count those newly populated
-pages toward pcpu_nr_empty_pop_pages.  That leaves the global empty page
-count below the threshold, so subsequent balance passes keep refilling
-every sidelined chunk back to 100% before reaching pcpu_free_slot.
+The VMM example registers guest_mem with RWP and MISSING only, so a vCPU
+write to an offset that is not mapped there can be lost during eviction. 
+Add MINOR to the registration, describe how the handler treats faults on
+offsets that are being evicted, and fix the step 1 comment, since minor
+faults block even in async mode.
 
-Skip pcpu_sidelined_slot in pcpu_balance_populated() so sidelined chunks
-stay depopulated until pcpu_alloc() actually needs them.
-
-Benchmark results (4-CPU arm64, 4 sidelined chunks with 60 reclaimed pages
-after triggering pcpu_balance_populated()):
-
-   Metric                                    Before     After     Delta
-   --------------------------------------------------------------------
-   Sidelined pages repopulated                   60         0    -100%
-   Sidelined backing pages (kB)                 960         0  -960 kB
-
-Link: https://patch.msgid.link/18e88cd2a725491b.3137322e32332e3235332e313736.c1dd7.0000sendgmr@google.com
-Fixes: f183324133ea ("percpu: implement partial chunk depopulation")
-Signed-off-by: Chris Wiseman <chriswiseman@google.com>
+Link: https://patch.msgid.link/20261117210423.11598-1-azpijr@gmail.com
+Link: https://lore.kernel.org/linux-mm/856cdf21-7982-475a-b244-a7ceff4eb6aa@kernel.org/
+Link: https://lore.kernel.org/linux-mm/avWnaR7VVEGa7yNp@thinkstation/
+Signed-off-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Christoph Lameter <cl@gentwo.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: <stable@vger.kernel.org>
+Suggested-by: Tal Zussman <tz2294@columbia.edu>
+Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 
- mm/percpu.c |    3 +++
- 1 file changed, 3 insertions(+)
+ Documentation/admin-guide/mm/userfaultfd.rst |   89 +++++++++++++----
+ 1 file changed, 71 insertions(+), 18 deletions(-)
 
---- a/mm/percpu.c~percpu-skip-sidelined-slot-in-pcpu_balance_populated
-+++ a/mm/percpu.c
-@@ -2022,6 +2022,9 @@ retry_pop:
- 		if (!nr_to_pop)
- 			break;
+--- a/Documentation/admin-guide/mm/userfaultfd.rst~documentation-userfaultfd-document-rwp-behavior-when-the-pte-is-dropped
++++ a/Documentation/admin-guide/mm/userfaultfd.rst
+@@ -384,17 +384,54 @@ normal missing path (``do_anonymous_page
+ the population itself, co-register the range with
+ ``UFFDIO_REGISTER_MODE_MISSING``.
  
-+		if (slot == pcpu_sidelined_slot)
-+			continue;
+-Protection is preserved across page reclaim: a page swapped out while
+-RWP-protected carries the marker on its swap entry, and swap-in restores
+-the PROT_NONE state so the first access after swap-in still faults. The
+-same applies to pages temporarily replaced by migration entries.
+-
+-Operations that drop the PTE entirely — ``MADV_DONTNEED`` on anonymous
+-memory, hole-punch on shmem, truncation of a file mapping — also drop the
+-RWP marker: the next access re-populates the range without protection.
++Protection is preserved while a page is temporarily replaced by a
++migration entry: the migration entry keeps the uffd bit, and the PROT_NONE
++state is restored when migration completes. This holds for anonymous,
++shmem and hugetlbfs memory alike.
 +
- 		list_for_each_entry(chunk, &pcpu_chunk_lists[slot], list) {
- 			nr_unpop = chunk->nr_pages - chunk->nr_populated;
- 			if (nr_unpop)
++Protection of anonymous memory is also preserved across page reclaim: a
++page swapped out while RWP-protected keeps the uffd bit on its swap entry,
++and swap-in restores the PROT_NONE state so the first access after swap-in
++still faults.
++
++Any operation that drops the PTE also drops the RWP protection. On shmem
++the kernel can drop the PTE at any time while the page stays in the page
++cache or in swap; page reclaim and collapse into a huge page are examples.
+ Unlike WP (which persists via ``PTE_MARKER_UFFD_WP``), there is no
+-persistent RWP marker today. The user needs to re-arm the range with
+-``UFFDIO_RWPROTECT`` after any operation that explicitly frees PTEs.
++persistent RWP marker, and this is intentional: once the PTE is gone, the
++next access takes a page fault that userfaultfd can deliver, and that fault
++is the notification. Which fault it is depends on what happened to the
++page:
++
++- The page is still in the page cache or in swap: the access is a minor
++  fault, delivered if the range is co-registered with
++  ``UFFDIO_REGISTER_MODE_MINOR``.
++
++- The page is gone: the access is a missing fault, delivered if the range
++  is co-registered with ``UFFDIO_REGISTER_MODE_MISSING``.
++
++WP cannot use the same scheme — a minor fault would trap reads as well as
++writes — which is why it needs a marker.
++
++Without the matching mode the page is mapped back silently and without
++protection, so what to co-register depends on the tracking mode:
++
++- Sync mode: the access would be lost. Co-register shmem and hugetlbfs
++  ranges with ``UFFDIO_REGISTER_MODE_MINOR`` (and
++  ``UFFDIO_REGISTER_MODE_MISSING`` if the file can have holes), and
++  anonymous ranges, where minor faults are not available, with
++  ``UFFDIO_REGISTER_MODE_MISSING``.
++
++- Async mode: neither is needed. A page faulted back in is mapped without
++  the uffd bit, so ``PAGEMAP_SCAN`` reports it as accessed.
++
++The registration does not follow the tracking mode: a context that
++switches to sync mode with ``UFFDIO_SET_MODE``, as the workflow below
++does, needs ``UFFDIO_REGISTER_MODE_MINOR`` while it is in sync mode.
++Minor faults are always synchronous, so keeping it registered makes
++them block in async mode as well. Re-registering the range to add
++``UFFDIO_REGISTER_MODE_MINOR`` before switching to sync, and to drop
++it after switching back, avoids that.
+ 
+ **Fault Handling:**
+ 
+@@ -484,17 +521,24 @@ never traps on its own ::
+         .features = UFFD_FEATURE_RWP | UFFD_FEATURE_RWP_ASYNC,
+     };
+     ioctl(uffd, UFFDIO_API, &api);
+-    if (!(api.features & UFFD_FEATURE_RWP))
++    if (!(api.features & UFFD_FEATURE_RWP)) {
+         /* RWP unavailable on this kernel/arch -- fall back. */
++    }
++    /*
++     * MINOR: an offset in the page cache but not mapped in guest_mem
++     * would be mapped back without a fault, and a vCPU write between
++     * the pwrite() and the hole punch in step 4 would be lost.
++     */
+     ioctl(uffd, UFFDIO_REGISTER, &(struct uffdio_register){
+         .range = { guest_mem, guest_size },
+         .mode = UFFDIO_REGISTER_MODE_RWP |
+-                UFFDIO_REGISTER_MODE_MISSING,
++                UFFDIO_REGISTER_MODE_MISSING |
++                UFFDIO_REGISTER_MODE_MINOR,
+     });
+ 
+     /* Tracking loop */
+     while (vm_running) {
+-        /* 1. Detection phase (async -- no vCPU stalls) */
++        /* 1. Detection phase (RWP faults async, minor faults still block) */
+         ioctl(uffd, UFFDIO_RWPROTECT, &(struct uffdio_rwprotect){
+             .range = full_range,
+             .mode = UFFDIO_RWPROTECT_MODE_RWP });
+@@ -544,11 +588,20 @@ never traps on its own ::
+                   .enable = UFFD_FEATURE_RWP_ASYNC });
+     }
+ 
+-During step 4, a vCPU that accesses a ``guest_mem`` offset being evicted
+-blocks with a ``UFFD_PAGEFAULT_FLAG_RWP`` fault while the eviction is in
+-progress. After ``fallocate()`` punches the page out and ``UFFDIO_WAKE``
+-fires, the vCPU retries the access, faults as ``MISSING``, and the
+-handler resolves it with ``UFFDIO_COPY`` from storage.
++During step 4, a vCPU that accesses an offset this pass will evict blocks
++with a ``UFFD_PAGEFAULT_FLAG_RWP`` fault, or with a
++``UFFD_PAGEFAULT_FLAG_MINOR`` fault if the offset is not mapped in
++``guest_mem``. The handler leaves the fault pending until that offset has
++been punched out, even if step 4 has not reached it yet: resolving it
++earlier would let a vCPU write land between the ``pwrite()`` and the hole
++punch, and the write would be lost. After ``fallocate()`` punches the page
++out and ``UFFDIO_WAKE`` fires, the vCPU retries the access, faults as
++``MISSING``, and the handler resolves it with ``UFFDIO_COPY`` from storage.
++
++Faults on any other offset are resolved right away: RWP faults with
++``UFFDIO_RWPROTECT``, minor faults with ``UFFDIO_CONTINUE``. A page mapped
++by ``UFFDIO_CONTINUE`` does not carry the uffd bit, so the next scan reports
++it as accessed.
+ 
+ This workflow targets shmem and hugetlbfs (both support a private
+ ``io_mem`` mapping over the same fd). Anonymous-memory backings need a
 _
 
-Patches currently in -mm which might be from chriswiseman@google.com are
+Patches currently in -mm which might be from azpijr@gmail.com are
 
-percpu-skip-sidelined-slot-in-pcpu_balance_populated.patch
+mm-userfaultfd-recheck-wp-registration-in-the-hugetlb-uffdio_copy-retry.patch
+selftests-mm-add-a-uffd-test-for-re-registering-during-uffdio_copy.patch
+documentation-userfaultfd-document-rwp-behavior-when-the-pte-is-dropped.patch
 
