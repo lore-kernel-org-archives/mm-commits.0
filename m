@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795638957;
-	b=NmFK9VEbylW3mRrQoz4susVPBq5dE/qyaYU/+cV+8MurP8ClOyA0hkiMjIqGI8ohH3p/
-	 Vhk/tGOdQ6ELVQJbO7eCFf8TOjplYsVpXSc4EaspUwk4yIaXXC9Zgt8r2BltQ8jivgfBR
-	 FJBLu6ImQM//kvWrUVYhHsps0MSp25vbCpYmphaIcrjVTxeX3KcobJ6fkVl8SGzb6nvhN
-	 ztDwEQsCjHTTGJTAPC6X/yWE0/yU1dZWp4wzxng1rU1oxakSFW88C1TB3PtYDraecpe1s
-	 ngTCs4aPVopdATiOSktuIf/d7PP9L/0x05E3XNpBv0hBr181o2CXB3tuaPjUHsZWeOg==
+	t=1795638959;
+	b=owo5kUC2RKYHN7sJq0tPT7yEpwCcEL3h5XvRZjtN1gTW1n/ojJhWSn/j4fYVP0wJ5uhx
+	 MN04kE2vAMWoPNjBoYoEAwx/WxQIXt7ZIVQ03oBKbOY93GZDxUYJLu2fqEbQ/ECp2IuFL
+	 AZAopPaEX3KKBITAxIKX7VsWrmBJP6ZVlKgcGY9N/bhRbri8lamoUx4z2eVtQ5i9lhmfK
+	 LJImp+y6tZfTWQZhrGy6A9SUHw/Hh5+hnsaRuFVL7kkODflXktQ6yGAQAs2eGpVkhpZTo
+	 7LnLGOn+tB57UfnDjVz2en4NC2Dp1BhQOOQcDkeU7wn+QyX63eswAKYhttCdKsADgCA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795638957;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795638959;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=8G8VCbuzRSCMy7FMeR/K+pGWhdBva+8fTmlsY8oDtO0=;
-	b=3i+A0KTzXa3l+2LQrRePm81YROHjrvTa312xE+GaSPU6Rr5rsI11pE+82JhEgqq+1LgM
-	 46mg4q1GEcz5s5+Lz7cEk3qrtMS/616uA7zbAM9AuPnkrsYmEEzBGCqAjKf9IbvF7xPX3
-	 ErBefiHwpszgfUJ9CiPiexpdibNMJ18Ak2eZCqwatc23r9ibh0SlxNijxql9X6xv5HH7L
-	 ZVjaN9kUGSOJtu59FULnhYUF87Q7TMjwdp8mUYhtlIOLt2xtelI/BapCNXv6lsbXMsGJf
-	 5DLzTWYdp/1r8T61SNuRllieeoWwvLxu4rGJBEWy15/dpMZ9HiwMXeLlmxNaQ4q26VQ==
+	bh=5sFFG6vZd7gVTWs2x/NoH7cOXsQRayjMqp6IZcHoTw4=;
+	b=2KOYJBzyWDO450mXgLJGrm5ohRFMOlJm4IkfL4EVZ6JsxM+c5MgoGGBC2lEy06zhO+TD
+	 YDuEDMSXzK17Kv+VVLN/0WTQ6vlnB2t9IEiC+Z4+JTWdZr5qqEFz4PrU2M3osw1arkuUB
+	 ZpLUzDhhq7j7uYsjeJQcCEHij3TgYw3q3jq6SeozX1kucJKnTd7760LEtbTsxbpR78AfI
+	 Q1II7eL7TzqxRo6bpQ943Piz+hqKm8YNNk5cIJPNl8FEGloY/wObZXMTeB5LbFl1EoKzD
+	 mrcG1HF2SRAKGdCvcvW/Kw7HQkJsraglAcUVD8aojP1vPHsCC2EJCgRYhvXOa5naEEg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=yK+PN9qw;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ELBKzYBF;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00B25606A321
-	for <mm-commits@vger.kernel.org>; Wed, 25 Nov 2026 20:35:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04F8B606A326
+	for <mm-commits@vger.kernel.org>; Wed, 25 Nov 2026 20:35:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=yK+PN9qw
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8BCC1F000C4;
-	Wed, 25 Nov 2026 20:35:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ELBKzYBF
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F7441F000C4;
+	Wed, 25 Nov 2026 20:35:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795638956;
-	bh=8G8VCbuzRSCMy7FMeR/K+pGWhdBva+8fTmlsY8oDtO0=;
+	d=linux-foundation.org; s=korg; t=1795638958;
+	bh=5sFFG6vZd7gVTWs2x/NoH7cOXsQRayjMqp6IZcHoTw4=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=yK+PN9qw1ZTtzLW7IvOUfK7LsWW3DX84YBfZ2kDsx06lLBaRapaptFmXRPtFYea7C
-	 AFSTbh6Z2oHA9SkO4lV3hLLw0+CtvfRx1TiMN72tRg7WDm51FL3CGh9XJ0hDdrqjAM
-	 hN12jeHk+87btfOaIvyzlmchHVSrTAUZm51UmsBk=
-Date: Wed, 25 Nov 2026 12:35:56 -0800
-To: mm-commits@vger.kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=ELBKzYBFKz774fO20qKi/DLPYQLxwciXvf8PDklpCTvt15CFDsiQ+0VKLYBYAvNIw
+	 KjR0hxF0IMsb1jc2KGhfmrGJqpZ5zPxBZQKOP9lmg7MdFr7HIPsHCl8UB4weGw66s9
+	 9AQ1uIX/XxLpvbRMGXUouj2sc2giLYtLuo1KVgcI=
+Date: Wed, 25 Nov 2026 12:35:57 -0800
+To: mm-commits@vger.kernel.org,chenridong@xiaomi.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124-mglru-fg-v6-5-8ffea39934a6@tencent.com>
-References: <20261124-mglru-fg-v6-5-8ffea39934a6@tencent.com>
-Subject: [to-be-updated] mm-memcg-add-folio-based-lruvec-live-helper.patch removed from -mm tree
-Message-Id: <20261125203556.A8BCC1F000C4@smtp.kernel.org>
+In-Reply-To: <20261124-mglru-fg-v6-6-8ffea39934a6@tencent.com>
+References: <20261124-mglru-fg-v6-6-8ffea39934a6@tencent.com>
+Subject: [to-be-updated] mm-mglru-skip-the-flags-cmpxchg-when-nothing-changes.patch removed from -mm tree
+Message-Id: <20261125203558.6F7441F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,44 +54,79 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/memcg: add folio-based lruvec live helper
+     Subject: mm/mglru: skip the flags cmpxchg when nothing changes
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-add-folio-based-lruvec-live-helper.patch
+     mm-mglru-skip-the-flags-cmpxchg-when-nothing-changes.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm/memcg: add folio-based lruvec live helper
-Date: Tue, 24 Nov 2026 02:52:57 +0800
+From: Ridong Chen <chenridong@xiaomi.com>
+Subject: mm/mglru: skip the flags cmpxchg when nothing changes
+Date: Tue, 24 Nov 2026 02:52:58 +0800
 
-Add a helper that resolves a live lruvec for a folio under RCU
-without taking the lruvec lock.  It takes a folio directly so the
-lruvec lookup happens inside the RCU read-side critical section,
-which a lruvec-based interface cannot guarantee.  The first user is
-the lockless folio_inc_lru_refs() path later in the series.
+folio_update_gen() and folio_set_lru_refs() always end with a
+try_cmpxchg() on folio->flags, even when the new value equals the old
+one. The locked instruction still takes the struct page cacheline in
+exclusive state.
 
-Factor the ancestor walk out of lruvec_live_lock_irq() into
-__lruvec_get_live(), so that both entry points share it, and spell
-out why the walk is enough while only the RCU read lock is held:
-reparenting of a memcg that starts dying waits for a grace period,
-so it cannot race with the caller until the lock is released.
+That is common in practice: a folio mapped by many processes is visited
+once per mm during a page table walk, and after the first visit it is
+already in the youngest generation with refs cleared and PG_workingset
+set. isolate_folio() and the eviction paths also call
+folio_set_lru_refs(folio, 0) on folios whose refs are already zero.
 
-Move memcg_is_dying() up in memcontrol.h, next to the other memcg state
-predicates, and use it for the walk rather than repeating the open coded
-css_is_dying() test a few definitions away from where it is explained.
+Break out of the loop when the flags would not change. The update is
+complete at the point of that read: the flags already hold the target
+value, and a concurrent change to them is ordered after it. When the
+cmpxchg would have succeeded, the value written is the same, so no new
+state becomes reachable.
 
-No functional change for existing callers.
+What the patch drops is the retry. A retry re-reads the flags and
+recomputes new_flags from the newer value, so it overwrites a concurrent
+update with what this CPU wanted. For folio_update_gen(), a walker that
+read an older max_seq can lose the cmpxchg against a promotion done by
+another CPU, and then write its older generation back on the retry.
+folio_set_lru_refs() can likewise clear a refs increment that raced with
+it. Breaking out keeps the newer state.
 
-Link: https://patch.msgid.link/20261124-mglru-fg-v6-5-8ffea39934a6@tencent.com
+No caller relies on the full barrier that the locked instruction
+implied on the skipped path: the eviction and isolation callers run
+under the LRU lock, and the others (page table walks,
+folio_mark_accessed(), lru_gen_clear_refs()) only care about the
+resulting flags value, which is already in place. Note that
+lru_gen_inc_refs() already returns without any atomic when refs is at
+LRU_REFS_MAX and the folio is in the workingset.
+
+Tested on an i7-13700HX with turbo disabled and the performance
+governor. N processes map the same 2GiB tmpfs file (huge=never) and
+read every page, then one aging pass is triggered on their memcg
+through /sys/kernel/debug/lru_gen ("+ <memcg_id> 0 <max_seq> 200 1").
+Time per aging pass in ms, median of 5 runs of 10 passes each, averaged
+over 2 boots of each kernel:
+
+  processes    base   patched
+          1    32.9      31.7   -3.5%
+          8   195.1     160.2  -17.9%
+         32   755.8     592.2  -21.7%
+         64  1597.2    1260.6  -21.1%
+
+With one process, every visit changes the generation, so there is
+nothing to skip. Before the patch, perf annotate attributes 53-58% of
+the walk_update_folio() samples to the lock cmpxchg in the inlined
+folio_update_gen() in this test.
+
+[kasong@tencent.com: adapted and rebased for the series]
+Link: https://patch.msgid.link/20261124-mglru-fg-v6-6-8ffea39934a6@tencent.com
+Signed-off-by: Ridong Chen <chenridong@xiaomi.com>
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Tested-by: Zhao Zhenzhuo <zhaozhengzhuo@uniontech.com>
+Reviewed-by: Kairui Song <kasong@tencent.com>
 Reviewed-by: Kunwu Chan <kunwu.chan@gmail.com>
 Tested-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Qi Zheng <qi.zheng@linux.dev>
-Reviewed-by: Muchun Song (ByteDance) <muchun.song@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Qi Zheng <qi.zheng@linux.dev>
 Cc: Ying Huang <ying.huang@linux.alibaba.com>
 Cc: Christopher Li <chrisl@kernel.org>
 Cc: Baoquan He <baoquan.he@linux.dev>
@@ -128,171 +163,49 @@ Cc: Tal Zussman <tz2294@columbia.edu>
 Cc: Kairui Song <ryncsn@gmail.com>
 Cc: Xiang Liu <liuxiang.277@bytedance.com>
 Cc: Ehab Ababneh <ehab.ababneh@intel.com>
+Cc: zhaozhengzhuo <zhaozhengzhuo@uniontech.com>
 Cc: wang lian <lianux.mm@gmail.com>
 Cc: Joanne Koong <joannelkoong@gmail.com>
 Cc: Hui Zhu <hui.zhu@linux.dev>
 Cc: Maxim Muzafarov <maxmuzaf@gmail.com>
 Cc: Tianyi Chen <hi@tychen.cc>
-Cc: Ridong Chen <ridong.chen@linux.dev>
 Cc: Harry Yoo <harry@kernel.org>
 
- include/linux/memcontrol.h |   71 +++++++++++++++++++++++++++--------
- 1 file changed, 56 insertions(+), 15 deletions(-)
+ include/linux/mm_inline.h |    2 ++
+ mm/vmscan.c               |    2 ++
+ 2 files changed, 4 insertions(+)
 
---- a/include/linux/memcontrol.h~mm-memcg-add-folio-based-lruvec-live-helper
-+++ a/include/linux/memcontrol.h
-@@ -571,6 +571,11 @@ static inline bool mem_cgroup_disabled(v
- 	return !cgroup_subsys_enabled(memory_cgrp_subsys);
+--- a/include/linux/mm_inline.h~mm-mglru-skip-the-flags-cmpxchg-when-nothing-changes
++++ a/include/linux/mm_inline.h
+@@ -233,6 +233,8 @@ static inline void folio_set_lru_refs(st
+ 	do {
+ 		new_flags = old_flags;
+ 		lru_set_refs_flags(&new_flags, refs);
++		if (new_flags == old_flags)
++			break;
+ 	} while (!try_cmpxchg(folio_flags(folio, 0), &old_flags, new_flags));
  }
  
-+static inline bool memcg_is_dying(struct mem_cgroup *memcg)
-+{
-+	return memcg ? css_is_dying(&memcg->css) : false;
-+}
-+
- static inline void mem_cgroup_protection(const struct mem_cgroup *root,
- 					 const struct mem_cgroup *memcg,
- 					 unsigned long *min,
-@@ -1349,6 +1354,11 @@ static inline bool mem_cgroup_online(str
- 	return true;
- }
+--- a/mm/vmscan.c~mm-mglru-skip-the-flags-cmpxchg-when-nothing-changes
++++ a/mm/vmscan.c
+@@ -3274,6 +3274,8 @@ static int folio_update_gen(struct folio
+ 		lru_set_gen_flags(&new_flags, new_gen);
+ 		lru_set_refs_flags(&new_flags, 0);
+ 		new_flags |= BIT(PG_workingset);
++		if (new_flags == old_flags)
++			break;
+ 	} while (!try_cmpxchg(folio_flags(folio, 0), &old_flags, new_flags));
  
-+static inline bool memcg_is_dying(struct mem_cgroup *memcg)
-+{
-+	return false;
-+}
-+
- static inline
- unsigned long mem_cgroup_get_zone_lru_size(const struct lruvec *lruvec,
- 		enum lru_list lru, int zone_idx)
-@@ -1510,28 +1520,41 @@ static inline void lruvec_lock_irq(struc
- 	spin_lock_irq(&lruvec->lru_lock);
- }
- 
--static inline struct lruvec *lruvec_live_lock_irq(struct lruvec *lruvec)
-+/*
-+ * Reparenting moves a dying memcg's LRU state to its parent at any time,
-+ * so anything added to that LRU afterwards would be lost.  This helper
-+ * walks up to the nearest live ancestor while the caller must hold the
-+ * RCU read lock: reparenting of a memcg that starts dying waits for a
-+ * grace period, so it cannot race with the caller until the lock is
-+ * released.
-+ */
-+static inline struct lruvec *__lruvec_get_live(struct lruvec *lruvec)
- {
- #ifdef CONFIG_MEMCG
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
- 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
- 
--	rcu_read_lock();
--
- 	/*
- 	 * The memcg can be NULL when the memory controller is disabled.
- 	 * Otherwise, the caller keeps the memcg owning @lruvec alive.
- 	 */
--	while (unlikely(memcg && css_is_dying(&memcg->css))) {
-+	while (unlikely(memcg_is_dying(memcg))) {
- 		memcg = parent_mem_cgroup(memcg);
- 		lruvec = mem_cgroup_lruvec(memcg, pgdat);
- 	}
-+#endif
-+	return lruvec;
-+}
- 
-+static inline struct lruvec *lruvec_live_lock_irq(struct lruvec *lruvec)
-+{
-+#ifdef CONFIG_MEMCG
-+	rcu_read_lock();
-+	lruvec = __lruvec_get_live(lruvec);
- 	spin_lock_irq(&lruvec->lru_lock);
- #else
- 	lruvec_lock_irq(lruvec);
- #endif
--
- 	return lruvec;
- }
- 
-@@ -1561,6 +1584,34 @@ static inline bool folio_matches_lruvec(
- 	       lruvec_memcg(lruvec) == folio_memcg(folio);
- }
- 
-+/**
-+ * folio_lruvec_live_get - get a live lruvec for a folio under RCU
-+ * @folio: the folio
-+ *
-+ * Same as folio_lruvec(), except that a folio whose memcg is dying is
-+ * accounted to the nearest live ancestor, which is where reparenting
-+ * would put it anyway.
-+ *
-+ * Return: the live lruvec, with rcu_read_lock() held.  Pair it with
-+ * folio_lruvec_live_put().
-+ */
-+static inline struct lruvec *folio_lruvec_live_get(const struct folio *folio)
-+{
-+#ifdef CONFIG_MEMCG
-+	rcu_read_lock();
-+	return __lruvec_get_live(folio_lruvec(folio));
-+#else
-+	return folio_lruvec(folio);
-+#endif
-+}
-+
-+static inline void folio_lruvec_live_put(const struct lruvec *lruvec)
-+{
-+#ifdef CONFIG_MEMCG
-+	rcu_read_unlock();
-+#endif
-+}
-+
- /* Don't lock again iff page's lruvec locked */
- static inline struct lruvec *folio_lruvec_relock_irq(const struct folio *folio,
- 		struct lruvec *locked_lruvec)
-@@ -1826,11 +1877,6 @@ void mem_cgroup_node_filter_allowed(stru
- 
- void mem_cgroup_show_protected_memory(struct mem_cgroup *memcg);
- 
--static inline bool memcg_is_dying(struct mem_cgroup *memcg)
--{
--	return memcg ? css_is_dying(&memcg->css) : false;
--}
--
- #else
- static inline bool mem_cgroup_kmem_disabled(void)
- {
-@@ -1901,11 +1947,6 @@ static inline void mem_cgroup_node_filte
- static inline void mem_cgroup_show_protected_memory(struct mem_cgroup *memcg)
- {
- }
--
--static inline bool memcg_is_dying(struct mem_cgroup *memcg)
--{
--	return false;
--}
- #endif /* CONFIG_MEMCG */
- 
- #if defined(CONFIG_MEMCG) && defined(CONFIG_LRU_GEN)
+ 	*type = folio_flags_is_file_lru(&old_flags);
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from chenridong@xiaomi.com are
 
-mm-mglru-report-evictable-sizes-per-type.patch
-mm-mglru-extract-lruvec_populated_min_seq-helper.patch
-mm-mglru-reclaim-from-the-oldest-populated-gen.patch
-mm-mglru-lift-the-forced-protection-of-reclaimer.patch
-mm-mglru-skip-zones-above-reclaim_idx-instead-of-rotating-them.patch
-mm-mglru-return-for-unavailable-anon-reclaim-earlier.patch
-mm-mglru-balance-anon-and-file-scan-budget-by-refault-rate.patch
-mm-mglru-lift-youngest-gen-protection-for-higher-priority.patch
-mm-mglru-frequency-guided-workingset-promotion-mglru-fg.patch
-mm-mglru-make-folio-lru-referenced-times-count-a-generic-api.patch
-mm-mglru-move-add-del-lru-size-accounting-out-of-lru_gen_update_size.patch
-mm-mglru-gup-mark-folios-referenced-via-a-fast-helper.patch
-mm-mglru-smaps-convert-to-lru-refs-based-operations-for-mglru.patch
-mm-damon-convert-to-lru-refs-based-operations-for-mglru.patch
-mm-khugepaged-convert-to-lru-refs-based-operations-for-mglru.patch
-mm-madvise-adapt-for-lru-refs-based-operations-for-mglru.patch
-mm-huge_memory-mark-folio-as-accessed-more-accurately-on-split.patch
-mm-mglru-make-pg_workingset-helpers-work-based-on-folio-lru-refs.patch
-mm-mglru-folio-lru-refs-based-active-inactive-number-accounting.patch
-mm-mglru-make-folio_inc_lru_refs-lruvec-lockless.patch
+mm-memcontrol-drop-unused-vmscan-tracepoint-include.patch
+mm-vmscan-move-vmscan-tracepoints-to-a-local-header.patch
+mm-vmscan-move-struct-scan_control-to-a-dedicated-header.patch
+mm-vmscan-pass-scan_control-to-the-vmscan-tracepoints.patch
+mm-mglru-add-tracepoint-for-scan_folios.patch
+mm-mglru-add-lruvec_gen_size-helper.patch
+mm-mglru-add-tracepoint-for-aging.patch
 
