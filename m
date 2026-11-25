@@ -1,49 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795586043;
-	b=DAdyy4MU/x8rWejxaokShVhK+8Q1+WtM5bZzy8XHrEPhc68zxHZrfV9cPK92hRVmC6T1
-	 qGhKMcV7V6028SyZnp7x6nsJEpa+836h+ci9Hndw6moJr72jXSwHmbzbI2j1MMyggnrNr
-	 /kKBF9n2pxmC1gVhQ26+p+ujk67nNhciZQDU3t9ywT0sQABHMjJimSgAM/xq5OJwfayXG
-	 ZHYGCHiLzu9lULKkscdcNbYAz8awEA/NiCTWuD25/fRuAEPGjzakZISsVT0zBYcl9uOc2
-	 obd9uYYrUKJFEVQUfpPc4NqhmJ/uT7gakLNr1mKbFKYmcP2n5OxWMsLRepGgK7T6WSg==
+	t=1795586048;
+	b=ZKV3El4WsUgQru2bIZOHekHv09ST5ShHKO8BaugIjZOjJ+1dmd+3kOZA5/dEFP9XPTFR
+	 QzLmqJpvOd4LAfXUvbNAiJNOor1RA3Y4BiGL9VNzEqrPt+g/V9BVIwAGbL4xj//XPTiyt
+	 0uTqU7MC3rUjfFBjEO3Qbje9LoChRKnh6ZxKmxbNKqEaZE0IoixL1Ff0aD5i5ICh3+1vk
+	 pBQPorwscv0JEwgPiuxNAKVId3DU7/J0lZx5NC96UzV+/Y2614TAXfF8f6/QqMy3Cy3BA
+	 ggYo8pzBv6JjLRisO0/AG91bdQXwxWBUYhNgQ/AdD03vD6big0b6c8otRloH2ednJOQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795586043;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795586048;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=wEXqsN0QkoIQxKuCTVdVgZrytlCLzDsfVUngCGlpql0=;
-	b=LTSu+A8mDquSGIu2G/O40PRLtmTSKkM5Ta4ma5ZjmtVLv2WvVljyktUn0CNfAMlaeTuR
-	 T2458dViptJHndq6X8X2Dz8jpnZzv/rnpPdhOk6vplcgVPfQv/sc0lKfPQhB2Smyabbcb
-	 qWTbBbznwIoCCZeyROnjrMYuwhCcjyJhd33cQHjM/rPsSzHQAmQAiyBZiG/QFx6qfol1V
-	 3d4yoURNcaPcRSzfTIF1+JGAzOy16y9c9jugccpzRTLESOucWpeVk+8TXb84Xapsna4T6
-	 JIebmeoKt/XdoK1O4+jHurHdKovsTEgYhmFrd+k1DrFySXkGq44kRfdu5NMeNAjL54g==
+	bh=A62IKRLlzBATulJqChZmBx93Xd41q4WbIakQQBQ6Q5w=;
+	b=ieJQ8YGUvPLdzRQ7JJ4T8Q8ZcFYtmZtywMExwLRms7U/L+gVfseRm2KGrydMXmb18cyr
+	 u+qAvtjtuQ1jSyQb7ElCl50SwsG1krMuTexUF6ns1PHHKKOXj2xFWeqx+YdJcFiqjPUE+
+	 IwvFrDHJBfQL7ZYvUpkHpvtCT1SnI+L+aiAlXErmTGLndJOVF9mxPl+r4OpGqImqG9et9
+	 J1wsSFbCJubhqe6ikSD7uU2g4PK0nNZtYRbWPaHF3t8CHBlYIhV81JBK5Vg0ME2bPazj/
+	 MgNVvhQ3iQOwSlAwYTfPJKcYwYuK/HOtZNiO04RD9wSHiZ0766Wf2grAnEg963C+ydw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=futj5+j9;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=0Pi9q0PP;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EDF5606A321
-	for <mm-commits@vger.kernel.org>; Wed, 25 Nov 2026 05:54:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D98A6606A31E
+	for <mm-commits@vger.kernel.org>; Wed, 25 Nov 2026 05:54:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=futj5+j9
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBC5A1F000C0;
-	Wed, 25 Nov 2026 05:54:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=0Pi9q0PP
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48A821F000C6;
+	Wed, 25 Nov 2026 05:54:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795586042;
-	bh=wEXqsN0QkoIQxKuCTVdVgZrytlCLzDsfVUngCGlpql0=;
+	d=linux-foundation.org; s=korg; t=1795586048;
+	bh=A62IKRLlzBATulJqChZmBx93Xd41q4WbIakQQBQ6Q5w=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=futj5+j97iS69ZHsuD5HfHB7ttNhEkSOTEYtoph75pev+lpLNcJMKL/cN3j0K2dWB
-	 VYdsEMq2t1bcipirgCFYC+5naUJ/+LbZ4FXIeL2Ulrqh+/MwS/rEhPt+2fnfClSNNJ
-	 W351vki1ZAUHNqbtGEd9OWwQEsGEpnf48Gfxw0QM=
-Date: Tue, 24 Nov 2026 21:54:02 -0800
+	b=0Pi9q0PPZ4augsKo3Ut5LzlNfY7pIog4RgZEj/bN2Z1W1w0wOZ1m+ix0oU4aWYuKi
+	 usn3jifwFEzp+/2/V9UKWo54PpX1nGL49cD3h9X/2fMUHrOQyOhdNaxn3coRCcpZxN
+	 gP6GpevIbdAf5Lg8Ma7BVDDVzbqgSsbTtUSXRcrI=
+Date: Tue, 24 Nov 2026 21:54:07 -0800
 To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261125014737.347231-17-phillip@squashfs.org.uk>
-References: <20261125014737.347231-17-phillip@squashfs.org.uk>
-Subject: + squashfs-sanity-check-fragment-block-location-and-range.patch added to mm-nonmm-unstable branch
-Message-Id: <20261125055402.BBC5A1F000C0@smtp.kernel.org>
+In-Reply-To: <20261125014737.347231-18-phillip@squashfs.org.uk>
+References: <20261125014737.347231-18-phillip@squashfs.org.uk>
+Subject: + squashfs-sanity-check-block-list-sizes-and-range.patch added to mm-nonmm-unstable branch
+Message-Id: <20261125055408.48A821F000C6@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: Squashfs: sanity check fragment block location and range
+     Subject: Squashfs: sanity check block list sizes and range
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-sanity-check-fragment-block-location-and-range.patch
+     squashfs-sanity-check-block-list-sizes-and-range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-sanity-check-fragment-block-location-and-range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-sanity-check-block-list-sizes-and-range.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,57 +79,41 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: Squashfs: sanity check fragment block location and range
-Date: Wed, 25 Nov 2026 01:47:30 +0000
+Subject: Squashfs: sanity check block list sizes and range
+Date: Wed, 25 Nov 2026 01:47:31 +0000
 
-When reading fragment blocks from disk the location and range of the
-fragment block is not sanity checked before it is passed down to
-squashfs_read_data().
+A Squashfs file has a list of block sizes, storing the compressed size
+of each data block.  This block list is scanned to discover the size and
+location of block x, where the sizes of previous data blocks are added
+to the start of the data blocks to produce the location.
 
-In squashfs_read_data() the block location and range are sanity checked
-to the extent that the location plus block length does not go beyond the
-end of the filesystem.  But, a block location can be crafted to be close
-to 2^64, and so the addition of the location and the length can cause
-arthimetic overflow, and thereby evade the sanity check.
+But, when scanning this block list and adding the block sizes, the code
+does not check for arithmetic overflow.  This means the data block start
+location can be crafted to be close to 2^64, and so the addition of the
+block sizes can cause arithmetic overflow and thereby evade any sanity
+checks.
 
-This evasion, however, will be caught when the code after the sanity
-check tries to read the block from the filesystem.  This is because
-it is the block location that is passed to the I/O read, and not
-the result of the overflowed sanity check.  This will return error
-because it will be beyond the end of the device.
+Additionally, the range (start and end) of the data block that is to be
+read from the filesystem is not checked for correctness before
+squasfs_read_data().
 
-The real issue here is that leaving the sanity checking of the fragment
-block location and range to squashfs_read_data() is sub-optimal.  This
-is because a fragment cache buffer has to be obtained (with possible
-waits fop a free buffer, and then the eviction of the original cached
-contents) before squashfs_read_data() is called.
+This commit adds checks for arithmetic overflow and sanity checks the
+range of the data block before attempting to read from disk.
 
-This adds unnecessary overhead and contention, which could be exploited
-to reduce performance, and this is for incorrect values that should have
-been detected earlier.
-
-This commit adds extra sanity checking to ensure the fragment block
-location and range are within bounds before a free fragment block is
-obtained.
-
-Also because the fragment block value is unchecked, a false value of
-SQUASHFS_INVALID_BLK read off disk, will trick the code into believing
-the file doesn't have a fragment, because that value is later used to
-indicate if a file has a fragment.  To avoid this, this commit adds and
-uses an inode flag.
-  
 Reproducer
 ==========
 
-The reproducer generates a Squashfs filesytem with a fragment block, and
-then corrupts the location of the fragment block to 2^64 - 32 KiB.  If
-the exploit succeeds this corrupted value is paased to
-squaashfs_read_data() and it is not detected until the I/O read fails.
+The reproducer generates a Squashfs filesystem with a file with two
+data blocks, and then corrupts the location of the start of the data
+blocks to 2^64 - 128 KiB.  This added to the size of data block 0 (128
+KiB) will overflow, producing a location of 0.  If the exploit succeeds,
+when the second block is read, Squashfs will not produce an I/O error
+and instead print the Squashfs filesystem superblock starting with hsqs.
 
-=====================================================================
+====================================================================
 #!/bin/bash
 
-ARGS="-quiet -no-progress -noI -noD -noF -no-sparse -comp gzip"
+ARGS="-quiet -no-progress -noI -noD -no-sparse -no-fragments -comp gzip"
 
 finish() {
 	popd 2>&1 > /dev/null
@@ -141,10 +125,14 @@ DIR=$(mktemp -d)
 
 pushd $DIR 2>&1 > /dev/null
 
-echo Create Squashfs filesystem with one file
+echo "Create Squashfs filesystem with one file, with 2 data blocks"
+echo "Create a hard link to it, to force Mksquashfs to use an extended inode"
+echo "(more than one nlink).  This means the start_block field will"
+echo "be 64-bits"
 
 echo "/ d 0777 0 0" > pseudo
-echo "zero f 0777 0 0 dd if=/dev/zero bs=1024 count=32 2>/dev/null" >> pseudo
+echo "zero f 0777 0 0 dd if=/dev/zero bs=1024 count=256 2>/dev/null" >> pseudo
+echo "hardlink L zero" >> pseudo
 
 if ! mksquashfs - img.sqsh -pf pseudo $ARGS; then
 	echo Failed to create Squashfs filesystem
@@ -152,12 +140,15 @@ if ! mksquashfs - img.sqsh -pf pseudo $ARGS; then
 
 fi
 
-echo "Corrupt the location of fragment block 0"
-echo "Alter it to the value 0xFFFFFFFFFFFF8000 (2^64 - 32 KiB)"
-echo "The block location is stored at byte offset 32958"
+echo "Corrupt the start_block field of file zero's inode, which"
+echo "points to the start of the file's data blocks."
+echo "Alter it to the value 0xFFFFFFFFFFFE0000 (2^64 - 128 KiB)."
+echo "That value added to the size of the first data block (128 KiB)"
+echo "will overflow"
+echo "The inode start_block field is stored at byte offset 262258"
 
-/usr/bin/echo -en "\x00\x80\xff\xff\xff\xff\xff\xff" > file
-dd if=file of=img.sqsh seek=32958 bs=1 count=8 conv=notrunc status=none
+/usr/bin/echo -en "\x00\x00\xfe\xff\xff\xff\xff\xff" > file
+dd if=file of=img.sqsh seek=262258 bs=1 count=8 conv=notrunc status=none
 
 echo Mount the filesystem to /mnt
 
@@ -167,261 +158,135 @@ if ! mount -t squashfs img.sqsh /mnt; then
 fi
 
 echo Read the file zero.
-echo If the exploit succeeds, dmesg should show the following:
-echo "dd: attempt to access beyond end of device"
-echo "	loop20: rw=2048, sector=36028797018963904, nr_sectors = 64 limit=72"
-echo "SQUASHFS error: Failed to read block 0xffffffffffff8000: -5"
-echo "SQUASHFS error: Unable to read fragment cache entry [ffffffffffff8000]"
-echo "SQUASHFS error: Unable to read fragment cache entry [ffffffffffff8000]"
-echo "SQUASHFS error: Unable to read page, block ffffffffffff8000, size 1008000"
+echo If the exploit succeeds, dd will not fail, and it will display the Squashfs
+echo superblock, beginning with hsqs
+echo
 
-dd if=/mnt/zero
+dd if=/mnt/zero bs=1024 skip=128
 
 popd 2>&1> /dev/null
 
 rm -rf $DIR
-=========================================================================
+====================================================================
 
-Link: https://patch.msgid.link/20261125014737.347231-17-phillip@squashfs.org.uk
+Link: https://patch.msgid.link/20261125014737.347231-18-phillip@squashfs.org.uk
 Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
- fs/squashfs/cache.c            |    7 +++++--
- fs/squashfs/file.c             |   16 +++++++++-------
- fs/squashfs/fragment.c         |    5 +++--
- fs/squashfs/inode.c            |   20 ++++++++++++--------
- fs/squashfs/squashfs.h         |    3 ++-
- fs/squashfs/squashfs_fs_i.h    |    1 +
- fs/squashfs/squashfs_helpers.h |   24 ++++++++++++++++++++++--
- 7 files changed, 54 insertions(+), 22 deletions(-)
+ fs/squashfs/cache.c            |    2 +-
+ fs/squashfs/file.c             |   27 +++++++++++++++++++++------
+ fs/squashfs/squashfs_helpers.h |   20 +++++++++++++++++---
+ 3 files changed, 39 insertions(+), 10 deletions(-)
 
---- a/fs/squashfs/cache.c~squashfs-sanity-check-fragment-block-location-and-range
+--- a/fs/squashfs/cache.c~squashfs-sanity-check-block-list-sizes-and-range
 +++ a/fs/squashfs/cache.c
-@@ -490,9 +490,12 @@ struct squashfs_cache_entry *squashfs_ge
+@@ -490,7 +490,7 @@ struct squashfs_cache_entry *squashfs_ge
  				u64 start_block, int length)
  {
  	struct squashfs_sb_info *msblk = sb->s_fs_info;
-+	int res = squashfs_check_range(start_block, length, msblk);
+-	int res = squashfs_check_range(start_block, length, msblk);
++	int res = squashfs_check_range(start_block, squashfs_frag_size(length, msblk->block_size), msblk);
  
--	return squashfs_cache_get(sb, msblk->fragment_cache, start_block,
--		length);
-+	if (res < 0)
-+		return ERR_PTR(res);
-+
-+	return squashfs_cache_get(sb, msblk->fragment_cache, start_block, res);
- }
- 
- 
---- a/fs/squashfs/file.c~squashfs-sanity-check-fragment-block-location-and-range
+ 	if (res < 0)
+ 		return ERR_PTR(res);
+--- a/fs/squashfs/file.c~squashfs-sanity-check-block-list-sizes-and-range
 +++ a/fs/squashfs/file.c
-@@ -443,7 +443,7 @@ static int squashfs_readpage_fragment(st
- 	struct squashfs_cache_entry *buffer = squashfs_get_fragment(inode->i_sb,
- 		squashfs_i(inode)->fragment_block,
- 		squashfs_i(inode)->fragment_size);
--	int res = buffer->error;
-+	int res = IS_ERR(buffer) ? PTR_ERR(buffer) : buffer->error;
+@@ -281,6 +281,9 @@ static s64 fill_meta_index(struct inode
+ 			long long res = read_indexes(inode->i_sb, blocks,
+ 					&cur_index_block, &cur_offset);
  
- 	if (res)
- 		ERROR("Unable to read page, block %llx, size %x\n",
-@@ -453,7 +453,8 @@ static int squashfs_readpage_fragment(st
- 		squashfs_copy_cache(folio, buffer, expected,
- 			squashfs_i(inode)->fragment_offset);
- 
--	squashfs_cache_put(buffer);
-+	if (!IS_ERR(buffer))
-+		squashfs_cache_put(buffer);
- 	return res;
- }
- 
-@@ -481,8 +482,7 @@ static int squashfs_read_folio(struct fi
- 					PAGE_SHIFT))
- 		goto out;
- 
--	if (index < file_end || squashfs_i(inode)->fragment_block ==
--					SQUASHFS_INVALID_BLK) {
-+	if (index < file_end || !squashfs_i(inode)->has_fragment) {
- 		u64 block = 0;
- 
- 		res = read_blocklist(inode, index, &block);
-@@ -519,6 +519,9 @@ static int squashfs_readahead_fragment(s
- 	void *addr;
- 	struct page *last_page;
- 
-+	if (IS_ERR(buffer))
-+		return 1;
++			if (res >= 0)
++				res = squashfs_add_indexes(cur_data_block, res, msblk);
 +
- 	if (buffer->error)
- 		goto out;
+ 			if (res < 0) {
+ 				if (meta->entries == 0)
+ 					/*
+@@ -292,7 +295,7 @@ static s64 fill_meta_index(struct inode
+ 				goto failed;
+ 			}
  
-@@ -616,7 +619,7 @@ static void squashfs_readahead(struct re
+-			cur_data_block += res;
++			cur_data_block = res;
+ 			meta_entry = &meta->meta_entry[i - meta->offset];
+ 			meta_entry->index_block = cur_index_block -
+ 				msblk->inode_table;
+@@ -353,8 +356,13 @@ static int read_blocklist_ptrs(struct in
+ 		blks = read_indexes(inode->i_sb, index - res, start, offset);
+ 		if (blks < 0)
+ 			return (int) blks;
+-		if (block)
+-			*block += blks;
++		if (block) {
++			res = squashfs_add_indexes(*block, blks, msblk);
++			if (res < 0)
++				return (int) res;
++
++			*block = res;
++		}
+ 	}
+ 
+ 	/*
+@@ -491,8 +499,11 @@ static int squashfs_read_folio(struct fi
+ 
+ 		if (res == 0)
+ 			res = squashfs_readpage_sparse(folio, expected);
+-		else
+-			res = squashfs_readpage_block(folio, block, res, expected);
++		else {
++			res = squashfs_check_range(block, res, msblk);
++			if (res >= 0)
++				res = squashfs_readpage_block(folio, block, res, expected);
++		}
+ 	} else
+ 		res = squashfs_readpage_fragment(folio, expected);
+ 
+@@ -628,7 +639,11 @@ static void squashfs_readahead(struct re
+ 		}
+ 
+ 		bsize = read_blocklist(inode, start >> msblk->block_log, &block);
+-		if (bsize == 0)
++		if (bsize <= 0)
++			goto skip_pages;
++
++		bsize = squashfs_check_range(block, bsize, msblk);
++		if (bsize < 0)
  			goto skip_pages;
  
- 		if (start >> msblk->block_log == file_end &&
--				squashfs_i(inode)->fragment_block != SQUASHFS_INVALID_BLK) {
-+				squashfs_i(inode)->has_fragment) {
- 			res = squashfs_readahead_fragment(inode, pages,
- 					nr_pages, expected, start);
- 			if (res)
-@@ -686,8 +689,7 @@ static loff_t seek_hole_data(struct file
- 		return -ENXIO;
- 
- 	/* is offset within tailend and is tailend packed into a fragment? */
--	if (index + 1 == file_end &&
--			squashfs_i(inode)->fragment_block != SQUASHFS_INVALID_BLK) {
-+	if (index + 1 == file_end && squashfs_i(inode)->has_fragment) {
- 		if (whence == SEEK_DATA)
- 			return offset;
- 
---- a/fs/squashfs/fragment.c~squashfs-sanity-check-fragment-block-location-and-range
-+++ a/fs/squashfs/fragment.c
-@@ -34,7 +34,7 @@
-  * location of the fragment and its compressed size
-  */
- int squashfs_frag_lookup(struct super_block *sb, unsigned int fragment,
--				u64 *fragment_block)
-+				u64 *fragment_block, int *fragment_size)
- {
- 	struct squashfs_sb_info *msblk = sb->s_fs_info;
- 	int block, offset, size;
-@@ -54,7 +54,8 @@ int squashfs_frag_lookup(struct super_bl
- 		return size;
- 
- 	*fragment_block = le64_to_cpu(fragment_entry.start_block);
--	return squashfs_frag_size(fragment_entry.size, msblk->block_size);
-+	*fragment_size = le32_to_cpu(fragment_entry.size);
-+	return 0;
- }
- 
- 
---- a/fs/squashfs/inode.c~squashfs-sanity-check-fragment-block-location-and-range
-+++ a/fs/squashfs/inode.c
-@@ -136,6 +136,7 @@ int squashfs_read_inode(struct inode *in
- 	type = le16_to_cpu(sqshb_ino->inode_type);
- 	switch (type) {
- 	case SQUASHFS_REG_TYPE: {
-+		char has_fragment;
- 		unsigned int frag_offset, frag;
- 		int frag_size;
- 		u64 frag_blk;
-@@ -158,12 +159,12 @@ int squashfs_read_inode(struct inode *in
- 				goto failed_read;
- 			}
- 			frag_offset = le32_to_cpu(sqsh_ino->offset);
--			frag_size = squashfs_frag_lookup(sb, frag, &frag_blk);
--			if (frag_size < 0) {
--				err = frag_size;
-+			err = squashfs_frag_lookup(sb, frag, &frag_blk, &frag_size);
-+			if (err < 0)
- 				goto failed_read;
--			}
-+			has_fragment = true;
- 		} else {
-+			has_fragment = false;
- 			frag_blk = SQUASHFS_INVALID_BLK;
- 			frag_size = 0;
- 			frag_offset = 0;
-@@ -173,6 +174,7 @@ int squashfs_read_inode(struct inode *in
- 		inode->i_fop = &squashfs_file_operations;
- 		inode->i_mode |= S_IFREG;
- 		inode->i_blocks = ((inode->i_size - 1) >> 9) + 1;
-+		squashfs_i(inode)->has_fragment = has_fragment;
- 		squashfs_i(inode)->fragment_block = frag_blk;
- 		squashfs_i(inode)->fragment_size = frag_size;
- 		squashfs_i(inode)->fragment_offset = frag_offset;
-@@ -189,6 +191,7 @@ int squashfs_read_inode(struct inode *in
- 		break;
- 	}
- 	case SQUASHFS_LREG_TYPE: {
-+		char has_fragment;
- 		unsigned int frag_offset, frag;
- 		int frag_size;
- 		u64 frag_blk;
-@@ -215,12 +218,12 @@ int squashfs_read_inode(struct inode *in
- 				goto failed_read;
- 			}
- 			frag_offset = le32_to_cpu(sqsh_ino->offset);
--			frag_size = squashfs_frag_lookup(sb, frag, &frag_blk);
--			if (frag_size < 0) {
--				err = frag_size;
-+			err = squashfs_frag_lookup(sb, frag, &frag_blk, &frag_size);
-+			if (err < 0)
- 				goto failed_read;
--			}
-+			has_fragment = true;
- 		} else {
-+			has_fragment = false;
- 			frag_blk = SQUASHFS_INVALID_BLK;
- 			frag_size = 0;
- 			frag_offset = 0;
-@@ -234,6 +237,7 @@ int squashfs_read_inode(struct inode *in
- 		inode->i_blocks = (inode->i_size -
- 				le64_to_cpu(sqsh_ino->sparse) + 511) >> 9;
- 
-+		squashfs_i(inode)->has_fragment = has_fragment;
- 		squashfs_i(inode)->fragment_block = frag_blk;
- 		squashfs_i(inode)->fragment_size = frag_size;
- 		squashfs_i(inode)->fragment_offset = frag_offset;
---- a/fs/squashfs/squashfs_fs_i.h~squashfs-sanity-check-fragment-block-location-and-range
-+++ a/fs/squashfs/squashfs_fs_i.h
-@@ -17,6 +17,7 @@ struct squashfs_inode_info {
- 	unsigned int	xattr_size;
- 	unsigned int	xattr_count;
- 	int		parent;
-+	bool		has_fragment;
- 	union {
- 		struct {
- 			u64		fragment_block;
---- a/fs/squashfs/squashfs.h~squashfs-sanity-check-fragment-block-location-and-range
-+++ a/fs/squashfs/squashfs.h
-@@ -68,7 +68,8 @@ extern __le64 *squashfs_read_inode_looku
- 				unsigned int);
- 
- /* fragment.c */
--extern int squashfs_frag_lookup(struct super_block *, unsigned int, u64 *);
-+extern int squashfs_frag_lookup(struct super_block *sb, unsigned int fragment,
-+				u64 *fragment_block, int *fragment_size);
- extern __le64 *squashfs_read_fragment_index_table(struct super_block *,
- 				u64, u64, unsigned int);
- 
---- a/fs/squashfs/squashfs_helpers.h~squashfs-sanity-check-fragment-block-location-and-range
+ 		actor = squashfs_page_actor_init_special(msblk, pages, nr_pages,
+--- a/fs/squashfs/squashfs_helpers.h~squashfs-sanity-check-block-list-sizes-and-range
 +++ a/fs/squashfs/squashfs_helpers.h
-@@ -226,9 +226,9 @@ static inline int squashfs_data_size(__l
- 	return squashfs_block_size(le32_to_cpu(raw), block_size);
+@@ -240,10 +240,8 @@ static inline int squashfs_frag_size(u32
+ 	return size;
  }
  
--static inline int squashfs_frag_size(__le32 raw, s32 block_size)
-+static inline int squashfs_frag_size(u32 disk_size, s32 block_size)
+-static inline int squashfs_check_range(u64 start_block, s32 disk_size, struct squashfs_sb_info *msblk)
++static inline int squashfs_check_range(u64 start_block, s32 size, struct squashfs_sb_info *msblk)
  {
--	int size = squashfs_block_size(le32_to_cpu(raw), block_size);
-+	int size = squashfs_block_size(disk_size, block_size);
- 
+-	int size = squashfs_frag_size(disk_size, msblk->block_size);
+-
  	if (size < 0)
  		return size;
-@@ -238,5 +238,25 @@ static inline int squashfs_frag_size(__l
- 		return -EIO;
+ 
+@@ -259,4 +257,20 @@ static inline int squashfs_check_range(u
  
  	return size;
-+}
+ }
 +
-+static inline int squashfs_check_range(u64 start_block, s32 disk_size, struct squashfs_sb_info *msblk)
++static inline s64 squashfs_add_indexes(u64 block, s64 blks, struct squashfs_sb_info *msblk)
 +{
-+	int size = squashfs_frag_size(disk_size, msblk->block_size);
 +
-+	if (size < 0)
-+		return size;
-+
-+	if (start_block >= msblk->inode_table)
++	if (block > S64_MAX)
 +		return -EIO;
 +
 +	/*
-+	 * the above check ensured start_block is not 2^63 or larger, and so
++	 * the above check ensured block is not 2^63 or larger, and so
 +	 * this addition will not overflow
 +	 */
-+	if (start_block + squashfs_compressed_size_block(size) > msblk->inode_table)
++	if (block + blks > msblk->inode_table)
 +		return -EIO;
 +
-+	return size;
- }
++	return block + blks;
++}
  #endif
 _
 
