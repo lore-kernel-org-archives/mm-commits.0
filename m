@@ -1,48 +1,50 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795638980;
-	b=cLgngIQPsTeGQDxqqmiTHc5YWRwrAXeNfhS9h0kU7Da7VFaNfKLO5PN5hJioPylo+Eyp
-	 JMM/0TOqkAWTsJpZ/MD5HItD/w/9pk8TlS5G7/Ma7gNeSShmLKdRJtsYhSNJw826aW9uZ
-	 /6sJO6BPb/58X6b+7SgY5ke1Qix10qalABFOMAhdfriLHppz5/HkCGtv6kMBw56LvvwW3
-	 vsSYVozLb6YNZq3vhFhgiSfuQVW0I0AU+GFvsYWNGClugs1PRFoUOfCBHF1382uoN71pR
-	 HMx8ot3PFCsUZSxF2Ltiexb4cTSXKYvNPz2WsvHgT5khbWKrzay9OL+zf3uGgfwTvUg==
+	t=1795639699;
+	b=zSXyD+7dP6//8Mz3yvbfDOGX+SQkcGAhHpMgW25hWCtPMfTXgwyMLkBhxh+FXMJYGPz1
+	 eoC4JC65LnRKnOz/+4JRs71N8eQBDpI06jVZN0JfXdzDnMDBT0RduwNOF4SI2HBHKunxj
+	 cojdI/kr4/XvmpGw/XDNmG+ju3L/ptHcrPq8RtuHG5yYZqSjY4st0/FHwh08bBQjMGV7h
+	 7BGPA4ivIV1UJyCnLqOkGVhsssN38jmVX+8WFL/3fFp578k+BZfl/FcjIQ8vCNWERyb2z
+	 ikqqMRB/goaiXcg3oWs2uXlLRLX9GYG5vrDs7nLT4m3DxI3G22CsJuYhTcAfU1w/Z3w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795638980;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795639699;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=p/uOTKe7OvUSZ1qgwMG6L8kd1n3cEPzcbbfAIjMO6jw=;
-	b=Pj55oxyOlnM0gAN82Wzuuqa1+KSpFwsbJX8v8Mv0YRO7wgOcDFhYZD9KXELxnkMnOyhs
-	 /1GbbsL9iXijz5ghlbvPJ2EZgpp3BgOyOOg9HMrKE/O/ms5etkPgEEJSsuJMSd9N/tSie
-	 7nGtdA9cTvvpfDFUPVuL/uRlasJxe6jQ6+ZYpaxLsvCEAoFAc85P1tj0z9HJ9FGP91+O6
-	 v7IYphMgSGnIa3o4fBHHeEJm8bB0jjhJa1Gk+godM69NgQvE+kB3p7iPbwf1GAQKJoj9e
-	 +uN83J22sZM6GiwDm/A8RlafWnA/9aec4VKldkM7LQ7QVzvXF9hJrr1TMhw0wZXgtVg==
+	bh=zDfIFTuxY9sMxl8pG0cnplIOmfvZtrsWweEREbvVxVM=;
+	b=TBIiw96AtHSCNiOVcg27z78FRVZ1cNH8D1KHjYvuf+dFkZkxXkPF7vMmfq/xmcMiNU4S
+	 LNuCJUgjssnhYT8ISY7DgYFG7tX/PFp1yArxgUyTuoxMEo0unonAgfEGbUq1nlzNDfLVC
+	 dUvNZKnsTDN8hoOZr2sSFtK65qD3aHnIjRZ9i8N3yLS0cemKysimw5HrIJfaOHH5OFM+h
+	 8FPzEx3p029kY2ydK0FbiDN/PAHAKcjpr+Yyc4/k0h8Nu1VVeAVqmty18NCvXLgnCRgqs
+	 w5ZjEL1J7yvAiAlBCVHtniV4WHdmbeNKa134G4oNQBq/zAaTUxdxfDR0/YGgLygB4oA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="YQ/IzHk4";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1CCakkzK;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04E4F606A31E
-	for <mm-commits@vger.kernel.org>; Wed, 25 Nov 2026 20:36:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C961606A321;
+	Wed, 25 Nov 2026 20:48:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=YQ/IzHk4
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79BC71F000C0;
-	Wed, 25 Nov 2026 20:36:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1CCakkzK
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2885E1F000C6;
+	Wed, 25 Nov 2026 20:48:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795638979;
-	bh=p/uOTKe7OvUSZ1qgwMG6L8kd1n3cEPzcbbfAIjMO6jw=;
+	d=linux-foundation.org; s=korg; t=1795639698;
+	bh=zDfIFTuxY9sMxl8pG0cnplIOmfvZtrsWweEREbvVxVM=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=YQ/IzHk4zg/8IgAEBj9KXCfITVazRYyJdc91Vh1cr2/Lq0lQJGFMMIHfM81Qa15ms
-	 dujxVYBenBa4xHAZXeeZQfKBPAf3YZLOvEY3N+Ig3NKBsfZR+32LOMfCuGCsiGrnjQ
-	 CpW+vh47+ySM6rfxB3XonGZbChPp7mGI2tTKARjA=
-Date: Wed, 25 Nov 2026 12:36:18 -0800
-To: mm-commits@vger.kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=1CCakkzKq97aSuIxLd0QJyJUk2/QvIFntVR9EOpiX82n8QSYrKCwE/LoR/QoYAYVs
+	 gBbwIX4q4l1ItH7+t+sQh3KkLxquh6akEVCoUlMOGuSI5jyySCQZRaNoKTfMGHXRhd
+	 MFIF7raNdPA4TsPfjPhC7k3sPi9gEqy+DTsCvaQs=
+Date: Wed, 25 Nov 2026 12:48:17 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,
+	nphamcs@gmail.com,jack@suse.cz,hannes@cmpxchg.org,bsdhenrymartin@gmail.com,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261124-mglru-fg-v6-18-8ffea39934a6@tencent.com>
-References: <20261124-mglru-fg-v6-18-8ffea39934a6@tencent.com>
-Subject: [to-be-updated] mm-mglru-make-folio_inc_lru_refs-lruvec-lockless.patch removed from -mm tree
-Message-Id: <20261125203619.79BC71F000C0@smtp.kernel.org>
+In-Reply-To: <20261125030432.274396-1-bsdhenrymartin@gmail.com>
+References: <20261125030432.274396-1-bsdhenrymartin@gmail.com>
+Subject: + mm-report-all-zero-cachestat-for-dax-mappings.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261125204818.2885E1F000C6@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,273 +55,96 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The quilt patch titled
-     Subject: mm/mglru: make folio_inc_lru_refs lruvec lockless
-has been removed from the -mm tree.  Its filename was
-     mm-mglru-make-folio_inc_lru_refs-lruvec-lockless.patch
+The patch titled
+     Subject: mm: report all-zero cachestat for DAX mappings
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-report-all-zero-cachestat-for-dax-mappings.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-report-all-zero-cachestat-for-dax-mappings.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm/mglru: make folio_inc_lru_refs lruvec lockless
-Date: Tue, 24 Nov 2026 02:53:10 +0800
+From: Henry Martin <bsdhenrymartin@gmail.com>
+Subject: mm: report all-zero cachestat for DAX mappings
+Date: Wed, 25 Nov 2026 11:04:32 +0800
 
-The lruvec spinlock in folio_inc_lru_refs was only taken to keep
-concurrent aging from corrupting the size counters.  This is no
-longer needed: the per-generation counters are atomic, and the
-active/inactive ABI counters are updated per folio and linearized by
-the CAS on the folio flags, so concurrent aging can no longer corrupt
-them.  The same argument is what lets folio_reset_lru_refs() update
-the counters without the lruvec lock.
+filemap_cachestat() treats every xarray value entry as a workingset
+shadow.  On DAX mappings, value entries are DAX exceptional entries: same
+value bit, different bit layout (flags in the low bits, pfn above). 
+Decoded as a shadow, a DAX entry yields a bogus node id; NODE_DATA() for
+it can be NULL, and lru_gen_test_recent() then dereferences it:
 
-Use folio_lruvec_live_get()/folio_lruvec_live_put() to hold the RCU
-read lock around the lruvec lookup, and drop the spinlock entirely.
+  Oops: general protection fault
+  RIP: 0010:lru_gen_test_recent+0xde/0x300
+  Call Trace:
+   workingset_test_recent
+   filemap_cachestat
+   __x64_sys_cachestat
 
-Without the lock, aging can advance max_seq while a promotion is in
-flight.  Generations are indexed by seq % MAX_NR_GENS, so the folio
-flags can return to the value read earlier and the cmpxchg succeeds
-with a target gen computed from a stale max_seq.  Recheck max_seq after
-a gen-changing cmpxchg: if it moved, account the committed update and
-retry with LRU_REF_FORCE, which promotes the folio to the newest gen.
-The retry may count the access twice, which is acceptable and avoids
-folio_activate(), whose LRU lock causes latency jitter.  smp_rmb()
-orders the flags read, including the one returned by a failed
-cmpxchg(), before the max_seq read.
+Any writable file on a DAX mount triggers this once an mmap write fault
+has populated entries.
 
-Also simplify the post-CAS accounting guards: gen is only assigned
-non-negative values after the old_gen < 0 early exit, so gen != old_gen
-implies gen >= 0, and lru_gen_update_size() needs no explicit guard.
-The active/inactive ABI update keeps its gen >= 0 check because an
-off-LRU folio has no lruvec to update.
+DAX mappings have no page cache, so none of the cachestat fields make
+sense for them.  Skip the xarray walk for them and report all zeros, and
+document the behaviour in the syscall's kernel-doc.
 
-Link: https://patch.msgid.link/20261124-mglru-fg-v6-18-8ffea39934a6@tencent.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
+This issue was discovered by Tencent CodeBuddy Security.
+
+Link: https://patch.msgid.link/20261125030432.274396-1-bsdhenrymartin@gmail.com
+Fixes: cf264e1329fb ("cachestat: implement cachestat syscall")
+Signed-off-by: Henry Martin <bsdhenrymartin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Tested-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Kunwu Chan <kunwu.chan@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Ying Huang <ying.huang@linux.alibaba.com>
-Cc: Christopher Li <chrisl@kernel.org>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Nico Pache <nico.pache@linux.dev>
-Cc: Usama Arif <usama.arif@linux.dev>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Youngjun Park <youngjun.park@lge.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Gregory Price <gourry@gourry.net>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: SJ Park <sj@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Vernon Yang <vernon2gm@gmail.com>
-Cc: wangzicheng <wangzicheng@honor.com>
-Cc: Tal Zussman <tz2294@columbia.edu>
-Cc: Kairui Song <ryncsn@gmail.com>
-Cc: Xiang Liu <liuxiang.277@bytedance.com>
-Cc: Ehab Ababneh <ehab.ababneh@intel.com>
-Cc: zhaozhengzhuo <zhaozhengzhuo@uniontech.com>
-Cc: wang lian <lianux.mm@gmail.com>
-Cc: Joanne Koong <joannelkoong@gmail.com>
-Cc: Hui Zhu <hui.zhu@linux.dev>
-Cc: Maxim Muzafarov <maxmuzaf@gmail.com>
-Cc: Tianyi Chen <hi@tychen.cc>
-Cc: Ridong Chen <ridong.chen@linux.dev>
-Cc: Harry Yoo <harry@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: <stable@vger.kernel.org>
 
- include/linux/mm_inline.h |   10 +++----
- include/linux/mmzone.h    |    3 +-
- mm/vmscan.c               |   51 ++++++++++++++++++++++--------------
- 3 files changed, 39 insertions(+), 25 deletions(-)
+ mm/filemap.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/include/linux/mm_inline.h~mm-mglru-make-folio_inc_lru_refs-lruvec-lockless
-+++ a/include/linux/mm_inline.h
-@@ -335,10 +335,9 @@ static inline bool lru_gen_is_old(struct
- 	       gen == lru_gen_from_seq(min_seq + 1);
- }
- 
--static inline void lru_gen_update_size(struct lruvec *lruvec, struct folio *folio,
--				       int old_gen, int new_gen)
-+static inline void lru_gen_update_size(struct lruvec *lruvec, int type,
-+				       struct folio *folio, int old_gen, int new_gen)
- {
--	int type = folio_is_file_lru(folio);
- 	int zone = folio_zonenum(folio);
- 	int delta = folio_nr_pages(folio);
- 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
-@@ -417,7 +416,7 @@ static inline bool __lru_gen_add_folio(s
- 	/* use the refs from the atomic snapshot to avoid raced update */
- 	refs = lru_get_refs_flags(flags);
- 
--	lru_gen_update_size(lruvec, folio, -1, gen);
-+	lru_gen_update_size(lruvec, type, folio, -1, gen);
- 	if (lru_refs_is_active(refs))
- 		lru += LRU_ACTIVE;
- 	__update_lru_size(lruvec, lru, zone, delta);
-@@ -447,6 +446,7 @@ static inline bool lru_gen_del_folio(str
- 	unsigned long flags;
- 	unsigned int refs;
- 	int gen;
-+	int type = folio_is_file_lru(folio);
- 	int zone = folio_zonenum(folio);
- 	int delta = folio_nr_pages(folio);
- 	enum lru_list lru = folio_is_file_lru(folio) * LRU_INACTIVE_FILE;
-@@ -470,7 +470,7 @@ static inline bool lru_gen_del_folio(str
- 	if (!reclaiming && ((max_seq - gen) % MAX_NR_GENS) < MIN_NR_GENS)
- 		folio_set_active(folio);
- 
--	lru_gen_update_size(lruvec, folio, gen, -1);
-+	lru_gen_update_size(lruvec, type, folio, gen, -1);
- 	if (lru_refs_is_active(refs))
- 		lru += LRU_ACTIVE;
- 	__update_lru_size(lruvec, lru, zone, -delta);
---- a/include/linux/mmzone.h~mm-mglru-make-folio_inc_lru_refs-lruvec-lockless
-+++ a/include/linux/mmzone.h
-@@ -540,9 +540,10 @@ enum lruvec_flags {
- #define LRU_TIER_MIN		0U
- #define LRU_TIER_MAX		(MAX_NR_TIERS - 1)
- 
--/* Access source flags for folio_inc_lru_refs() */
-+/* Flags for folio_inc_lru_refs() */
- #define LRU_REF_MAPPED		0x1U
- #define LRU_REF_EXEC		0x2U
-+#define LRU_REF_FORCE		0x4U
- 
- #define LRU_REFS_REFERENCED	0x1
- #define LRU_REFS_WORKINGSET	0x2
---- a/mm/vmscan.c~mm-mglru-make-folio_inc_lru_refs-lruvec-lockless
-+++ a/mm/vmscan.c
-@@ -876,37 +876,35 @@ void folio_inc_lru_refs(struct folio *fo
- 	long nr_pages = folio_nr_pages(folio);
- 	struct lru_gen_folio *lrugen;
- 	struct lruvec *lruvec = NULL;
-+	bool aged = false;
- 
-+retry:
- 	old_flags = READ_ONCE(*folio_flags(folio, 0));
- 	do {
- 		new_flags = old_flags;
- 		old_gen = lru_get_gen_flags(old_flags);
- 		old_refs = lru_get_refs_flags(old_flags);
--		file = folio_flags_is_file_lru(&old_flags);
- 		refs = old_refs + 1;
- 		gen = old_gen;
-+		file = folio_flags_is_file_lru(&old_flags);
- 		if (old_gen < 0)
- 			goto out;
--		/*
--		 * Lock the lruvec if the folio is on-list. We are already
--		 * doing lazy promotion so in theory we don't need this,
--		 * but for now, concurrent aging would still corrupt the
--		 * size counters.  This is a temporary limitation and
--		 * will be lifted very soon, so the lock here is not a
--		 * performance concern.
--		 */
- 		if (!lruvec) {
--			lruvec = lruvec_live_lock_irq(folio_lruvec(folio));
-+			lruvec = folio_lruvec_live_get(folio);
- 			lrugen = &lruvec->lrugen;
- 		}
-+		/*
-+		 * Read the flags before max_seq, paired with the store of a
-+		 * gen, which samples max_seq first.
-+		 */
-+		smp_rmb();
- 		max_seq = READ_ONCE(lrugen->max_seq);
- 		max_gen = lru_gen_from_seq(max_seq);
- 		if (old_gen == max_gen)
- 			goto out;
--
--		if (flags & (LRU_REF_MAPPED | LRU_REF_EXEC)) {
--			/* Promote second page table access or executable */
--			if (refs > LRU_REFS_REFERENCED || flags & LRU_REF_EXEC)
-+		if (flags & (LRU_REF_MAPPED | LRU_REF_EXEC | LRU_REF_FORCE)) {
-+			if (lru_refs_is_workingset(refs) ||
-+			    flags & (LRU_REF_EXEC | LRU_REF_FORCE))
- 				gen = max_gen;
- 			/* First access only defers eviction of an old generation */
- 			else if (lru_gen_is_old(lruvec, file, old_gen))
-@@ -931,9 +929,19 @@ out:
- 			break;
- 	} while (!try_cmpxchg(folio_flags(folio, 0), &old_flags, new_flags));
- 
--	if (gen != old_gen)
--		lru_gen_update_size(lruvec, folio, old_gen, gen);
--	if (lru_refs_is_active(old_refs) != lru_refs_is_active(refs) && old_gen >= 0) {
-+	if (gen != old_gen) {
-+		/*
-+		 * Gen-index reuse can fool cmpxchg(). Retry locklessly, accepting
-+		 * an extra reference to avoid folio_activate() latency.
-+		 */
-+		if (unlikely(READ_ONCE(lrugen->max_seq) != max_seq)) {
-+			flags = LRU_REF_FORCE;
-+			aged = true;
-+		}
-+		lru_gen_update_size(lruvec, file, folio, old_gen, gen);
-+	}
+--- a/mm/filemap.c~mm-report-all-zero-cachestat-for-dax-mappings
++++ a/mm/filemap.c
+@@ -4789,7 +4789,8 @@ static inline bool can_do_cachestat(stru
+  * The `flags` argument is unused for now, but is included for future
+  * extensibility. User should pass 0 (i.e no flag specified).
+  *
+- * Currently, hugetlbfs is not supported.
++ * Currently, hugetlbfs is not supported.  DAX mappings have no page
++ * cache, so cachestat() always reports all zeros for them.
+  *
+  * Because the status of a page can change after cachestat() checks it
+  * but before it returns to the application, the returned values may
+@@ -4834,7 +4835,10 @@ SYSCALL_DEFINE4(cachestat, unsigned int,
+ 		csr.len == 0 ? ULONG_MAX : (csr.off + csr.len - 1) >> PAGE_SHIFT;
+ 	memset(&cs, 0, sizeof(struct cachestat));
+ 	mapping = fd_file(f)->f_mapping;
+-	filemap_cachestat(mapping, first_index, last_index, &cs);
 +
-+	if (lru_refs_is_active(old_refs) != lru_refs_is_active(refs) && gen >= 0) {
- 		enum lru_list lru = file * LRU_INACTIVE_FILE;
++	/* DAX mappings have no page cache; report all zeros. */
++	if (!dax_mapping(mapping))
++		filemap_cachestat(mapping, first_index, last_index, &cs);
  
- 		__update_lru_size(lruvec, lru + lru_refs_is_active(old_refs),
-@@ -941,8 +949,12 @@ out:
- 		__update_lru_size(lruvec, lru + lru_refs_is_active(refs),
- 				  folio_zonenum(folio), nr_pages);
- 	}
-+	if (aged) {
-+		aged = false;
-+		goto retry;
-+	}
- 	if (lruvec)
--		lruvec_unlock_irq(lruvec);
-+		folio_lruvec_live_put(lruvec);
- }
- 
- /**
-@@ -3527,12 +3539,13 @@ static int __folio_inc_gen(struct lruvec
- /* protect pages selected by the tier PID controller */
- static int folio_inc_gen(struct lruvec *lruvec, struct folio *folio, int old_gen)
- {
-+	int type = folio_is_file_lru(folio);
- 	int new_gen;
- 	bool gen_increased;
- 
- 	new_gen = __folio_inc_gen(lruvec, folio, old_gen, &gen_increased);
- 	if (gen_increased)
--		lru_gen_update_size(lruvec, folio, old_gen, new_gen);
-+		lru_gen_update_size(lruvec, type, folio, old_gen, new_gen);
- 
- 	return new_gen;
- }
+ 	if (copy_to_user(cstat, &cs, sizeof(struct cachestat)))
+ 		return -EFAULT;
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from bsdhenrymartin@gmail.com are
 
-mm-mglru-report-evictable-sizes-per-type.patch
-mm-mglru-extract-lruvec_populated_min_seq-helper.patch
-mm-mglru-reclaim-from-the-oldest-populated-gen.patch
-mm-mglru-lift-the-forced-protection-of-reclaimer.patch
-mm-mglru-skip-zones-above-reclaim_idx-instead-of-rotating-them.patch
-mm-mglru-return-for-unavailable-anon-reclaim-earlier.patch
-mm-mglru-balance-anon-and-file-scan-budget-by-refault-rate.patch
-mm-mglru-lift-youngest-gen-protection-for-higher-priority.patch
+mm-report-all-zero-cachestat-for-dax-mappings.patch
 
