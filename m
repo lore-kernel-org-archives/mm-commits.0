@@ -1,51 +1,50 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795563248;
-	b=BlPy300DqSdC2wk6hEEhjZ9DQqpZ9WY1Byzsup2mJ+KHd3M1b9HYseraXA1xCeIlK5a8
-	 ijyrjzoQCV4cdALoSGwsFez3mKiNn+bIUJcc9vZMwwM/xAqf32+FXl/J450XQF++s+tdI
-	 JNuTCx0IUAcjbfcLctkaVtn6r38aPpNUY74MwvF69h0h0xfE/4LHyvwXRWhP7FKuU52yf
-	 wf3ud13E2A9WS5/OkVKk9D0RTN5hWmFWTf4x95w6XM6ZsvsxnSpcO7kA1fE1xMGqbhcLT
-	 mSXgBq9iLVDp065l/WoN3qh0pX/ECAUE4mP2GAxZ7jz747UrV38YPluXGgQqK8KN7Vg==
+	t=1795572383;
+	b=a4fPEXKKDnfXinhDdt8CfJ6FuUZdx8CXq0uuQ8kKVuGmVjrh/GyCG6lCnaH4pvTg2aJe
+	 Cubjfh99mSB10qWTkZ0cte8F21X/iGMgevCjeFRjbFM1Cmt2g61ghiKmpK0OVlzncn3iy
+	 ABuWQvEHSuyC+S+vQ0UL8Qn2abTmEvx9LnYgykc7FOGLpHPelA5GtiK6GELEThipAMkie
+	 5vidlCgvM0wAW07xZvy9FEdDjiEDy5QXfTawQri+/7R0/3R5cDzM6QOEAjx8AskCh1FI7
+	 p1UvdUG70+j7LPANgTmf1jnjXbpXU4yRkjqRrlEqkn1th4Z/ENbCpcV8NQGnh/nEaQg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795563248;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795572383;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=MBWQ6a8p94SYQlBcvzYJUwmyw6cHdyiUCNfkIB21NvQ=;
-	b=25K4wZxx/A2EIykboZ/XpLkxT9FlH9XO9sS6yMbx8gU48TqnXojZ7iSc16pkTglO0pKq
-	 aPEaxujCYHMslYH3DoFkw40Or55w/y5opH7EYK+lVLJjVNKWrDSdr6cL0uXoPEc3gn0dU
-	 b+xE/52biwSxCkiN5qsaNMS1Tc6iWkR9qk7gL1QqodmDAVF6z+kDlyIcRcrNm4R/cHqLl
-	 ZmdM3x6yu+Z1a8Qek9nq9UFr2KekJZ6xDEtrOY14tEwUrt4eMJ3/UdJ83vDy3ozBVPQf2
-	 U2mXR4SeXfDwvmtg/CWroHOkapgdBEfW6AVVO7mKoOCQ2H494SNa1SIIl4jdXcixfcQ==
+	bh=DzW4OywvkIOQHGkkTkQSg2ROpxDIzTr7rPoVXr8Svq8=;
+	b=Vroo6B81LoBOx5vtPEw3VXPjV6SpZx68cWYfP5/16EX1uvwBpzkIIzO6U937AXn7aECh
+	 LEe3tJE7YBmSbUhm56D3gNROudFNDzL3hkFD75/b+r3Tzus0B6BBneuL0RojkbRl62p7x
+	 3fXzQEfswqFYbuZwv92db0JsguVImZl0pg83I31Q/v9sRgcQ/NssDrQb4wSUdGNXv+WNW
+	 6Xas4tdOgbtBvy7h9wBV53145K3e8YXjOj+w29aCUNss9FuH8Q0WsY+IT/LvQSfyLB78U
+	 RYx1QC+1Y2a8NxuvHlUfeFIHROT6RB6/9KMxiev9LM5RXhM5wW45JWEZR6NnXI+I1ag==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=qT9kJzdb;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vYdEjZG0;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1481E606A31E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Nov 2026 23:34:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2414F606A330;
+	Wed, 25 Nov 2026 02:06:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=qT9kJzdb
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80CE51F000C6;
-	Tue, 24 Nov 2026 23:34:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vYdEjZG0
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A580A1F01577;
+	Wed, 25 Nov 2026 02:06:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795563247;
-	bh=MBWQ6a8p94SYQlBcvzYJUwmyw6cHdyiUCNfkIB21NvQ=;
+	d=linux-foundation.org; s=korg; t=1795572382;
+	bh=DzW4OywvkIOQHGkkTkQSg2ROpxDIzTr7rPoVXr8Svq8=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=qT9kJzdbuZ+Ejq33ICzT8XF1hN9X3qSgT6994Ka5xkkjhfwzfRfOiAVIjVgcrUmr2
-	 7v1n9hEOg3CVEozWzJLNb7HSKJ7cLGvlUBr8TwqPIy5VXtUfYccXCJtVa/saKwpq7H
-	 VHHb0QWl1tK7BUKTUfgKIqgW/Zu0mxAo9q2hn2jQ=
-Date: Tue, 24 Nov 2026 15:34:07 -0800
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
-	shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,peterx@redhat.com,
-	mhocko@suse.com,lokeshgidra@google.com,ljs@kernel.org,liam@infradead.org,
-	david@kernel.org,kaleshsingh@google.com,akpm@linux-foundation.org
+	b=vYdEjZG0oeOxfkKo1PsnF7vRFjCxdjjSkIB7az8bY4Hxyt2UG9lmLNUeMu1vNoo3B
+	 F9SOiLv6HHePCF9bOAGT6qX58FD3Dj6vt5qUVJT7JeSwWj/MG+vc7pv6VC/U+0lEtf
+	 9hiclU3+jeTixb5OBax1CDrhP9yCN9kVJSfZdb3A=
+Date: Tue, 24 Nov 2026 18:06:22 -0800
+To: mm-commits@vger.kernel.org,tj@kernel.org,stable@vger.kernel.org,
+	roman.gushchin@linux.dev,dennis@kernel.org,cl@gentwo.org,
+	chriswiseman@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261122082020.1255434-3-kaleshsingh@google.com>
-References: <20261122082020.1255434-3-kaleshsingh@google.com>
-Subject: + selftests-mm-uffd-unit-tests-filter-required-features-per-memory-type.patch added to mm-new branch
-Message-Id: <20261124233407.80CE51F000C6@smtp.kernel.org>
+In-Reply-To: <18e88cd2a725491b.3137322e32332e3235332e313736.c1dd7.0000sendgmr@google.com>
+References: <18e88cd2a725491b.3137322e32332e3235332e313736.c1dd7.0000sendgmr@google.com>
+Subject: + percpu-skip-sidelined-slot-in-pcpu_balance_populated.patch added to mm-new branch
+Message-Id: <20261125020622.A580A1F01577@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -57,12 +56,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: selftests/mm: uffd-unit-tests: filter required features per memory type
+     Subject: percpu: skip sidelined slot in pcpu_balance_populated()
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-uffd-unit-tests-filter-required-features-per-memory-type.patch
+     percpu-skip-sidelined-slot-in-pcpu_balance_populated.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-uffd-unit-tests-filter-required-features-per-memory-type.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/percpu-skip-sidelined-slot-in-pcpu_balance_populated.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -91,127 +90,65 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Kalesh Singh <kaleshsingh@google.com>
-Subject: selftests/mm: uffd-unit-tests: filter required features per memory type
-Date: Sun, 22 Nov 2026 08:20:18 +0000
+From: Chris Wiseman <chriswiseman@google.com>
+Subject: percpu: skip sidelined slot in pcpu_balance_populated()
+Date: Mon, 16 Nov 2026 14:28:07 +0000
 
-CONFIG_PTE_MARKER_UFFD_WP defaults to y but can be turned off, and
-userfaultfd write protection then works only on anonymous memory.  The
-kernel still reports UFFD_FEATURE_PAGEFAULT_FLAG_WP but no longer
-UFFD_FEATURE_WP_HUGETLBFS_SHMEM.
+Commit f183324133ea ("percpu: implement partial chunk depopulation")
+placed pcpu_sidelined_slot at __pcpu_size_to_slot(pcpu_unit_size) + 1 and
+moved pcpu_free_slot to pcpu_sidelined_slot + 1 so pcpu_alloc() checks
+sidelined chunks before free chunks.  pcpu_balance_populated() also loops
+from pcpu_size_to_slot(PAGE_SIZE) through pcpu_free_slot, but was not
+updated to skip pcpu_sidelined_slot.
 
-uffd-unit-tests checks a test's whole feature mask for every memory type,
-so the tests that run on all memory types and require
-UFFD_FEATURE_WP_HUGETLBFS_SHMEM (register-ioctls, the wp-fork tests,
-rwp-wp-exclusive, sigbus-wp and events-wp) skip their anonymous runs too. 
-Check and request only the features that apply to the memory type under
-test, and make minor-wp require UFFD_FEATURE_WP_HUGETLBFS_SHMEM, as it
-write-protects shmem and hugetlbfs.
+When pcpu_nr_empty_pop_pages drops below PCPU_EMPTY_POP_PAGES_HIGH and
+active chunks have no unpopulated pages, pcpu_balance_populated() walks
+into pcpu_sidelined_slot and repopulates chunks that were just sidelined
+to save memory.  Because chunk->isolated is still true on sidelined
+chunks, pcpu_update_empty_pages() does not count those newly populated
+pages toward pcpu_nr_empty_pop_pages.  That leaves the global empty page
+count below the threshold, so subsequent balance passes keep refilling
+every sidelined chunk back to 100% before reaching pcpu_free_slot.
 
-Link: https://patch.msgid.link/20261122082020.1255434-3-kaleshsingh@google.com
-Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
+Skip pcpu_sidelined_slot in pcpu_balance_populated() so sidelined chunks
+stay depopulated until pcpu_alloc() actually needs them.
+
+Benchmark results (4-CPU arm64, 4 sidelined chunks with 60 reclaimed pages
+after triggering pcpu_balance_populated()):
+
+   Metric                                    Before     After     Delta
+   --------------------------------------------------------------------
+   Sidelined pages repopulated                   60         0    -100%
+   Sidelined backing pages (kB)                 960         0  -960 kB
+
+Link: https://patch.msgid.link/18e88cd2a725491b.3137322e32332e3235332e313736.c1dd7.0000sendgmr@google.com
+Fixes: f183324133ea ("percpu: implement partial chunk depopulation")
+Signed-off-by: Chris Wiseman <chriswiseman@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Liam R. Howlett (Google) <liam@infradead.org>
-Cc: Lokesh Gidra <lokeshgidra@google.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Christoph Lameter <cl@gentwo.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: <stable@vger.kernel.org>
 
- tools/testing/selftests/mm/uffd-unit-tests.c |   42 ++++++++++++++---
- 1 file changed, 37 insertions(+), 5 deletions(-)
+ mm/percpu.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-uffd-unit-tests-filter-required-features-per-memory-type
-+++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -176,15 +176,44 @@ out:
- }
+--- a/mm/percpu.c~percpu-skip-sidelined-slot-in-pcpu_balance_populated
++++ a/mm/percpu.c
+@@ -2022,6 +2022,9 @@ retry_pop:
+ 		if (!nr_to_pop)
+ 			break;
  
- 
--static bool uffd_feature_supported(uffd_test_case_t *test)
-+/*
-+ * Filter test->uffd_feature_required down to the features needed for @mem_type.
-+ * For example, UFFD_FEATURE_WP_HUGETLBFS_SHMEM (gated on
-+ * CONFIG_PTE_MARKER_UFFD_WP) only applies to shmem and hugetlbfs, so anonymous
-+ * subtests should still run when it is absent.
-+ */
-+static uint64_t uffd_test_features(const uffd_test_case_t *test,
-+				   const mem_type_t *mem_type)
-+{
-+	const uint64_t shmem = UFFD_FEATURE_MISSING_SHMEM |
-+			       UFFD_FEATURE_MINOR_SHMEM;
-+	const uint64_t hugetlb = UFFD_FEATURE_MISSING_HUGETLBFS |
-+				 UFFD_FEATURE_MINOR_HUGETLBFS;
-+	uint64_t features = test->uffd_feature_required;
++		if (slot == pcpu_sidelined_slot)
++			continue;
 +
-+	switch (mem_type->mem_flag) {
-+	case MEM_ANON:
-+		return features & ~(shmem | hugetlb |
-+				    UFFD_FEATURE_WP_HUGETLBFS_SHMEM);
-+	case MEM_SHMEM:
-+	case MEM_SHMEM_PRIVATE:
-+		return features & ~hugetlb;
-+	case MEM_HUGETLB:
-+	case MEM_HUGETLB_PRIVATE:
-+		return features & ~shmem;
-+	default:
-+		return features;
-+	}
-+}
-+
-+static bool uffd_feature_supported(uint64_t required)
- {
- 	uint64_t features;
- 
- 	if (uffd_get_features(&features))
- 		return false;
- 
--	return (features & test->uffd_feature_required) ==
--	    test->uffd_feature_required;
-+	return (features & required) == required;
- }
- 
- static int pagemap_open(void)
-@@ -2742,6 +2771,7 @@ uffd_test_case_t uffd_tests[] = {
- 		.uffd_feature_required =
- 		UFFD_FEATURE_MINOR_HUGETLBFS | UFFD_FEATURE_MINOR_SHMEM |
- 		UFFD_FEATURE_PAGEFAULT_FLAG_WP |
-+		UFFD_FEATURE_WP_HUGETLBFS_SHMEM |
- 		/*
- 		 * HACK: here we leveraged WP_UNPOPULATED to detect whether
- 		 * minor mode supports wr-protect.  There's no feature flag
-@@ -2961,6 +2991,7 @@ int main(int argc, char *argv[])
- 	mem_type_t *mem_type;
- 	uffd_test_args_t args;
- 	const char *errmsg;
-+	uint64_t features;
- 	int i, j, opt;
- 
- 	while ((opt = getopt(argc, argv, "f:hl")) != -1) {
-@@ -3036,11 +3067,12 @@ int main(int argc, char *argv[])
- 			/* Initialize test arguments */
- 			args.mem_type = mem_type;
- 
--			if (!uffd_feature_supported(test)) {
-+			features = uffd_test_features(test, mem_type);
-+			if (!uffd_feature_supported(features)) {
- 				uffd_test_skip("feature missing");
- 				continue;
- 			}
--			if (uffd_test_ctx_init(&gopts, test->uffd_feature_required, &errmsg)) {
-+			if (uffd_test_ctx_init(&gopts, features, &errmsg)) {
- 				uffd_test_skip(errmsg);
- 				continue;
- 			}
+ 		list_for_each_entry(chunk, &pcpu_chunk_lists[slot], list) {
+ 			nr_unpop = chunk->nr_pages - chunk->nr_populated;
+ 			if (nr_unpop)
 _
 
-Patches currently in -mm which might be from kaleshsingh@google.com are
+Patches currently in -mm which might be from chriswiseman@google.com are
 
-mm-swap-make-swap_header-badpages-a-flexible-array.patch
-selftests-mm-uffd-wp-mremap-skip-unsupported-shmem-and-hugetlb-cases.patch
-selftests-mm-uffd-unit-tests-filter-required-features-per-memory-type.patch
+percpu-skip-sidelined-slot-in-pcpu_balance_populated.patch
 
