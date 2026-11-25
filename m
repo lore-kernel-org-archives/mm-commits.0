@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795590768;
-	b=3xbEbvFTPeXxeRgOea+y1z1w4b+Nsh9jrZhZN6ojbLOziNHM3jnePzR7TXYaOcm5m6Lm
-	 eUyxMnVhF8s4O1sZTK0WKNkKN7rT1nSauO9/0ggA+oSLVfAiYJ1ss2uo1NCl9aVSWfDP3
-	 poGFL/cZ80ltNbqNcuO3U0Rh7MBVj888x8k/fmG1wYsZMd0tlHpUIErn8r5vgn7XbqBbf
-	 XjDID2ij+C3rDa3NPYKeWpEgOOMDNttfcD2PJrPPghVGfx5ttc9H41H0uItfhbMf9i7Pj
-	 U+b+RjqQ2cOUZbV4azyu2JZlSqX/hcBki0abu7zicvIrUt+v8wwIlKtX6rPQyW9NSyQ==
+	t=1795590771;
+	b=j2k2K8FpCMDnlua52c/Xw/2nlIwGCgqAkN4ae3r9Fn/KEItnrFs5VYdLvfcHILBZVI/m
+	 uJMWfPsQTl+Iz0JPwUtSB/bqFvPF9rwV0ZpnqzVgyHyNBg3020yMtN/nyYgpvEfZ6lqsq
+	 2PKaV0aB5ljsovC3lEi/6FtgkPNixsOnXk4uuLtOdpzWRXIgb1YuegI7Fr0xl8cYfQWpS
+	 MgYOB/X71GlJ/LEKrkqqPA1NMhU7uBIMyv9fuLOPmRaJepboXvopH0MihgkedBgedJm/9
+	 ulyRyWXmbY9KFPOMgcDeiM2L0V2UnE8GdMRmdpL9kWdYhf4WA9QgznbBtzbLJkex8iA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795590768;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795590771;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=SPb7DEvgjmVx1R/yqT8tjCcXP3nggcIKrFsvVcbVl88=;
-	b=Gk97gBQbc4J33KtzCXAhjobAv4VOBqaUdMgQ5S8RYwAEoOeytRUXWTOdvtrUZOZ/k6oM
-	 lGs8DMKJVIhjkfM4yLRdO+KMqFzMmK1M4fqEAHySGYjaJ5+SNE8/19kqRs6gLDLzM89sA
-	 r8uYSG6vkagiu2mUBXrScZ7gqK7O+iiLA7u18fbQPdQFTv1KyR5Nfk2wKr9fVok+Mjit3
-	 Goa8SksRLy2xuZDf7E+dvC7BRnBRU28fp5Ohyozhbrg29fLXPrvV3z0RFoLwhpuRFY0lC
-	 pwVGv3bUm/hKxaRcmyQahC3jYopy247STt5zFCVUpTWHgQymMl0V0Wqo8KROnsJiKsw==
+	bh=QUU3GOLMrw2elErUO12vZ2v28KSp81K3u/6SDG6GWE0=;
+	b=Stc5d3Zuzg81snDQSI4VA+2nhIhsn4YZOKA4ntLXHqLeUhyQM8E7oIM8VvaLiNsMW2v8
+	 HR+1Fi2Iov3zvFO4qeZP4koM6PEVoi+6NjkfNuA8MsgoDUrxKhDTdLtpxtbssytXwgN/Z
+	 gx3SEJejGRxfck2vQ7mUtNU/iUVdHh/naaYLbVhJnuARBbtb3SzY0fryAiBoSMYS4ZZsW
+	 a4e1M+6KfYhOxBO9jH386kebmTaUyyWCiIDlWo5BYY6Nozi7xgnc0X2aQEpEWf5euAwnh
+	 7kyX/2r6pCPjsnRKqcRw3sM2soG0URZ5v+3qHfPYuqvSFConpYNFxPwBTf1YnNjXVPw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=CCsp2MWJ;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=qGcoRcZ0;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6A2B606A329
-	for <mm-commits@vger.kernel.org>; Wed, 25 Nov 2026 07:12:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41F1B606A6A8
+	for <mm-commits@vger.kernel.org>; Wed, 25 Nov 2026 07:12:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=CCsp2MWJ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31E591F000C0;
-	Wed, 25 Nov 2026 07:12:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=qGcoRcZ0
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FB881F000D0;
+	Wed, 25 Nov 2026 07:12:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795590768;
-	bh=SPb7DEvgjmVx1R/yqT8tjCcXP3nggcIKrFsvVcbVl88=;
+	d=linux-foundation.org; s=korg; t=1795590770;
+	bh=QUU3GOLMrw2elErUO12vZ2v28KSp81K3u/6SDG6GWE0=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=CCsp2MWJGJ+UQhX16jf7HSsWka3y05485NoPwYIbvytypbloegBKEPR8rJTbWwnDs
-	 Z7gfhdODF2cOpbG9+8Itk4UshVtOELppzntoucHt13ompbczo8qHPt1A9WP0hdIG9I
-	 BR5ge2davu3iFW6rJgccOY+9caTBA4dtzhx44aBs=
-Date: Tue, 24 Nov 2026 23:12:47 -0800
+	b=qGcoRcZ0HVRSt/ViDm34LL7+WXffOTf2jky7mijiYrry4GNvZ6q+0Wc+7el2vR4eo
+	 J3OjatLG3isqsJku+f/2jSuwldM+mpn2zsKhrTxsL8hY+o6qjVNlpOhP5yV6x5ADGH
+	 QVtNuedlmuC+cV3DBQDNr3zMs3PGwB+dCBwsdqlw=
+Date: Tue, 24 Nov 2026 23:12:50 -0800
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,ts930@dgu.ac.kr,
 	surenb@google.com,shuah@kernel.org,rppt@kernel.org,pfalcato@suse.de,
 	mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jannh@google.com,
 	david@kernel.org,alx@kernel.org,azpijr@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261102074412.189554-3-azpijr@gmail.com>
-References: <20261102074412.189554-3-azpijr@gmail.com>
-Subject: + mm-mlock-reject-ranges-that-cannot-be-represented.patch added to mm-new branch
-Message-Id: <20261125071248.31E591F000C0@smtp.kernel.org>
+In-Reply-To: <20261102074412.189554-4-azpijr@gmail.com>
+References: <20261102074412.189554-4-azpijr@gmail.com>
+Subject: + selftests-mm-test-mlock-and-munlock-range-normalisation.patch added to mm-new branch
+Message-Id: <20261125071250.9FB881F000D0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -57,12 +57,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/mlock: reject ranges that cannot be represented
+     Subject: selftests/mm: test mlock() and munlock() range normalisation
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mlock-reject-ranges-that-cannot-be-represented.patch
+     selftests-mm-test-mlock-and-munlock-range-normalisation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mlock-reject-ranges-that-cannot-be-represented.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-test-mlock-and-munlock-range-normalisation.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -92,30 +92,24 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Jose A. Perez de Azpillaga" <azpijr@gmail.com>
-Subject: mm/mlock: reject ranges that cannot be represented
-Date: Mon, 02 Nov 2026 08:44:00 +0100
+Subject: selftests/mm: test mlock() and munlock() range normalisation
+Date: Mon, 02 Nov 2026 08:44:01 +0100
 
-A length within a page of ULONG_MAX wraps when mlock() and munlock() round
-the range to pages.  At an aligned address the length becomes 0 and the
-call is a silent success; at an unaligned one it becomes a single page,
-which is then locked or unlocked.  An overflowing start + len is only
-caught in apply_vma_lock_flags(), after the RLIMIT_MEMLOCK check, so
-mlock() returns -ENOMEM without CAP_IPC_LOCK and -EINVAL with it.
+Add mlock2-tests cases for a zero length at aligned and unaligned
+addresses, for a length that wraps when rounded to pages, and for an
+overflowing start + len, checking the return value and VmLck.  The
+overflow cases expect -EINVAL with and without CAP_IPC_LOCK, so running
+the test unprivileged also covers the errno that used to depend on it.
 
-Return -EINVAL, as man 2 mlock documents, when start + len overflows or
-the end overflows when rounded up to a page.  Doing this before
-can_do_mlock() also avoids making the result depend on
-RLIMIT_MEMLOCK/CAP_IPC_LOCK.  Requests that get a silent success today now
-fail.
+The wrapping cases assume the test is built for the kernel's word size: a
+32-bit binary on a 64-bit kernel cannot pass a range that wraps.
 
-Link: https://patch.msgid.link/20261102074412.189554-3-azpijr@gmail.com
+Link: https://patch.msgid.link/20261102074412.189554-4-azpijr@gmail.com
 Signed-off-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Park Tae-sun <ts930@dgu.ac.kr>
-Closes: https://lore.kernel.org/all/179066531783.50175.13377521828379196177@dgu.ac.kr/
+Suggested-by: David Hildenbrand <david@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Jann Horn <jannh@google.com>
@@ -123,68 +117,242 @@ Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Park Tae-sun <ts930@dgu.ac.kr>
 Cc: Alejandro Colomar <alx@kernel.org>
 
- mm/mlock.c |   23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
+ tools/testing/selftests/mm/mlock2-tests.c |  191 +++++++++++++++++++-
+ 1 file changed, 190 insertions(+), 1 deletion(-)
 
---- a/mm/mlock.c~mm-mlock-reject-ranges-that-cannot-be-represented
-+++ a/mm/mlock.c
-@@ -608,6 +608,7 @@ static __must_check int do_mlock(unsigne
+--- a/tools/testing/selftests/mm/mlock2-tests.c~selftests-mm-test-mlock-and-munlock-range-normalisation
++++ a/tools/testing/selftests/mm/mlock2-tests.c
+@@ -2,6 +2,7 @@
+ #define _GNU_SOURCE
+ #include <sys/mman.h>
+ #include <linux/mman.h>
++#include <limits.h>
+ #include <stdint.h>
+ #include <unistd.h>
+ #include <string.h>
+@@ -91,6 +92,7 @@ out:
+ #define SIZE "Size:"
+ #define RSS  "Rss:"
+ #define LOCKED "lo"
++#define VMLCK "VmLck:"
+ 
+ static unsigned long get_value_for_name(unsigned long addr, const char *name)
  {
- 	unsigned long locked;
- 	unsigned long lock_limit;
-+	unsigned long end;
- 	int error = -ENOMEM;
+@@ -176,6 +178,27 @@ static int unlock_lock_check(char *map,
+ 	return 1;
+ }
  
- 	start = untagged_addr(start);
-@@ -615,12 +616,19 @@ static __must_check int do_mlock(unsigne
- 	if (!len)
- 		return 0;
- 
-+	/* Reject a wrapping range before can_do_mlock() and the rlimit check. */
-+	end = start + len;
-+	if (end < start)
-+		return -EINVAL;
-+	end = PAGE_ALIGN(end);
-+	if (!end)
-+		return -EINVAL;
-+	start &= PAGE_MASK;
-+	len = end - start;
++static unsigned long get_vmlck(void)
++{
++	unsigned long vmlck;
++	char line[1024];
++	FILE *file;
 +
- 	if (!can_do_mlock())
- 		return -EPERM;
- 
--	len = PAGE_ALIGN(len + (offset_in_page(start)));
--	start &= PAGE_MASK;
--
- 	lock_limit = rlimit(RLIMIT_MEMLOCK);
- 	lock_limit >>= PAGE_SHIFT;
- 	locked = len >> PAGE_SHIFT;
-@@ -676,6 +684,7 @@ SYSCALL_DEFINE3(mlock2, unsigned long, s
- 
- SYSCALL_DEFINE2(munlock, unsigned long, start, size_t, len)
++	file = fopen("/proc/self/status", "r");
++	if (!file)
++		ksft_exit_fail_msg("fopen: %s\n", strerror(errno));
++
++	while (fgets(line, sizeof(line), file)) {
++		if (sscanf(line, VMLCK "\t%lu kB", &vmlck) == 1) {
++			fclose(file);
++			return vmlck << 10;
++		}
++	}
++
++	fclose(file);
++	ksft_exit_fail_msg("cannot parse VmLck in /proc/self/status\n");
++}
++
+ static void test_mlock_lock(void)
  {
-+	unsigned long end;
- 	vma_flags_t flags = EMPTY_VMA_FLAGS;
- 	int ret;
+ 	char *map;
+@@ -203,6 +226,167 @@ static void test_mlock_lock(void)
+ 	munmap(map, 2 * page_size);
+ }
  
-@@ -684,8 +693,14 @@ SYSCALL_DEFINE2(munlock, unsigned long,
- 	if (!len)
- 		return 0;
++static void test_mlock_zero_length(void)
++{
++	unsigned long page_size = getpagesize();
++	unsigned long vmlck_before, vmlck_after;
++	char *map;
++
++	map = mmap(NULL, 2 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
++	if (map == MAP_FAILED)
++		ksft_exit_fail_msg("mmap error: %s\n", strerror(errno));
++
++	vmlck_before = get_vmlck();
++	ksft_test_result(!mlock(map, 0),
++			 "%s: zero length mlock() at an aligned address\n", __func__);
++	vmlck_after = get_vmlck();
++	ksft_test_result(vmlck_before == vmlck_after,
++			 "%s: zero length mlock() at an aligned address locked nothing\n",
++			 __func__);
++
++	vmlck_before = get_vmlck();
++	ksft_test_result(!mlock(map + 5, 0),
++			 "%s: zero length mlock() at an unaligned address\n", __func__);
++	vmlck_after = get_vmlck();
++	ksft_test_result(vmlck_before == vmlck_after,
++			 "%s: zero length mlock() at an unaligned address locked nothing\n",
++			 __func__);
++
++	munmap(map, 2 * page_size);
++}
++
++static void test_munlock_zero_length(void)
++{
++	unsigned long page_size = getpagesize();
++	unsigned long vmlck_before, vmlck_after;
++	char *map;
++
++	map = mmap(NULL, 2 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
++	if (map == MAP_FAILED)
++		ksft_exit_fail_msg("mmap error: %s\n", strerror(errno));
++
++	if (mlock(map, 2 * page_size)) {
++		munmap(map, 2 * page_size);
++		ksft_exit_fail_msg("mlock(): %s\n", strerror(errno));
++	}
++
++	vmlck_before = get_vmlck();
++	ksft_test_result(vmlck_before > 0,
++			 "%s: the range to release is accounted as locked\n",
++			 __func__);
++	ksft_test_result(!munlock(map + 5, 0),
++			 "%s: zero length munlock() at an unaligned address\n", __func__);
++	vmlck_after = get_vmlck();
++	ksft_test_result(vmlck_before == vmlck_after,
++			 "%s: zero length munlock() at an unaligned address released nothing\n",
++			 __func__);
++
++	munmap(map, 2 * page_size);
++}
++
++static void test_mlock_length_wrap(void)
++{
++	unsigned long page_size = getpagesize();
++	unsigned long vmlck_before, vmlck_after;
++	char *map;
++	int ret;
++
++	map = mmap(NULL, 2 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
++	if (map == MAP_FAILED)
++		ksft_exit_fail_msg("mmap error: %s\n", strerror(errno));
++
++	vmlck_before = get_vmlck();
++	errno = 0;
++	ret = mlock(map, ULONG_MAX);
++	ksft_test_result(ret == -1 && errno == EINVAL,
++			 "%s: mlock() with a wrapping length is rejected\n",
++			 __func__);
++
++	vmlck_after = get_vmlck();
++	ksft_test_result(vmlck_before == vmlck_after,
++			 "%s: mlock() with a wrapping length locked nothing\n",
++			 __func__);
++
++	vmlck_before = get_vmlck();
++	errno = 0;
++	ret = mlock(map + 5, ULONG_MAX);
++	ksft_test_result(ret == -1 && errno == EINVAL,
++			 "%s: unaligned mlock() with a wrapping length is rejected\n",
++			 __func__);
++
++	vmlck_after = get_vmlck();
++	ksft_test_result(vmlck_before == vmlck_after,
++			 "%s: unaligned mlock() with a wrapping length locked nothing\n",
++			 __func__);
++
++	munmap(map, 2 * page_size);
++}
++
++static void test_mlock_addr_overflow(void)
++{
++	unsigned long page_size = getpagesize();
++	unsigned long vmlck_before, vmlck_after;
++	size_t len;
++	char *map;
++	int ret;
++
++	map = mmap(NULL, 2 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
++	if (map == MAP_FAILED)
++		ksft_exit_fail_msg("mmap error: %s\n", strerror(errno));
++
++	/* addr + len wraps to 0 */
++	len = (size_t)(0UL - (unsigned long)map);
++
++	/* -EINVAL with or without CAP_IPC_LOCK */
++	vmlck_before = get_vmlck();
++	errno = 0;
++	ret = mlock(map, len);
++	ksft_test_result(ret == -1 && errno == EINVAL,
++			 "%s: mlock() with an overflowing addr + len is rejected\n",
++			 __func__);
++
++	vmlck_after = get_vmlck();
++	ksft_test_result(vmlck_before == vmlck_after,
++			 "%s: mlock() with an overflowing addr + len locked nothing\n",
++			 __func__);
++
++	munmap(map, 2 * page_size);
++}
++
++static void test_munlock_range_overflow(void)
++{
++	unsigned long page_size = getpagesize();
++	size_t len;
++	char *map;
++
++	map = mmap(NULL, 2 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
++	if (map == MAP_FAILED)
++		ksft_exit_fail_msg("mmap error: %s\n", strerror(errno));
++
++	errno = 0;
++	ksft_test_result(munlock(map, ULONG_MAX) == -1 && errno == EINVAL,
++			 "%s: munlock() with a wrapping length is rejected\n",
++			 __func__);
++
++	errno = 0;
++	ksft_test_result(munlock(map + 5, ULONG_MAX) == -1 && errno == EINVAL,
++			 "%s: unaligned munlock() with a wrapping length is rejected\n",
++			 __func__);
++
++	len = (size_t)(0UL - (unsigned long)map);
++	errno = 0;
++	ksft_test_result(munlock(map, len) == -1 && errno == EINVAL,
++			 "%s: munlock() with an overflowing addr + len is rejected\n",
++			 __func__);
++
++	munmap(map, 2 * page_size);
++}
++
+ static int onfault_check(char *map)
+ {
+ 	*map = 'a';
+@@ -505,9 +689,14 @@ int main(int argc, char **argv)
  
--	len = PAGE_ALIGN(len + (offset_in_page(start)));
-+	end = start + len;
-+	if (end < start)
-+		return -EINVAL;
-+	end = PAGE_ALIGN(end);
-+	if (!end)
-+		return -EINVAL;
- 	start &= PAGE_MASK;
-+	len = end - start;
+ 	munmap(map, size);
  
- 	if (mmap_write_lock_killable(current->mm))
- 		return -EINTR;
+-	ksft_set_plan(15);
++	ksft_set_plan(31);
+ 
+ 	test_mlock_lock();
++	test_mlock_zero_length();
++	test_munlock_zero_length();
++	test_mlock_length_wrap();
++	test_mlock_addr_overflow();
++	test_munlock_range_overflow();
+ 	test_mlock_onfault();
+ 	test_munlockall0();
+ 	test_munlockall1();
 _
 
 Patches currently in -mm which might be from azpijr@gmail.com are
