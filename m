@@ -1,49 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795586019;
-	b=cUov4PxFzp5XLm/MJCJYfvwhz1mot5UEFIfF4wkqxX0ARznoVm+WCe7Wb+S33cdfjOga
-	 SrlPM2y7XK1TbH8Z+IpFeFGv3oX77rEHZQ3xkfasorILUntZJc7w7ts7KqNGHnNoIyg3P
-	 yjxgENbL4G01kAzoMa0sOqsx+T2QmqLVZp8NzYgwCF7dnhu7RL2UzjQCkmKoaguIiXu4R
-	 6zYo9hr81ZNIMrSXxH9t8pK5Q3Olgo6eAOaJYYGcmE2DsMw1/4XumE/PIl+qa5U1qY5r9
-	 SUAsphmCYx7GYl5lgNVx2AR3xDEgmjyzQ5IJsaoAzSE2tIs9u+7NUfBosPQ9pDfVP4Q==
+	t=1795586021;
+	b=iuISePvJOhU0V5Bd9jUzf+X0zVSlQiHJLPcMXv4ucRx0dNQpsM/VxWLUYzAq1Ao+1b7G
+	 Pu8l4VDVB0d4kr1TII/op8ivfYJkIRu4nbOxHNazpGKqKDV3yT6mV+mPX3kYmslZCgRk8
+	 T8pfWAZUKTiGtMuHRERwFtwbODOykcDYCXCgdzGjiwF2LdpywP+7+L+rfqDodVuQh1VOV
+	 /wfgHOHrTp/hZavBUdrTvTU0k9PPacUltopfyLwAHVS1cYMihP0OnixRrbE8RkFFLePxF
+	 5lFCUziMri/wC/lgtLg4d2EQIbLbQb1fehp3QhVk31ZqWyVlPeLPt9q2xPPoptb6vqg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795586019;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795586021;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=FsWiZMJbre16ODxCwJcqx943538yRUQgWEzc7jofnQE=;
-	b=yPZKmjPIMx+L59RfD9YH4oS/3s2pHyr/fvNq8ze5j3WCLDGZyCMfFQUkLOvdAXff7hV6
-	 hHxfO3JbgzqyBknEQJpTOwD/uRHRO+7hcFMQp4Lg0GFx9rVoUbllkr5IbYBgWUn+H/397
-	 OyRIx8oiW0SBlrWx4qWe5qTLXCn8qpjA8v5cvrdddVWbwj/o9yHR9n4SqkjOxHtQHfbUO
-	 /L3BG6NWASbSg9R1KZdgX6PzXCbJ8d/C+ym0g7k+huR6zZ5HOgq3R6KbV5+lRpGOcHW+r
-	 pmvlziDdMfadKBaiYUTWj7VWezrd+ibBh17Cm16j94NnULQmATmSA2PNGJeANJBdWeA==
+	bh=U+9ZYWBj5t52lY7Q6UQ0w0MwnCZiLeNSTZTuho3iFnM=;
+	b=EBWjlceDQ4+stlvhnsWN2CLK2VQCQlo1hvSg0ObpryPSz3GC6gmTiosDz9OUMgMAKaaE
+	 zEcGf47nI4t8rW/5j7fSqSfv7HNMjNQiKkpy1tbsgHNnqihSNrUu1s2MnKoee/HQ/iuaj
+	 977+lAMJb253j0Y7b4weBzVPwssXrBvLYhReLTLzjzsbsVi7uNGHNEcaEVfInrImliJxk
+	 bruKm3v+cscYqIyVg91UwVtlYycb1sRMp62DrarmLAdK14Qh+HKPdv2qOro74/dUYCRZk
+	 5jxmCLwCsoLBCEuj7je/hrqG0qXI9kZr/2Z7Szv5RsxmBrX3SrQo924jEWKWx/eoSvw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jOTgEVHV;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SBYXSBrr;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D8D6606A321
-	for <mm-commits@vger.kernel.org>; Wed, 25 Nov 2026 05:53:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6072E606A31E
+	for <mm-commits@vger.kernel.org>; Wed, 25 Nov 2026 05:53:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jOTgEVHV
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BF4B1F000C4;
-	Wed, 25 Nov 2026 05:53:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SBYXSBrr
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D25921F000C0;
+	Wed, 25 Nov 2026 05:53:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795586018;
-	bh=FsWiZMJbre16ODxCwJcqx943538yRUQgWEzc7jofnQE=;
+	d=linux-foundation.org; s=korg; t=1795586021;
+	bh=U+9ZYWBj5t52lY7Q6UQ0w0MwnCZiLeNSTZTuho3iFnM=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=jOTgEVHVxgvu9aaOHGjz3ry3bCBCRqUjDCwMXFfzwV2Ptv+blbzZ6jG/S4PtQJpyq
-	 iUdq3kKqsN5pbhOOlw8fJRsXtKLzCVjFrCaEHut94dvx/T5eXtYKpbr79Opd2o9kfy
-	 7kwMtC/oR8/VxffzGehwF0h/0UjH2peWLJh56GsU=
-Date: Tue, 24 Nov 2026 21:53:37 -0800
+	b=SBYXSBrrRWHD2vKAbXzvNbJcbmLC6OOqWIgvpfjShjl+8PNhaZF57ZvYrCOMwyVdc
+	 ov1kZqLymqown2PiOVNVtAZl+2EEHhslCuTw+3gy5NmbRmbRndP4F4EuHkJwFTjbEJ
+	 nWiCG/GfNTV7UnZqtEiRKjlmZBHyn1Ji+2LjzW+o=
+Date: Tue, 24 Nov 2026 21:53:40 -0800
 To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261125014737.347231-10-phillip@squashfs.org.uk>
-References: <20261125014737.347231-10-phillip@squashfs.org.uk>
-Subject: + squashfs-fix-fragment-bytes-overflow-on-32-bit-architectures.patch added to mm-nonmm-unstable branch
-Message-Id: <20261125055338.7BF4B1F000C4@smtp.kernel.org>
+In-Reply-To: <20261125014737.347231-11-phillip@squashfs.org.uk>
+References: <20261125014737.347231-11-phillip@squashfs.org.uk>
+Subject: + squashfs-fix-fragment-index-table-length-too-large-exploit.patch added to mm-nonmm-unstable branch
+Message-Id: <20261125055340.D25921F000C0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: Squashfs: fix fragment bytes overflow on 32-bit architectures
+     Subject: Squashfs: fix fragment index table length too large exploit
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-fix-fragment-bytes-overflow-on-32-bit-architectures.patch
+     squashfs-fix-fragment-index-table-length-too-large-exploit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-fix-fragment-bytes-overflow-on-32-bit-architectures.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-fix-fragment-index-table-length-too-large-exploit.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,44 +79,66 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: Squashfs: fix fragment bytes overflow on 32-bit architectures
-Date: Wed, 25 Nov 2026 01:47:23 +0000
+Subject: Squashfs: fix fragment index table length too large exploit
+Date: Wed, 25 Nov 2026 01:47:24 +0000
 
-In helper function squashfs_fragment_bytes() the u32 fragments
-variable is multiplied by sizeof(struct squashfs_fragment_enty).
+An attacker can manipulate the fragment count and the fragment table
+start values in the superblock, and force the code to kmalloc()
+a 4 Mbyte memory region, or try to allocate larger values which
+will fail with a warning, and which will panic the kernel if panic on
+warn is set.
 
-On a 32-bit architecture the type of sizeof() is a 32-bit unsigned
-integer, which means the computation will overflow for fragments
-values above 268435455.
+If the allocation succeeds, these invalid values will be caught when the
+code tries to read the data from disk, but, this leaves a small time
+window where the 4 Mbyte block is allocated before being freed when
+the mount of the filesystem fails.
 
-The knock-on effect is the size of the in memory fragment index
-table will be incorrectly computed, and a much smaller than expected
-index table will be allocated and read into memory.
+The exploit relies on arithmetic overflow to evade the following sanity
+check:
 
-Later when a fragment index beyond this is looked up in this table,
-this will produce an out of bounds access.
+	if (fragment_table_start + length > next_table)
 
-The fix is to explicitly widen the fragments variable to a long long
-in the squashfs_fragment_bytes() helper function.
+Specifically, the values of fragment_table_start and length can be
+chosen so that they overflow an unsigned long long, and so appear less
+than next_table.
+
+Typically, the maximum memory that can be allocated with kmalloc() is
+4 Mbytes.  So if length is 4 Mbytes, this means fragment_table_start
+needs to be 2^64 - 4 Mbytes, to achieve overflow and produce a zero
+length.
+
+This value is beyond the end of any block device, because the maximum
+block device is 2^63 - 512 in size (LLONG_MAX >> 9 sectors of 512
+bytes).
+
+In practice this means such a large value will be caught when the code
+immediately after allocation tries to read the data off disk:
+
+ 	table = squashfs_read_table(sb, fragment_table_start, length);
+
+However, the code should check for validity before allocating a large
+kmalloc() area, because such allocations can cause memory pressure or
+cause the kernel to panic.
+
+This commit checks that fragment_tables_size is not too large, and
+ensures arithmetic overflow does not occur.
+
+It also makes the sanity check more exacting by utilising the fact that
+there should be zero gap between the end of the fragment index table and
+the next table.
 
 Reproducer
 =========
 
-The following script when run on a 32-bit x86 kernel (which lacks
-KASAN support) will produce an I/O error.  On a 32-bit ARM kernel
-with KASAN enabled, the out of bounds access will also produce a
-KASAN report.
+The following script if the eploit works, will fail with the mount
+error
 
-[  193.817260] ==================================================================
-[  193.818057] BUG: KASAN: slab-out-of-bounds in squashfs_frag_lookup+0x23c/0x264
-[  193.820408] Read of size 8 at addr cc126708 by task stat/357
-[  193.820720]
-[  193.821675] CPU: 3 UID: 0 PID: 357 Comm: stat Not tainted 7.2.0-13187-g66498c75b4f8 #113 VOLUNTARY
+mount: attempt to access beyond end of device
 
 =================================================================
 #!/bin/bash
 
-ARGS="-no-duplicates -no-sparse -no-hardlinks -quiet -no-progress"
+ARGS="-quiet -no-progress"
 
 finish() {
 	popd 2>&1 > /dev/null
@@ -124,25 +146,15 @@ finish() {
 	exit 1
 }
 
-# Create a Squashfs filesystem with 1026 files and 513 fragments.
-# This will create a two entry Squashfs fragment index table.
+# Create a Squashfs filesystem with a single file.
 #
 DIR=$(mktemp -d)
 
 pushd $DIR 2>&1 > /dev/null
 
-# Create a Squashfs pseudo file which is fed to Mksquashfs
-echo Create a Squashfs pseudo file which is fed to Mksquashfs
-
-dd if=/dev/urandom of=urandom bs=1024 count=50 status=none
-for i in $(seq 1 1026); do
-	echo "$i l urandom" >> pseudo
-done
-
-# Create the Squashfs filesystem
 echo Create the Squashfs filesystem
 
-if ! mksquashfs - img.sqsh -pf pseudo -p "/ d 0777 0 0" $ARGS; then
+if ! mksquashfs - img.sqsh -p "/ d 0777 0 0" -p "/file f 0777 0 0 echo hello" $ARGS; then
 	echo Failed to create Squashfs filesystem
 	finish
 
@@ -151,60 +163,75 @@ fi
 # The fragments field (fragment count) in the superblock is at offset
 # 16 bytes.
 #
-# Over-write the fragments count with 268,435,457 little-endian.  On a
-# 32-bit architecture, this when multiplied by 16 will overflow, giving
-# the value 16.
+# Over-write the fragments count with 268,435,456 little-endian.
+# This will make the kernel try to kmalloc() 4 Mbytes to hold the
+# fragment index table.
 #
-# Ultimately this will cause the kernel code to create and read a single
-# entry index table (where in fact the table has two entries).
-#
-# Then stating file 999 which has a fragment id in the second index,
-# will cause an out of bounds access.
 
-# Write 268,435,457 in little-endian format to file
-/usr/bin/echo -en "\x01\x00\x00\x10" > file
+# Write 268,435,456 in little-endian format to file
+/usr/bin/echo -en "\x00\x00\x00\x10" > file
 
 # Over-write the fragments count in the superblock
 echo Over-write the fragments count in the superblock
 
 dd bs=1 seek=16 if=file of=img.sqsh count=4 conv=notrunc status=none
 
+# The fragment table start (start of the index table) in the superblock
+# is at offset 72 bytes.
+#
+# Over-write the value with 2^64 - 4 Mbytes little-endian.
+# This value with the index table length will overflow an unsigned
+# long long, giving the value 0.  This will evade the sanity check.
+
+# Write 2^64 - 4 Mbytes in little-endian format to file
+/usr/bin/echo -en "\x00\x00\xc0\xff\xff\xff\xff\xff" > file
+
+# Over-write the fragment table start in the superblock
+echo Over-write the fragment table start in the superblock
+
+dd bs=1 seek=80 if=file of=img.sqsh count=8 conv=notrunc status=none
+
 # Mount the filesystem to /mnt
 echo Mount the filesystem to /mnt
+
+# If the eploit works, the mount will fail with
+# mount: attempt to access beyond end of device
 
 if ! mount -t squashfs img.sqsh /mnt; then
 	echo Mount of Squashfs filesystem failed
 	finish
 fi
 
-# Stat file 999
-echo Stat file 999
-
-stat /mnt/999
-
 popd 2>&1 > /dev/null
 
 rm -rf $DIR
 =================================================================
 
-Link: https://patch.msgid.link/20261125014737.347231-10-phillip@squashfs.org.uk
+Link: https://patch.msgid.link/20261125014737.347231-11-phillip@squashfs.org.uk
 Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
- fs/squashfs/squashfs_helpers.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/squashfs/fragment.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/fs/squashfs/squashfs_helpers.h~squashfs-fix-fragment-bytes-overflow-on-32-bit-architectures
-+++ a/fs/squashfs/squashfs_helpers.h
-@@ -55,7 +55,7 @@ static inline s64 squashfs_mkinode(u32 s
- /* fragment and fragment table defines */
- static inline s64 squashfs_fragment_bytes(u32 fragments)
- {
--	return fragments * sizeof(struct squashfs_fragment_entry);
-+	return (s64) fragments * sizeof(struct squashfs_fragment_entry);
- }
+--- a/fs/squashfs/fragment.c~squashfs-fix-fragment-index-table-length-too-large-exploit
++++ a/fs/squashfs/fragment.c
+@@ -68,11 +68,11 @@ __le64 *squashfs_read_fragment_index_tab
+ 	__le64 *table;
  
- static inline s32 squashfs_fragment_index(u32 fragments)
+ 	/*
+-	 * Sanity check, length bytes should not extend into the next table -
+-	 * this check also traps instances where fragment_table_start is
+-	 * incorrectly larger than the next table start
++	 * The computed size of the index table (length bytes) should exactly
++	 * match the table start and end points
+ 	 */
+-	if (fragment_table_start + length > next_table)
++	if (fragment_table_start >= next_table ||
++				length != (next_table - fragment_table_start))
+ 		return ERR_PTR(-EINVAL);
+ 
+ 	table = squashfs_read_table(sb, fragment_table_start, length);
 _
 
 Patches currently in -mm which might be from phillip@squashfs.org.uk are
