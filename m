@@ -1,49 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795586032;
-	b=T2vdiDNzU/9nW9Q4nZq/VXCJci1zFmhaJosJIJ074tC3phrlenYVwZPr/qn4pRLSRrCH
-	 b4artSJk8xlsCc+H0dfUDRPgS8wmgB1O2CeLu8glH4LVTqMtjHsehhby04grrKhqrGOaL
-	 6H6SaWpvWfgBVQnPFbGL18dffPRSUL0bcot1k6b9mPHC7RPEXKGp5LqJwzi1etb0Usqeg
-	 d6jyAdp4tSIQqDMOvP5YQlhSHM592/HbEwvrjP7rorlSEQoQ35hhJ3NxVapTLSkAGYvaU
-	 8mq6cyVSPoE7KMJB6DiAAeneDgoCb4AAyBUJ0eSwRvCVqc6Mz649C/McEzFIUcGaChQ==
+	t=1795586036;
+	b=lYes+o1e2sb6hknaZtsha13l3g9rRzLbXeZqB9kaLwD0+j0Ax9+bFbPkxJnqUxnvyEEg
+	 BxYmVjVz6x1bFg5KN8PnnixiEHeYrQ5lokqV/2Ph8x7oMjLCw3spZz3wp5fWtT5J+UTTI
+	 2EAdWi9UVSdL7a4n8HQjw6/I7rwxB0bUpVhNoWyns7CzlOhz5rJDyxn9LWEHq11IeaJcy
+	 JhJzUqj8Qre0NluwFedhraSKh9v3WnqVPB6QFJ81BEz2+rvyiijtU+GnkCS4mK8BYP0os
+	 JfsJ+ln5AyyxUkI6+cgeWTngVBdudUziTsReuypIPXdeT5VKBF2i8L41jZjzEdBpDBg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795586032;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795586036;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=Pyhw30H0hs8EwDkEhA/wy7kzuvdaku/daBMLc5ukwOM=;
-	b=gPOY7skRdClM6ng9MYXBn8cPsAhK1MJU3/MVXpbbFjYDnespZ30Cozf8t+Rzv1Lr2/Ki
-	 cEVN0J2/PD+yKqMjlHCw7jtPfbvO8SxIThgrQ8tMCMwi1F8X1I5BfxLvY5uKozbFmarHM
-	 gjOoDeg33ta5pnsIKeb9TqzjkkdGelI1fYjEE66Xe87pbXioVEG+021q9OJ9Rg7Ry5Z/e
-	 ty4d8Kuox3zNRnRqPpW0BpLfJ6mPmSft4MK+fFNSsaScJrPOG0nAivKQw2smOMcDqbeFC
-	 MnpKG89oUBLBhipmd1NA2wJTn7CINf/wmyLECwzR9qzGg9KbL85kjZTF5c3zoGwyJ9w==
+	bh=rvrX3dHhMVebVFu9YBatBsa9cPzuBdelT+AsGKddrJM=;
+	b=M1T1SA4QpIhBW50FFuk1058j1ZacvC0ZcWUcMw4zEwlpFGxV+E53t+QjBJUlD3Fhqq9F
+	 a6j3fQ2R0h4opSjBzdYqRvp9OrK0Ex2Gww3zn92q+iqvcr1G+ZaeyQuRjn7CIAZ2K6sxp
+	 gEmVV5E0WX6txrhdmQDIpGxibsyEFd/pkOeyxmJgexznmnMBO+1n1jO0wzPyacHogEkB1
+	 Z5YGI5+KikFspw+kkonX0oEXdnXWuTviraM1FPOGXmOFqS0RajmtY7DbN7pUtVnB9ryvK
+	 /Q21SI+7wVGMuTEIzYOvoEBxU7gHh+bo4OhMGd02FP90+NkKoFLcQ65uww5BCQVwyxg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=onkq7hY+;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=etw7FFVd;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 227BD606A32C
-	for <mm-commits@vger.kernel.org>; Wed, 25 Nov 2026 05:53:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D8D3606A327
+	for <mm-commits@vger.kernel.org>; Wed, 25 Nov 2026 05:53:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=onkq7hY+
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BAB11F000CA;
-	Wed, 25 Nov 2026 05:53:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=etw7FFVd
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D75B31F000C6;
+	Wed, 25 Nov 2026 05:53:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795586031;
-	bh=Pyhw30H0hs8EwDkEhA/wy7kzuvdaku/daBMLc5ukwOM=;
+	d=linux-foundation.org; s=korg; t=1795586036;
+	bh=rvrX3dHhMVebVFu9YBatBsa9cPzuBdelT+AsGKddrJM=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=onkq7hY+LdT6xhFP3xozl5ty0XE/hgRJ3wV7MSRpiAiPHLdEcZin/2B2bGd0bzTDM
-	 kLfjlmH5xPybdDgon3TbEu+i7rOrucz2z62Z6KmeSTu4Y3LVp158hRXn4Q+430RLEh
-	 F26FC1beEFcjq+wJinMOYptk5PJ0lOMFmn+s0btM=
-Date: Tue, 24 Nov 2026 21:53:50 -0800
+	b=etw7FFVdoNO83FIQ5moIt2KDoLp+SnUTJfzVL5WlBOGmGtY9+cs5Rte0v3Jb4OMQD
+	 IHLoUq8Djto3MWWQZaGqtjEEGTxJIbGLulFsglyBi6/53MfZAaTPGQXofI3FO0HZtA
+	 YjpsnVOEKFqmTx7vh6bDZe+645GyrEUAJsshEemk=
+Date: Tue, 24 Nov 2026 21:53:55 -0800
 To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261125014737.347231-14-phillip@squashfs.org.uk>
-References: <20261125014737.347231-14-phillip@squashfs.org.uk>
-Subject: + squashfs-widen-xattr-count-variables-and-add-sanity-check.patch added to mm-nonmm-unstable branch
-Message-Id: <20261125055351.0BAB11F000CA@smtp.kernel.org>
+In-Reply-To: <20261125014737.347231-15-phillip@squashfs.org.uk>
+References: <20261125014737.347231-15-phillip@squashfs.org.uk>
+Subject: + squashfs-very-large-files-can-exceed-an-int-or-size_t.patch added to mm-nonmm-unstable branch
+Message-Id: <20261125055355.D75B31F000C6@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: Squashfs: widen xattr count variables and add sanity check
+     Subject: Squashfs: very large files can exceed an int or size_t
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-widen-xattr-count-variables-and-add-sanity-check.patch
+     squashfs-very-large-files-can-exceed-an-int-or-size_t.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-widen-xattr-count-variables-and-add-sanity-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-very-large-files-can-exceed-an-int-or-size_t.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,36 +79,35 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: Squashfs: widen xattr count variables and add sanity check
-Date: Wed, 25 Nov 2026 01:47:27 +0000
+Subject: Squashfs: very large files can exceed an int or size_t
+Date: Wed, 25 Nov 2026 01:47:28 +0000
 
-The maximum number of Xattrs in an inode is 2^32-1 in Squashfs.  However
-the code incorrectly treats the count as signed, or 2^31-1.
+Squashfs in many places uses a signed int to store the block number and
+block count of a file.  If the block size is using the Linux page size
+(normally 4 KiB), it means any file larger than 8 TiB (2^43) will
+overflow a signed int.
 
-This means any value above 2^31-1 becomes a negative number, and it
-means loops will not terminate due to the negative comparison.  This
-means the code will continue reading the filesystem until either the
-data is incorrect, or the end of the filesystem is reached.
+If the block number and block count is in terms of the Squashfs
+filesystem block size (which can be between 4 kiB and 1 MiB), it
+depends on the block size as to when a signed int will overflow, but a
+file larger than 256 TiB (2^48) using 128 KiB blocks will overflow a
+signed int.
 
-The code also lacks a check that the count is too large, which will
-again mean that the code will continue reading the filesystem.
+Additionally on 32-bit architectures, size_t is defined as an unsigned
+int, and where variables are being used as a block count (len) or mask,
+these can overflow on very large files too.
 
-Finally, the code also lacks a check for a zero count, this means
-anything reading xattrs from the inode will successfully read no xattrs,
-even though this should have returned error due to corruption.
-
-This commit changes the variables to be unsigned, and so negative values
-do not occur, and it first adds a sanity check for a zero xattr count,
-and second checks that the count isn't larger than the xattr size.
+This commit widens all appropriate variables to avoid overflow.
 
 Reproducer
 ==========
 
-This reproducer allows both zero, negative and large xattr count to be
-reproduced.  In the case of a negative or large count, the exploit
-succeeds if dmesg shows the code failed to read a metadata block, due to
-the loop not terminating.  In the case of a zero count, the exploit
-succeeds if gerfattr successfully returns with no xattrs.
+The following reproducer creates a Squashfs filesystem with a 8 TiB +
+4096 byte sparse file.  The filestem is mounted, and the last 4096
+bytes are read from the file.  If the reproducer is successful the
+process will hang.  This is because signed int overflow occurs in
+squashfs_copy_cache() with the result that folio_end_read() is
+not called.
 
 ====================================================================
 #!/bin/bash
@@ -119,223 +118,187 @@ finish() {
 	exit 1
 }
 
-if [ $# -lt 1 ]; then
-	echo This needs a parameter
-	echo $0 N/0/L 
-	echo N reproduce negative xattr count
-	echo 0 reproduce 0 xattr count
-	echo L reproduce a large count
-	exit 1
-fi
-
-if [ $1 = "N" ]; then
-	echo Reproducing negative xattr count
-elif [ $1 = "0" ]; then
-	echo Reproducing 0 xattr count
-elif [ $1 = "L" ]; then
-	echo Reproducing large xattr count
-else
-	echo Input not N, 0 or L
-	exit 1
-fi
-
 DIR=$(mktemp -d)
 
 pushd $DIR 2>&1 > /dev/null
 
-# Create a Squashfs pseudo file which is fed to Mksquashfs
-echo Create a Squashfs pseudo file which is fed to Mksquashfs
+echo "Create an 8 Tib (2^43) + 4096 byte sparse file"
 
-echo "/ d 0777 0 0" > pseudo
-echo "example f 0777 0 0 echo example data" >> pseudo
-echo "example x user.comment=example xattr" >> pseudo
+if ! truncate --size 8796093026304 bigfile; then
+	echo Create of sparse file failed.
+	finish
+fi	
 
-# Generate the Squashfs filesystem
-echo Generate the Squashfs filesystem
+echo Generate the Squashfs filesystem containing the sparse file
+echo This will be VERY slow on Squashfs-tools older than 4.7.3
 
-mksquashfs - img.sqsh -pf pseudo -quiet -no-progress -noX
+mksquashfs bigfile bigfile.sqsh -b 1M -quiet
 
-# The xattr_id_table_start is at offset 56 in the superblock, 32-bit little-endian.
-# For such a small filesystem, we only need to read the first two bytes.
-low=$(dd if=img.sqsh bs=1 skip=56 count=1 status=none | od -An -v -tu1 | tr -d '\n')
-hi=$(dd if=img.sqsh bs=1 skip=57 count=1 status=none | od -An -v -tu1 | tr -d '\n')
-start=$(( $hi * 256 + $low ))
-
-# The start of the single xattr id is 16 bytes before the xattr_id_table, and the
-# count field is 8 bytes before
-(( start -= 8 ))
-
-if [ $1 = "N" ]; then
-	# Write -1 to the count field
-	echo Writing -1 to the count field
-	echo -ne "\xff\xff\xff\xff" > file
-elif [ $1 = "0" ]; then
-	# Write 0 to the count field
-	echo Writing 0 to the count field
-	echo -ne "\x00\x00\x00\x00" > file
-else
-	# Write 255 to the count field
-	echo Writing 255 to the count field
-	echo -ne "\xff\x00\x00\x00" > file
-fi
-
-dd if=file of=img.sqsh bs=1 seek=$start count=4 conv=notrunc status=none
-
-# Mount the filesystem to /mnt
 echo Mount the filesystem to /mnt
 
-if ! mount -t squashfs img.sqsh /mnt; then
+if ! mount -t squashfs bigfile.sqsh /mnt; then
 	echo Mount of Squashfs filesystem failed
 	finish
 fi
 
-if [ $1 = "0" ]; then
-	if ! getfattr /mnt/example > output; then
-		echo Exploit failed, getfattr returned error
-	elif [ ! -s output ]; then
-		echo Exploit succeeded, getfattr returned success with no xattrs
-	else
-		echo Getfattr succeeded with some xattrs.  The filesystem was not corrupted
-	fi
-else
-	if ! getfattr /mnt/example; then
-		echo Getfattr failed, this is expected.
-		echo If dmesg shows the following, then the exploit succeeded
-		echo SQUASHFS error: Failed to read block 0x124: -5
-		echo SQUASHFS error: Unable to read metadata cache entry [122]
-	else
-		echo Getfattr succeeded with some xattrs.  The filesystem was not corrupted
-	fi
-fi
+echo Read the last 4096 bytes from the sparse file.
+echo If the exploit succeeds the process will hang
+
+dd if=/mnt/bigfile bs=1 skip=8796093022208
 
 popd 2>&1 > /dev/null
 rm -rf $DIR
 exit 0
 ====================================================================
 
-Link: https://patch.msgid.link/20261125014737.347231-14-phillip@squashfs.org.uk
+Link: https://patch.msgid.link/20261125014737.347231-15-phillip@squashfs.org.uk
 Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
- fs/squashfs/inode.c         |    2 +-
- fs/squashfs/squashfs_fs_i.h |    2 +-
- fs/squashfs/xattr.c         |   27 ++++++++++++++++++++-------
- fs/squashfs/xattr.h         |    6 +++---
- fs/squashfs/xattr_id.c      |    3 ++-
- 5 files changed, 27 insertions(+), 13 deletions(-)
+ fs/squashfs/file.c |   37 +++++++++++++++++++------------------
+ 1 file changed, 19 insertions(+), 18 deletions(-)
 
---- a/fs/squashfs/inode.c~squashfs-widen-xattr-count-variables-and-add-sanity-check
-+++ a/fs/squashfs/inode.c
-@@ -460,7 +460,7 @@ int squashfs_read_inode(struct inode *in
- 		inode->i_blocks += ((squashfs_i(inode)->xattr_size - 1) >> 9)
- 				+ 1;
- 	} else
--		squashfs_i(inode)->xattr_count = 0;
-+		squashfs_i(inode)->xattr = SQUASHFS_INVALID_BLK;
+--- a/fs/squashfs/file.c~squashfs-very-large-files-can-exceed-an-int-or-size_t
++++ a/fs/squashfs/file.c
+@@ -35,6 +35,7 @@
+ #include <linux/string.h>
+ #include <linux/pagemap.h>
+ #include <linux/mutex.h>
++#include <linux/math64.h>
  
- 	return 0;
+ #include "squashfs_fs.h"
+ #include "squashfs_fs_sb.h"
+@@ -160,7 +161,7 @@ static void release_meta_index(struct in
+  * Read the next n blocks from the block list, starting from
+  * metadata block <start_block, offset>.
+  */
+-static long long read_indexes(struct super_block *sb, int n,
++static long long read_indexes(struct super_block *sb, s64 n,
+ 				u64 *start_block, int *offset)
+ {
+ 	int err, i;
+@@ -173,7 +174,7 @@ static long long read_indexes(struct sup
+ 	}
  
---- a/fs/squashfs/squashfs_fs_i.h~squashfs-widen-xattr-count-variables-and-add-sanity-check
-+++ a/fs/squashfs/squashfs_fs_i.h
-@@ -15,7 +15,7 @@ struct squashfs_inode_info {
- 	int		offset;
- 	u64		xattr;
- 	unsigned int	xattr_size;
--	int		xattr_count;
-+	unsigned int	xattr_count;
- 	int		parent;
- 	union {
- 		struct {
---- a/fs/squashfs/xattr.c~squashfs-widen-xattr-count-variables-and-add-sanity-check
-+++ a/fs/squashfs/xattr.c
-@@ -33,13 +33,16 @@ ssize_t squashfs_listxattr(struct dentry
- 	u64 start = squashfs_xattr_blk(squashfs_i(inode)->xattr)
- 						+ msblk->xattr_table;
- 	int offset = squashfs_xattr_offset(squashfs_i(inode)->xattr);
--	int count = squashfs_i(inode)->xattr_count;
-+	unsigned int count = squashfs_i(inode)->xattr_count;
- 	size_t rest = buffer_size;
- 	int err;
+ 	while (n) {
+-		int blocks = min_t(int, n, PAGE_SIZE >> 2);
++		int blocks = min_t(s64, n, PAGE_SIZE >> 2);
  
--	/* check that the file system has xattrs */
--	if (msblk->xattr_id_table == NULL)
--		return -EOPNOTSUPP;
-+	/* check that the file has xattrs */
-+	if (squashfs_i(inode)->xattr == SQUASHFS_INVALID_BLK)
-+		return 0;
-+
-+	if (count == 0 || count > squashfs_i(inode)->xattr_size)
-+		return -EIO;
+ 		err = squashfs_read_metadata(sb, blist, start_block,
+ 				offset, blocks << 2);
+@@ -216,7 +217,7 @@ failure:
+  */
+ static inline int calculate_skip(u64 blocks)
+ {
+-	u64 skip = blocks / ((SQUASHFS_META_ENTRIES + 1)
++	u64 skip = div_u64(blocks, (SQUASHFS_META_ENTRIES + 1)
+ 		 * SQUASHFS_META_INDEXES);
+ 	return min((u64) SQUASHFS_CACHED_BLKS - 1, skip + 1);
+ }
+@@ -227,7 +228,7 @@ static inline int calculate_skip(u64 blo
+  * on-disk locations of the datablock and block list metadata block
+  * <index_block, index_offset> for index (scaled to nearest cache index).
+  */
+-static int fill_meta_index(struct inode *inode, int index,
++static s64 fill_meta_index(struct inode *inode, s64 index,
+ 		u64 *index_block, int *index_offset, u64 *data_block)
+ {
+ 	struct squashfs_sb_info *msblk = inode->i_sb->s_fs_info;
+@@ -243,7 +244,7 @@ static int fill_meta_index(struct inode
+ 	/*
+ 	 * Scale index to cache index (cache slot entry)
+ 	 */
+-	index /= SQUASHFS_META_INDEXES * skip;
++	index = div_u64(index, SQUASHFS_META_INDEXES * skip);
  
- 	/* loop reading each xattr name */
- 	while (count--) {
-@@ -111,12 +114,21 @@ static int squashfs_xattr_get(struct ino
- 	u64 start = squashfs_xattr_blk(squashfs_i(inode)->xattr)
- 						+ msblk->xattr_table;
- 	int offset = squashfs_xattr_offset(squashfs_i(inode)->xattr);
--	int count = squashfs_i(inode)->xattr_count;
-+	unsigned int count = squashfs_i(inode)->xattr_count;
- 	int name_len = strlen(name);
- 	int err, vsize;
--	char *target = kmalloc(name_len, GFP_KERNEL);
-+	char *target;
-+
-+	/* check that the file has xattrs */
-+	if (squashfs_i(inode)->xattr == SQUASHFS_INVALID_BLK)
-+		return -ENODATA;
-+
-+	if (count == 0 || count > squashfs_i(inode)->xattr_size)
-+		return -EIO;
-+
-+	target = kmalloc(name_len, GFP_KERNEL);
- 	if (target == NULL)
--		return  -ENOMEM;
-+		return -ENOMEM;
+ 	while (offset < index) {
+ 		meta = locate_meta_index(inode, offset + 1, index);
+@@ -315,7 +316,7 @@ all_done:
+ 	/*
+ 	 * Scale cache index (cache slot entry) to index
+ 	 */
+-	return offset * SQUASHFS_META_INDEXES * skip;
++	return (s64)offset * SQUASHFS_META_INDEXES * skip;
  
- 	/* loop reading each xattr name */
- 	for (; count; count--) {
-@@ -169,6 +181,7 @@ static int squashfs_xattr_get(struct ino
- 				goto failed;
+ failed:
+ 	release_meta_index(inode, meta);
+@@ -327,14 +328,14 @@ failed:
+  * Get the on-disk location and compressed size of the datablock
+  * specified by index.  Fill_meta_index() does most of the work.
+  */
+-static int read_blocklist_ptrs(struct inode *inode, int index, u64 *start,
++static int read_blocklist_ptrs(struct inode *inode, s64 index, u64 *start,
+ 	int *offset, u64 *block)
+ {
+ 	long long blks;
+ 	__le32 size;
+-	int res = fill_meta_index(inode, index, start, offset, block);
++	s64 res = fill_meta_index(inode, index, start, offset, block);
  
- 			vsize = le32_to_cpu(val.vsize);
-+
- 			if (buffer) {
- 				if (vsize > buffer_size) {
- 					err = -ERANGE;
---- a/fs/squashfs/xattr.h~squashfs-widen-xattr-count-variables-and-add-sanity-check
-+++ a/fs/squashfs/xattr.h
-@@ -11,8 +11,8 @@
- #ifdef CONFIG_SQUASHFS_XATTR
- extern __le64 *squashfs_read_xattr_id_table(struct super_block *, u64,
- 		u64 *, unsigned int *);
--extern int squashfs_xattr_lookup(struct super_block *, unsigned int, int *,
--		unsigned int *, unsigned long long *);
-+extern int squashfs_xattr_lookup(struct super_block *, unsigned int,
-+		unsigned int *, unsigned int *, unsigned long long *);
- #else
- static inline __le64 *squashfs_read_xattr_id_table(struct super_block *sb,
- 		u64 start, u64 *xattr_table_start, unsigned int *xattr_ids)
-@@ -31,7 +31,7 @@ static inline __le64 *squashfs_read_xatt
+-	TRACE("read_blocklist: res %d, index %d, start 0x%llx, offset 0x%x, block 0x%llx\n",
++	TRACE("read_blocklist: res %lld, index %lld, start 0x%llx, offset 0x%x, block 0x%llx\n",
+ 				res, index, *start, *offset, block ? *block : 0);
+ 
+ 	if (res < 0)
+@@ -364,7 +365,7 @@ static int read_blocklist_ptrs(struct in
+ 	return squashfs_block_size(size);
  }
  
- static inline int squashfs_xattr_lookup(struct super_block *sb,
--		unsigned int index, int *count, unsigned int *size,
-+		unsigned int index, unsigned int *count, unsigned int *size,
- 		unsigned long long *xattr)
+-static inline int read_blocklist(struct inode *inode, int index, u64 *block)
++static inline int read_blocklist(struct inode *inode, s64 index, u64 *block)
  {
- 	return 0;
---- a/fs/squashfs/xattr_id.c~squashfs-widen-xattr-count-variables-and-add-sanity-check
-+++ a/fs/squashfs/xattr_id.c
-@@ -27,7 +27,8 @@
-  * Map xattr id using the xattr id look up table
-  */
- int squashfs_xattr_lookup(struct super_block *sb, unsigned int index,
--		int *count, unsigned int *size, unsigned long long *xattr)
-+		unsigned int *count, unsigned int *size,
-+		unsigned long long *xattr)
+ 	u64 start;
+ 	int offset;
+@@ -397,8 +398,8 @@ void squashfs_copy_cache(struct folio *f
+ 	struct address_space *mapping = folio->mapping;
+ 	struct inode *inode = mapping->host;
+ 	struct squashfs_sb_info *msblk = inode->i_sb->s_fs_info;
+-	int i, mask = (1 << (msblk->block_log - PAGE_SHIFT)) - 1;
+-	int start_index = folio->index & ~mask, end_index = start_index | mask;
++	s64 i, mask = (1 << (msblk->block_log - PAGE_SHIFT)) - 1;
++	s64 start_index = folio->index & ~mask, end_index = start_index | mask;
+ 
+ 	/*
+ 	 * Loop copying datablock into pages.  As the datablock likely covers
+@@ -412,7 +413,7 @@ void squashfs_copy_cache(struct folio *f
+ 		size_t avail = buffer ? min(bytes, PAGE_SIZE) : 0;
+ 		bool updated = false;
+ 
+-		TRACE("bytes %zu, i %d, available_bytes %zu\n", bytes, i, avail);
++		TRACE("bytes %zu, i %lld, available_bytes %zu\n", bytes, i, avail);
+ 
+ 		push_folio = (i == folio->index) ? folio :
+ 			__filemap_get_folio(mapping, i,
+@@ -464,8 +465,8 @@ static int squashfs_read_folio(struct fi
  {
- 	struct squashfs_sb_info *msblk = sb->s_fs_info;
- 	int block = squashfs_xattr_block(index);
+ 	struct inode *inode = folio->mapping->host;
+ 	struct squashfs_sb_info *msblk = inode->i_sb->s_fs_info;
+-	int index = folio->index >> (msblk->block_log - PAGE_SHIFT);
+-	int file_end = i_size_read(inode) >> msblk->block_log;
++	s64 index = folio->index >> (msblk->block_log - PAGE_SHIFT);
++	s64 file_end = i_size_read(inode) >> msblk->block_log;
+ 	int expected = index == file_end ?
+ 			(i_size_read(inode) & (msblk->block_size - 1)) :
+ 			 msblk->block_size;
+@@ -576,15 +577,15 @@ static void squashfs_readahead(struct re
+ {
+ 	struct inode *inode = ractl->mapping->host;
+ 	struct squashfs_sb_info *msblk = inode->i_sb->s_fs_info;
+-	size_t mask = (1UL << msblk->block_log) - 1;
++	s64 mask = (1UL << msblk->block_log) - 1;
+ 	unsigned short shift = msblk->block_log - PAGE_SHIFT;
+ 	loff_t start = readahead_pos(ractl) & ~mask;
+-	size_t len = readahead_length(ractl) + readahead_pos(ractl) - start;
++	s64 len = readahead_length(ractl) + readahead_pos(ractl) - start;
+ 	struct squashfs_page_actor *actor;
+ 	unsigned int nr_pages = 0;
+ 	struct page **pages;
+ 	int i;
+-	loff_t file_end = i_size_read(inode) >> msblk->block_log;
++	s64 file_end = i_size_read(inode) >> msblk->block_log;
+ 	unsigned int max_pages = 1UL << shift;
+ 
+ 	readahead_expand(ractl, start, (len | mask) + 1);
 _
 
 Patches currently in -mm which might be from phillip@squashfs.org.uk are
