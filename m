@@ -1,49 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795742366;
-	b=NUJOYwbNn3veQNxJ9KPIKoSLks6sHe4Z0sfifGzTV6YshSXHkG5lIYSExYWwXUVqlK+p
-	 HukWIc5eM2gK9+Jv9B/nhAaV5S0bMVzBXpqAN5OguVD+GobX9gXsSYuJnSmuqmvmMouE5
-	 61qrHR5HSPhWBPJZaVTh2dtthlF4OMRolk5Ig4XXi9SFPKhl603UeFoy+tNsOSUH3LDLg
-	 JE1vcgUmxmwb5khummWMTr88Jp6yOCGQFhMScu1IEvPACp68jToKoEg6zH2O1Vsk9uNjl
-	 AVW705w5yblL7oq9NQzouCT8Cora8tJXT1TuCuSYDnIHkRPZms7Qw7hkw9TJTJX8Wlg==
+	t=1795742368;
+	b=wpMkQa2FK2c+gUEHRPnHPfeiwNGNT/yeh3xv1m+R/DClNaAmSJ+4wyj1An/XI3gvzlk3
+	 RSsd53+flQk5brV+GRIz2lUQhSz0PSPaqd/4LXSnRFDl29HtkCTxISqVcQROAusnJzRDA
+	 O7OboB4EERKcrOZ+hG44SmlZfh8ZfOvbPRkmpc0v29u5XqaUYGrfnERE1rpIAQ5hAWyDq
+	 LAKhb98mI9JLHdBwT6ZSyCYRGTyForPTRH5Ka/aFPtOmzYjAIVpnlpFkrAt6h9ofvxUjI
+	 lnjMSmXVAMYU20S//W1Huyy++U7Ziju6zWtuf4JbLajU+xHnmUzhDX+rKUiHqUvR+2Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795742366;
-	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
-	 Message-Id;
-	bh=64flVjBDnrU72YvR+G7I9IfTlEVBHZROISseGqmoflk=;
-	b=rUnS63YWw9foo4TUUCNUhJizYLnziyLXcZX7wPRvrzWTh8mSiqfobVnSKgFdL/kvlIHv
-	 7Lon8Cqe8MFmLcu6zJHCV2m8iTQdfIzsfqbQWeZjnnRyvQsG7WUvfT+fwZiW4HyJhYrpm
-	 cqNhizwvtHB3pSkMsGruCkCiaSyyzhg6a+ZbWfuQio/FWNk3cotu9CNG6o8QkZ0o3gpW+
-	 7i90UWxhFIjwCViSloHzk1gYFDa7+iKkqPlRUFtIgmjGXgeKOC4R1aVE6tpbC1SPZZpIV
-	 tJjVmcBvpCihbO4KMgX16+j6Tt/8wHiVn5jL2zbZnZmch2CEPm0es3sfVoZv16dsICA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795742368;
+	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
+	bh=6c4yiTRA5rY0IOWlexdxAlWvSdMTltxeSSFX63Lv8Ls=;
+	b=rhdH+77eO2ETopbTxvdmWO9z+4E0jbxsY+7JtyBVNVZYpO4zKlmeLyJeEZT0H6jTVdkP
+	 lVvLwf6ry7Vy6JFi6wRKz2RmugkDdXuKPxW1eHZKe+lBKImR4vzmchk5gYDCmLOnGgK53
+	 jgdFO1jfzweTf4f0h5T8ty9wWg+Ii97HxnPWW8+DnmJqMRnp318rmomv5gYlTVHvwvPxJ
+	 OcQsZ4rpM04/c9JtsyC8wOJvt2MrRn9tg8qvB2BPkida/yA6Uwf5OqOXqO+PPjlva/FK4
+	 4qUzWKEHZhwg8UO41qhXafYGvKZqGDL1gSISYkyeFLRzXXtYhyrdAW2Bl6K5Ix5kJbw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=qDNfSCUZ;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="E0PGpI/h";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45183606A324
-	for <mm-commits@vger.kernel.org>; Fri, 27 Nov 2026 01:19:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1AD0606A321
+	for <mm-commits@vger.kernel.org>; Fri, 27 Nov 2026 01:19:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=qDNfSCUZ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1C651F000C1;
-	Fri, 27 Nov 2026 01:19:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=E0PGpI/h
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 542631F0089B;
+	Fri, 27 Nov 2026 01:19:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795742365;
-	bh=64flVjBDnrU72YvR+G7I9IfTlEVBHZROISseGqmoflk=;
-	h=Date:To:From:In-Reply-To:References:Subject;
-	b=qDNfSCUZwAJpSzZ2N4r6vX5QazInEP1ag86zcZuQ/I5r000g0eYN53/uOfIphCxnE
-	 NatbRf6wjSdq41VOtH0ewz6EESYmjpt5jqiXW5Y3G6tSwFvN06DM4yCpMWhVNMGxZH
-	 4uSl1VDLZXJ5e7CLBJiudW3enho9rUBFgOKuF6tM=
-Date: Thu, 26 Nov 2026 17:19:25 -0800
+	d=linux-foundation.org; s=korg; t=1795742368;
+	bh=6c4yiTRA5rY0IOWlexdxAlWvSdMTltxeSSFX63Lv8Ls=;
+	h=Date:To:From:Subject;
+	b=E0PGpI/h5ZBXxtAVlvy9JVFFyWnzfjoBhmYOHHoXdY1m1OrKuQYEbG0nL7rcB/beH
+	 eS4YyTvqtZXWe8cjTYAi3zDyeDo8ai2ztnDerzPzqXDuFvsTTkBpdwMH6Xxk1pwJz6
+	 hRYeRY5+t/nLbg57WykozEQ3CwTye7TDeDJgHodQ=
+Date: Thu, 26 Nov 2026 17:19:27 -0800
 To: mm-commits@vger.kernel.org,ynorov@nvidia.com,vkoskiv@gmail.com,
-	edumazet@kernel.org,mfo@igalia.com,akpm@linux-foundation.org
+	mfo@igalia.com,edumazet@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261126-bloat-o-meter-help-v1-1-fb0785c94bbf@igalia.com>
-References: <20261126-bloat-o-meter-help-v1-1-fb0785c94bbf@igalia.com>
-Subject: + scripts-bloat-o-meter-describe-output-fields-in-help-text.patch added to mm-nonmm-unstable branch
-Message-Id: <20261127011925.C1C651F000C1@smtp.kernel.org>
+Subject: + scripts-bloat-o-meter-describe-output-fields-in-help-text-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20261127011928.542631F0089B@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,12 +52,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: scripts/bloat-o-meter: describe output fields in help text
+     Subject: scripts/bloat-o-meter: clarify Before and After help text
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-bloat-o-meter-describe-output-fields-in-help-text.patch
+     scripts-bloat-o-meter-describe-output-fields-in-help-text-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-bloat-o-meter-describe-output-fields-in-help-text.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-bloat-o-meter-describe-output-fields-in-help-text-fix.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -78,67 +75,72 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Mauricio Faria de Oliveira <mfo@igalia.com>
-Subject: scripts/bloat-o-meter: describe output fields in help text
-Date: Thu, 26 Nov 2026 19:13:00 -0300
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: scripts/bloat-o-meter: clarify Before and After help text
+Date: Thu, 26 Nov 2026 17:15:17 -0800
 
-First time users of the bloat-o-meter script might not understand what
-its output fields mean (add/remove, grow/shrink, up/down, Before/After),
-and even occasional users might eventually forget.
+bloat-o-meter selects symbol types according to its options and filters
+some names. Mauricio Faria de Oliveira's new help text describes Before
+and After as the sizes of all symbols in each file, which includes
+symbols that the script does not count. Say "selected symbols" instead.
 
-Describe the output fields in the help text, so it is quick to find out.
-
-RawTextHelpFormatter is used in order to keep line breaks in place.
-
-Link: https://patch.msgid.link/20261126-bloat-o-meter-help-v1-1-fb0785c94bbf@igalia.com
-Signed-off-by: Mauricio Faria de Oliveira <mfo@igalia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Mauricio Faria de Oliveira <mfo@igalia.com>
 Cc: Yury Norov <ynorov@nvidia.com>
 Cc: Valtteri Koskivuori <vkoskiv@gmail.com>
 Cc: Eric Dumazet <edumazet@kernel.org>
 
- scripts/bloat-o-meter |   24 +++++++++++++++++++++++-
- 1 file changed, 23 insertions(+), 1 deletion(-)
+ scripts/bloat-o-meter |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/scripts/bloat-o-meter~scripts-bloat-o-meter-describe-output-fields-in-help-text
+--- a/scripts/bloat-o-meter~scripts-bloat-o-meter-describe-output-fields-in-help-text-fix
 +++ a/scripts/bloat-o-meter
-@@ -9,10 +9,32 @@
+@@ -27,8 +27,8 @@ fields:
+                 '-' means symbol added/removed;
+                 '0' delta symbols not included.
  
- import sys, os, re, argparse
- from signal import signal, SIGPIPE, SIG_DFL
-+from argparse import RawTextHelpFormatter
+-  Before:       size of all symbols in old file.
+-  After:        size of all symbols in new file.
++  Before:       size of selected symbols in old file.
++  After:        size of selected symbols in new file.
+   chg:          percent change.
  
- signal(SIGPIPE, SIG_DFL)
- 
--parser = argparse.ArgumentParser(description="Simple script used to compare the symbol sizes of 2 object files")
-+description = \
-+"""
-+Simple script used to compare the symbol sizes of 2 object files
-+
-+fields:
-+  add/remove:   number of symbols added in the new file / removed from the old file.
-+  grow/shrink:  number of symbols in both files that had a size increase / decrease.
-+  up/down:      size of symbols added plus size increase / removed plus size decrease.
-+  (change):     difference between up and down sizes.
-+
-+  Symbol lines: symbol name, old size, new size, and size delta;
-+                '-' means symbol added/removed;
-+                '0' delta symbols not included.
-+
-+  Before:       size of all symbols in old file.
-+  After:        size of all symbols in new file.
-+  chg:          percent change.
-+
-+  Symbols in both files with the same size are only counted in Before/After/chg.
-+"""
-+
-+parser = argparse.ArgumentParser(description=description, formatter_class=RawTextHelpFormatter)
- group = parser.add_mutually_exclusive_group()
- group.add_argument('-c', help='categorize output based on symbol type', action='store_true')
- group.add_argument('-d', help='Show delta of Data Section', action='store_true')
+   Symbols in both files with the same size are only counted in Before/After/chg.
 _
 
-Patches currently in -mm which might be from mfo@igalia.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-scripts-bloat-o-meter-describe-output-fields-in-help-text.patch
+mm-vma-drop-mm-asynchronously-in-vma_start_read-fix.patch
+mm-vma-drop-mm-asynchronously-in-vma_start_read-fix-2.patch
+kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize-fix.patch
+selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
+alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
+alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
+selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
+selftests-mm-allocate-nr_pages-based-on-pmd-size-for-uffd-pmd_move-tests-fix.patch
+selftests-mm-retain-move-pmd-coverage-and-verify-huge-pmds.patch
+lib-test_xarray-check-unused-spare-node-after-range-creation.patch
+mm-memory-failure-dont-unpoison-a-leaked-raw_hwp_unreliable-folio-fix.patch
+mm-vmstat_kunit-add-synthetic-benchmark-for-mm-stats-fix.patch
+mm-prevent-pre-content-bypass-through-mremap-and-remap_file_pages.patch
+afs-do-not-put-error-pointer-after-address-lookup-failure.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-0.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-1.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-2.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-3.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-4.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-5.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-6.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-7.patch
+ocfs2-unregister-the-jbd2-shrinker-before-journal-shutdown.patch
+ipc-msg-clamp-negative-msg_info-usage-counts.patch
+squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix.patch
+ocfs2-skip-network-flush-when-no-domain-handlers-are-registered.patch
+selftests-ptrace-check-that-ptrace_set_syscall_info-rejects-invalid-error-values-fix.patch
+lib-asn1_encoder-fix-encoding-of-zero-oid-components.patch
+proc-serialize-task-owner-updates.patch
+proc-dont-lock-task-inodes-whose-owner-has-not-changed.patch
+scripts-bloat-o-meter-describe-output-fields-in-help-text-fix.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
