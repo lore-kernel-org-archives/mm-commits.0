@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795816978;
-	b=MBQ6uW/FsRLnZcP27arxirBvT4EDRrRfx+H9ws7H2iYqj6RopsW2pH9GIK0icIjLg3xa
-	 XmNacwmBdR3oJuR7+FL0/czVhKWiokDLbsWIkewwYryBcqHUHXmPz1ijNi7n7d5WACkBx
-	 VGhRKNW6jqQevuxYLxsU/7h+Tft6a/aCHybVl14UP21GpJmCbPxKv51sm/o5dOzWd1b48
-	 QGW/pVqJRZhgpD0cqizAHLYJGfX+YbUbllSTuBxkra9lnZ+OFdxJO8ec64MTJ3VJkNatF
-	 Lemv9NpR6wpTkiwPoecZ8KXcSaYXG//71l7azLnIcmJBJ+6A2H2HWk+O/7gwznAtcEA==
+	t=1795819254;
+	b=kgk/X3TLpG2AogVHNRT2lhSMK5mCzHarNKsr+qgLILX1Q1OhEjHHWCaPiTS7b4Rj0Jxn
+	 O2KvZU7AE9o0nTarlWl1OlLs3pXcRAae2yDto/knZ781FYSw5Lcnr9YncTTK58hObkBzg
+	 FomdJSl2udvn0Neisbr/x6Epin2KsBvOpJ22oYoQSBvX1QEhsfpoi4mWAuO7GRCikwpLG
+	 6X/U3mxMtftldBWwyZ9sZkn3avAY+yAnh9Xd+u66z24nTywQZEpzHyasTtFsIkFClKF6p
+	 O8Rp13u9GlkI4qZNWamZyLwTs+6QaOYbSfl0hvrbrwjs7fl9JtxczD4vn7SuZ3BIsqg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795816978;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795819254;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=8XKHycyHwtfhmNXx8dXpxgAlRmudDksO+XAk5jEhYuA=;
-	b=OVuQAo6xQe85ASECAr/tefI9gGmZ56RBPAuyFxszC2MAByCtFHF1KsYFq108cZxAQr8V
-	 cs9ZgBSWA+7g6Giw413PCK3gPIy5NX5yuWV6n8OYQvbXnYGvJXGJ9PZUiL9Xh8xYp1xqq
-	 7UCNlpNplRlyuNCrniMurTNl4WwXFz1iLdPukd0aNe+IkJPdVC3sE9PLNdCLtuXevSxJR
-	 PRFSKEfQghxhCCaBzFqbPQKokzdfLNgEUIsfd1l3JwpAEjXGzSjkojood24S/OIU8IqSS
-	 eMm86cS5LpnoiitVMluJuWw8cyEhXXHG/laeMuZankoYoi9Xah6SKkSNt3dvkcinfHw==
+	bh=VGRJ/PN0m8XDLNwUmE0KO2G39AD2uf0xlZILzTN4dng=;
+	b=5jjjDIiFYbJ/uGWmRztmfe+oSfCEeLHOFGFXqmTa3erIzTNXRGHR0hbbUvS12S8t6ZkN
+	 CMorVOaXXOPwhGa+O0DTMtybLZC4H4i+Q7ZiD1qPKMnQvmwv4Zqwfe+Gl8TFbM4CRh9lm
+	 qSee4JpZvFfRUmFEJ4jUHmk0i8/EmDoi/NL0BT49SqNgfvOfbnZfomouI9gsvGWTX92VY
+	 duhEA6fNaV2vBCHavmKaG0P7OFItMRaH9rPFQ4fHqdSxbSnVFt2LCzO1ASzRHJhJ/gvsN
+	 BkbqK/9aCDayYJ4dpSOaFSiw4bJBvvp8dN3939lSFe825LnKku1lmF2J7VaeZQW58Cw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pmX6W7OL;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=bPw7tA8Q;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75ED3606A31C
-	for <mm-commits@vger.kernel.org>; Fri, 27 Nov 2026 22:02:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD67F606A31C
+	for <mm-commits@vger.kernel.org>; Fri, 27 Nov 2026 22:40:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pmX6W7OL
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94B0C1F000C1;
-	Fri, 27 Nov 2026 22:02:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=bPw7tA8Q
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E8201F00893;
+	Fri, 27 Nov 2026 22:40:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795816977;
-	bh=8XKHycyHwtfhmNXx8dXpxgAlRmudDksO+XAk5jEhYuA=;
+	d=linux-foundation.org; s=korg; t=1795819254;
+	bh=VGRJ/PN0m8XDLNwUmE0KO2G39AD2uf0xlZILzTN4dng=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=pmX6W7OLwtezc1wrCKaGr9RyU7B9oPc1QBW2jclcPLHeFAwCUqhIyuvAtn34czuit
-	 adSPdfR/HjxqO/a4ZYgS0hzBvcTNLfWxTvDovYU/xAzMDVYw4ALQyqZNNdFEwOE/fs
-	 qWBh+RLp+dFNqKcTZpaSsTnInx72NIxHqVX14whk=
-Date: Fri, 27 Nov 2026 14:02:57 -0800
+	b=bPw7tA8QskaikwvwWHYtd0GNOVu8PsxKJTTaHWSqcocEZjpXSkn6UCYB1FdH99YAR
+	 jkMpl+oMp90lHVrJ71Br0utEpqnoNPWp6WpJ/gQduurBkqeN99CLHevzutVw58ArZe
+	 J3/671m7GMgP0pbaj2BpWWZ6Cx7WxjGKg4+3brRQ=
+Date: Fri, 27 Nov 2026 14:40:53 -0800
 To: mm-commits@vger.kernel.org,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20261116-fixes_hugetlb-v2-15-4dd9e94ea9ac@kernel.org>
 References: <20261116-fixes_hugetlb-v2-15-4dd9e94ea9ac@kernel.org>
-Subject: + mm-hugetlb-delay-anon-folio-rmap-removal-until-after-the-tlb-flush-fix.patch added to mm-unstable branch
-Message-Id: <20261127220257.94B0C1F000C1@smtp.kernel.org>
+Subject: + mm-hugetlb-delay-anon-folio-rmap-removal-until-after-the-tlb-flush-fix-2.patch added to mm-unstable branch
+Message-Id: <20261127224054.6E8201F00893@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +54,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/hugetlb: use tlb_can_delay_rmap() when unmapping
+     Subject: mm/huge_memory: pass false to __tlb_remove_page_size()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-delay-anon-folio-rmap-removal-until-after-the-tlb-flush-fix.patch
+     mm-hugetlb-delay-anon-folio-rmap-removal-until-after-the-tlb-flush-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-delay-anon-folio-rmap-removal-until-after-the-tlb-flush-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-delay-anon-folio-rmap-removal-until-after-the-tlb-flush-fix-2.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -78,41 +78,36 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/hugetlb: use tlb_can_delay_rmap() when unmapping
-Date: Fri, 27 Nov 2026 13:46:55 -0800
+Subject: mm/huge_memory: pass false to __tlb_remove_page_size()
+Date: Fri, 27 Nov 2026 14:38:54 -0800
 
-The combination of "mm/hugetlb: delay anon folio rmap removal until after
-the TLB flush" and "mm/huge_memory: flush dirty file PMDs before removing
-rmap" fails to build: the latter removed tlb_delay_rmap().
+"mm/hugetlb: delay anon folio rmap removal until after the TLB flush" adds
+a delay_rmap argument to __tlb_remove_page_size(), but misses the call in
+zap_huge_pmd_folio().  This breaks the build.
 
-The old helper checked whether rmap removal could be delayed and set
-tlb->delayed_rmap.  Its replacement, tlb_can_delay_rmap(), only checks
-whether delaying is supported.  The state change now occurs when
-__tlb_remove_folio_pages_size() queues a page with delay_rmap set.
-
-Use the new predicate here.  This hugetlb path already passes delay_rmap
-to __tlb_remove_page_size(), which calls that queueing helper.  It
-therefore still sets tlb->delayed_rmap before the TLB flush and delayed
-rmap removal; no separate assignment is needed.
+Pass false.  zap_huge_pmd_folio() removes the PMD rmap itself, either
+before queueing the page or after its explicit TLB flush when handling a
+dirty file-backed PMD.  Passing true would also queue the rmap for removal
+by tlb_flush_rmaps(), removing it twice.
 
 Link: https://lore.kernel.org/r/20261116-fixes_hugetlb-v2-15-4dd9e94ea9ac@kernel.org
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: David Hildenbrand (Arm) <david@kernel.org>
 
- mm/hugetlb.c |    2 +-
+ mm/huge_memory.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-delay-anon-folio-rmap-removal-until-after-the-tlb-flush-fix
-+++ a/mm/hugetlb.c
-@@ -5541,7 +5541,7 @@ static void hugetlb_unmap_range(struct m
- 		 * entries are gone, unless the mm has no users left.
- 		 */
- 		if (folio_test_anon(folio) && !tlb->fullmm) {
--			delay_rmap = tlb_delay_rmap(tlb);
-+			delay_rmap = tlb_can_delay_rmap();
- 			/*
- 			 * Without delay-rmap support, just flush before
- 			 * dropping the PTL. Except with MMU_GATHER_NO_GATHER
+--- a/mm/huge_memory.c~mm-hugetlb-delay-anon-folio-rmap-removal-until-after-the-tlb-flush-fix-2
++++ a/mm/huge_memory.c
+@@ -2543,7 +2543,7 @@ static void zap_huge_pmd_folio(struct mm
+ 	/* Device private folios are pinned and don't need a TLB flush. */
+ 	if (is_device_private)
+ 		folio_put(folio);
+-	else if (__tlb_remove_page_size(tlb, &folio->page, HPAGE_PMD_SIZE))
++	else if (__tlb_remove_page_size(tlb, &folio->page, HPAGE_PMD_SIZE, false))
+ 		*force_flush = true;
+ 
+ 	if (delay_rmap) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -129,6 +124,7 @@ selftests-mm-retain-move-pmd-coverage-and-verify-huge-pmds.patch
 lib-test_xarray-check-unused-spare-node-after-range-creation.patch
 mm-memory-failure-dont-unpoison-a-leaked-raw_hwp_unreliable-folio-fix.patch
 mm-hugetlb-delay-anon-folio-rmap-removal-until-after-the-tlb-flush-fix.patch
+mm-hugetlb-delay-anon-folio-rmap-removal-until-after-the-tlb-flush-fix-2.patch
 mm-vmstat_kunit-add-synthetic-benchmark-for-mm-stats-fix.patch
 mm-prevent-pre-content-bypass-through-mremap-and-remap_file_pages.patch
 afs-do-not-put-error-pointer-after-address-lookup-failure.patch
