@@ -1,51 +1,52 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795743004;
-	b=oWYTfy6jWvqWBvlYEILtsSHSpIuL+S/IAmefTw7iDrcMZ08udiHqn1wSX+Uiyzx76A6E
-	 SjIt7BqUb9xLoeTbYX5uYK0S2kC7A7jkumZo5D98XJcLB3QSa1tyWmQMN5guc+EJxzZa4
-	 pCHKgNZ6AkTq04IVjFiWH+Jk9KDprkCNkjffrFCwXetXC/Q6748Y2olMYgHDgsxO7CB8N
-	 ZElNnDEI80eqLMPZMIZOdjAveD0g1fEodDqzu0Xa48vP/+hNFLP38x5wZNsn0jHa1Vbvo
-	 z3FSH8d9jK3/vUc0dRliIrExIq4FTOnXY11EHZ5GOoDx4Rb0jIveSJgRoehVkDL7sVg==
+	t=1795743075;
+	b=wbQKv+8RIFbjf8ugE6hLTQRciyy+tF6KN7GDWdy/kbZ7MJ3NhWMPv5fRkTUxqJAKCIB6
+	 OxeKeUhZ1qyWgQB/C3QURtwzK2VRqWrQS5vNNtholIm2Ftz+Qpn6n65Uuh55lfzUEC1rp
+	 kVJg/p6gSDJXa8KSzb1QAsAmsnx32IbcNPFsGgHUt6+XWphNGEv5TNw0rnaSy7T4cQMwe
+	 6xI0MecYOf2rbaj9aCnukgj7y1rAds2AfCkk6wT+ItTfU8Y4UMf3VbZOwP1g6QqtEnIgc
+	 osNhpadMFG5eBIiA8TqpGpmzxYLYqVKqePclUhkMLIoJjlOlAvdbbmdPzS3CAxNYlWw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795743004;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795743075;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=fKIR8qP3nd73b/ddp4djUyLrSLCOodjBfW7AVb+A7yQ=;
-	b=40jGJO3Eu7UO8MGmK+RjdCfQiowUFT1uWCS97Hv0cV0pKOl/K4IZO5q5/wKOJa6uvvZD
-	 qCOiP1SGPZlveCpdRNdBIQEucnnkeSzGM5No8jaiDynYgt3Rt1VfwmQrOj2Eoi01hz+v6
-	 Q/xg9gWkjPp6R4RWzgTfAzU52L3sHkcui5WH9tiFnuAVvGBijnQcT3+JTSXQtD9e7lWMZ
-	 g8gmuYccuom4SHLUkRYmpfIrWye/ZaESwHJnbDFoqVOww5YJPgLMH5kqzEXw5FRkj4UsM
-	 NnOUd4PzSHw+18J1rUxFydVKYLtZtzTt34WB4KrereVXhZvcWe6ptdAHBCqNQ3SfzEQ==
+	bh=b0RfJ7zj6Dd06YQ5HF1deKUwj5kXFOHZR1bwxb4Q4cE=;
+	b=2CeW1/galQkf8UiwX0+dg5Y1zyNiBS2i2FNqRhVqgZcnYAHyaVv4jbPh8Kwv4BQ6EEUl
+	 +NWKHf2xzDpF10lMPX7Wd7CVgkI/JTAun1AhhXnFciZ/fEnBsSA3eYjbwVXG9pmJiLu+M
+	 CLfiO2eTy38n8nmsE2ToqmQ2e3/xZHM9jSQ6RJyCY7/LX1J50bs+aY3ch+KDXdqhfuBOf
+	 +/RI1vVZh/OOeCAzahiHXhW1RAe0Crnx/ltSaskWvYaAyBgQOsiiSqfoDL2uhQzCJEgwO
+	 QXeeFJd99LF6PRkQdbjnrliRqDymjOlI3e9eCcQr8zOHDaT/RW9MGu3mbFmgZCAXPJQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TRGb6MEI;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TPkHh+gw;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95EDF606A31E
-	for <mm-commits@vger.kernel.org>; Fri, 27 Nov 2026 01:30:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1A28606A31C
+	for <mm-commits@vger.kernel.org>; Fri, 27 Nov 2026 01:31:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TRGb6MEI
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C53D01F00893;
-	Fri, 27 Nov 2026 01:30:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TPkHh+gw
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F40F1F00893;
+	Fri, 27 Nov 2026 01:31:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795743003;
-	bh=fKIR8qP3nd73b/ddp4djUyLrSLCOodjBfW7AVb+A7yQ=;
+	d=linux-foundation.org; s=korg; t=1795743075;
+	bh=b0RfJ7zj6Dd06YQ5HF1deKUwj5kXFOHZR1bwxb4Q4cE=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=TRGb6MEIi7omRfkwsmGFdTAnUn7umntdwQlxmeZubOoB0GU12g2ft6z0YfXXB563a
-	 ltnRB55gdf1+r8+l06bekX/pWNNUr1QGHPYhFElAn6PU1n+0l2KRTaFy2UnXv1m3nd
-	 862sXOZb7RhJXE2cvc3TETS+bse7ogH1p9RgZIvo=
-Date: Thu, 26 Nov 2026 17:30:03 -0800
-To: mm-commits@vger.kernel.org,zhen.ni@easystack.cn,vbabka@kernel.org,
-	skhan@linuxfoundation.org,rppt@kernel.org,rdunlap@infradead.org,
-	mhocko@suse.com,liam@infradead.org,kernel-dev@igalia.com,david@kernel.org,
-	corbet@lwn.net,mfo@igalia.com,akpm@linux-foundation.org
+	b=TPkHh+gwZ+pynANbgJUSZf1IdFz0PWYvhSYH7KrO/BfM5looR0mJla7EIqYeTJezj
+	 8lXQCuqQyfCtpwA3y9lNz1dEQy5i16XiuV1d3UiE2/Cr0yJ9KS6RStPKsUHqrVuaez
+	 m3KbejMr3+0OYSHMw+UDLRAbF/kIN1xa6r8sJxpQ=
+Date: Thu, 26 Nov 2026 17:31:14 -0800
+To: mm-commits@vger.kernel.org,tj@kernel.org,skhan@linuxfoundation.org,
+	shakeel.butt@linux.dev,roman.gushchin@linux.dev,rdunlap@infradead.org,
+	muchun.song@linux.dev,mkoutny@suse.com,mhocko@suse.com,mhocko@kernel.org,
+	hannes@cmpxchg.org,corbet@lwn.net,xueyuan.chen21@gmail.com,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261126-page_owner_filter_shell-v1-1-cbbcff2fcb08@igalia.com>
-References: <20261126-page_owner_filter_shell-v1-1-cbbcff2fcb08@igalia.com>
-Subject: + mm-page_owner-document-shell-usage-of-page_owner-filters.patch added to mm-new branch
-Message-Id: <20261127013003.C53D01F00893@smtp.kernel.org>
+In-Reply-To: <20261124-memcg-reclain-stat-v1-1-c6cb14b0d917@gmail.com>
+References: <20261124-memcg-reclain-stat-v1-1-c6cb14b0d917@gmail.com>
+Subject: + mm-memcontrol-expose-anon-and-file-reclaim-statistics-in-memorystat.patch added to mm-new branch
+Message-Id: <20261127013115.3F40F1F00893@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -57,12 +58,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/page_owner: document shell usage of page_owner filters
+     Subject: mm/memcontrol: expose anon and file reclaim statistics in memory.stat
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_owner-document-shell-usage-of-page_owner-filters.patch
+     mm-memcontrol-expose-anon-and-file-reclaim-statistics-in-memorystat.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-document-shell-usage-of-page_owner-filters.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-expose-anon-and-file-reclaim-statistics-in-memorystat.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -91,58 +92,112 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Mauricio Faria de Oliveira <mfo@igalia.com>
-Subject: mm/page_owner: document shell usage of page_owner filters
-Date: Thu, 26 Nov 2026 13:40:02 -0300
+From: Xueyuan Chen <xueyuan.chen21@gmail.com>
+Subject: mm/memcontrol: expose anon and file reclaim statistics in memory.stat
+Date: Tue, 24 Nov 2026 15:51:27 +0800
 
-Document how to use page_owner filters directly from the shell, without
-relying on the page_owner_filter tool, with an example.
+The aggregate reclaim counters in memory.stat do not show how reclaim is
+split between the anonymous and file LRUs of a cgroup.
 
-Link: https://patch.msgid.link/20261126-page_owner_filter_shell-v1-1-cbbcff2fcb08@igalia.com
-Signed-off-by: Mauricio Faria de Oliveira <mfo@igalia.com>
+Expose the existing per-memcg scan and steal counters by LRU type so
+userspace can measure reclaim balance and efficiency when evaluating
+reclaim policy.  Report the same counters per node in memory.numa_stat. 
+Both files report the counters in base pages.
+
+Link: https://patch.msgid.link/20261124-memcg-reclain-stat-v1-1-c6cb14b0d917@gmail.com
+Signed-off-by: Xueyuan Chen <xueyuan.chen21@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Koutný <mkoutny@suse.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Shuah Khan <skhan@linuxfoundation.org>
 Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Zhen Ni <zhen.ni@easystack.cn>
-Cc: <kernel-dev@igalia.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Muchun Song <muchun.song@linux.dev>
 
- Documentation/mm/page_owner.rst |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ Documentation/admin-guide/cgroup-v2.rst |   20 ++++++++++++++++++--
+ mm/memcontrol.c                         |    8 ++++++++
+ 2 files changed, 26 insertions(+), 2 deletions(-)
 
---- a/Documentation/mm/page_owner.rst~mm-page_owner-document-shell-usage-of-page_owner-filters
-+++ a/Documentation/mm/page_owner.rst
-@@ -343,3 +343,21 @@ terminals you can run different filters
+--- a/Documentation/admin-guide/cgroup-v2.rst~mm-memcontrol-expose-anon-and-file-reclaim-statistics-in-memorystat
++++ a/Documentation/admin-guide/cgroup-v2.rst
+@@ -1726,6 +1726,22 @@ The following nested keys are defined.
+ 	  pgsteal_proactive (npn)
+ 		Amount of reclaimed pages proactively
  
- 	# Terminal 2: Filter node 1 (runs concurrently)
- 	./page_owner_filter -n 1 > node1_output.txt
++	  pgscan_anon
++		Number of base pages scanned for reclaim from the anonymous
++		LRU. With the multi-gen LRU, counts pages isolated for reclaim.
 +
-+The shell can also be used instead of the page_owner_filter tool, as long as the
-+same file descriptor is used to write filter commands then read filtered output.
-+For example, using file descriptor 3::
++	  pgscan_file
++		Number of base pages scanned for reclaim from the file LRU.
++		With the multi-gen LRU, counts pages isolated for reclaim.
 +
-+	# Open file in read-write mode
-+	exec 3<>/sys/kernel/debug/page_owner
++	  pgsteal_anon
++		Number of base pages reclaimed from the anonymous LRU,
++		including pages demoted to another node.
 +
-+	# Write filter command(s)
-+	echo 'mode=handle' >&3
-+	# (and/or)
-+	echo 'nid=0' >&3
++	  pgsteal_file
++		Number of base pages reclaimed from the file LRU,
++		including pages demoted to another node.
 +
-+	# Read filtered output
-+	cat <&3 >output.txt
-+
-+	# Close file
-+	exec 3>&-
+ 	  pgfault (npn)
+ 		Total number of page faults incurred
+ 
+@@ -1829,11 +1845,11 @@ The following nested keys are defined.
+ 	application performance by combining this information with the
+ 	application's CPU allocation.
+ 
+-	All memory amounts are in bytes.
++	All memory amounts are in bytes. Reclaim counters are in base pages.
+ 
+ 	The output format of memory.numa_stat is::
+ 
+-	  type N0=<bytes in node 0> N1=<bytes in node 1> ...
++	  type N0=<value for node 0> N1=<value for node 1> ...
+ 
+ 	The entries are ordered to be human readable, and new entries
+ 	can show up in the middle. Don't rely on items remaining in a
+--- a/mm/memcontrol.c~mm-memcontrol-expose-anon-and-file-reclaim-statistics-in-memorystat
++++ a/mm/memcontrol.c
+@@ -1668,10 +1668,14 @@ static const struct memory_stat memory_s
+ 	{ "pgsteal_direct",		PGSTEAL_DIRECT		},
+ 	{ "pgsteal_khugepaged",		PGSTEAL_KHUGEPAGED	},
+ 	{ "pgsteal_proactive",		PGSTEAL_PROACTIVE	},
++	{ "pgsteal_anon",		PGSTEAL_ANON		},
++	{ "pgsteal_file",		PGSTEAL_FILE		},
+ 	{ "pgscan_kswapd",		PGSCAN_KSWAPD		},
+ 	{ "pgscan_direct",		PGSCAN_DIRECT		},
+ 	{ "pgscan_khugepaged",		PGSCAN_KHUGEPAGED	},
+ 	{ "pgscan_proactive",		PGSCAN_PROACTIVE	},
++	{ "pgscan_anon",		PGSCAN_ANON		},
++	{ "pgscan_file",		PGSCAN_FILE		},
+ 	{ "pgrefill",			PGREFILL		},
+ #ifdef CONFIG_NUMA_BALANCING
+ 	{ "pgpromote_success",		PGPROMOTE_SUCCESS	},
+@@ -1720,10 +1724,14 @@ static int memcg_page_state_output_unit(
+ 	case PGSTEAL_DIRECT:
+ 	case PGSTEAL_KHUGEPAGED:
+ 	case PGSTEAL_PROACTIVE:
++	case PGSTEAL_ANON:
++	case PGSTEAL_FILE:
+ 	case PGSCAN_KSWAPD:
+ 	case PGSCAN_DIRECT:
+ 	case PGSCAN_KHUGEPAGED:
+ 	case PGSCAN_PROACTIVE:
++	case PGSCAN_ANON:
++	case PGSCAN_FILE:
+ 	case PGREFILL:
+ #ifdef CONFIG_NUMA_BALANCING
+ 	case PGPROMOTE_SUCCESS:
 _
 
-Patches currently in -mm which might be from mfo@igalia.com are
+Patches currently in -mm which might be from xueyuan.chen21@gmail.com are
 
-mm-page_owner-document-shell-usage-of-page_owner-filters.patch
-scripts-bloat-o-meter-describe-output-fields-in-help-text.patch
+mm-zsmalloc-remove-config_zsmalloc_stat.patch
+mm-memcontrol-expose-anon-and-file-reclaim-statistics-in-memorystat.patch
 
