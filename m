@@ -1,53 +1,53 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795745141;
-	b=HC0QJBbfDQ9JwUbgYF2dktn6+4hruJ/qff7cuVXg6pKOu2rupZDCn0hlfWxM0ethGDn5
-	 5h4YIMANMB7L77hFrgASvpQpZLGHQRSna6BWdejC7Y+Trx+QGIQH/tXzbLl/aMfNxH35+
-	 jATayq1kG11dEk7GTPnRqqII1IujXfflZZQdcf8w4aCSHGIjlSoUaQrVKGk5xhvVp4MJ4
-	 RhK6euMJh59Rpb4opLRk6XilGt/PGBHwXNtUhb2U9cyDN2i67ko148yhFY/Ii16hMJLVL
-	 63jYuF1C4kZR0ttVbko0SVDtXGAY3CUvAtft4yM8YlwlqElQBas8hIkxBOnK1Qgm2Ew==
+	t=1795745152;
+	b=McHe9DvbEcbXRFLGQAO0L7/M1tFZGX+sLJR6gSzIQkJBSI4wsuu5gJ0ft5j6kBXfQRxP
+	 8O/2l33kd4UTODdGGqNOb8zLOFDC9b0AssXYkEH6zTMG2iEI7H9Dpmy6aXBp+EGTUvUoW
+	 MDkWX5kZtkEokw4Swe7JoF/zeMr2AObmliUpoahzvr1jSJ7qZW4elXpUpNGO94hr24289
+	 X7FJkEHfgot15vAgMFfyL+n4EyzC1XaMJMQsH5wyIknvtqDEbOOnuNR5YRb+cVBUCdg0G
+	 Y1/5xLm+j6HB/pVSG+6cPBccWs5bnh8jJn+WNYjnY6tbU+95wm45fVD+JjFh+B9SZKQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795745141;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795745152;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=picejmAYeYiiNfYfXU0F+mVrr1pf5wXsShxuFsBLdfc=;
-	b=qrNl0Aup82rgNyymvsFQgrS4eYqth3x22l2gYFARorwB9p6MGcu5ASDSrkdKyq/R/61n
-	 6YT+8T3uZ/xa+IE3wy6xwf1UymYnmLfCuj23QKrBznjStSogEIJqlnthz35nJPQcTlhD4
-	 ahphyFd00gNwPOvglw81q5iLF0qdcgtF74jve78MITFo7dfgAu5Io5d31MAVveizfit7D
-	 olyyIu0FTJTwMwMzIMMvLAwUDBtITWxK0xz9i9rRZZGW1jP9SNlVJZf2WmfJbwIjQB0h3
-	 j0Vb7n5miLm2BBWxLxg8f4Ai71AHYuNcVyiq+P47WDu/sdxYcMVSuZLebQxc8B1tI2w==
+	bh=fqMgBPD9H3CrHeUrj4ntaejjGpq00GCCI2hRemfrNA4=;
+	b=ZvMtC4OZy1R8KPQDKahWFLN+aiLNgovpLCfcTCl/2SL7m3VasiF9KVgKfJpAGfqV12eA
+	 5eyFxbK49xvSXmOO9dhemLHjIFyco86kzyIuO5X+mPG0O8x/MB/t9TvuLghFTf15yr//v
+	 cGdpwQ65zkeWgT12h/OX/xX5vm8cM9v/vMgz998Peu+jB66crZ2EPIIWCX4pVgl82oXnc
+	 3lDiS7DWp6I9OMPjGPM0x/CpBwmI31KdTtPRuAyuo+kSw4zXvRl2l95lLmFA9hMrrVdSx
+	 BGG2rHzSo0vh7kWWLePRFU6MbKzJ/WlGlX5t3ikdyGlpznDSNw27fsWbd5mGW26uK5Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=CL5TjwCJ;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=k+dgGTTd;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1FFD606A31C
-	for <mm-commits@vger.kernel.org>; Fri, 27 Nov 2026 02:05:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E87B7606A332
+	for <mm-commits@vger.kernel.org>; Fri, 27 Nov 2026 02:05:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=CL5TjwCJ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 161141F00893;
-	Fri, 27 Nov 2026 02:05:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=k+dgGTTd
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A2921F00897;
+	Fri, 27 Nov 2026 02:05:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795745141;
-	bh=picejmAYeYiiNfYfXU0F+mVrr1pf5wXsShxuFsBLdfc=;
+	d=linux-foundation.org; s=korg; t=1795745151;
+	bh=fqMgBPD9H3CrHeUrj4ntaejjGpq00GCCI2hRemfrNA4=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=CL5TjwCJ9CUQgOx4q/xueZRLuu/aPZXBqxituu8X28y7cKU0iT5rBBfQlpA4W+BAF
-	 GDs9QQvsJuYL2/zYWVtew6Bi7I//fZ7gApcAqvW5sE7SPPsSJx1em1ymjdienV3vSU
-	 tUbNbN+f4kB0SJMe7S71Aq73WR0NOh+kHl4XSNEk=
-Date: Thu, 26 Nov 2026 18:05:40 -0800
+	b=k+dgGTTduN2mKLSLQJjK99B1YO6TYIvJu1Qgt5FgQTGzko8Aka4kYtp2mJCv4/rve
+	 DninN5cRXpLBpjPm7wnkrYQIBT3T05M3ob/iZJ0eaweb6sOPrlNtEa9wQHT5ICnoje
+	 lPKNuAmx9oxc+hz9yYicaLiNwPJjWsAMiBzxlawA=
+Date: Thu, 26 Nov 2026 18:05:51 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,
-	tom.leiming@gmail.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,
-	qi.zheng@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,
-	jack@suse.cz,hch@lst.de,hannes@cmpxchg.org,gthelen@google.com,greg@kroah.com,
-	david@kernel.org,brauner@kernel.org,axboe@kernel.dk,tj@kernel.org,
-	akpm@linux-foundation.org
+	tom.leiming@gmail.com,tj@kernel.org,shakeel.butt@linux.dev,
+	roman.gushchin@linux.dev,qi.zheng@linux.dev,muchun.song@linux.dev,
+	mhocko@kernel.org,ljs@kernel.org,jack@suse.cz,hch@lst.de,hannes@cmpxchg.org,
+	gthelen@google.com,greg@kroah.com,david@kernel.org,brauner@kernel.org,
+	axboe@kernel.dk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <17d0d1395c0237d201a1abb2473d51f5@kernel.org>
-References: <17d0d1395c0237d201a1abb2473d51f5@kernel.org>
-Subject: + mm-vmscan-fix-legacy-memcg-reclaim-deadlock-against-filesystem-freeze.patch added to mm-new branch
-Message-Id: <20261127020541.161141F00893@smtp.kernel.org>
+In-Reply-To: <20261126180228.9b672a945d480e3d3f301985@linux-foundation.org>
+References: <20261126180228.9b672a945d480e3d3f301985@linux-foundation.org>
+Subject: + mm-vmscan-scope-freeze-writeback-skip-to-the-reclaim-target.patch added to mm-new branch
+Message-Id: <20261127020551.7A2921F00897@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -59,12 +59,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/vmscan: fix legacy memcg reclaim deadlock against filesystem freeze
+     Subject: mm/vmscan: scope freeze writeback skip to the reclaim target
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmscan-fix-legacy-memcg-reclaim-deadlock-against-filesystem-freeze.patch
+     mm-vmscan-scope-freeze-writeback-skip-to-the-reclaim-target.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-fix-legacy-memcg-reclaim-deadlock-against-filesystem-freeze.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-scope-freeze-writeback-skip-to-the-reclaim-target.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -93,282 +93,199 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Tejun Heo <tj@kernel.org>
-Subject: mm/vmscan: fix legacy memcg reclaim deadlock against filesystem freeze
-Date: Thu, 26 Nov 2026 02:08:56 -1000
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm/vmscan: scope freeze writeback skip to the reclaim target
+Date: Tue, 17 Nov 2026 14:04:43 -0800
 
-Legacy memcg reclaim has no dirty throttling, and shrink_folio_list()
-waits for a folio that is under writeback and already marked for reclaim
-(case 3 in its comment).  That wait can deadlock against a filesystem
-freeze:
+The freeze workaround sets memcg_wb_wait_skip globally when a memcg's
+writeback wait times out.  While any superblock freeze is pending, this
+makes reclaimers in unrelated memcgs bypass their writeback waits and can
+drive an otherwise recoverable cgroup to OOM.
 
-1. A task in write() to filesystem B holds freeze protection on B, enters
-   memcg reclaim and waits for writeback of a folio of a filesystem on a
-   loop device backed by a file on B.
+Store the flag in the reclaim target memcg instead.  Use
+sc->target_mem_cgroup, not the folio's memcg: reclaim against a parent
+limit scans descendants.  This also keeps the skip across successive
+try_to_free_mem_cgroup_pages() calls in try_charge_memcg(), each of which
+creates a new scan_control.  Reclaim against a different target must first
+time out on its own writeback.
 
-2. A freeze of B waits for the task to drop its freeze protection.
+Reclaimers sharing the target can still OOM early during a freeze.
 
-3. The loop worker has to take freeze protection on B to write the folio out
-   and blocks behind the freeze.
+Reclaimers of the same target can run concurrently, without a lock
+protecting this flag.  Keep READ_ONCE() and WRITE_ONCE() for its lockless
+loads and stores.  The flag does not publish any other data.  As with the
+global flag, a clear racing with a new timeout may cost another 15-second
+wait; the timeout path can set the flag again.
 
-The same applies to any driver that writes to a file on a local filesystem
-to serve block I/O and takes freeze protection for it.
-
-Reclaim can't tell which filesystem a writeback depends on.  Count the
-superblocks that are being frozen and make the wait time out after 15
-seconds.  If one is being frozen at that point, warn and give up.  Until
-none is, treat such folios like case 2 and skip the legacy writeback
-throttle, so that the task a freeze may be waiting for isn't held up.
-
-This trades the deadlock for premature memcg OOM kills during such a
-freeze.  The wait also no longer hits the folio_wait_writeback tracepoint,
-and the hung task detector no longer reports a task stuck in it for
-another reason as the task wakes up every 15 seconds.
-
-Link: https://patch.msgid.link/17d0d1395c0237d201a1abb2473d51f5@kernel.org
-Fixes: e62e384e9da8 ("memcg: prevent OOM with too many dirty pages")
-Signed-off-by: Tejun Heo <tj@kernel.org>
+Link: https://lore.kernel.org/20261126180228.9b672a945d480e3d3f301985@linux-foundation.org
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Christian Brauner <brauner@kernel.org>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Christian Brauner (Amutable) <brauner@kernel.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner (Amutable) <brauner@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Greg Kroah-Hartman <greg@kroah.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Greg Kroah-Hartman <greg@kroah.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Ming Lei <tom.leiming@gmail.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 
- fs/super.c               |    7 ++++
- include/linux/fs/super.h |    1 
- mm/filemap.c             |   22 ++++++++++++--
- mm/internal.h            |    1 
- mm/vmscan.c              |   58 +++++++++++++++++++++++++++++++++++--
- 5 files changed, 83 insertions(+), 6 deletions(-)
+ include/linux/memcontrol.h |    2 +
+ mm/vmscan.c                |   52 ++++++++++++++++++++---------------
+ 2 files changed, 33 insertions(+), 21 deletions(-)
 
---- a/fs/super.c~mm-vmscan-fix-legacy-memcg-reclaim-deadlock-against-filesystem-freeze
-+++ a/fs/super.c
-@@ -48,6 +48,9 @@ static int thaw_super_locked(struct supe
- static LIST_HEAD(super_blocks);
- static DEFINE_SPINLOCK(sb_lock);
+--- a/include/linux/memcontrol.h~mm-vmscan-scope-freeze-writeback-skip-to-the-reclaim-target
++++ a/include/linux/memcontrol.h
+@@ -248,6 +248,8 @@ struct mem_cgroup {
+ 	struct list_head memory_peaks;
+ 	struct list_head swap_peaks;
+ 	spinlock_t	 peaks_lock;
++	/* Legacy writeback wait timed out during a filesystem freeze. */
++	bool wb_wait_skip;
  
-+/* nr of superblocks that freeze_super() is in the middle of freezing */
-+atomic_t sb_nr_freezing;
-+
- static char *sb_writers_name[SB_FREEZE_LEVELS] = {
- 	"sb_writers",
- 	"sb_pagefaults",
-@@ -2235,6 +2238,7 @@ retry:
- 		return 0;
- 	}
- 
-+	atomic_inc(&sb_nr_freezing);
- 	sb->s_writers.frozen = SB_FREEZE_WRITE;
- 	/* Release s_umount to preserve sb_start_write -> s_umount ordering */
- 	super_unlock_excl(sb);
-@@ -2249,6 +2253,7 @@ retry:
- 	ret = sync_filesystem(sb);
- 	if (ret) {
- 		sb->s_writers.frozen = SB_UNFROZEN;
-+		atomic_dec(&sb_nr_freezing);
- 		sb_freeze_unlock(sb, SB_FREEZE_PAGEFAULT);
- 		wake_up_var(&sb->s_writers.frozen);
- 		deactivate_locked_super(sb);
-@@ -2265,6 +2270,7 @@ retry:
- 			printk(KERN_ERR
- 				"VFS:Filesystem freeze failed\n");
- 			sb->s_writers.frozen = SB_UNFROZEN;
-+			atomic_dec(&sb_nr_freezing);
- 			sb_freeze_unlock(sb, SB_FREEZE_FS);
- 			wake_up_var(&sb->s_writers.frozen);
- 			deactivate_locked_super(sb);
-@@ -2278,6 +2284,7 @@ retry:
- 	WARN_ON_ONCE(freeze_inc(sb, who) > 1);
- 	sb->s_writers.freeze_owner = freeze_owner;
- 	sb->s_writers.frozen = SB_FREEZE_COMPLETE;
-+	atomic_dec(&sb_nr_freezing);
- 	wake_up_var(&sb->s_writers.frozen);
- 	lockdep_sb_freeze_release(sb);
- 	super_unlock_excl(sb);
---- a/include/linux/fs/super.h~mm-vmscan-fix-legacy-memcg-reclaim-deadlock-against-filesystem-freeze
-+++ a/include/linux/fs/super.h
-@@ -234,6 +234,7 @@ int freeze_super(struct super_block *sup
- 		 const void *freeze_owner);
- int thaw_super(struct super_block *super, enum freeze_holder who,
- 	       const void *freeze_owner);
-+extern atomic_t sb_nr_freezing;
- 
- int sb_init_dio_done_wq(struct super_block *sb);
- 
---- a/mm/filemap.c~mm-vmscan-fix-legacy-memcg-reclaim-deadlock-against-filesystem-freeze
-+++ a/mm/filemap.c
-@@ -1245,8 +1245,8 @@ static inline bool folio_trylock_flag(st
- 	return true;
- }
- 
--static inline int folio_wait_bit_common(struct folio *folio, int bit_nr,
--		int state, enum behavior behavior)
-+static inline int folio_wait_bit_common_timeout(struct folio *folio, int bit_nr, int state,
-+		enum behavior behavior, long timeout)
- {
- 	wait_queue_head_t *q = folio_waitqueue(folio);
- 	int unfairness = sysctl_page_lock_unfairness;
-@@ -1324,7 +1324,9 @@ repeat:
- 			if (signal_pending_state(state, current))
- 				break;
- 
--			io_schedule();
-+			timeout = io_schedule_timeout(timeout);
-+			if (!timeout)
-+				break;
- 			continue;
- 		}
- 
-@@ -1393,6 +1395,13 @@ repeat:
- 	return wait->flags & WQ_FLAG_WOKEN ? 0 : -EINTR;
- }
- 
-+static inline int folio_wait_bit_common(struct folio *folio, int bit_nr, int state,
-+		enum behavior behavior)
-+{
-+	return folio_wait_bit_common_timeout(folio, bit_nr, state, behavior,
-+					     MAX_SCHEDULE_TIMEOUT);
-+}
-+
- #ifdef CONFIG_MIGRATION
- /**
-  * softleaf_entry_wait_on_locked - Wait for a migration entry or
-@@ -1490,6 +1499,13 @@ int folio_wait_bit_killable(struct folio
- }
- EXPORT_SYMBOL(folio_wait_bit_killable);
- 
-+/* wait up to @timeout jiffies for @bit_nr to clear, true if it cleared */
-+bool folio_wait_bit_timeout(struct folio *folio, int bit_nr, long timeout)
-+{
-+	return !folio_wait_bit_common_timeout(folio, bit_nr, TASK_UNINTERRUPTIBLE, SHARED,
-+					      timeout);
-+}
-+
- /**
-  * folio_put_wait_locked - Drop a reference and wait for it to be unlocked
-  * @folio: The folio to wait for.
---- a/mm/internal.h~mm-vmscan-fix-legacy-memcg-reclaim-deadlock-against-filesystem-freeze
-+++ a/mm/internal.h
-@@ -1278,6 +1278,7 @@ struct migration_target_control {
-  */
- ssize_t splice_folio_into_pipe(struct pipe_inode_info *pipe,
- 			       struct folio *folio, loff_t fpos, size_t size);
-+bool folio_wait_bit_timeout(struct folio *folio, int bit_nr, long timeout);
- 
- static inline bool vma_is_single_threaded_private(struct vm_area_struct *vma)
- {
---- a/mm/vmscan.c~mm-vmscan-fix-legacy-memcg-reclaim-deadlock-against-filesystem-freeze
+ 	/* memory.events and memory.events.local */
+ 	struct cgroup_file events_file;
+--- a/mm/vmscan.c~mm-vmscan-scope-freeze-writeback-skip-to-the-reclaim-target
 +++ a/mm/vmscan.c
-@@ -1157,6 +1157,55 @@ static bool may_enter_fs(struct folio *f
+@@ -1171,39 +1171,49 @@ static bool may_enter_fs(struct folio *f
+  *
+  * Reclaim can't tell which filesystem a writeback depends on. As a crude
+  * workaround, memcg_wait_writeback() times out and, if any filesystem is being
+- * frozen at that point, sets memcg_wb_wait_skip. While it is set, legacy memcg
+- * reclaim neither waits for nor throttles on writeback, so that the task a
+- * freeze may be waiting for isn't held up in reclaim and can drop its freeze
+- * protection. This can cause premature memcg OOM kills.
++ * frozen at that point, sets a skip flag on the reclaim target memcg. While
++ * it is set, reclaim against that target neither waits for nor throttles on
++ * writeback, so that the task a freeze may be waiting for isn't held up in
++ * reclaim and can drop its freeze protection. This can cause premature memcg
++ * OOM kills in that reclaim target.
+  */
+-static bool memcg_wb_wait_skip;
+-
+-/*
+- * Test memcg_wb_wait_skip. It takes effect only while a filesystem is being
+- * frozen and is cleared here once none is. A freeze that starts before it is
+- * cleared inherits the skip.
+- */
+-static bool memcg_skip_wb_wait(void)
++#ifdef CONFIG_MEMCG
++/* Retain the skip across separate reclaim attempts against the same limit. */
++static bool memcg_skip_wb_wait(struct scan_control *sc)
+ {
+-	if (!READ_ONCE(memcg_wb_wait_skip))
++	struct mem_cgroup *memcg = sc->target_mem_cgroup;
++
++	if (!memcg || !READ_ONCE(memcg->wb_wait_skip))
+ 		return false;
+ 	if (atomic_read(&sb_nr_freezing))
+ 		return true;
+-	WRITE_ONCE(memcg_wb_wait_skip, false);
++	WRITE_ONCE(memcg->wb_wait_skip, false);
+ 	return false;
  }
  
- /*
-+ * Legacy memcg reclaim has no dirty throttling and waits for writeback in
-+ * shrink_folio_list() instead. That wait can deadlock against a filesystem
-+ * freeze:
-+ *
-+ * 1. A task holds freeze protection on filesystem B, e.g. in write(), enters
-+ *    reclaim and waits for writeback of a folio whose I/O ends up as a write to
-+ *    B, e.g. through a loop device backed by a file on B.
-+ *
-+ * 2. A freeze of B waits for the task to drop its freeze protection.
-+ *
-+ * 3. The write to B waits for the freeze.
-+ *
-+ * Reclaim can't tell which filesystem a writeback depends on. As a crude
-+ * workaround, memcg_wait_writeback() times out and, if any filesystem is being
-+ * frozen at that point, sets memcg_wb_wait_skip. While it is set, legacy memcg
-+ * reclaim neither waits for nor throttles on writeback, so that the task a
-+ * freeze may be waiting for isn't held up in reclaim and can drop its freeze
-+ * protection. This can cause premature memcg OOM kills.
-+ */
-+static bool memcg_wb_wait_skip;
-+
-+/*
-+ * Test memcg_wb_wait_skip. It takes effect only while a filesystem is being
-+ * frozen and is cleared here once none is. A freeze that starts before it is
-+ * cleared inherits the skip.
-+ */
-+static bool memcg_skip_wb_wait(void)
+-/* wait for writeback of @folio, see memcg_wb_wait_skip for the timeout */
+-static void memcg_wait_writeback(struct folio *folio)
++/* Wait for writeback, unless a freeze stalls this reclaim target. */
++static void memcg_wait_writeback(struct folio *folio, struct scan_control *sc)
+ {
+ 	while (!folio_wait_bit_timeout(folio, PG_writeback, 15 * HZ)) {
+ 		if (atomic_read(&sb_nr_freezing)) {
+-			WRITE_ONCE(memcg_wb_wait_skip, true);
+-			pr_warn("memcg1 writeback wait timed out during fs freeze, skipping waits, may OOM early\n");
++			WRITE_ONCE(sc->target_mem_cgroup->wb_wait_skip, true);
++			pr_warn("memcg writeback wait timed out during fs freeze; "
++				"skipping waits for reclaim target, may OOM early\n");
+ 			return;
+ 		}
+ 	}
+ }
++#else
++static bool memcg_skip_wb_wait(struct scan_control *sc)
 +{
-+	if (!READ_ONCE(memcg_wb_wait_skip))
-+		return false;
-+	if (atomic_read(&sb_nr_freezing))
-+		return true;
-+	WRITE_ONCE(memcg_wb_wait_skip, false);
 +	return false;
 +}
 +
-+/* wait for writeback of @folio, see memcg_wb_wait_skip for the timeout */
-+static void memcg_wait_writeback(struct folio *folio)
++static void memcg_wait_writeback(struct folio *folio, struct scan_control *sc)
 +{
-+	while (!folio_wait_bit_timeout(folio, PG_writeback, 15 * HZ)) {
-+		if (atomic_read(&sb_nr_freezing)) {
-+			WRITE_ONCE(memcg_wb_wait_skip, true);
-+			pr_warn("memcg1 writeback wait timed out during fs freeze, skipping waits, may OOM early\n");
-+			return;
-+		}
-+	}
++	folio_wait_writeback(folio);
 +}
-+
-+/*
++#endif
+ 
+ /*
   * shrink_folio_list() returns the number of reclaimed pages
-  */
- static unsigned int shrink_folio_list(struct list_head *folio_list,
-@@ -1277,7 +1326,9 @@ retry:
- 		 *    reclaim flag set. memcg does not have any dirty folio
- 		 *    throttling so we could easily OOM just because too many
- 		 *    folios are in writeback and there is nothing else to
--		 *    reclaim. Wait for the writeback to complete.
-+		 *    reclaim. Wait for the writeback to complete. If
-+		 *    memcg_wait_writeback() gives up, such folios are treated
-+		 *    as in case 2 until no filesystem is being frozen.
- 		 *
- 		 * In cases 1) and 2) we activate the folios to get them out of
- 		 * the way while we continue scanning for clean folios on the
-@@ -1300,6 +1351,7 @@ retry:
+@@ -1351,7 +1361,7 @@ retry:
  
  			/* Case 2 above */
  			} else if (writeback_throttling_sane(sc) ||
-+			    memcg_skip_wb_wait() ||
+-			    memcg_skip_wb_wait() ||
++			    memcg_skip_wb_wait(sc) ||
  			    !folio_test_reclaim(folio) ||
  			    !may_enter_fs(folio, sc->gfp_mask) ||
  			    (mapping &&
-@@ -1325,7 +1377,7 @@ retry:
+@@ -1377,7 +1387,7 @@ retry:
  			/* Case 3 above */
  			} else {
  				folio_unlock(folio);
--				folio_wait_writeback(folio);
-+				memcg_wait_writeback(folio);
+-				memcg_wait_writeback(folio);
++				memcg_wait_writeback(folio, sc);
  				/* then go back and try same folio again */
  				list_add_tail(&folio->lru, folio_list);
  				continue;
-@@ -2086,7 +2138,7 @@ static void handle_reclaim_writeback(uns
+@@ -2138,7 +2148,7 @@ static void handle_reclaim_writeback(uns
  		 * enough for cgroupv1 writeback throttling to work
  		 * on a large system.
  		 */
--		if (!writeback_throttling_sane(sc))
-+		if (!writeback_throttling_sane(sc) && !memcg_skip_wb_wait())
+-		if (!writeback_throttling_sane(sc) && !memcg_skip_wb_wait())
++		if (!writeback_throttling_sane(sc) && !memcg_skip_wb_wait(sc))
  			reclaim_throttle(pgdat, VMSCAN_THROTTLE_WRITEBACK);
  	}
  
 _
 
-Patches currently in -mm which might be from tj@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vmscan-fix-legacy-memcg-reclaim-deadlock-against-filesystem-freeze.patch
+mm-vma-drop-mm-asynchronously-in-vma_start_read-fix.patch
+mm-vma-drop-mm-asynchronously-in-vma_start_read-fix-2.patch
+kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize-fix.patch
+selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
+alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
+alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
+selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
+selftests-mm-allocate-nr_pages-based-on-pmd-size-for-uffd-pmd_move-tests-fix.patch
+selftests-mm-retain-move-pmd-coverage-and-verify-huge-pmds.patch
+lib-test_xarray-check-unused-spare-node-after-range-creation.patch
+mm-memory-failure-dont-unpoison-a-leaked-raw_hwp_unreliable-folio-fix.patch
+mm-vmstat_kunit-add-synthetic-benchmark-for-mm-stats-fix.patch
+mm-prevent-pre-content-bypass-through-mremap-and-remap_file_pages.patch
+afs-do-not-put-error-pointer-after-address-lookup-failure.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-0.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-1.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-2.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-3.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-4.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-5.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-6.patch
+selftests-mm-check-that-fsync-reports-hard-poisoned-dirty-page-cache-fix-7.patch
+mm-vmscan-scope-freeze-writeback-skip-to-the-reclaim-target.patch
+ocfs2-unregister-the-jbd2-shrinker-before-journal-shutdown.patch
+ipc-msg-clamp-negative-msg_info-usage-counts.patch
+squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix.patch
+ocfs2-skip-network-flush-when-no-domain-handlers-are-registered.patch
+selftests-ptrace-check-that-ptrace_set_syscall_info-rejects-invalid-error-values-fix.patch
+lib-asn1_encoder-fix-encoding-of-zero-oid-components.patch
+proc-serialize-task-owner-updates.patch
+proc-dont-lock-task-inodes-whose-owner-has-not-changed.patch
+scripts-bloat-o-meter-describe-output-fields-in-help-text-fix.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
