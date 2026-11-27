@@ -1,49 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795738870;
-	b=vFu3nYurtms12/Z+/7LcDf+i9XZ3OoJ7MA0makfvsE56hjGnCMQaUgK+QDGhtDGWRHgp
-	 bcsSFCx19Weosyo1+/hyEISHfCO8e/xoqbEz+CSulUs3hITBvC3seNnbqnPtiVq4VTA8W
-	 yhwjSS6n2jO8nvFflVOo6tACWLjZUxUfdfEHN3Pb2XK81oFASVx8MiPUkfZoffojhTJVU
-	 R8jX7S1vyv/asKst6BvrnzlUzlWXx1/JyUlKIMuh60X2VMawO+8BTLzUXq1W6xZ4loLxQ
-	 HdveNrvFhHrXz5GAFf0ibDLo42MTJ93WScuY6w2HCZBPm5aRve8Jb6coAw20egr71UQ==
+	t=1795742366;
+	b=NUJOYwbNn3veQNxJ9KPIKoSLks6sHe4Z0sfifGzTV6YshSXHkG5lIYSExYWwXUVqlK+p
+	 HukWIc5eM2gK9+Jv9B/nhAaV5S0bMVzBXpqAN5OguVD+GobX9gXsSYuJnSmuqmvmMouE5
+	 61qrHR5HSPhWBPJZaVTh2dtthlF4OMRolk5Ig4XXi9SFPKhl603UeFoy+tNsOSUH3LDLg
+	 JE1vcgUmxmwb5khummWMTr88Jp6yOCGQFhMScu1IEvPACp68jToKoEg6zH2O1Vsk9uNjl
+	 AVW705w5yblL7oq9NQzouCT8Cora8tJXT1TuCuSYDnIHkRPZms7Qw7hkw9TJTJX8Wlg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795738870;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795742366;
 	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
 	 Message-Id;
-	bh=u8SehR6jEKECw2flcoJo+rwqlukikiJQlhjsBSaPj8k=;
-	b=WoIJ1R58itVxDapd+3z+cn1LrhoEgxPM6aJYUQvM3wXSBTRWVzRia4sG6yal5Oq+Hn97
-	 a3mOaz3rhmusFphKIe9WPC4yTobNw89ZTFpP0iQ7AfxH5jTK3O+ZqPnDNVDOoEzOzLwVz
-	 GV4WrUBei28EtuzDLMVV6yRQyXv+AFofexwKrPxQkOXBK0zL+xNilqCZBb1LRpm0I45ql
-	 WEAgS7+ObiFVszBSn/1IY9lEglyoKfXNgY7Sm0mwFaUIXJFkwX8wMAmXW4n1VNjiQWiVY
-	 Vlt5S+6XwHtskmWBjrKSBBkRm+TMk7mS/cOlisDMPRHq1wTrQGvBOcChUZud6n4s8Lg==
+	bh=64flVjBDnrU72YvR+G7I9IfTlEVBHZROISseGqmoflk=;
+	b=rUnS63YWw9foo4TUUCNUhJizYLnziyLXcZX7wPRvrzWTh8mSiqfobVnSKgFdL/kvlIHv
+	 7Lon8Cqe8MFmLcu6zJHCV2m8iTQdfIzsfqbQWeZjnnRyvQsG7WUvfT+fwZiW4HyJhYrpm
+	 cqNhizwvtHB3pSkMsGruCkCiaSyyzhg6a+ZbWfuQio/FWNk3cotu9CNG6o8QkZ0o3gpW+
+	 7i90UWxhFIjwCViSloHzk1gYFDa7+iKkqPlRUFtIgmjGXgeKOC4R1aVE6tpbC1SPZZpIV
+	 tJjVmcBvpCihbO4KMgX16+j6Tt/8wHiVn5jL2zbZnZmch2CEPm0es3sfVoZv16dsICA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=emdnWdsp;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=qDNfSCUZ;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE375606A31E
-	for <mm-commits@vger.kernel.org>; Fri, 27 Nov 2026 00:21:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45183606A324
+	for <mm-commits@vger.kernel.org>; Fri, 27 Nov 2026 01:19:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=emdnWdsp
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 084F41F0089A;
-	Fri, 27 Nov 2026 00:21:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=qDNfSCUZ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1C651F000C1;
+	Fri, 27 Nov 2026 01:19:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795738870;
-	bh=u8SehR6jEKECw2flcoJo+rwqlukikiJQlhjsBSaPj8k=;
+	d=linux-foundation.org; s=korg; t=1795742365;
+	bh=64flVjBDnrU72YvR+G7I9IfTlEVBHZROISseGqmoflk=;
 	h=Date:To:From:In-Reply-To:References:Subject;
-	b=emdnWdspmHq6IqoZQltWATcAcSElVmxrY6kALKIHASNLJsHwMv+q3T8nnyMRlXiv2
-	 MrUA2ajXJqDcKFQ8/blIwiQAJbbeUjEFU9Ba72QpRW5rSB5tNSC7bO1bYaNcGE1O3Q
-	 1rvwk0g2lUFtUPDQ7hE+r+y4IqDRxAjN9tV9yrUc=
-Date: Thu, 26 Nov 2026 16:21:09 -0800
-To: mm-commits@vger.kernel.org,ycistak@gmail.com,linux@roeck-us.net,
-	asafbertizlioglu@gmail.com,akpm@linux-foundation.org
+	b=qDNfSCUZwAJpSzZ2N4r6vX5QazInEP1ag86zcZuQ/I5r000g0eYN53/uOfIphCxnE
+	 NatbRf6wjSdq41VOtH0ewz6EESYmjpt5jqiXW5Y3G6tSwFvN06DM4yCpMWhVNMGxZH
+	 4uSl1VDLZXJ5e7CLBJiudW3enho9rUBFgOKuF6tM=
+Date: Thu, 26 Nov 2026 17:19:25 -0800
+To: mm-commits@vger.kernel.org,ynorov@nvidia.com,vkoskiv@gmail.com,
+	edumazet@kernel.org,mfo@igalia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261126170501.49888-1-asafbertizlioglu@gmail.com>
-References: <20261126170501.49888-1-asafbertizlioglu@gmail.com>
-Subject: + mailmap-add-entry-for-asaf-nuri-bertizlioglu.patch added to mm-nonmm-unstable branch
-Message-Id: <20261127002110.084F41F0089A@smtp.kernel.org>
+In-Reply-To: <20261126-bloat-o-meter-help-v1-1-fb0785c94bbf@igalia.com>
+References: <20261126-bloat-o-meter-help-v1-1-fb0785c94bbf@igalia.com>
+Subject: + scripts-bloat-o-meter-describe-output-fields-in-help-text.patch added to mm-nonmm-unstable branch
+Message-Id: <20261127011925.C1C651F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mailmap: Add entry for Asaf Nuri Bertizlioğlu
+     Subject: scripts/bloat-o-meter: describe output fields in help text
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mailmap-add-entry-for-asaf-nuri-bertizlioglu.patch
+     scripts-bloat-o-meter-describe-output-fields-in-help-text.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-add-entry-for-asaf-nuri-bertizlioglu.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-bloat-o-meter-describe-output-fields-in-help-text.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -78,36 +78,67 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Asaf Nuri Bertizlioğlu <asafbertizlioglu@gmail.com>
-Subject: mailmap: Add entry for Asaf Nuri Bertizlioğlu
-Date: Thu, 26 Nov 2026 20:05:01 +0300
+From: Mauricio Faria de Oliveira <mfo@igalia.com>
+Subject: scripts/bloat-o-meter: describe output fields in help text
+Date: Thu, 26 Nov 2026 19:13:00 -0300
 
-Map my old address to my new one.  The old address appears in existing
-Tested-by and Signed-off-by tags; I will use the new address for all
-future contributions.
+First time users of the bloat-o-meter script might not understand what
+its output fields mean (add/remove, grow/shrink, up/down, Before/After),
+and even occasional users might eventually forget.
 
-Link: https://patch.msgid.link/20261126170501.49888-1-asafbertizlioglu@gmail.com
-Signed-off-by: Asaf Nuri Bertizlioğlu <asafbertizlioglu@gmail.com>
+Describe the output fields in the help text, so it is quick to find out.
+
+RawTextHelpFormatter is used in order to keep line breaks in place.
+
+Link: https://patch.msgid.link/20261126-bloat-o-meter-help-v1-1-fb0785c94bbf@igalia.com
+Signed-off-by: Mauricio Faria de Oliveira <mfo@igalia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Asaf Nuri Bertizlioğlu <ycistak@gmail.com>
+Cc: Yury Norov <ynorov@nvidia.com>
+Cc: Valtteri Koskivuori <vkoskiv@gmail.com>
+Cc: Eric Dumazet <edumazet@kernel.org>
 
- .mailmap |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/bloat-o-meter |   24 +++++++++++++++++++++++-
+ 1 file changed, 23 insertions(+), 1 deletion(-)
 
---- a/.mailmap~mailmap-add-entry-for-asaf-nuri-bertizlioglu
-+++ a/.mailmap
-@@ -128,6 +128,7 @@ Ard Biesheuvel <ardb@kernel.org> <ard.bi
- Arnaud Patard <arnaud.patard@rtp-net.org>
- Arnd Bergmann <arnd@arndb.de>
- Arun Kumar Neelakantam <quic_aneela@quicinc.com> <aneela@codeaurora.org>
-+Asaf Nuri Bertizlioğlu <asafbertizlioglu@gmail.com> <ycistak@gmail.com>
- Asahi Lina <lina+kernel@asahilina.net> <lina@asahilina.net>
- Ashok Raj Nagarajan <quic_arnagara@quicinc.com> <arnagara@codeaurora.org>
- Ashwin Chaugule <quic_ashwinc@quicinc.com> <ashwinc@codeaurora.org>
+--- a/scripts/bloat-o-meter~scripts-bloat-o-meter-describe-output-fields-in-help-text
++++ a/scripts/bloat-o-meter
+@@ -9,10 +9,32 @@
+ 
+ import sys, os, re, argparse
+ from signal import signal, SIGPIPE, SIG_DFL
++from argparse import RawTextHelpFormatter
+ 
+ signal(SIGPIPE, SIG_DFL)
+ 
+-parser = argparse.ArgumentParser(description="Simple script used to compare the symbol sizes of 2 object files")
++description = \
++"""
++Simple script used to compare the symbol sizes of 2 object files
++
++fields:
++  add/remove:   number of symbols added in the new file / removed from the old file.
++  grow/shrink:  number of symbols in both files that had a size increase / decrease.
++  up/down:      size of symbols added plus size increase / removed plus size decrease.
++  (change):     difference between up and down sizes.
++
++  Symbol lines: symbol name, old size, new size, and size delta;
++                '-' means symbol added/removed;
++                '0' delta symbols not included.
++
++  Before:       size of all symbols in old file.
++  After:        size of all symbols in new file.
++  chg:          percent change.
++
++  Symbols in both files with the same size are only counted in Before/After/chg.
++"""
++
++parser = argparse.ArgumentParser(description=description, formatter_class=RawTextHelpFormatter)
+ group = parser.add_mutually_exclusive_group()
+ group.add_argument('-c', help='categorize output based on symbol type', action='store_true')
+ group.add_argument('-d', help='Show delta of Data Section', action='store_true')
 _
 
-Patches currently in -mm which might be from asafbertizlioglu@gmail.com are
+Patches currently in -mm which might be from mfo@igalia.com are
 
-mailmap-add-entry-for-asaf-nuri-bertizlioglu.patch
+scripts-bloat-o-meter-describe-output-fields-in-help-text.patch
 
