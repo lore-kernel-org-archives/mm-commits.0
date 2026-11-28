@@ -1,50 +1,79 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.12
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795824685;
-	b=yGxBhBv/aJZ5cdDQr4QnCJzePzaWYaE90mf2loDqGk2nKNFeWt88HqVOrOlYEbPdvLX6
-	 mGz4kCLMWJpSVcpoOV0COmCVtirmkXKRSG606Jtkl7pUJqFNFTBjIozsg5nY0cEzPcnyR
-	 H+i9QhwF2utWN5KzcJyMF7T3tYKadg1jpDiAMYd4RiSTPaAd/XI3sXJY9K2xbuBVhhz2K
-	 BE6F4JwKuVCIR+1/lUQs4rMGcdeVKsAFZNX5Z7zgnHtRx2xqSzLfwKYNDSeYDCfxdKSY2
-	 6704mdpAEuiRlV+DQiOn6Ml+0CWT3YD0wxky2/jCFSZEUH604bIEgC5g29jQlIQ7i2g==
+	t=1795842736;
+	b=tSII7qWueSGN5yghTTFF6UbebhRMQuVShA6JTkQbzSkp5CFioCO5LK6ZckcaolTEcalX
+	 TOs7x1Rf8HHGgzNHiVRuZL5FT9ilPYlO5jn5AEakAU8TTTlJDy32Yh1iOvHr11N1aTxtT
+	 HMMSc/TuvbVro3ApIdWLYQG9sX1ZTdUCYYcfG476W7emIsQhKlF6gT2X20h5ZPfYxb+EY
+	 bUFAQmCR3HptRZk+++Cp7oWPJAcgoXFChA2HRzvCzBJEnkMfuJCfum66IQrcs8exEBX0d
+	 Cx8bsLrlBEoHxfGnvPDWH/87WoByuPCUpkJr/IHkzVCIatwCQytasdbX5PPDXweAfIA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795824685;
-	h=Received:DKIM-Signature:Date:To:From:In-Reply-To:References:Subject:
-	 Message-Id;
-	bh=Wx8rKSiyv3SLQnwE5pYDCSmjWlHLodG8vaxumDw+wWI=;
-	b=qR+1MgSxlhfMK4Vxg/KKIpJk8nRRbCp+UFv6UXXMvptpld4PWGNCoGHsQCh4AAEeYw2j
-	 3d6v8pPxZ+k/TGnX3wn3IsLv5/IwU0z22b1AFxLhlTyp8xocV+NgtGW6dENZXoWV6jgM3
-	 ox0yxYInO0GVhlEaWXNntlflR89s/85zyWv9LC8L/6oneVjm3GyIJr2e7SWSa1kQRP7cP
-	 ELIEpR9DEwq/+ncK8IiErRN1usayQ7MCRvJPwGMlxW8EPOoJqArHnL0X8TJsDep60C5kZ
-	 qvuVn6JccjPlazyr3j//CmUhQiGL1NwnP26QlJKWGwGcrhxVwewp6geeEeGpVboyitA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795842736;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
+	 Cc:Subject:Message-ID:User-Agent;
+	bh=mQhZ0Rpe582oGSmJzrc5wrx+1NfOeiMeUFY1k2TTu3A=;
+	b=BfsD/5t3Bi44vdyG9ACF4hyTydHGI07ZjfdZTgiLBh8jscUGmQ0IQ5RmI9Yo/i/pSYTR
+	 i6roRvu6G1d+Pa4AAQHjHuEXX8YUeISWM6ylnAGhcdASjVhtqzYS+/qMqFcDZi+PSRzeA
+	 gypSJ2f5p4Q8av1unHK9AwnrMSWQ9ReY/yoXkl8bn4YhcoXosVRONLoCkm1PgdlznLQfl
+	 /GTDLEA5tlUiJF/SFtrgDgPDYghaREcJqEPG/PiyfOWnAs25XAz4TD+Og/MFbt3do4cI+
+	 TuKqYvZtf/bBH7oUxX8YkYMAtcFg5LL2kktJUWCCh69qcrIaMpXIqgf1xlvn4fsHCEQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Xooyti2F;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=intel.com;
+	spf=pass smtp.mailfrom=intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=hSmk+J9v;
+	arc=none smtp.remote-ip=198.175.65.12
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A63FE606A31C
-	for <mm-commits@vger.kernel.org>; Sat, 28 Nov 2026 00:11:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79C0D606A31C
+	for <mm-commits@vger.kernel.org>; Sat, 28 Nov 2026 05:12:16 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 79C0D606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Xooyti2F
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 477FA1F00893;
-	Sat, 28 Nov 2026 00:11:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1795824685;
-	bh=Wx8rKSiyv3SLQnwE5pYDCSmjWlHLodG8vaxumDw+wWI=;
-	h=Date:To:From:In-Reply-To:References:Subject;
-	b=Xooyti2FokKmGi1j0fM3smTJX/EtCBCNqrxWNhGUzl81bPApmS7Zi8uxu4+052LwY
-	 yySuZtJbUXoun33xOiNl93zESeaAG1YzkecLVXKVyPqpOwAuBIKG+mTbjQY+wKJiPy
-	 1ldqhKKPOlG6VprFDC3Fv7zdOl34Yy9uuH10eQU4=
-Date: Fri, 27 Nov 2026 16:11:24 -0800
-To: mm-commits@vger.kernel.org,hughd@google.com,gthelen@google.com,
-	david@kernel.org,baolin.wang@linux.alibaba.com,evanfengff@gmail.com,
-	akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20261127230015.30733-1-evanfengff@gmail.com>
-References: <20261127230015.30733-1-evanfengff@gmail.com>
-Subject: + tmpfs-reset-the-memory-policy-on-remount-with-mpol=default.patch added to mm-new branch
-Message-Id: <20261128001125.477FA1F00893@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=hSmk+J9v
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1795842736; x=1827378736;
+  h=date:from:to:cc:subject:message-id;
+  bh=gaeNwrCQmmeZLD+UpBMSQ5wrQen0hGARmnXlogyI7zQ=;
+  b=hSmk+J9v0YmR4YDtqH/D1J1ZVqktrvITYSTPLEsU/2mkPzBzElmDZAKx
+   +bQ8MrasUfxzVKl/SYsuvgmf88oo9X7ec6USWRqNEE8gHSYL/Lp5fGdbK
+   sD+qJjJZxt/qTeMWT/SrrZIrVp75q1qSZxvXBbSN18sIcjsN6iD7TRuPA
+   7kmrhMzk2cVTn2RJUvFtqVIYrNtx0aZdxmUzCkMkkL4JtrZ0qHM25c2TP
+   ieswBeNxnPCB5OsQMy5eIYAVrdGqITy0ZzXYtsu3ZBYml7ZYoQsW0srta
+   2x5XAvBpxdKRqA8Dzhz9HQYLCpA0601EOW3SEkwVtyfN0KOOntrDIJPVA
+   w==;
+X-CSE-ConnectionGUID: i0bYPncQQVyjaTdAJ8OvTQ==
+X-CSE-MsgGUID: oDBSxZphS3+ZMsEdM6H8Wg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11979"; a="4649422"
+X-IronPort-AV: E=Sophos;i="6.27,238,1787036400"; 
+   d="scan'208";a="4649422"
+Received: from orviesa006.jf.intel.com ([10.64.159.146])
+  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Nov 2026 21:12:16 -0800
+X-CSE-ConnectionGUID: amhjKOqXTbasDejXf8oNIA==
+X-CSE-MsgGUID: 84lOGwEKSGmWGnsT2fvvqQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,238,1787036400"; 
+   d="scan'208";a="12546650"
+Received: from igk-lkp-server01.igk.intel.com (HELO 146cf1e082f1) ([10.211.93.152])
+  by orviesa006.jf.intel.com with ESMTP; 27 Nov 2026 21:12:14 -0800
+Received: from kbuild by 146cf1e082f1 with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1xXAjL-000000000WA-2hQS;
+	Sat, 28 Nov 2026 05:12:11 +0000
+Date: Sat, 28 Nov 2026 06:11:18 +0100
+From: kernel test robot <lkp@intel.com>
+To: "David Hildenbrand (Arm)" <david@kernel.org>
+Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Linux Memory Management List <linux-mm@kvack.org>,
+ mm-commits@vger.kernel.org
+Subject: [akpm-mm:mm-unstable 303/428] mm/huge_memory.c:2546:67:
+ error: too few arguments to function call, expected 4, have 3
+Message-ID: <20261128060622.OMTGOfau-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,103 +83,92 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-unstable
+head:   ac6a52aad42728ef45e6972c403072fba5c524f4
+commit: 5a7c0c5e349b6b13c1689fedd1a82073b4679418 [303/428] mm/hugetlb: delay anon folio rmap removal until after the TLB flush
+config: x86_64-kexec (https://download.01.org/0day-ci/archive/20261128/20261128060622.OMTGOfau-lkp@intel.com/config)
+compiler: clang version 22.1.8 (https://github.com/llvm/llvm-project ca7933e47d3a3451d81e72ac174dcb5aa28b59d1)
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20261128/20261128060622.OMTGOfau-lkp@intel.com/reproduce)
 
-The patch titled
-     Subject: tmpfs: reset the memory policy on remount with mpol=default
-has been added to the -mm mm-new branch.  Its filename is
-     tmpfs-reset-the-memory-policy-on-remount-with-mpol=default.patch
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/20261128060622.OMTGOfau-lkp@intel.com/
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tmpfs-reset-the-memory-policy-on-remount-with-mpol=default.patch
+All errors (new ones prefixed by >>):
 
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+>> mm/huge_memory.c:2546:67: error: too few arguments to function call, expected 4, have 3
+    2546 |         else if (__tlb_remove_page_size(tlb, &folio->page, HPAGE_PMD_SIZE))
+         |                  ~~~~~~~~~~~~~~~~~~~~~~                                  ^
+   include/asm-generic/tlb.h:248:6: note: '__tlb_remove_page_size' declared here
+     248 | bool __tlb_remove_page_size(struct mmu_gather *tlb, struct page *page,
+         |      ^                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     249 |                 int page_size, bool delay_rmap);
+         |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   1 error generated.
 
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
-The mm-new branch of mm.git is not included in linux-next
+vim +2546 mm/huge_memory.c
 
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
+953c66c2b22a304 Aneesh Kumar K.V         2016-12-12  2503  
+c818150bf00b0b4 David Hildenbrand (Arm   2026-11-16  2504) static void zap_huge_pmd_folio(struct mmu_gather *tlb, struct vm_area_struct *vma,
+c818150bf00b0b4 David Hildenbrand (Arm   2026-11-16  2505) 		pmd_t pmdval, struct folio *folio, bool is_present, bool *force_flush)
+f87854c90910142 Lorenzo Stoakes (Oracle  2026-03-20  2506) {
+63a940541358d09 Chris Mason              2026-10-31  2507  	const bool is_device_private = pmd_is_device_private_entry(pmdval);
+c818150bf00b0b4 David Hildenbrand (Arm   2026-11-16  2508) 	struct mm_struct *mm = tlb->mm;
+c818150bf00b0b4 David Hildenbrand (Arm   2026-11-16  2509) 	bool delay_rmap = false;
+f87854c90910142 Lorenzo Stoakes (Oracle  2026-03-20  2510) 
+f87854c90910142 Lorenzo Stoakes (Oracle  2026-03-20  2511) 	if (folio_test_anon(folio)) {
+f87854c90910142 Lorenzo Stoakes (Oracle  2026-03-20  2512) 		add_mm_counter(mm, MM_ANONPAGES, -HPAGE_PMD_NR);
+f87854c90910142 Lorenzo Stoakes (Oracle  2026-03-20  2513) 	} else {
+f87854c90910142 Lorenzo Stoakes (Oracle  2026-03-20  2514) 		add_mm_counter(mm, mm_counter_file(folio),
+f87854c90910142 Lorenzo Stoakes (Oracle  2026-03-20  2515) 			       -HPAGE_PMD_NR);
+f87854c90910142 Lorenzo Stoakes (Oracle  2026-03-20  2516) 
+c818150bf00b0b4 David Hildenbrand (Arm   2026-11-16  2517) 		if (is_present && pmd_dirty(pmdval)) {
+fe6cf984939d8e1 Usama Arif               2026-08-19  2518  			folio_mark_dirty(folio);
+c818150bf00b0b4 David Hildenbrand (Arm   2026-11-16  2519) 			/*
+c818150bf00b0b4 David Hildenbrand (Arm   2026-11-16  2520) 			 * Remove rmap after the TLB flush if stale TLB entries
+c818150bf00b0b4 David Hildenbrand (Arm   2026-11-16  2521) 			 * could still be used to write to a mapping that
+c818150bf00b0b4 David Hildenbrand (Arm   2026-11-16  2522) 			 * supports writeback.
+c818150bf00b0b4 David Hildenbrand (Arm   2026-11-16  2523) 			 */
+c818150bf00b0b4 David Hildenbrand (Arm   2026-11-16  2524) 			if (!tlb->fullmm && vma->vm_file &&
+c818150bf00b0b4 David Hildenbrand (Arm   2026-11-16  2525) 			    mapping_can_writeback(vma->vm_file->f_mapping))
+c818150bf00b0b4 David Hildenbrand (Arm   2026-11-16  2526) 				delay_rmap = tlb_can_delay_rmap();
+c818150bf00b0b4 David Hildenbrand (Arm   2026-11-16  2527) 		}
+f87854c90910142 Lorenzo Stoakes (Oracle  2026-03-20  2528) 		if (is_present && pmd_young(pmdval) &&
+f87854c90910142 Lorenzo Stoakes (Oracle  2026-03-20  2529) 		    likely(vma_has_recency(vma)))
+f87854c90910142 Lorenzo Stoakes (Oracle  2026-03-20  2530) 			folio_mark_accessed(folio);
+f87854c90910142 Lorenzo Stoakes (Oracle  2026-03-20  2531) 	}
+f87854c90910142 Lorenzo Stoakes (Oracle  2026-03-20  2532) 
+c818150bf00b0b4 David Hildenbrand (Arm   2026-11-16  2533) 	if (!is_present && !is_device_private)
+c818150bf00b0b4 David Hildenbrand (Arm   2026-11-16  2534) 		return;
+c818150bf00b0b4 David Hildenbrand (Arm   2026-11-16  2535) 
+e6a07d29b0a60f3 Chris Mason              2026-10-31  2536  	/*
+e6a07d29b0a60f3 Chris Mason              2026-10-31  2537  	 * Present and device private folios are rmappable. Remove the
+e6a07d29b0a60f3 Chris Mason              2026-10-31  2538  	 * rmap after transferring young+dirty to the folio.
+e6a07d29b0a60f3 Chris Mason              2026-10-31  2539  	 */
+c818150bf00b0b4 David Hildenbrand (Arm   2026-11-16  2540) 	if (!delay_rmap)
+e6a07d29b0a60f3 Chris Mason              2026-10-31  2541  		folio_remove_rmap_pmd(folio, &folio->page, vma);
+e6a07d29b0a60f3 Chris Mason              2026-10-31  2542  
+c818150bf00b0b4 David Hildenbrand (Arm   2026-11-16  2543) 	/* Device private folios are pinned and don't need a TLB flush. */
+f87854c90910142 Lorenzo Stoakes (Oracle  2026-03-20  2544) 	if (is_device_private)
+f87854c90910142 Lorenzo Stoakes (Oracle  2026-03-20  2545) 		folio_put(folio);
+c818150bf00b0b4 David Hildenbrand (Arm   2026-11-16 @2546) 	else if (__tlb_remove_page_size(tlb, &folio->page, HPAGE_PMD_SIZE))
+c818150bf00b0b4 David Hildenbrand (Arm   2026-11-16  2547) 		*force_flush = true;
+c818150bf00b0b4 David Hildenbrand (Arm   2026-11-16  2548) 
+c818150bf00b0b4 David Hildenbrand (Arm   2026-11-16  2549) 	if (delay_rmap) {
+c818150bf00b0b4 David Hildenbrand (Arm   2026-11-16  2550) 		tlb_flush_mmu_tlbonly(tlb);
+c818150bf00b0b4 David Hildenbrand (Arm   2026-11-16  2551) 		folio_remove_rmap_pmd(folio, &folio->page, vma);
+c818150bf00b0b4 David Hildenbrand (Arm   2026-11-16  2552) 	}
+f87854c90910142 Lorenzo Stoakes (Oracle  2026-03-20  2553) }
+f87854c90910142 Lorenzo Stoakes (Oracle  2026-03-20  2554) 
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+:::::: The code at line 2546 was first introduced by commit
+:::::: c818150bf00b0b42ff02bffc6a2c36d4f0ff7a52 mm/huge_memory: flush dirty file PMDs before removing rmap
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+:::::: TO: David Hildenbrand (Arm) <david@kernel.org>
+:::::: CC: David Hildenbrand (Arm) <david@kernel.org>
 
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Yifan Feng <evanfengff@gmail.com>
-Subject: tmpfs: reset the memory policy on remount with mpol=default
-Date: Fri, 27 Nov 2026 15:00:15 -0800
-
-mpol_parse_str() returns a NULL policy for "default", and
-shmem_reconfigure() takes a NULL ctx->mpol to mean that no mpol option was
-given.  So a remount with mpol=default succeeds but keeps the old policy:
-
-  # mount -t tmpfs -o mpol=bind:1 none /mnt
-  # mount -o remount,mpol=default /mnt
-  # grep /mnt /proc/mounts
-  none /mnt tmpfs rw,relatime,mpol=bind:1 0 0
-
-Record that an mpol option was parsed, and replace the policy whenever
-one was.
-
-Link: https://patch.msgid.link/20261127230015.30733-1-evanfengff@gmail.com
-Fixes: 5f00110f7273 ("tmpfs: fix use-after-free of mempolicy object")
-Signed-off-by: Yifan Feng <evanfengff@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Greg Thelen <gthelen@google.com>
-
- mm/shmem.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
---- a/mm/shmem.c~tmpfs-reset-the-memory-policy-on-remount-with-mpol=default
-+++ a/mm/shmem.c
-@@ -134,6 +134,7 @@ struct shmem_options {
- #define SHMEM_SEEN_HUGE 4
- #define SHMEM_SEEN_INUMS 8
- #define SHMEM_SEEN_QUOTA 16
-+#define SHMEM_SEEN_MPOL 32
- };
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-@@ -4905,6 +4906,7 @@ static int shmem_parse_one(struct fs_con
- 			ctx->mpol = NULL;
- 			if (mpol_parse_str(param->string, &ctx->mpol))
- 				goto bad_value;
-+			ctx->seen |= SHMEM_SEEN_MPOL;
- 			break;
- 		}
- 		goto unsupported_parameter;
-@@ -5117,7 +5119,7 @@ static int shmem_reconfigure(struct fs_c
- 	/*
- 	 * Preserve previous mempolicy unless mpol remount option was specified.
- 	 */
--	if (ctx->mpol) {
-+	if (ctx->seen & SHMEM_SEEN_MPOL) {
- 		mpol = sbinfo->mpol;
- 		sbinfo->mpol = ctx->mpol;	/* transfers initial ref */
- 		ctx->mpol = NULL;
-_
-
-Patches currently in -mm which might be from evanfengff@gmail.com are
-
-mm-damon-core-fix-damos_walk-hang-with-zero-watermarks-interval.patch
-mm-damon-core-do-not-overwrite-wmarksactivated-in-damos_commit.patch
-tools-mm-page_owner_sort-fix-slab-allocator-labelling.patch
-tmpfs-reset-the-memory-policy-on-remount-with-mpol=default.patch
-
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
